@@ -1,22 +1,17 @@
 import { Router } from 'express';
+import { authenticate } from '../../middleware/auth';
+import { CosmeticController } from '../controllers/CosmeticController';
+import { BoostController } from '../controllers/BoostController';
 
 const router = Router();
+const cosmeticController = new CosmeticController();
+const boostController = new BoostController();
 
-// TODO: Implement monetization routes
-router.get('/cosmetics', (req, res) => {
-  res.json({ message: 'Cosmetics endpoint - TODO' });
-});
+router.get('/cosmetics', authenticate, cosmeticController.list);
+router.post('/cosmetics/purchase', authenticate, cosmeticController.purchase);
+router.post('/cosmetics/equip', authenticate, cosmeticController.equip);
 
-router.post('/cosmetics/equip', (req, res) => {
-  res.json({ message: 'Equip cosmetic endpoint - TODO' });
-});
-
-router.post('/purchase', (req, res) => {
-  res.json({ message: 'Purchase endpoint - TODO' });
-});
-
-router.post('/boost/claim', (req, res) => {
-  res.json({ message: 'Claim boost endpoint - TODO' });
-});
+// TODO: Implement boost claims
+router.post('/boost/claim', authenticate, boostController.claim);
 
 export default router;

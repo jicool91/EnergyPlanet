@@ -5,13 +5,13 @@
 ### Week 1-2: Foundation
 **Backend Setup**
 - [x] Project structure setup
-- [ ] PostgreSQL schema & migrations
-- [ ] Redis integration
-- [ ] Telegram OAuth authentication
-- [ ] JWT token system
-- [ ] Basic API endpoints (/session, /tap, /tick)
-- [ ] Content loader (YAML/JSON)
-- [ ] Feature flags system
+- [x] PostgreSQL schema & migrations
+- [x] Redis integration
+- [x] Telegram OAuth authentication
+- [x] JWT token system
+- [x] Basic API endpoints (/session, /tap, /tick)
+- [x] Content loader (YAML/JSON)
+- [x] Feature flags system
 
 **Frontend Setup**
 - [ ] React + TypeScript boilerplate
@@ -33,12 +33,12 @@
 
 ### Week 3-4: Core Gameplay
 **Backend**
-- [ ] Building system (/upgrade endpoint)
-- [ ] Passive income calculation
-- [ ] Offline gains logic
-- [ ] XP & leveling system
-- [ ] Anti-cheat validation (tap & energy)
-- [ ] Leaderboard service with caching
+- [x] Building system (/upgrade endpoint)
+- [x] Passive income calculation
+- [x] Offline gains logic
+- [x] XP & leveling system
+- [x] Anti-cheat validation (tap & energy)
+- [x] Leaderboard service with caching
 
 **Frontend**
 - [ ] Main game screen (planet, tap mechanic)
@@ -58,16 +58,16 @@
 ---
 
 ### Week 5-6: Monetization & Social
-**Backend**
+-**Backend**
 - [ ] Telegram Stars integration
   - [ ] Invoice generation
   - [ ] Payment webhook handling
   - [ ] Purchase idempotency
 - [ ] Rewarded Ads integration (Yandex.Direct)
-- [ ] Boost system (ad boost, premium boost, daily boost)
-- [ ] Profile API (/profile/:userId)
+- [x] Boost system (ad boost, premium boost, daily boost)
+- [x] Profile API (/profile/:userId)
 - [ ] Cosmetics system (/cosmetics, /cosmetics/purchase)
-- [ ] Leaderboard API (/leaderboard)
+- [x] Leaderboard API (/leaderboard)
 
 **Frontend**
 - [ ] Energy shop (Star packs)

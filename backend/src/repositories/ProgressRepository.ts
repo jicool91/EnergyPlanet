@@ -1,0 +1,156 @@
+import { PoolClient } from 'pg';
+import { runQuery } from './base';
+
+export interface ProgressRecord {
+  userId: string;
+  level: number;
+  xp: number;
+  energy: number;
+  totalEnergyProduced: number;
+  tapLevel: number;
+  lastLogin: Date | null;
+  lastLogout: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+interface ProgressRow {
+  user_id: string;
+  level: number;
+  xp: string;
+  energy: string;
+  total_energy_produced: string;
+  tap_level: number;
+  last_login: string | null;
+  last_logout: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+function mapProgress(row: ProgressRow): ProgressRecord {
+  return {
+    userId: row.user_id,
+    level: row.level,
+    xp: Number(row.xp),
+    energy: Number(row.energy),
+    totalEnergyProduced: Number(row.total_energy_produced),
+    tapLevel: row.tap_level,
+    lastLogin: row.last_login ? new Date(row.last_login) : null,
+    lastLogout: row.last_logout ? new Date(row.last_logout) : null,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+export async function getProgress(
+  userId: string,
+  client?: PoolClient
+): Promise<ProgressRecord | null> {
+  const result = await runQuery<ProgressRow>(
+    `SELECT *
+     FROM progress
+     WHERE user_id = $1`,
+    [userId],
+    client
+  );
+
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  return mapProgress(result.rows[0]);
+}
+
+export async function createDefaultProgress(
+  userId: string,
+  client?: PoolClient
+): Promise<ProgressRecord> {
+  const result = await runQuery<ProgressRow>(
+    `INSERT INTO progress (user_id, level, xp, energy, total_energy_produced, tap_level)
+     VALUES ($1, 1, 0, 0, 0, 1)
+     RETURNING *`,
+    [userId],
+    client
+  );
+
+  return mapProgress(result.rows[0]);
+}
+
+export interface UpdateProgressInput {
+  level?: number;
+  xp?: number;
+  energy?: number;
+  totalEnergyProduced?: number;
+  tapLevel?: number;
+  lastLogin?: Date | null;
+  lastLogout?: Date | null;
+}
+
+export async function updateProgress(
+  userId: string,
+  data: UpdateProgressInput,
+  client?: PoolClient
+): Promise<ProgressRecord> {
+  const fields: string[] = [];
+  const values: any[] = [];
+
+  if (data.level !== undefined) {
+    fields.push(`level = $${fields.length + 1}`);
+    values.push(data.level);
+  }
+
+  if (data.xp !== undefined) {
+    fields.push(`xp = $${fields.length + 1}`);
+    values.push(data.xp);
+  }
+
+  if (data.energy !== undefined) {
+    fields.push(`energy = $${fields.length + 1}`);
+    values.push(data.energy);
+  }
+
+  if (data.totalEnergyProduced !== undefined) {
+    fields.push(`total_energy_produced = $${fields.length + 1}`);
+    values.push(data.totalEnergyProduced);
+  }
+
+  if (data.tapLevel !== undefined) {
+    fields.push(`tap_level = $${fields.length + 1}`);
+    values.push(data.tapLevel);
+  }
+
+  if (data.lastLogin !== undefined) {
+    fields.push(`last_login = $${fields.length + 1}`);
+    values.push(data.lastLogin);
+  }
+
+  if (data.lastLogout !== undefined) {
+    fields.push(`last_logout = $${fields.length + 1}`);
+    values.push(data.lastLogout);
+  }
+
+  if (fields.length === 0) {
+    const current = await getProgress(userId, client);
+    if (!current) {
+      throw new Error(`Progress for user ${userId} not found`);
+    }
+    return current;
+  }
+
+  values.push(userId);
+
+  const result = await runQuery<ProgressRow>(
+    `UPDATE progress
+     SET ${fields.join(', ')}, updated_at = NOW()
+     WHERE user_id = $${fields.length + 1}
+     RETURNING *`,
+    values,
+    client
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error(`Progress for user ${userId} not found`);
+  }
+
+  return mapProgress(result.rows[0]);
+}
