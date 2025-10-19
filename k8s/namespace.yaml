@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: energy-planet
+  labels:
+    name: energy-planet
+    environment: production

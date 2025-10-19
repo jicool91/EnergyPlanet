@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backend-config
+  namespace: energy-planet
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  API_PREFIX: "/api/v1"
+  LOG_LEVEL: "info"
+  LOG_FORMAT: "json"
+  CONTENT_PATH: "/app/content"
+  CORS_ORIGIN: "https://energyplanet.game,https://t.me"
+  CORS_CREDENTIALS: "true"
+  ANTI_CHEAT_ENABLED: "true"
+  ANTI_CHEAT_AUTO_BAN: "false"
+  RATE_LIMIT_ENABLED: "true"
+  PROMETHEUS_ENABLED: "true"
+  TELEGRAM_STARS_ENABLED: "true"
+  FEATURE_FLAGS_SOURCE: "file"

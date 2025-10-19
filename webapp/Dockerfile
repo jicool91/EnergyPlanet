@@ -1,0 +1,39 @@
+# Multi-stage Dockerfile for Energy Planet Webapp
+
+# ============================================================================
+# Stage 1: Build
+# ============================================================================
+FROM node:18-alpine AS builder
+
+WORKDIR /app
+
+# Install dependencies
+COPY webapp/package*.json ./
+RUN npm install
+
+# Copy source code
+COPY webapp/ .
+
+# Build application
+RUN npm run build
+
+# ============================================================================
+# Stage 2: Production (Nginx)
+# ============================================================================
+FROM nginx:alpine AS production
+
+# Copy built app
+COPY --from=builder /app/dist /usr/share/nginx/html
+
+# Copy nginx config
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Expose port
+EXPOSE 80
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=3s \
+  CMD wget --quiet --tries=1 --spider http://localhost/ || exit 1
+
+# Start nginx
+CMD ["nginx", "-g", "daemon off;"]

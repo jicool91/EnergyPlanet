@@ -1,0 +1,121 @@
+# Season 001: Genesis
+# First season of Energy Planet
+# Duration: 2024-02-01 to 2024-04-30
+
+season:
+  id: season_001
+  number: 1
+  name: "Genesis"
+  description: "The beginning of Energy Planet's journey. Build your empire and climb the ranks!"
+
+  dates:
+    start: "2024-02-01T00:00:00Z"
+    end: "2024-04-30T23:59:59Z"
+
+  theme:
+    primary_color: "#00D9FF"
+    secondary_color: "#7B2FFF"
+    background_url: "https://cdn.energyplanet.game/seasons/001/bg.jpg"
+
+  # Special multipliers for this season
+  multipliers:
+    energy_production: 1.0
+    xp_gain: 1.2 # +20% XP for first season
+
+  # Leaderboard rewards (Top players)
+  leaderboard_rewards:
+    - rank: 1
+      rewards:
+        - type: cosmetic
+          item_id: genesis_champion_frame
+        - type: energy
+          amount: 1000000
+        - type: stars
+          amount: 500
+
+    - rank: 2
+      rewards:
+        - type: cosmetic
+          item_id: genesis_silver_frame
+        - type: energy
+          amount: 500000
+        - type: stars
+          amount: 250
+
+    - rank: 3
+      rewards:
+        - type: cosmetic
+          item_id: genesis_bronze_frame
+        - type: energy
+          amount: 250000
+        - type: stars
+          amount: 100
+
+    - rank_range: [4, 10]
+      rewards:
+        - type: cosmetic
+          item_id: genesis_top10_badge
+        - type: energy
+          amount: 100000
+
+    - rank_range: [11, 50]
+      rewards:
+        - type: energy
+          amount: 50000
+
+    - rank_range: [51, 100]
+      rewards:
+        - type: energy
+          amount: 25000
+
+  # Special events during season
+  events:
+    - id: genesis_week_1
+      name: "Grand Opening"
+      description: "Welcome bonus for all players!"
+      start: "2024-02-01T00:00:00Z"
+      end: "2024-02-07T23:59:59Z"
+      rewards:
+        - type: energy
+          amount: 10000
+          condition: "login"
+
+    - id: genesis_week_4
+      name: "Energy Rush Weekend"
+      description: "Double passive income this weekend!"
+      start: "2024-02-24T00:00:00Z"
+      end: "2024-02-26T23:59:59Z"
+      multipliers:
+        passive_income: 2.0
+
+    - id: genesis_week_8
+      name: "Building Spree"
+      description: "50% discount on all buildings!"
+      start: "2024-03-23T00:00:00Z"
+      end: "2024-03-25T23:59:59Z"
+      multipliers:
+        building_cost: 0.5
+
+    - id: genesis_finale
+      name: "Final Push"
+      description: "Last week bonus XP!"
+      start: "2024-04-24T00:00:00Z"
+      end: "2024-04-30T23:59:59Z"
+      multipliers:
+        xp_gain: 1.5
+
+  # Exclusive cosmetics for this season
+  exclusive_cosmetics:
+    - genesis_champion_frame
+    - genesis_silver_frame
+    - genesis_bronze_frame
+    - genesis_top10_badge
+    - genesis_planet_skin
+    - genesis_tap_effect
+
+  # Battle pass tiers (future feature)
+  battle_pass:
+    enabled: false
+    tiers: 50
+    free_rewards: []
+    premium_rewards: []

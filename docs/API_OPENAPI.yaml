@@ -1,0 +1,964 @@
+openapi: 3.0.3
+info:
+  title: Energy Planet API
+  description: |
+    REST API for Energy Planet - Telegram Mini App idle tap game.
+
+    ## Authentication
+    All endpoints require authentication via JWT token obtained through Telegram OAuth.
+    Include token in `Authorization: Bearer <token>` header.
+
+    ## Rate Limiting
+    - `/tap`: 10 req/sec per user
+    - `/upgrade`: 5 req/sec per user
+    - `/purchase`: 1 req/10sec per user
+    - General API: 100 req/min per user
+
+  version: 1.0.0
+  contact:
+    name: Energy Planet Team
+    email: support@energyplanet.game
+
+servers:
+  - url: https://api.energyplanet.game/api/v1
+    description: Production server
+  - url: https://staging-api.energyplanet.game/api/v1
+    description: Staging server
+  - url: http://localhost:3000/api/v1
+    description: Local development
+
+tags:
+  - name: Auth
+    description: Authentication endpoints
+  - name: Session
+    description: Session management
+  - name: Gameplay
+    description: Core gameplay actions (tap, tick, upgrade)
+  - name: Social
+    description: Leaderboard and profiles
+  - name: Monetization
+    description: Purchases and cosmetics
+  - name: Admin
+    description: Administrative endpoints
+
+security:
+  - BearerAuth: []
+
+paths:
+  /auth/telegram:
+    post:
+      tags:
+        - Auth
+      summary: Authenticate with Telegram
+      description: |
+        Exchange Telegram initData for JWT token.
+        Server validates initData hash using bot token.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - initData
+              properties:
+                initData:
+                  type: string
+                  description: Telegram WebApp initData string
+                  example: "query_id=AAHdF6IQAAAAAN0XohDhrOrc&user=%7B%22id%22%3A279058397..."
+      responses:
+        '200':
+          description: Authentication successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                    description: JWT access token (15 min expiry)
+                  refresh_token:
+                    type: string
+                    description: Refresh token (30 days expiry)
+                  user_id:
+                    type: string
+                    format: uuid
+                  telegram_id:
+                    type: integer
+                    format: int64
+                  username:
+                    type: string
+                  is_new_user:
+                    type: boolean
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /auth/refresh:
+    post:
+      tags:
+        - Auth
+      summary: Refresh access token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - refresh_token
+              properties:
+                refresh_token:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  access_token:
+                    type: string
+                  refresh_token:
+                    type: string
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /session:
+    post:
+      tags:
+        - Session
+      summary: Start game session
+      description: |
+        Called when user opens the game.
+        Returns current state and calculates offline gains.
+      responses:
+        '200':
+          description: Session started
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+
+  /tap:
+    post:
+      tags:
+        - Gameplay
+      summary: Register tap action
+      description: |
+        Increment energy based on tap power.
+        Rate limited to 10 req/sec per user.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tap_count
+              properties:
+                tap_count:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  description: Number of taps in this batch (max 100)
+                  example: 5
+      responses:
+        '200':
+          description: Taps registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  energy:
+                    type: number
+                    format: double
+                    description: New total energy
+                  energy_gained:
+                    type: number
+                    format: double
+                  xp_gained:
+                    type: integer
+                  level:
+                    type: integer
+                  level_up:
+                    type: boolean
+                    description: True if leveled up this tap
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+
+  /tick:
+    post:
+      tags:
+        - Gameplay
+      summary: Claim passive income
+      description: |
+        Called periodically to claim passive income from buildings.
+        Client sends time_delta, server validates and caps.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - time_delta
+              properties:
+                time_delta:
+                  type: number
+                  format: double
+                  description: Seconds since last tick (max 60)
+                  example: 5.5
+      responses:
+        '200':
+          description: Passive income claimed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  energy:
+                    type: number
+                    format: double
+                  energy_gained:
+                    type: number
+                    format: double
+                  passive_income_per_sec:
+                    type: number
+                    format: double
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /upgrade:
+    post:
+      tags:
+        - Gameplay
+      summary: Purchase or upgrade item
+      description: |
+        Buy buildings, upgrade tap power, or upgrade buildings.
+        Transaction is atomic (deduct cost + grant upgrade).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - upgrade_type
+                - item_id
+              properties:
+                upgrade_type:
+                  type: string
+                  enum: [buy_building, upgrade_tap, upgrade_building]
+                  example: buy_building
+                item_id:
+                  type: string
+                  description: Building ID (for buy/upgrade building) or "tap" (for tap upgrade)
+                  example: solar_panel
+                quantity:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: Number of buildings to buy (only for buy_building)
+      responses:
+        '200':
+          description: Upgrade successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  energy:
+                    type: number
+                    format: double
+                    description: Remaining energy after purchase
+                  upgrade:
+                    type: object
+                    description: Updated upgrade state
+                    properties:
+                      type:
+                        type: string
+                      item_id:
+                        type: string
+                      new_level:
+                        type: integer
+                      new_count:
+                        type: integer
+                        description: For buildings
+                  xp_gained:
+                    type: integer
+                  level:
+                    type: integer
+                  level_up:
+                    type: boolean
+        '400':
+          description: Invalid request or insufficient energy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: insufficient_energy
+                  required_energy:
+                    type: number
+                  current_energy:
+                    type: number
+        '404':
+          description: Item not found or locked
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: item_locked
+                  required_level:
+                    type: integer
+
+  /leaderboard:
+    get:
+      tags:
+        - Social
+      summary: Get leaderboard
+      description: Fetch global or weekly leaderboard (cached 60 seconds)
+      parameters:
+        - name: type
+          in: query
+          schema:
+            type: string
+            enum: [global, weekly]
+            default: global
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            minimum: 10
+            maximum: 100
+            default: 100
+        - name: offset
+          in: query
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Leaderboard data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  leaderboard:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/LeaderboardEntry'
+                  user_rank:
+                    type: integer
+                    description: Current user's rank
+                  user_entry:
+                    $ref: '#/components/schemas/LeaderboardEntry'
+                  total_players:
+                    type: integer
+
+  /profile/{userId}:
+    get:
+      tags:
+        - Social
+      summary: Get player profile
+      description: View any player's public profile (for inspection feature)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Player profile
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlayerProfile'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /cosmetics:
+    get:
+      tags:
+        - Monetization
+      summary: Get available cosmetics
+      description: Fetch all cosmetics with ownership status
+      parameters:
+        - name: category
+          in: query
+          schema:
+            type: string
+            enum: [avatar_frame, planet_skin, tap_effect, background]
+        - name: rarity
+          in: query
+          schema:
+            type: string
+            enum: [common, rare, epic, legendary]
+      responses:
+        '200':
+          description: Cosmetics catalog
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cosmetics:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CosmeticItem'
+
+  /cosmetics/equip:
+    post:
+      tags:
+        - Monetization
+      summary: Equip cosmetic item
+      description: Set active cosmetic for a slot
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cosmetic_id
+              properties:
+                cosmetic_id:
+                  type: string
+                  example: golden_frame_001
+                slot:
+                  type: string
+                  enum: [avatar_frame, planet_skin, tap_effect, background]
+      responses:
+        '200':
+          description: Cosmetic equipped
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  equipped:
+                    $ref: '#/components/schemas/CosmeticItem'
+        '403':
+          description: Cosmetic not owned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: cosmetic_not_owned
+
+  /purchase:
+    post:
+      tags:
+        - Monetization
+      summary: Process in-app purchase
+      description: |
+        Idempotent purchase endpoint.
+        Handles Telegram Stars purchases and rewarded ad claims.
+        Purchase ID must be unique (UUID v4).
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - purchase_id
+                - purchase_type
+              properties:
+                purchase_id:
+                  type: string
+                  format: uuid
+                  description: Client-generated unique ID for idempotency
+                  example: 550e8400-e29b-41d4-a716-446655440000
+                purchase_type:
+                  type: string
+                  enum: [energy_pack, premium_boost, cosmetic, ad_reward]
+                item_id:
+                  type: string
+                  description: Product ID (e.g., energy_pack_medium, golden_frame_001)
+                  example: energy_pack_medium
+                telegram_payment_id:
+                  type: string
+                  description: Telegram Stars payment ID (for verification)
+                ad_token:
+                  type: string
+                  description: Ad provider token (for rewarded ads)
+      responses:
+        '200':
+          description: Purchase successful (or already processed)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  already_processed:
+                    type: boolean
+                    description: True if purchase_id was already used
+                  purchase:
+                    type: object
+                    properties:
+                      purchase_id:
+                        type: string
+                      item_id:
+                        type: string
+                      granted_at:
+                        type: string
+                        format: date-time
+                  updated_state:
+                    type: object
+                    description: Updated user state (energy, inventory, etc.)
+        '400':
+          description: Invalid purchase or verification failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: invalid_telegram_payment
+        '409':
+          description: Purchase conflict (e.g., already owned cosmetic)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: cosmetic_already_owned
+
+  /boost/claim:
+    post:
+      tags:
+        - Monetization
+      summary: Claim free boost
+      description: Claim daily boost or ad boost
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - boost_type
+              properties:
+                boost_type:
+                  type: string
+                  enum: [daily_boost, ad_boost]
+                ad_token:
+                  type: string
+                  description: Required for ad_boost
+      responses:
+        '200':
+          description: Boost claimed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  boost:
+                    type: object
+                    properties:
+                      type:
+                        type: string
+                      expires_at:
+                        type: string
+                        format: date-time
+                      multiplier:
+                        type: number
+                        format: double
+        '429':
+          description: Boost on cooldown
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: boost_on_cooldown
+                  available_at:
+                    type: string
+                    format: date-time
+
+  /admin/flags:
+    get:
+      tags:
+        - Admin
+      summary: Get feature flags
+      description: Fetch current feature flags configuration
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Feature flags
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  features:
+                    type: object
+                    additionalProperties:
+                      type: boolean
+                  experiments:
+                    type: object
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+    patch:
+      tags:
+        - Admin
+      summary: Update feature flags
+      description: Toggle features or update experiment configs (admin only)
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                features:
+                  type: object
+                  additionalProperties:
+                    type: boolean
+                  example:
+                    rewarded_ads_enabled: true
+                    tier_4_buildings_enabled: false
+      responses:
+        '200':
+          description: Flags updated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  updated_flags:
+                    type: object
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    SessionResponse:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        progress:
+          $ref: '#/components/schemas/Progress'
+        buildings:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserBuilding'
+        cosmetics:
+          type: array
+          items:
+            $ref: '#/components/schemas/EquippedCosmetic'
+        active_boosts:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActiveBoost'
+        offline_gains:
+          type: object
+          properties:
+            energy:
+              type: number
+              format: double
+            duration_sec:
+              type: integer
+            capped:
+              type: boolean
+              description: True if offline time was capped at 12 hours
+        server_time:
+          type: string
+          format: date-time
+
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+        telegram_id:
+          type: integer
+          format: int64
+        username:
+          type: string
+        first_name:
+          type: string
+        last_name:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+
+    Progress:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        level:
+          type: integer
+        xp:
+          type: integer
+        xp_to_next_level:
+          type: integer
+        energy:
+          type: number
+          format: double
+        total_energy_produced:
+          type: number
+          format: double
+          description: All-time stat for leaderboard
+        tap_level:
+          type: integer
+        tap_income:
+          type: number
+          format: double
+          description: Current energy per tap
+        passive_income_per_sec:
+          type: number
+          format: double
+        last_login:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UserBuilding:
+      type: object
+      properties:
+        building_id:
+          type: string
+          example: solar_panel
+        count:
+          type: integer
+          description: Number of this building owned
+        level:
+          type: integer
+          description: Upgrade level
+        income_per_sec:
+          type: number
+          format: double
+          description: Current income per building
+
+    EquippedCosmetic:
+      type: object
+      properties:
+        slot:
+          type: string
+          enum: [avatar_frame, planet_skin, tap_effect, background]
+        cosmetic_id:
+          type: string
+        cosmetic:
+          $ref: '#/components/schemas/CosmeticItem'
+
+    ActiveBoost:
+      type: object
+      properties:
+        type:
+          type: string
+          enum: [ad_boost, premium_boost, daily_boost]
+        multiplier:
+          type: number
+          format: double
+          example: 1.0
+          description: "Multiplier value (1.0 = +100%)"
+        expires_at:
+          type: string
+          format: date-time
+
+    LeaderboardEntry:
+      type: object
+      properties:
+        rank:
+          type: integer
+        user_id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        level:
+          type: integer
+        total_energy_produced:
+          type: number
+          format: double
+        avatar_frame:
+          type: string
+          nullable: true
+
+    PlayerProfile:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        username:
+          type: string
+        level:
+          type: integer
+        total_energy_produced:
+          type: number
+          format: double
+        leaderboard_rank:
+          type: integer
+        buildings_count:
+          type: integer
+        passive_income_per_sec:
+          type: number
+          format: double
+        equipped_cosmetics:
+          type: array
+          items:
+            $ref: '#/components/schemas/EquippedCosmetic'
+        created_at:
+          type: string
+          format: date-time
+
+    CosmeticItem:
+      type: object
+      properties:
+        id:
+          type: string
+          example: golden_frame_001
+        name:
+          type: string
+          example: Golden Energy Frame
+        description:
+          type: string
+        category:
+          type: string
+          enum: [avatar_frame, planet_skin, tap_effect, background]
+        rarity:
+          type: string
+          enum: [common, rare, epic, legendary]
+        unlock_type:
+          type: string
+          enum: [free, level, purchase, event]
+        unlock_requirement:
+          type: object
+          description: Depends on unlock_type
+          properties:
+            level:
+              type: integer
+            price_stars:
+              type: integer
+            event_id:
+              type: string
+        owned:
+          type: boolean
+          description: True if user owns this cosmetic
+        equipped:
+          type: boolean
+          description: True if currently equipped
+        asset_url:
+          type: string
+          format: uri
+          example: https://cdn.energyplanet.game/cosmetics/frames/golden_001.png
+
+  responses:
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: invalid_request
+              details:
+                type: string
+
+    Unauthorized:
+      description: Unauthorized - Invalid or missing token
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: unauthorized
+              message:
+                type: string
+
+    Forbidden:
+      description: Forbidden - Insufficient permissions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: forbidden
+
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: not_found
+
+    RateLimited:
+      description: Too many requests
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: rate_limit_exceeded
+              retry_after:
+                type: integer
+                description: Seconds until rate limit resets
