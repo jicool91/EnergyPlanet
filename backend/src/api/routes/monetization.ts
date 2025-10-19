@@ -11,6 +11,7 @@ const purchaseController = new PurchaseController();
 
 router.get('/cosmetics', authenticate, cosmeticController.list);
 router.post('/cosmetics/purchase', authenticate, cosmeticController.purchase);
+router.post('/purchase/invoice', authenticate, purchaseController.invoice);
 router.post('/purchase', authenticate, purchaseController.create);
 router.post('/cosmetics/equip', authenticate, cosmeticController.equip);
 

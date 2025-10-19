@@ -18,6 +18,43 @@ interface RecordPurchaseInput {
 }
 
 export class PurchaseService {
+  async createInvoice(userId: string, input: RecordPurchaseInput) {
+    if (!config.testing.mockPayments && !config.monetization.starsEnabled) {
+      throw new AppError(403, 'stars_disabled');
+    }
+
+    return transaction(async client => {
+      const existing = await findByPurchaseId(input.purchaseId, client);
+      if (existing) {
+        return existing;
+      }
+
+      const pending = await createPurchase(
+        input.purchaseId,
+        userId,
+        input.purchaseType,
+        input.itemId,
+        input.priceStars,
+        'pending',
+        { client }
+      );
+
+      await logEvent(
+        userId,
+        'purchase_invoice_created',
+        {
+          purchase_id: pending.purchaseId,
+          item_id: pending.itemId,
+          price_stars: pending.priceStars,
+          purchase_type: pending.purchaseType,
+        },
+        { client }
+      );
+
+      return pending;
+    });
+  }
+
   async recordMockPurchase(userId: string, input: RecordPurchaseInput): Promise<PurchaseRecord> {
     if (!config.testing.mockPayments && !config.monetization.starsEnabled) {
       throw new AppError(403, 'stars_disabled');

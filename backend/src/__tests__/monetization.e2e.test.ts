@@ -48,6 +48,15 @@ const mockPurchase = {
   created_at: new Date().toISOString(),
 };
 
+const mockInvoice = {
+  purchase_id: 'pending-456',
+  status: 'pending',
+  item_id: 'stars_pack_medium',
+  price_stars: 300,
+  purchase_type: 'stars_pack',
+  created_at: new Date().toISOString(),
+};
+
 jest.mock('../services/CosmeticService', () => ({
   cosmeticService: {
     listCosmetics: jest.fn(async () => mockCosmetics),
@@ -71,6 +80,18 @@ jest.mock('../services/BoostService', () => ({
 
 jest.mock('../services/PurchaseService', () => ({
   purchaseService: {
+    createInvoice: jest.fn(async () => ({
+      id: 'pending-db-id',
+      purchaseId: mockInvoice.purchase_id,
+      userId: 'test-user-id',
+      purchaseType: mockInvoice.purchase_type,
+      itemId: mockInvoice.item_id,
+      priceStars: mockInvoice.price_stars,
+      status: mockInvoice.status,
+      createdAt: new Date(mockInvoice.created_at),
+      telegramPaymentId: null,
+      adToken: null,
+    })),
     recordMockPurchase: jest.fn(async () => ({
       id: 'db-id',
       purchaseId: mockPurchase.purchase_id,
@@ -156,6 +177,34 @@ describe('Monetization routes', () => {
       priceStars: mockPurchase.price_stars,
       purchaseType: mockPurchase.purchase_type,
       metadata: { source: 'test' },
+    });
+  });
+
+  it('POST /api/v1/purchase/invoice creates pending invoice', async () => {
+    const response = await request(app)
+      .post('/api/v1/purchase/invoice')
+      .send({
+        purchase_id: mockInvoice.purchase_id,
+        item_id: mockInvoice.item_id,
+        price_stars: mockInvoice.price_stars,
+        purchase_type: mockInvoice.purchase_type,
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.invoice).toMatchObject({
+      purchase_id: mockInvoice.purchase_id,
+      status: mockInvoice.status,
+      item_id: mockInvoice.item_id,
+      price_stars: mockInvoice.price_stars,
+    });
+    expect(response.body.invoice.pay_url).toContain(mockInvoice.purchase_id);
+    const { purchaseService } = require('../services/PurchaseService');
+    expect(purchaseService.createInvoice).toHaveBeenCalledWith('test-user-id', {
+      purchaseId: mockInvoice.purchase_id,
+      itemId: mockInvoice.item_id,
+      priceStars: mockInvoice.price_stars,
+      purchaseType: mockInvoice.purchase_type,
+      metadata: undefined,
     });
   });
 });

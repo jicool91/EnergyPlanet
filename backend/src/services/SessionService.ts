@@ -9,6 +9,7 @@ import { logEvent } from '../repositories/EventRepository';
 import { loadPlayerContext } from './playerContext';
 import { UserProfileRecord } from '../repositories/ProfileRepository';
 import { BoostRecord } from '../repositories/BoostRepository';
+import { UserCosmeticRecord } from '../repositories/UserCosmeticsRepository';
 import {
   BuildingDetail,
   buildBuildingDetails,
@@ -48,6 +49,7 @@ interface SessionState {
   inventory: BuildingDetail[];
   boosts: BoostRecord[];
   profile: UserProfileRecord;
+  cosmetics: UserCosmeticRecord[];
   offline_gains: OfflineGains;
   feature_flags: Record<string, boolean>;
   server_time: string;
@@ -58,7 +60,7 @@ export class SessionService {
     const now = new Date();
 
     const state = await transaction(async client => {
-      const { user, progress, inventory, boosts, profile } = await loadPlayerContext(
+      const { user, progress, inventory, boosts, profile, cosmetics } = await loadPlayerContext(
         userId,
         client
       );
@@ -119,6 +121,7 @@ export class SessionService {
         inventory: detailedInventory,
         boosts,
         profile,
+        cosmetics,
         offline: {
           energy: offlineEnergy,
           xp: offlineXp,
@@ -161,6 +164,7 @@ export class SessionService {
       inventory: state.inventory,
       boosts: state.boosts,
       profile: state.profile,
+      cosmetics: state.cosmetics,
       offline_gains: state.offline,
       feature_flags: state.featureFlags,
       server_time: now.toISOString(),
