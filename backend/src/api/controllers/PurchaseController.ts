@@ -1,4 +1,4 @@
-import { Response, NextFunction } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 import { purchaseService } from '../../services/PurchaseService';
@@ -75,5 +75,10 @@ export class PurchaseController {
     } catch (error) {
       next(error);
     }
+  };
+
+  webhook = async (_req: Request, res: Response) => {
+    // TODO: verify Telegram signature, update purchases, grant rewards
+    res.status(202).json({ success: true, message: 'webhook_stub' });
   };
 }

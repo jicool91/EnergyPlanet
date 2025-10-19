@@ -207,4 +207,13 @@ describe('Monetization routes', () => {
       metadata: undefined,
     });
   });
+
+  it('POST /api/v1/purchase/webhook returns stub response', async () => {
+    const response = await request(app)
+      .post('/api/v1/purchase/webhook')
+      .send({});
+
+    expect(response.status).toBe(202);
+    expect(response.body).toEqual({ success: true, message: 'webhook_stub' });
+  });
 });

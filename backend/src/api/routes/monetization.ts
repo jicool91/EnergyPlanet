@@ -13,6 +13,7 @@ router.get('/cosmetics', authenticate, cosmeticController.list);
 router.post('/cosmetics/purchase', authenticate, cosmeticController.purchase);
 router.post('/purchase/invoice', authenticate, purchaseController.invoice);
 router.post('/purchase', authenticate, purchaseController.create);
+router.post('/purchase/webhook', purchaseController.webhook);
 router.post('/cosmetics/equip', authenticate, cosmeticController.equip);
 
 // TODO: Implement boost claims

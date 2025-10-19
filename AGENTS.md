@@ -28,3 +28,4 @@
 - Copy `.env.sample` to `.env` in `backend/` and `webapp/`, fill Telegram tokens, database, and Redis endpoints, keep secrets out of git, and prefer migration or seed scripts over ad-hoc SQL when mutating state.
 - Toggle `MOCK_PAYMENTS=true` in `backend/.env` when testing cosmetics purchases locally; disable it in environments where Telegram Stars is wired.
 - Boostы доступны через `/api/v1/boot/claim`; для локальной отладки quick-boots используют mock payments и логируются в таблицу `events` — смотри `boost_claim` и `boost_activate` события.
+- Моковые покупки Stars: сначала вызывай `/api/v1/purchase/invoice` (создаёт запись со статусом `pending`), затем `/api/v1/purchase` для завершения. Вебхук `/api/v1/purchase/webhook` пока заглушка, отдаёт 202 и предназначен для будущей подписи Telegram.
