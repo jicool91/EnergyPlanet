@@ -8,10 +8,10 @@
 - ✅ Upgrade system (tap & buildings)
 - ✅ Passive income & offline gains
 - ✅ Player progression (levels & XP)
-- ✅ Basic cosmetics (avatar frames, planet skins)
+- ✅ Basic cosmetics (avatar frames, planet skins) + inventory & equip API
 - ✅ Profile inspection system
 - ✅ Global leaderboard
-- ✅ Monetization (Telegram Stars + Rewarded Ads)
+- ⚠️ Monetization (Telegram Stars mock invoice + purchase; real Stars & rewarded ads pending)
 - ✅ Anti-cheat validation
 - ✅ Feature flags system
 - ✅ Seasonal content framework
@@ -23,6 +23,13 @@
 - ❌ Achievements system
 - ❌ Daily quests
 - ❌ Push notifications
+
+### 1.3 Current Backend Status (October 19, 2025)
+- **Sessions:** возвращают прогресс, инвентарь, активные бусты и список доступных косметик.
+- **Косметика:** реализованы листинг, покупка (mock Stars) и экипировка; автодовыдача бесплатных и уровневых предметов.
+- **Бусты:** daily/ad/premium бусты с кулдаунами и логированием; учтены в оффлайн-доходе.
+- **Monetization:** Mock Stars сценарий (invoice ➝ purchase) и заглушка вебхука; реальные Telegram Stars/Rewarded Ads – TODO.
+- **Тесты:** Supertest e2e покрывают основные монетизационные маршруты.
 
 ## 2. User Flows
 
@@ -167,9 +174,9 @@ Flow:
    ↓
 5. Tap "Buy with Stars"
    ↓
-6. Telegram Stars payment flow
+6. Client вызывает POST `/api/v1/purchase/invoice` → получает `pay_url`
    ↓
-7. POST /api/v1/purchase (purchase_id, item_type: energy_pack)
+7. Telegram Stars (пока MOCK) или реальный invoice → после оплаты POST `/api/v1/purchase` (purchase_id, item_type: energy_pack)
    ↓
 8. Energy added to balance
    ↓
@@ -219,9 +226,9 @@ Flow:
    ↓
 3. User confirms purchase
    ↓
-4. Telegram Stars payment
+4. Client вызывает `/api/v1/purchase/invoice` → получает `pay_url`
    ↓
-5. POST /api/v1/purchase (item_type: premium_boost_1h)
+5. Telegram Stars (mock/real) проводит оплату → `/api/v1/purchase`
    ↓
 6. Boost activated immediately
    ↓
