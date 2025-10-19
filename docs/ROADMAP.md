@@ -66,7 +66,8 @@
 - [ ] Rewarded Ads integration (Yandex.Direct)
 - [x] Boost system (ad boost, premium boost, daily boost)
 - [x] Profile API (/profile/:userId)
-- [ ] Cosmetics system (/cosmetics, /cosmetics/purchase)
+- [x] Cosmetics system (/cosmetics, /cosmetics/purchase)
+- [x] Mock Stars purchase endpoint (idempotent logging, mock payments)
 - [x] Leaderboard API (/leaderboard)
 
 **Frontend**
