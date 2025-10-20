@@ -37,7 +37,7 @@ COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 
 # Copy content files
-COPY --chown=nodejs:nodejs content ./content
+COPY --chown=nodejs:nodejs ../content ./content
 
 # Create logs directory
 RUN mkdir -p /app/logs && chown nodejs:nodejs /app/logs
