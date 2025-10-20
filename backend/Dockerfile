@@ -8,11 +8,11 @@ FROM node:18-alpine AS builder
 WORKDIR /app
 
 # Install dependencies
-COPY backend/package*.json ./
+COPY package*.json ./
 RUN npm install --production && npm cache clean --force
 
 # Copy source code
-COPY backend/ .
+COPY . .
 
 # Build TypeScript
 RUN npm run build
