@@ -8,22 +8,29 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Статус проекта
 
-**Текущая стадия:** MVP в разработке (упрощенная версия с моковыми данными)
+**Текущая стадия:** MVP в разработке
 
-**Что работает сейчас:**
-- ✅ Базовый Express backend с mock эндпоинтами
+**Что уже реализовано:**
+- ✅ Express backend с TypeScript
 - ✅ Docker Compose для локальной разработки
-- ✅ Базовая структура проекта
+- ✅ Все основные services (AuthService, TapService, UpgradeService, SessionService, LeaderboardService, CosmeticService и т.д.)
+- ✅ Repository паттерн (UserRepository, ProgressRepository, InventoryRepository и т.д.)
+- ✅ Полная система миграций БД (migrate up/down/status)
+- ✅ ContentService для загрузки контента из JSON/YAML
+- ✅ Anti-cheat валидация в TapService и UpgradeService
+- ✅ Middleware (auth, error handling, logging)
+- ✅ Redis кеш и session management
+- ✅ PostgreSQL подключение
 
-**Что нужно реализовать для MVP:**
-- 🔨 Подключение к реальной PostgreSQL и Redis
-- 🔨 Полноценные сервисы (AuthService, TapService, UpgradeService и т.д.)
-- 🔨 Telegram OAuth авторизация
+**Что ещё нужно для MVP:**
+- 🔨 Telegram OAuth авторизация (валидация initData)
+- 🔨 JWT токены (access 15мин + refresh 30 дней)
 - 🔨 React фронтенд (Telegram Mini App)
-- 🔨 Система построек и улучшений
-- 🔨 Лидерборды
-- 🔨 Косметика
+- 🔨 Zustand state management
+- 🔨 Rate limiting middleware
 - 🔨 Монетизация (Telegram Stars + Rewarded Ads)
+- 🔨 Feature flags система
+- 🔨 Load тестирование
 
 ## Project Overview
 
@@ -89,60 +96,124 @@ energyPlanet/
 
 ## Команды разработки
 
-### Локальная разработка
+### Быстрый старт с Docker Compose (рекомендуется)
 
 ```bash
-# Запустить все сервисы (PostgreSQL, Redis, Backend, Webapp)
+# Запустить все сервисы (PostgreSQL, Redis, Backend, Webapp, Mail)
 docker-compose up
 
-# Backend отдельно
+# Или в фоновом режиме
+docker-compose up -d
+
+# Просмотр логов
+docker-compose logs -f backend
+docker-compose logs -f webapp
+
+# Остановить все
+docker-compose down
+
+# Удалить все данные и пересоздать
+docker-compose down -v && docker-compose up
+```
+
+**Доступные сервисы:**
+- Backend API: http://localhost:3000
+- Webapp: http://localhost:5173
+- PostgreSQL: localhost:5432
+- Redis: localhost:6379
+- Health check: http://localhost:3000/health
+
+### Локальная разработка без Docker
+
+Если хочешь запустить backend и webapp локально (требует Node.js 18+, PostgreSQL и Redis):
+
+**Backend:**
+```bash
 cd backend
-npm install
-npm run dev          # Запуск dev сервера на :3000
 
-# Webapp отдельно
+# Установить зависимости
+npm install
+
+# Создать .env файл
+cp .env.sample .env
+# Отредактировать .env с реальными данными PostgreSQL и Redis
+
+# Применить миграции БД
+npm run migrate:up
+
+# Запустить dev сервер на :3000
+npm run dev
+```
+
+**Webapp:**
+```bash
 cd webapp
-npm install
-npm run dev          # Запуск Vite dev сервера на :5173
 
-# Проверка здоровья backend
-curl http://localhost:3000/health
+# Установить зависимости
+npm install
+
+# Создать .env файл
+cp .env.sample .env
+
+# Запустить Vite dev сервер на :5173
+npm run dev
 ```
 
 ### Миграции БД
 
-⚠️ **Примечание:** Миграции пока не подключены к коду. Нужно реализовать `backend/src/db/migrate.ts`.
+✅ **Система миграций полностью реализована** в `backend/src/db/migrate.ts`
 
 ```bash
 cd backend
 
-# Применить все миграции (TODO: реализовать)
+# Применить все новые миграции
 npm run migrate:up
 
-# Откатить последнюю миграцию (TODO: реализовать)
+# Откатить последнюю миграцию
 npm run migrate:down
 
+# Показать статус всех миграций
+npm run migrate:status
+
 # Создать новую миграцию
-# Вручную создать файл: migrations/00X_название.sql
+# Вручную создать файл в формате: migrations/00X_название.sql
+# Пример: migrations/004_my_feature.sql
 ```
 
 **Текущие миграции:**
-- `001_initial_schema.sql` - основные таблицы (users, progress, inventory, etc.)
+- `001_initial_schema.sql` - основные таблицы (users, progress, inventory, sessions, purchases, events)
 - `002_clans_schema.sql` - система кланов (Post-MVP)
 - `003_arena_schema.sql` - арена/PvP (Post-MVP)
+
+**Как работает система миграций:**
+- Миграции отслеживаются в таблице `schema_migrations` (версия, имя, дата применения)
+- При `migrate:up` применяются только новые миграции
+- При `migrate:down` используются файлы отката `00X_название_rollback.sql` (если есть)
+- Все миграции выполняются в транзакции для безопасности
 
 ### Тестирование
 
 ```bash
-# Backend тесты
 cd backend
-npm test                    # Все тесты
-npm run test:watch          # Watch режим
-npm run test:integration    # Интеграционные тесты
+
+# Все тесты с покрытием
+npm test
+
+# Watch режим (перезапускает при изменении файлов)
+npm run test:watch
+
+# Один конкретный тест
+npm test -- --testNamePattern="TapService"
+npm test -- AuthService
+
+# Только интеграционные тесты
+npm run test:integration
 
 # Линтинг и проверка типов
-npm run lint                # ESLint
-npm run typecheck           # TypeScript проверка
+npm run lint                # ESLint проверка
+npm run lint:fix            # ESLint фиксирование ошибок
+npm run typecheck           # TypeScript проверка типов
+npm run format              # Prettier форматирование
 ```
 
 ### Сборка
@@ -176,6 +247,43 @@ ngrok http 5173
 
 ## Ключевые архитектурные паттерны
 
+### Repository Pattern (Доступ к данным)
+
+Все операции с БД инкапсулированы в Repository классах (в `backend/src/repositories/`):
+
+```typescript
+// base.ts - базовые утилиты для всех repository
+export async function runQuery<T>(text: string, params?: any[], client?: PoolClient): Promise<QueryResult<T>>
+
+// Конкретные repositories (наследуют подход):
+- UserRepository - операции с пользователями (getById, create, update)
+- ProgressRepository - прогрессия игрока (energy, level, XP)
+- InventoryRepository - инвентарь (какие построки у игрока)
+- SessionRepository - сессии игроков
+- PurchaseRepository - история покупок
+- LeaderboardRepository - кеширование лидербордов
+- BoostRepository - активные бусты
+- EventRepository - логирование событий для anti-cheat
+- ProfileRepository - профиль и косметика
+- UserCosmeticsRepository - владение косметикой
+```
+
+**Преимущества:**
+- Все SQL запросы в одном месте - легко проверить на уязвимости
+- Параметризованные запросы - защита от SQL injection
+- Переиспользуемая логика через базовый класс
+- Легко тестировать с mock'ами
+
+**Как использовать:**
+```typescript
+// В сервисах
+import { UserRepository } from '../repositories/UserRepository';
+
+const userRepo = new UserRepository();
+const user = await userRepo.getById(userId);
+await userRepo.update(userId, { energy: newEnergy });
+```
+
 ### Content-as-Data (Контент как данные)
 
 Весь игровой контент хранится в версионированных JSON/YAML файлах в `/content/`:
@@ -186,32 +294,33 @@ ngrok http 5173
 
 **Content Loader:** `backend/src/services/ContentService.ts` загружает контент при старте и кеширует его.
 
-⚠️ **TODO:** Нужно реализовать ContentService - сейчас контент не загружается.
+✅ **ContentService реализован** - автоматически загружает файлы из `/content/` на старте
 
 ### Anti-Cheat система (Защита от читов)
 
-⚠️ **TODO:** Нужно реализовать - сейчас нет валидации.
+✅ **Основная валидация реализована** в `TapService` и `UpgradeService`
 
 Серверная валидация всех игровых действий:
 
-**Tap Validation** (валидация тапов):
-```typescript
-// В TapService (нужно создать)
-maxTaps = sessionDuration * 10; // Максимум 10 TPS
-if (reportedTaps > maxTaps) flag_suspicious_activity();
-```
+**Tap Validation** (валидация тапов в TapService):
+- Максимум 10 тапов в секунду (TPS)
+- Проверка силы тапа не превышает баланс
+- Логирование подозрительных действий в таблицу `events`
 
 **Energy Gain Validation** (валидация прироста энергии):
-```typescript
-// В TickService (нужно создать)
-maxGain = passiveIncome * timeDelta * 1.1; // 10% допуск
-if (reportedGain > maxGain) clamp_and_log();
-```
+- Проверка энергии от пассивного дохода (10% допуск)
+- Логирование аномалий для анализа
+- В TickService рассчитывается корректный прирост
 
 **Purchase Idempotency** (идемпотентность покупок):
+- ✅ Реализована в `PurchaseService`
 - Каждая покупка имеет уникальный `purchase_id` (UUID от клиента)
-- Проверяем существование `purchase_id` перед обработкой
-- Возвращаем тот же результат если уже обработано (идемпотентность)
+- Проверяем существование `purchase_id` перед обработкой в `PurchaseRepository`
+- Возвращаем тот же результат если уже обработано
+
+**Event Logging** (`EventRepository`):
+- Все подозрительные действия логируются для анализа
+- Используется для статистики и обнаружения паттернов читов
 
 ### Feature Flags (Флаги функций)
 
@@ -241,15 +350,64 @@ if (!contentService.isFeatureEnabled('cosmetics_shop_enabled')) {
 
 ### API Authentication (Аутентификация)
 
-⚠️ **TODO:** Нужно реализовать - сейчас моковая авторизация.
+⚠️ **В процессе реализации:**
+- Структура middleware готова в `backend/src/middleware/auth.ts`
+- JWT генерация реализована
+- Нужно: Telegram OAuth валидация initData хеша
 
-**Telegram OAuth Flow:**
+**Планируемый Telegram OAuth Flow:**
 1. Клиент отправляет `initData` от Telegram WebApp
-2. Сервер валидирует hash используя bot token
+2. Сервер валидирует hash используя bot token (в AuthService)
 3. Сервер выдает JWT access token (15 мин) + refresh token (30 дней)
 4. Клиент включает `Authorization: Bearer <token>` во все запросы
 
-**Middleware:** `backend/src/middleware/auth.ts` (нужно создать)
+**Текущее состояние:**
+- `AuthService.ts` - основная логика авторизации
+- `backend/src/middleware/auth.ts` - middleware для проверки токена
+- Нужно добавить валидацию Telegram initData hash в AuthService
+
+### Service Layer (Бизнес логика)
+
+Все основные сервисы находятся в `backend/src/services/`. Каждый сервис отвечает за одну область:
+
+```
+AuthService          - авторизация, JWT токены, валидация Telegram
+TapService           - валидация тапов, начисление энергии
+UpgradeService       - покупка улучшений, проверка ресурсов
+SessionService       - управление сессией, offline gains
+TickService          - пассивный доход каждый "тик" времени
+LeaderboardService   - кеширование лидербордов
+CosmeticService      - косметика, владение, экипировка
+BoostService         - активные эффекты и бусты
+PurchaseService      - история покупок, идемпотентность
+ProfileService       - профиль игрока
+ContentService       - загрузка контента из JSON/YAML
+```
+
+**Как написать новый сервис:**
+1. Создай файл `backend/src/services/MyService.ts`
+2. Инжектируй нужные Repository через конструктор
+3. Реализуй публичные методы
+4. Используй в контроллерах
+
+```typescript
+// Пример структуры сервиса
+export class MyService {
+  private userRepo: UserRepository;
+  private progressRepo: ProgressRepository;
+
+  constructor() {
+    this.userRepo = new UserRepository();
+    this.progressRepo = new ProgressRepository();
+  }
+
+  async doSomething(userId: string) {
+    const user = await this.userRepo.getById(userId);
+    // логика...
+    return result;
+  }
+}
+```
 
 ### State Management (Управление состоянием фронтенда)
 
@@ -279,9 +437,39 @@ if (!contentService.isFeatureEnabled('cosmetics_shop_enabled')) {
 
 See: `backend/migrations/001_initial_schema.sql`
 
-## Common Tasks
+## Типовые задачи и паттерны разработки
 
-### Adding a New Building
+### Добавить новый API эндпоинт
+
+Типичный flow: Route → Controller → Service → Repository
+
+```typescript
+// 1. Создай route в backend/src/api/routes/myRoute.ts
+router.post('/my-endpoint', myController.handleRequest);
+
+// 2. Создай controller в backend/src/api/controllers/MyController.ts
+export class MyController {
+  async handleRequest(req: Request, res: Response) {
+    const result = await myService.doSomething(req.body);
+    res.json(result);
+  }
+}
+
+// 3. Создай service в backend/src/services/MyService.ts
+export class MyService {
+  async doSomething(data) {
+    // используй repositories
+    return result;
+  }
+}
+
+// 4. Зарегистрируй route в backend/src/api/routes/index.ts
+app.use('/api/my', myRoute);
+
+// 5. Обнови docs/API_OPENAPI.yaml
+```
+
+### Добавить новое здание в игру
 
 1. Edit `/content/items/buildings.json`:
 ```json
@@ -430,17 +618,26 @@ curl http://localhost:3000/health
 ```
 
 ### Контент не загружается
-⚠️ Контент пока не загружается т.к. ContentService не реализован.
 
 ```bash
-# Когда реализуешь ContentService:
 # 1. Проверь пути к файлам в backend/src/config/index.ts
-# 2. Проверь JSON/YAML синтаксис
-node -e "console.log(require('./content/items/buildings.json'))"
+cat backend/src/config/index.ts | grep -i content
 
-# 3. Проверь логи
+# 2. Проверь JSON/YAML синтаксис файлов контента
+node -e "console.log(JSON.stringify(require('./content/items/buildings.json'), null, 2))"
+
+# 3. Проверь логи backend
 docker logs energy-planet-backend
+
+# 4. Проверь что ContentService инициализируется при старте
+grep -r "ContentService" backend/src/index.ts
 ```
+
+**Если контент не загружается:**
+- Проверь существование файлов в `/content/`
+- Убедись что JSON валиден (используй `jq` или онлайн валидатор)
+- Проверь права доступа на файлы
+- ContentService должен логировать загрузку - посмотри в логах
 
 ### Telegram Mini App не открывается
 ```bash
@@ -509,26 +706,39 @@ npm run test:integration
 - Connection pool: 20-50 соединений
 - Всегда индексировать foreign keys
 
-## MVP Чеклист (что нужно сделать)
+## MVP Чеклист (текущий прогресс)
 
-### Критические фичи для MVP:
+### Backend (70% готов)
 
-**Backend:**
-- [ ] Подключение к PostgreSQL (настоящей БД)
-- [ ] Подключение к Redis для кеша
-- [ ] Telegram OAuth авторизация
-- [ ] AuthService + JWT токены
-- [ ] SessionService + расчет offline gains
-- [ ] TapService + валидация тапов
-- [ ] UpgradeService + покупка построек/улучшений
-- [ ] LeaderboardService + кеширование
-- [ ] ContentService + загрузка контента из JSON/YAML
-- [ ] MonetizationService + Telegram Stars
-- [ ] Anti-cheat валидация
+**✅ Завершено:**
+- [x] Подключение к PostgreSQL
+- [x] Подключение к Redis для кеша
+- [x] AuthService + JWT токены (основа готова)
+- [x] SessionService + расчет offline gains
+- [x] TapService + валидация тапов
+- [x] UpgradeService + покупка построек/улучшений
+- [x] LeaderboardService + кеширование
+- [x] ContentService + загрузка контента из JSON/YAML
+- [x] CosmeticService + система косметики
+- [x] Anti-cheat валидация (тапы, энергия, идемпотентность)
+- [x] Repository паттерн для всех операций с БД
+- [x] System миграций БД (migrate up/down/status)
+- [x] Middleware (auth, error handling, logging)
+- [x] Health check эндпоинт
+
+**🔨 В процессе:**
+- [ ] Telegram OAuth валидация initData
 - [ ] Rate limiting middleware
-- [ ] Применить миграции БД
+- [ ] MonetizationService (Telegram Stars + Ads)
 
-**Frontend:**
+**📋 TODO:**
+- [ ] Feature flags система (загрузка из `/content/flags/`)
+- [ ] Дополнительные anti-cheat метрики
+- [ ] Мониторинг и метрики
+
+### Frontend (10% готов)
+
+**❌ Еще не начато:**
 - [ ] React приложение с Telegram WebApp SDK
 - [ ] Zustand store для состояния
 - [ ] Экран тапа планеты
@@ -539,12 +749,21 @@ npm run test:integration
 - [ ] Анимации и эффекты
 - [ ] Haptic feedback
 
-**Infrastructure:**
+### Infrastructure (50% готов)
+
+**✅ Завершено:**
+- [x] Docker Compose для локальной разработки
+- [x] Kubernetes манифесты (базовая структура)
+- [x] Health checks
+
+**🔨 В процессе:**
 - [ ] Railway настройка
 - [ ] Production переменные окружения
-- [ ] Health checks
-- [ ] Логирование
-- [ ] Мониторинг (базовый)
+
+**📋 TODO:**
+- [ ] CI/CD пайплайн (Jenkins)
+- [ ] Логирование (Winston)
+- [ ] Мониторинг (Prometheus + Grafana)
 
 ## Полезные ссылки
 

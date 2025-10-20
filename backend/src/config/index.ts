@@ -139,7 +139,15 @@ export const config = {
   },
 
   content: {
-    path: process.env.CONTENT_PATH || path.join(__dirname, '../../../content'),
+    // First try backend/content (production/docker), then ../../../content (local dev)
+    path: process.env.CONTENT_PATH || (
+      () => {
+        const prod = path.join(__dirname, '../../content');
+        const dev = path.join(__dirname, '../../../content');
+        // In production (dist), use ../../content. In dev (src), use ../../../content
+        return __dirname.includes('dist') ? prod : dev;
+      }
+    )(),
     reloadIntervalMin: parseInt(process.env.CONTENT_RELOAD_INTERVAL_MIN || '60', 10),
   },
 

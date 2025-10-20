@@ -36,7 +36,8 @@ COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 
-# Copy content files
+# Copy content files (game data, configs, feature flags)
+# ContentService will handle missing content gracefully and load from root if needed
 COPY --chown=nodejs:nodejs ../content ./content
 
 # Create logs directory
