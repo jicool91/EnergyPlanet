@@ -6,7 +6,82 @@ import dotenv from 'dotenv';
 import path from 'path';
 
 // Load environment variables
-dotenv.config();
+const envResult = dotenv.config();
+
+// If docker-compose (или другая обвязка) передала пустые строки,
+// подставляем значения из .env, чтобы не терять токены и секреты.
+if (!envResult.error && envResult.parsed) {
+  for (const [key, value] of Object.entries(envResult.parsed)) {
+    const current = process.env[key];
+    if (current === undefined || current === '') {
+      process.env[key] = value;
+    }
+  }
+}
+
+function parseDatabaseFromUrl(urlString: string) {
+  try {
+    const url = new URL(urlString);
+    const sslParam = url.searchParams.get('sslmode');
+
+    return {
+      host: url.hostname,
+      port: url.port ? parseInt(url.port, 10) : 5432,
+      name: url.pathname ? url.pathname.replace(/^\//, '') : undefined,
+      user: url.username || undefined,
+      password: url.password || undefined,
+      ssl: sslParam ? sslParam.toLowerCase() !== 'disable' : url.protocol === 'postgresql:',
+    };
+  } catch (error) {
+    console.warn('Failed to parse DATABASE_URL', error);
+    return null;
+  }
+}
+
+function parseRedisFromUrl(urlString: string) {
+  try {
+    const url = new URL(urlString);
+    const dbSegment = url.pathname.replace(/^\//, '');
+
+    return {
+      host: url.hostname,
+      port: url.port ? parseInt(url.port, 10) : 6379,
+      password: url.password || undefined,
+      db: dbSegment ? parseInt(dbSegment, 10) : undefined,
+      tls: url.protocol === 'rediss:',
+      url: urlString,
+    };
+  } catch (error) {
+    console.warn('Failed to parse REDIS_URL', error);
+    return null;
+  }
+}
+
+const databaseDefaults = {
+  host: process.env.DB_HOST || process.env.PGHOST || 'localhost',
+  port: parseInt(process.env.DB_PORT || process.env.PGPORT || '5432', 10),
+  name: process.env.DB_NAME || process.env.PGDATABASE || 'energy_planet',
+  user: process.env.DB_USER || process.env.PGUSER || 'energyplanet_app',
+  password: process.env.DB_PASSWORD ?? process.env.PGPASSWORD ?? '',
+  poolMin: parseInt(process.env.DB_POOL_MIN || '2', 10),
+  poolMax: parseInt(process.env.DB_POOL_MAX || '20', 10),
+  ssl: process.env.DB_SSL === 'true',
+};
+
+const databaseFromUrl = parseDatabaseFromUrl(
+  process.env.DATABASE_URL || process.env.POSTGRES_URL || ''
+);
+
+const redisDefaults = {
+  host: process.env.REDIS_HOST || 'localhost',
+  port: parseInt(process.env.REDIS_PORT || '6379', 10),
+  password: process.env.REDIS_PASSWORD || undefined,
+  db: parseInt(process.env.REDIS_DB || '0', 10),
+  tls: process.env.REDIS_TLS === 'true',
+  url: undefined as string | undefined,
+};
+
+const redisFromUrl = parseRedisFromUrl(process.env.REDIS_URL || '');
 
 export const config = {
   server: {
@@ -17,22 +92,30 @@ export const config = {
   },
 
   database: {
-    host: process.env.DB_HOST || 'localhost',
-    port: parseInt(process.env.DB_PORT || '5432', 10),
-    name: process.env.DB_NAME || 'energy_planet',
-    user: process.env.DB_USER || 'energyplanet_app',
-    password: process.env.DB_PASSWORD || '',
-    poolMin: parseInt(process.env.DB_POOL_MIN || '2', 10),
-    poolMax: parseInt(process.env.DB_POOL_MAX || '20', 10),
-    ssl: process.env.DB_SSL === 'true',
+    host: databaseFromUrl?.host ?? databaseDefaults.host,
+    port: databaseFromUrl?.port ?? databaseDefaults.port,
+    name: databaseFromUrl?.name ?? databaseDefaults.name,
+    user: databaseFromUrl?.user ?? databaseDefaults.user,
+    password: databaseFromUrl?.password ?? databaseDefaults.password,
+    poolMin: databaseDefaults.poolMin,
+    poolMax: databaseDefaults.poolMax,
+    ssl:
+      process.env.DB_SSL !== undefined
+        ? process.env.DB_SSL === 'true'
+        : databaseFromUrl?.ssl ?? databaseDefaults.ssl,
+    url: process.env.DATABASE_URL || process.env.POSTGRES_URL || undefined,
   },
 
   redis: {
-    host: process.env.REDIS_HOST || 'localhost',
-    port: parseInt(process.env.REDIS_PORT || '6379', 10),
-    password: process.env.REDIS_PASSWORD || undefined,
-    db: parseInt(process.env.REDIS_DB || '0', 10),
-    tls: process.env.REDIS_TLS === 'true',
+    host: redisFromUrl?.host ?? redisDefaults.host,
+    port: redisFromUrl?.port ?? redisDefaults.port,
+    password: redisFromUrl?.password ?? redisDefaults.password,
+    db: redisFromUrl?.db ?? redisDefaults.db,
+    tls:
+      process.env.REDIS_TLS !== undefined
+        ? process.env.REDIS_TLS === 'true'
+        : redisFromUrl?.tls ?? redisDefaults.tls,
+    url: redisFromUrl?.url ?? undefined,
   },
 
   telegram: {

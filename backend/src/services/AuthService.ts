@@ -1,14 +1,33 @@
 /**
  * Authentication Service
- * Handles Telegram OAuth and JWT token generation
+ * Handles Telegram OAuth and JWT token generation backed by PostgreSQL sessions
  */
 
 import crypto from 'crypto';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload, Secret, SignOptions } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
+import {
+  createUser,
+  findById as findUserById,
+  findByTelegramId,
+  updateUser,
+  UserRecord,
+} from '../repositories/UserRepository';
+import { createDefaultProgress, getProgress } from '../repositories/ProgressRepository';
+import { ensureProfile } from '../repositories/ProfileRepository';
+import {
+  createSession,
+  deleteSessionByHash,
+  findByRefreshTokenHash,
+  updateSessionExpiry,
+} from '../repositories/SessionRepository';
+import { logEvent } from '../repositories/EventRepository';
+import { transaction } from '../db/connection';
+import { addDuration, durationToMilliseconds } from '../utils/time';
+import { hashToken } from '../utils/token';
 
 interface TelegramUser {
   id: number;
@@ -20,13 +39,47 @@ interface TelegramUser {
   hash: string;
 }
 
+interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+  refreshExpiresAt: Date;
+}
+
 export class AuthService {
-  /**
-   * Verify Telegram initData hash
-   */
+  private readonly jwtSecret: Secret = config.jwt.secret as Secret;
+
+  private buildAccessPayload(user: UserRecord) {
+    return {
+      userId: user.id,
+      telegramId: user.telegramId,
+      username: user.username,
+      isAdmin: user.isAdmin,
+    };
+  }
+
+  private signAccessToken(user: UserRecord): string {
+    const options: SignOptions = {
+      expiresIn: config.jwt.accessExpiry as SignOptions['expiresIn'],
+    };
+    return jwt.sign(this.buildAccessPayload(user), this.jwtSecret, options);
+  }
+
+  private accessTokenTtlSeconds(): number {
+    return Math.floor(durationToMilliseconds(config.jwt.accessExpiry) / 1000);
+  }
+
   private verifyTelegramHash(initData: string): TelegramUser {
+    if (!config.telegram.botToken) {
+      throw new AppError(500, 'telegram_bot_token_missing');
+    }
+
     const urlParams = new URLSearchParams(initData);
     const hash = urlParams.get('hash');
+
+    if (!hash) {
+      throw new AppError(401, 'missing_telegram_hash');
+    }
+
     const dataCheckString = Array.from(urlParams.entries())
       .filter(([key]) => key !== 'hash')
       .sort(([a], [b]) => a.localeCompare(b))
@@ -47,105 +100,203 @@ export class AuthService {
       throw new AppError(401, 'invalid_telegram_hash');
     }
 
-    // Parse user data
     const userParam = urlParams.get('user');
     if (!userParam) {
       throw new AppError(401, 'missing_user_data');
     }
 
-    const user = JSON.parse(userParam) as TelegramUser;
+    const parsed = JSON.parse(userParam) as TelegramUser;
 
-    // Check auth_date (valid for 24 hours)
     const authDate = parseInt(urlParams.get('auth_date') || '0', 10);
     const now = Math.floor(Date.now() / 1000);
     if (now - authDate > 86400) {
       throw new AppError(401, 'auth_data_expired');
     }
 
-    return user;
+    return parsed;
   }
 
-  /**
-   * Authenticate user with Telegram and return JWT tokens
-   */
+  private parseInitData(initData: string): TelegramUser {
+    if (config.testing.bypassAuth) {
+      try {
+        const parsed = JSON.parse(initData) as Partial<TelegramUser>;
+        if (!parsed.id) {
+          throw new Error('id is required');
+        }
+        return {
+          id: parsed.id,
+          first_name: parsed.first_name || 'Test',
+          last_name: parsed.last_name,
+          username: parsed.username || `test_${parsed.id}`,
+          photo_url: parsed.photo_url,
+          auth_date: Math.floor(Date.now() / 1000),
+          hash: '',
+        };
+      } catch (error) {
+        logger.warn('Bypass auth JSON parse failed, using fallback profile', error);
+        return {
+          id: Math.floor(Math.random() * 1_000_000),
+          first_name: 'Test',
+          username: 'test_user',
+          auth_date: Math.floor(Date.now() / 1000),
+          hash: '',
+        };
+      }
+    }
+
+    return this.verifyTelegramHash(initData);
+  }
+
+  private generateTokens(user: UserRecord): AuthTokens {
+    const accessToken = this.signAccessToken(user);
+
+    const refreshPayload: JwtPayload = {
+      userId: user.id,
+      telegramId: user.telegramId,
+      tokenId: uuidv4(),
+    };
+    const refreshOptions: SignOptions = {
+      expiresIn: config.jwt.refreshExpiry as SignOptions['expiresIn'],
+    };
+    const refreshToken = jwt.sign(refreshPayload, this.jwtSecret, refreshOptions);
+
+    const refreshExpiresAt = addDuration(new Date(), config.jwt.refreshExpiry);
+
+    return { accessToken, refreshToken, refreshExpiresAt };
+  }
+
   async authenticateWithTelegram(initData: string) {
-    // Verify Telegram hash
-    const telegramUser = this.verifyTelegramHash(initData);
+    const telegramUser = this.parseInitData(initData);
 
-    // TODO: Create or update user in database
-    // const user = await UserRepository.findOrCreate(telegramUser);
+    const result = await transaction(async client => {
+      let user = await findByTelegramId(telegramUser.id, client);
+      let isNewUser = false;
 
-    // Mock user for now
-    const userId = uuidv4();
-    const isNewUser = true;
+      if (!user) {
+        user = await createUser(
+          {
+            telegramId: telegramUser.id,
+            username: telegramUser.username,
+            firstName: telegramUser.first_name,
+            lastName: telegramUser.last_name,
+          },
+          client
+        );
+        await createDefaultProgress(user.id, client);
+        await ensureProfile(user.id, client);
+        isNewUser = true;
+      } else {
+        const shouldUpdate =
+          user.username !== (telegramUser.username ?? null) ||
+          user.firstName !== (telegramUser.first_name ?? null) ||
+          user.lastName !== (telegramUser.last_name ?? null);
 
-    // Generate JWT tokens
-    const accessToken = jwt.sign(
-      {
-        userId,
-        telegramId: telegramUser.id,
-        username: telegramUser.username,
-        isAdmin: false,
-      },
-      config.jwt.secret,
-      { expiresIn: config.jwt.accessExpiry }
-    );
+        if (shouldUpdate) {
+          user = await updateUser(
+            user.id,
+            {
+              username: telegramUser.username ?? null,
+              firstName: telegramUser.first_name ?? null,
+              lastName: telegramUser.last_name ?? null,
+            },
+            client
+          );
+        }
+      }
 
-    const refreshToken = jwt.sign(
-      {
-        userId,
-        tokenId: uuidv4(),
-      },
-      config.jwt.secret,
-      { expiresIn: config.jwt.refreshExpiry }
-    );
+      const progress = (await getProgress(user.id, client)) ?? (await createDefaultProgress(user.id, client));
 
-    // TODO: Store refresh token in database
+      await ensureProfile(user.id, client);
+
+      const tokens = this.generateTokens(user);
+      const refreshTokenHash = hashToken(tokens.refreshToken);
+
+      await deleteSessionByHash(refreshTokenHash, client);
+      await createSession(user.id, refreshTokenHash, tokens.refreshExpiresAt, client);
+      await logEvent(
+        user.id,
+        'login',
+        {
+          telegram_id: telegramUser.id,
+          username: telegramUser.username,
+          is_new_user: isNewUser,
+        },
+        { client }
+      );
+
+      return { user, progress, isNewUser, tokens };
+    });
 
     logger.info('User authenticated', {
-      userId,
-      telegramId: telegramUser.id,
-      isNewUser,
+      userId: result.user.id,
+      telegramId: result.user.telegramId,
+      isNewUser: result.isNewUser,
     });
 
     return {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      user_id: userId,
-      telegram_id: telegramUser.id,
-      username: telegramUser.username,
-      is_new_user: isNewUser,
+      access_token: result.tokens.accessToken,
+      refresh_token: result.tokens.refreshToken,
+      refresh_expires_at: result.tokens.refreshExpiresAt.toISOString(),
+      expires_in: this.accessTokenTtlSeconds(),
+      user_id: result.user.id,
+      telegram_id: result.user.telegramId,
+      username: result.user.username,
+      first_name: result.user.firstName,
+      last_name: result.user.lastName,
+      is_new_user: result.isNewUser,
     };
   }
 
-  /**
-   * Refresh access token
-   */
   async refreshAccessToken(refreshToken: string) {
+    let decoded: JwtPayload | string;
+
     try {
-      const decoded = jwt.verify(refreshToken, config.jwt.secret) as any;
-
-      // TODO: Verify refresh token exists in database
-      // TODO: Get user from database
-
-      // Generate new access token
-      const accessToken = jwt.sign(
-        {
-          userId: decoded.userId,
-          telegramId: decoded.telegramId,
-          username: decoded.username,
-          isAdmin: false,
-        },
-        config.jwt.secret,
-        { expiresIn: config.jwt.accessExpiry }
-      );
-
-      return {
-        access_token: accessToken,
-        refresh_token: refreshToken, // Keep same refresh token
-      };
+      decoded = jwt.verify(refreshToken, this.jwtSecret);
     } catch (error) {
+      logger.warn('Invalid refresh token', error);
       throw new AppError(401, 'invalid_refresh_token');
     }
+
+    if (typeof decoded !== 'object' || !decoded.userId) {
+      throw new AppError(401, 'invalid_refresh_token');
+    }
+
+    const refreshHash = hashToken(refreshToken);
+    const session = await findByRefreshTokenHash(refreshHash);
+
+    if (!session) {
+      throw new AppError(401, 'invalid_refresh_token');
+    }
+
+    if (session.userId !== decoded.userId) {
+      await deleteSessionByHash(refreshHash);
+      throw new AppError(401, 'invalid_refresh_token');
+    }
+
+    if (session.expiresAt.getTime() < Date.now()) {
+      await deleteSessionByHash(refreshHash);
+      throw new AppError(401, 'refresh_token_expired');
+    }
+
+    const user = await findUserById(session.userId);
+    if (!user) {
+      await deleteSessionByHash(refreshHash);
+      throw new AppError(404, 'user_not_found');
+    }
+
+    const accessToken = this.signAccessToken(user);
+    const refreshExpiresAt = addDuration(new Date(), config.jwt.refreshExpiry);
+
+    await updateSessionExpiry(session.id, refreshExpiresAt);
+    const refreshResult = {
+      access_token: accessToken,
+      refresh_token: refreshToken,
+      refresh_expires_at: refreshExpiresAt.toISOString(),
+      expires_in: this.accessTokenTtlSeconds(),
+    };
+
+    await logEvent(user.id, 'token_refresh', { session_id: session.id });
+
+    return refreshResult;
   }
 }

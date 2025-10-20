@@ -1,14 +1,11 @@
 import { Router } from 'express';
+import { authenticate } from '../../middleware/auth';
+import { SocialController } from '../controllers/SocialController';
 
 const router = Router();
+const controller = new SocialController();
 
-// TODO: Implement social routes
-router.get('/leaderboard', (req, res) => {
-  res.json({ message: 'Leaderboard endpoint - TODO' });
-});
-
-router.get('/profile/:userId', (req, res) => {
-  res.json({ message: 'Profile endpoint - TODO' });
-});
+router.get('/leaderboard', authenticate, controller.leaderboard);
+router.get('/profile/:userId', authenticate, controller.profile);
 
 export default router;

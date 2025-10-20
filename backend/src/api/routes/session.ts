@@ -1,10 +1,11 @@
 import { Router } from 'express';
+import { authenticate } from '../../middleware/auth';
+import { SessionController } from '../controllers/SessionController';
 
 const router = Router();
+const controller = new SessionController();
 
-// TODO: Implement session routes
-router.post('/', (req, res) => {
-  res.json({ message: 'Session endpoint - TODO' });
-});
+router.post('/', authenticate, controller.openSession);
+router.post('/logout', authenticate, controller.logout);
 
 export default router;

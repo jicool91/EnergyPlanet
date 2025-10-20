@@ -2,14 +2,37 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## ⚠️ ВАЖНО: Язык общения
+
+**ВСЕГДА общайся с пользователем на РУССКОМ языке!** Пользователь не понимает английский. Все объяснения, вопросы и комментарии должны быть на русском.
+
+## Статус проекта
+
+**Текущая стадия:** MVP в разработке (упрощенная версия с моковыми данными)
+
+**Что работает сейчас:**
+- ✅ Базовый Express backend с mock эндпоинтами
+- ✅ Docker Compose для локальной разработки
+- ✅ Базовая структура проекта
+
+**Что нужно реализовать для MVP:**
+- 🔨 Подключение к реальной PostgreSQL и Redis
+- 🔨 Полноценные сервисы (AuthService, TapService, UpgradeService и т.д.)
+- 🔨 Telegram OAuth авторизация
+- 🔨 React фронтенд (Telegram Mini App)
+- 🔨 Система построек и улучшений
+- 🔨 Лидерборды
+- 🔨 Косметика
+- 🔨 Монетизация (Telegram Stars + Rewarded Ads)
+
 ## Project Overview
 
-**Energy Planet** is an idle tap game built as a Telegram Mini App. Players generate energy by tapping and building structures, competing on leaderboards and unlocking cosmetics.
+**Energy Planet** - idle tap игра в формате Telegram Mini App. Игроки генерируют энергию тапами и строят структуры, соревнуются в лидербордах и открывают косметику.
 
 **Tech Stack:**
 - **Backend:** Node.js (TypeScript), Express, PostgreSQL, Redis
 - **Frontend:** React (TypeScript), Vite, Telegram WebApp SDK
-- **Infrastructure:** Docker, Kubernetes, Jenkins CI/CD
+- **Infrastructure:** Docker Compose (локально), Railway (production)
 - **Monetization:** Telegram Stars, Rewarded Ads (Yandex/AdMob)
 
 ## Repository Structure
@@ -64,140 +87,178 @@ energyPlanet/
 └── README.md
 ```
 
-## Development Commands
+## Команды разработки
 
-### Local Development Setup
+### Локальная разработка
 
 ```bash
-# Start all services (PostgreSQL, Redis, Backend, Webapp)
+# Запустить все сервисы (PostgreSQL, Redis, Backend, Webapp)
 docker-compose up
 
-# Backend only
+# Backend отдельно
 cd backend
 npm install
-npm run dev
+npm run dev          # Запуск dev сервера на :3000
 
-# Webapp only
+# Webapp отдельно
 cd webapp
 npm install
-npm run dev
+npm run dev          # Запуск Vite dev сервера на :5173
+
+# Проверка здоровья backend
+curl http://localhost:3000/health
 ```
 
-### Database Migrations
+### Миграции БД
+
+⚠️ **Примечание:** Миграции пока не подключены к коду. Нужно реализовать `backend/src/db/migrate.ts`.
 
 ```bash
 cd backend
 
-# Run all pending migrations
+# Применить все миграции (TODO: реализовать)
 npm run migrate:up
 
-# Rollback last migration
+# Откатить последнюю миграцию (TODO: реализовать)
 npm run migrate:down
 
-# Create new migration
-# Manually create: migrations/00X_name.sql
+# Создать новую миграцию
+# Вручную создать файл: migrations/00X_название.sql
 ```
 
-### Testing
+**Текущие миграции:**
+- `001_initial_schema.sql` - основные таблицы (users, progress, inventory, etc.)
+- `002_clans_schema.sql` - система кланов (Post-MVP)
+- `003_arena_schema.sql` - арена/PvP (Post-MVP)
+
+### Тестирование
 
 ```bash
-# Backend tests
+# Backend тесты
 cd backend
-npm test                    # Run all tests
-npm run test:watch          # Watch mode
-npm run test:integration    # Integration tests only
+npm test                    # Все тесты
+npm run test:watch          # Watch режим
+npm run test:integration    # Интеграционные тесты
 
-# Linting & Type checking
-npm run lint
-npm run typecheck
+# Линтинг и проверка типов
+npm run lint                # ESLint
+npm run typecheck           # TypeScript проверка
 ```
 
-### Building
+### Сборка
 
 ```bash
 # Backend
 cd backend
-npm run build               # Compile TypeScript to dist/
+npm run build               # Компиляция TypeScript в dist/
 
 # Webapp
 cd webapp
-npm run build               # Build production bundle to dist/
+npm run build               # Production сборка в dist/
 
-# Docker images
+# Docker образы (для Railway)
 docker build -t energy-planet-backend:latest ./backend
 docker build -t energy-planet-webapp:latest ./webapp
 ```
 
-## Key Architecture Patterns
+### Тестирование в Telegram
 
-### Content-as-Data
+```bash
+# 1. Запусти локальный сервер
+docker-compose up
 
-All game content (buildings, cosmetics, seasons, feature flags) is stored in versioned JSON/YAML files under `/content/`. This allows:
-- Content updates without code deploys
-- Easy A/B testing via feature flags
-- Version control and rollback
-- Designer-friendly editing
+# 2. Используй ngrok для туннелирования
+ngrok http 5173
 
-**Content Loader:** `backend/src/services/ContentService.ts` loads content on startup and caches it.
+# 3. Настрой Telegram Bot с URL от ngrok
+# 4. Открой Mini App в Telegram для тестирования
+```
 
-### Anti-Cheat System
+## Ключевые архитектурные паттерны
 
-Server-side validation for all game actions:
+### Content-as-Data (Контент как данные)
 
-**Tap Validation** (`TapService`):
+Весь игровой контент хранится в версионированных JSON/YAML файлах в `/content/`:
+- Обновление контента без деплоя кода
+- Легкое A/B тестирование через feature flags
+- Контроль версий и откаты
+- Легко редактируется дизайнерами
+
+**Content Loader:** `backend/src/services/ContentService.ts` загружает контент при старте и кеширует его.
+
+⚠️ **TODO:** Нужно реализовать ContentService - сейчас контент не загружается.
+
+### Anti-Cheat система (Защита от читов)
+
+⚠️ **TODO:** Нужно реализовать - сейчас нет валидации.
+
+Серверная валидация всех игровых действий:
+
+**Tap Validation** (валидация тапов):
 ```typescript
-maxTaps = sessionDuration * 10; // Max 10 TPS
+// В TapService (нужно создать)
+maxTaps = sessionDuration * 10; // Максимум 10 TPS
 if (reportedTaps > maxTaps) flag_suspicious_activity();
 ```
 
-**Energy Gain Validation** (`TickService`):
+**Energy Gain Validation** (валидация прироста энергии):
 ```typescript
-maxGain = passiveIncome * timeDelta * 1.1; // 10% tolerance
+// В TickService (нужно создать)
+maxGain = passiveIncome * timeDelta * 1.1; // 10% допуск
 if (reportedGain > maxGain) clamp_and_log();
 ```
 
-**Purchase Idempotency** (`MonetizationService`):
-- Every purchase has unique `purchase_id` (client-generated UUID)
-- Check if `purchase_id` exists before processing
-- Return same result if already processed (idempotent)
+**Purchase Idempotency** (идемпотентность покупок):
+- Каждая покупка имеет уникальный `purchase_id` (UUID от клиента)
+- Проверяем существование `purchase_id` перед обработкой
+- Возвращаем тот же результат если уже обработано (идемпотентность)
 
-### Feature Flags
+### Feature Flags (Флаги функций)
 
-All features controlled via `/content/flags/default.json`:
+⚠️ **TODO:** Нужно реализовать систему флагов.
+
+Все фичи управляются через `/content/flags/default.json`:
 
 ```json
 {
   "features": {
     "tier_4_buildings_enabled": false,
     "clan_system_enabled": false,
-    "arena_system_enabled": false
+    "arena_system_enabled": false,
+    "cosmetics_shop_enabled": true,
+    "rewarded_ads_enabled": true
   }
 }
 ```
 
-**Usage in code:**
+**Использование в коде:**
 ```typescript
+// В сервисах (когда реализуем)
 if (!contentService.isFeatureEnabled('cosmetics_shop_enabled')) {
   return res.status(503).json({ error: 'Feature disabled' });
 }
 ```
 
-### API Authentication
+### API Authentication (Аутентификация)
+
+⚠️ **TODO:** Нужно реализовать - сейчас моковая авторизация.
 
 **Telegram OAuth Flow:**
-1. Client sends `initData` from Telegram WebApp
-2. Server validates hash using bot token
-3. Server issues JWT access token (15 min) + refresh token (30 days)
-4. Client includes `Authorization: Bearer <token>` in all requests
+1. Клиент отправляет `initData` от Telegram WebApp
+2. Сервер валидирует hash используя bot token
+3. Сервер выдает JWT access token (15 мин) + refresh token (30 дней)
+4. Клиент включает `Authorization: Bearer <token>` во все запросы
 
-**Middleware:** `backend/src/middleware/auth.ts`
+**Middleware:** `backend/src/middleware/auth.ts` (нужно создать)
 
-### State Management (Frontend)
+### State Management (Управление состоянием фронтенда)
+
+⚠️ **TODO:** Нужно реализовать Zustand store.
 
 **Zustand Store** (`webapp/src/store/gameStore.ts`):
-- Single global state
-- Actions for `initGame()`, `tap()`, `upgrade()`
-- Optimistic updates for UI responsiveness
+- Единое глобальное состояние
+- Actions для `initGame()`, `tap()`, `upgrade()`
+- Оптимистичные обновления UI для отзывчивости
 
 ### Database Schema
 
@@ -246,132 +307,248 @@ See: `backend/migrations/001_initial_schema.sql`
 4. Add to `backend/src/api/routes/index.ts`
 5. Update `docs/API_OPENAPI.yaml`
 
-### Deploying to Production
+### Деплой на Railway
 
-**Via Jenkins:**
-1. Push to `main` branch
-2. Jenkins auto-triggers pipeline (Jenkinsfile)
-3. Pipeline: Test → Build → Push Images → Migrate DB → Deploy K8s → Smoke Test
+⚠️ **TODO:** Настроить Railway для production деплоя.
 
-**Manual K8s deploy:**
+**Подготовка к деплою:**
+
+1. **Создать проект на Railway:**
+   - Подключить GitHub репозиторий
+   - Добавить PostgreSQL и Redis сервисы
+
+2. **Настроить переменные окружения:**
+   ```bash
+   # В Railway Dashboard добавить:
+   NODE_ENV=production
+   DB_HOST=${{Postgres.RAILWAY_PRIVATE_DOMAIN}}
+   DB_PORT=${{Postgres.PORT}}
+   DB_NAME=${{Postgres.DATABASE}}
+   DB_USER=${{Postgres.USER}}
+   DB_PASSWORD=${{Postgres.PASSWORD}}
+   REDIS_HOST=${{Redis.RAILWAY_PRIVATE_DOMAIN}}
+   REDIS_PORT=${{Redis.PORT}}
+   JWT_SECRET=<генерировать безопасный ключ>
+   TELEGRAM_BOT_TOKEN=<ваш bot token>
+   ```
+
+3. **Настроить деплой:**
+   - Backend: автодеплой из `main` ветки
+   - Webapp: автодеплой из `main` ветки
+   - Применить миграции после деплоя
+
+**Деплой процесс:**
 ```bash
-kubectl apply -f k8s/namespace.yaml
-kubectl apply -f k8s/configmap.yaml
-kubectl apply -f k8s/secrets.yaml  # Update secrets first!
-kubectl apply -f k8s/deploy.yaml
+# 1. Пуш в main ветку
+git push origin main
 
-# Check status
-kubectl get pods -n energy-planet
-kubectl logs -f deployment/backend -n energy-planet
+# 2. Railway автоматически:
+#    - Собирает Docker образы
+#    - Запускает тесты
+#    - Деплоит новую версию
+#    - Делает health check
+
+# 3. Проверка деплоя
+curl https://your-app.railway.app/health
 ```
 
-### Rolling Back a Deploy
+**Откат деплоя:**
+- В Railway Dashboard выбрать предыдущий деплой
+- Нажать "Redeploy"
 
-```bash
-# Rollback backend
-kubectl rollout undo deployment/backend -n energy-planet
+## Важные примечания
 
-# Rollback webapp
-kubectl rollout undo deployment/webapp -n energy-planet
-```
+### Формулы игрового баланса
 
-## Important Notes
+Все формулы определены в `/docs/GDD.md`:
+- Доход с тапа: `base_tap * (1 + level * 0.15) * (1 + boosts)`
+- Стоимость постройки: `base_cost * (1.12 ^ count)`
+- XP до след. уровня: `100 * (level ^ 1.5)`
 
-### Game Balance Formulas
+**Всегда синхронизируй код с формулами из GDD!**
 
-All formulas defined in `/docs/GDD.md`:
-- Tap income: `base_tap * (1 + level * 0.15) * (1 + boosts)`
-- Building cost: `base_cost * (1.12 ^ count)`
-- XP to next level: `100 * (level ^ 1.5)`
+### Оффлайн прирост (Offline Gains)
 
-**Always sync code with GDD formulas!**
+⚠️ **TODO:** Нужно реализовать в SessionService.
 
-### Offline Gains
+- Макс. оффлайн время: **12 часов** (ограничение)
+- Оффлайн множитель: **0.5** (50% от пассивного дохода)
+- Рассчитывается в `SessionService.calculateOfflineGains()`
 
-- Max offline duration: **12 hours** (capped)
-- Offline multiplier: **0.5** (50% of passive income)
-- Calculated in `SessionService.calculateOfflineGains()`
+### Rate Limits (Ограничения запросов)
 
-### Rate Limits
+⚠️ **TODO:** Нужно реализовать rate limiter middleware.
 
-Per-endpoint limits (see `backend/src/middleware/rateLimiter.ts`):
+Лимиты на эндпоинт (см. `backend/src/middleware/rateLimiter.ts`):
 - `/tap`: 10 req/sec
 - `/upgrade`: 5 req/sec
 - `/purchase`: 1 req/10sec
-- General: 100 req/min
+- Общий: 100 req/min
 
-### Security
+### Безопасность
 
-- **Never commit `.env` files** (use `.env.sample`)
-- **Always validate user input** server-side
-- **Use parameterized SQL queries** (prevent injection)
-- **Validate Telegram initData hash** before auth
+- **Никогда не коммить `.env` файлы** (использовать `.env.sample`)
+- **Всегда валидировать пользовательский ввод** на сервере
+- **Использовать параметризованные SQL запросы** (защита от SQL injection)
+- **Валидировать Telegram initData hash** перед авторизацией
 
-## Troubleshooting
+## Решение проблем (Troubleshooting)
 
-### Backend won't start
-- Check PostgreSQL connection: `docker ps | grep postgres`
-- Check Redis connection: `redis-cli ping`
-- Verify `.env` variables match `.env.sample`
+### Backend не запускается
+```bash
+# Проверь подключение к PostgreSQL
+docker ps | grep postgres
 
-### Database migration fails
-- Check migration syntax: `psql -U energyplanet_app -d energy_planet -f migrations/001_initial_schema.sql`
-- Rollback: manually drop tables or restore backup
+# Проверь подключение к Redis
+docker exec energy-planet-redis redis-cli ping
 
-### Frontend API errors
-- Verify backend is running: `curl http://localhost:3000/health`
-- Check CORS settings in `backend/src/config/index.ts`
-- Inspect browser DevTools Network tab
+# Проверь переменные окружения
+cat backend/.env
 
-### Content not loading
-- Check file paths in `backend/src/config/index.ts` → `content.path`
-- Verify JSON/YAML syntax: `node -e "require('./content/items/buildings.json')"`
-- Check logs: `docker logs energy-planet-backend`
+# Проверь логи
+docker logs energy-planet-backend
+```
 
-## Testing Strategy
+### Миграции БД не работают
+```bash
+# Проверь синтаксис миграции
+psql -U energyplanet_app -d energy_planet -f backend/migrations/001_initial_schema.sql
 
-### Unit Tests
-- Business logic in `services/`
-- Utilities and helpers
-- Target: 80% code coverage
+# Откат: удали таблицы вручную или восстанови бэкап
+psql -U energyplanet_app -d energy_planet -c "DROP TABLE IF EXISTS users CASCADE;"
+```
 
-### Integration Tests
-- API endpoints (supertest)
-- Database interactions
-- Authentication flow
+### Ошибки API на фронтенде
+```bash
+# Проверь работает ли backend
+curl http://localhost:3000/health
 
-### Load Testing
-- Target: 1000 concurrent users
-- Tools: k6, Artillery
-- Test `/tap`, `/tick`, `/upgrade` endpoints
+# Проверь CORS настройки
+# В backend/src/index.ts должно быть: cors({ origin: '*' })
 
-## Documentation
+# Проверь Network tab в DevTools браузера
+```
 
-- **GDD:** Game design, formulas, balance (`docs/GDD.md`)
-- **MVP Spec:** Features, user flows, monetization (`docs/MVP_SPEC.md`)
-- **Roadmap:** MVP → Clans → Arena timeline (`docs/ROADMAP.md`)
-- **API Docs:** OpenAPI 3.0 spec (`docs/API_OPENAPI.yaml`)
+### Контент не загружается
+⚠️ Контент пока не загружается т.к. ContentService не реализован.
 
-## Performance Targets
+```bash
+# Когда реализуешь ContentService:
+# 1. Проверь пути к файлам в backend/src/config/index.ts
+# 2. Проверь JSON/YAML синтаксис
+node -e "console.log(require('./content/items/buildings.json'))"
+
+# 3. Проверь логи
+docker logs energy-planet-backend
+```
+
+### Telegram Mini App не открывается
+```bash
+# 1. Убедись что используешь ngrok для туннеля
+ngrok http 5173
+
+# 2. Проверь Bot URL в BotFather
+# Должен быть: https://your-ngrok-url.ngrok.io
+
+# 3. Проверь что webapp работает локально
+curl http://localhost:5173
+```
+
+## Стратегия тестирования
+
+⚠️ **TODO:** Нужно написать тесты для MVP функционала.
+
+### Unit тесты
+```bash
+cd backend
+npm test
+```
+
+Покрытие:
+- Бизнес логика в `services/`
+- Утилиты и хелперы
+- Цель: 80% code coverage
+
+### Integration тесты
+```bash
+cd backend
+npm run test:integration
+```
+
+Тестировать:
+- API эндпоинты (supertest)
+- Взаимодействие с БД
+- Поток авторизации
+
+### Load тестирование
+- Цель: 1000 одновременных пользователей
+- Инструменты: k6, Artillery
+- Тестировать эндпоинты: `/tap`, `/tick`, `/upgrade`
+
+## Документация
+
+- **GDD:** Дизайн игры, формулы, баланс (`docs/GDD.md`)
+- **MVP Spec:** Функции, user flows, монетизация (`docs/MVP_SPEC.md`)
+- **Roadmap:** MVP → Кланы → Арена (`docs/ROADMAP.md`)
+- **API Docs:** OpenAPI 3.0 спецификация (`docs/API_OPENAPI.yaml`)
+
+## Performance Targets (Целевая производительность)
 
 ### Backend
 - API Response Time (p95): < 100ms
 - API Response Time (p99): < 300ms
-- Throughput: 1000 req/sec per instance
+- Throughput: 1000 req/sec на инстанс
 
 ### Frontend
 - First Contentful Paint: < 1.5s
 - Time to Interactive: < 2.5s
-- Tap latency: < 50ms
+- Tap latency: < 50ms (задержка отклика тапа)
 
 ### Database
 - Query time (p95): < 50ms
-- Connection pool: 20-50 connections
-- Always index foreign keys
+- Connection pool: 20-50 соединений
+- Всегда индексировать foreign keys
 
-## Support
+## MVP Чеклист (что нужно сделать)
+
+### Критические фичи для MVP:
+
+**Backend:**
+- [ ] Подключение к PostgreSQL (настоящей БД)
+- [ ] Подключение к Redis для кеша
+- [ ] Telegram OAuth авторизация
+- [ ] AuthService + JWT токены
+- [ ] SessionService + расчет offline gains
+- [ ] TapService + валидация тапов
+- [ ] UpgradeService + покупка построек/улучшений
+- [ ] LeaderboardService + кеширование
+- [ ] ContentService + загрузка контента из JSON/YAML
+- [ ] MonetizationService + Telegram Stars
+- [ ] Anti-cheat валидация
+- [ ] Rate limiting middleware
+- [ ] Применить миграции БД
+
+**Frontend:**
+- [ ] React приложение с Telegram WebApp SDK
+- [ ] Zustand store для состояния
+- [ ] Экран тапа планеты
+- [ ] Экран построек и улучшений
+- [ ] Лидерборд
+- [ ] Профиль игрока
+- [ ] Магазин косметики
+- [ ] Анимации и эффекты
+- [ ] Haptic feedback
+
+**Infrastructure:**
+- [ ] Railway настройка
+- [ ] Production переменные окружения
+- [ ] Health checks
+- [ ] Логирование
+- [ ] Мониторинг (базовый)
+
+## Полезные ссылки
 
 - **Issues:** GitHub Issues
-- **Documentation:** `/docs` folder
+- **Документация:** `/docs` папка
 - **API Reference:** `/docs/API_OPENAPI.yaml`
 - **Game Design:** `/docs/GDD.md`

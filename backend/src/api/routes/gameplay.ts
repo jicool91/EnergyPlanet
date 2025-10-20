@@ -1,18 +1,12 @@
 import { Router } from 'express';
+import { authenticate } from '../../middleware/auth';
+import { GameplayController } from '../controllers/GameplayController';
 
 const router = Router();
+const controller = new GameplayController();
 
-// TODO: Implement gameplay routes
-router.post('/tap', (req, res) => {
-  res.json({ message: 'Tap endpoint - TODO' });
-});
-
-router.post('/tick', (req, res) => {
-  res.json({ message: 'Tick endpoint - TODO' });
-});
-
-router.post('/upgrade', (req, res) => {
-  res.json({ message: 'Upgrade endpoint - TODO' });
-});
+router.post('/tap', authenticate, controller.tap);
+router.post('/tick', authenticate, controller.tick);
+router.post('/upgrade', authenticate, controller.upgrade);
 
 export default router;

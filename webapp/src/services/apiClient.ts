@@ -4,7 +4,41 @@
 
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+declare global {
+  interface Window {
+    __ENERGY_PLANET_API_URL__?: string;
+  }
+}
+
+const LOCAL_FALLBACK = 'http://localhost:3000/api/v1';
+
+function resolveApiBaseUrl(): string {
+  const explicit = import.meta.env.VITE_API_URL?.trim();
+  if (explicit) {
+    return explicit;
+  }
+
+  if (typeof window !== 'undefined') {
+    const override = window.__ENERGY_PLANET_API_URL__?.trim();
+    if (override) {
+      return override;
+    }
+
+    const { protocol, host, hostname } = window.location;
+
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return LOCAL_FALLBACK;
+    }
+
+    if (host) {
+      return `${protocol}//${host}/api/v1`;
+    }
+  }
+
+  return LOCAL_FALLBACK;
+}
+
+const API_BASE_URL = resolveApiBaseUrl();
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

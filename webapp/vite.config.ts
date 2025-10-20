@@ -11,12 +11,15 @@ export default defineConfig({
   },
   server: {
     port: 5173,
-    host: '0.0.0.0',
+   host: '0.0.0.0',
     strictPort: true,
     hmr: {
       clientPort: 5173,
     },
-    allowedHosts: ['herbal-football-miracle-kurt.trycloudflare.com', '.trycloudflare.com'],
+    allowedHosts: [
+      'epic-late-providing-antonio.trycloudflare.com',
+      '.trycloudflare.com',
+    ],
   },
   build: {
     outDir: 'dist',

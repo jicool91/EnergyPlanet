@@ -20,7 +20,7 @@ export const errorHandler = (
   err: Error | AppError,
   req: Request,
   res: Response,
-  next: NextFunction
+  _next: NextFunction
 ) => {
   if (err instanceof AppError) {
     logger.error(`AppError: ${err.message}`, {
@@ -44,7 +44,7 @@ export const errorHandler = (
     method: req.method,
   });
 
-  res.status(500).json({
+  return res.status(500).json({
     error: 'internal_server_error',
     message: 'An unexpected error occurred',
   });

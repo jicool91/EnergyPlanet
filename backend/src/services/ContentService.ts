@@ -15,6 +15,11 @@ interface Building {
   base_income: number;
   base_cost: number;
   unlock_level: number;
+  cost_multiplier?: number;
+  upgrade_cost_multiplier?: number;
+  upgrade_income_bonus?: number;
+  max_count?: number;
+  feature_flag?: string;
   [key: string]: any;
 }
 
@@ -42,11 +47,19 @@ interface FeatureFlags {
   [key: string]: any;
 }
 
+interface BuildingFormulas {
+  building_cost: string;
+  building_upgrade_cost: string;
+  building_income: string;
+  max_buildings_per_type: string;
+}
+
 class ContentService {
   private buildings: Building[] = [];
   private cosmetics: Cosmetic[] = [];
   private season: Season | null = null;
   private featureFlags: FeatureFlags | null = null;
+  private formulas: BuildingFormulas | null = null;
 
   async load() {
     try {
@@ -73,6 +86,7 @@ class ContentService {
     const data = await fs.readFile(filePath, 'utf-8');
     const parsed = JSON.parse(data);
     this.buildings = parsed.buildings;
+    this.formulas = parsed.formulas as BuildingFormulas;
   }
 
   private async loadCosmetics() {
@@ -120,6 +134,49 @@ class ContentService {
 
   isFeatureEnabled(featureName: string): boolean {
     return this.featureFlags?.features[featureName] ?? false;
+  }
+
+  isBuildingAvailable(building: Building, playerLevel: number): boolean {
+    if (building.unlock_level > playerLevel) {
+      return false;
+    }
+
+    if (building.feature_flag) {
+      return this.isFeatureEnabled(building.feature_flag);
+    }
+
+    return true;
+  }
+
+  getBuildingCost(building: Building, currentCount: number): number {
+    const multiplier = building.cost_multiplier ?? 1;
+    const baseCost = building.base_cost ?? 0;
+    const cost = baseCost * Math.pow(multiplier, currentCount);
+    return Math.ceil(cost);
+  }
+
+  getBuildingUpgradeCost(building: Building, currentLevel: number): number {
+    const upgradeMultiplier = building.upgrade_cost_multiplier ?? 1;
+    const baseCost = building.base_cost ?? 0;
+    const cost = baseCost * 5 * Math.pow(upgradeMultiplier, currentLevel);
+    return Math.ceil(cost);
+  }
+
+  getBuildingIncome(building: Building, count: number, level: number): number {
+    const base = building.base_income ?? 0;
+    const upgradeBonus = building.upgrade_income_bonus ?? 0;
+    const income = base * count * (1 + level * upgradeBonus);
+    return Math.floor(income);
+  }
+
+  getMaxBuildingCount(playerLevel: number): number {
+    if (!this.formulas) {
+      return 999;
+    }
+
+    const base = 50;
+    const perLevel = 2;
+    return Math.floor(base + playerLevel * perLevel);
   }
 }
 
