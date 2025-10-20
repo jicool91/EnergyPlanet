@@ -286,15 +286,30 @@ await userRepo.update(userId, { energy: newEnergy });
 
 ### Content-as-Data (Контент как данные)
 
-Весь игровой контент хранится в версионированных JSON/YAML файлах в `/content/`:
-- Обновление контента без деплоя кода
-- Легкое A/B тестирование через feature flags
-- Контроль версий и откаты
-- Легко редактируется дизайнерами
+Весь игровой контент хранится в версионированных JSON/YAML файлах, отделён от кода:
+- ✅ Контент в git вместе с кодом (GitOps)
+- ✅ Обновление контента без изменения кода
+- ✅ Легкое A/B тестирование через feature flags
+- ✅ Контроль версий и откаты
+- ✅ Легко редактируется дизайнерами
 
-**Content Loader:** `backend/src/services/ContentService.ts` загружает контент при старте и кеширует его.
+**Content Loader:** `backend/src/services/ContentService.ts`
+- Загружает контент при старте приложения
+- Gracefully обрабатывает отсутствие файлов (MVP mode)
+- Использует переменную окружения `CONTENT_PATH` для гибкости
 
-✅ **ContentService реализован** - автоматически загружает файлы из `/content/` на старте
+**Как это работает:**
+
+| Среда | Путь контента | Как передается |
+|--------|--------------|-----------------|
+| **Local dev** | `/content` (корень repo) | Auto-detection в config |
+| **Production** | `CONTENT_PATH` env var | Railway/K8s переменная окружения |
+| **Future (K8s)** | Image Volume | Отдельный container image |
+
+**MVP стратегия:**
+- ContentService не падает если контент не найден
+- Приложение запускается с пустым контентом (все методы возвращают defaults)
+- На Railway контент загружается через инициализационный процесс (сейчас используется env переменная)
 
 ### Anti-Cheat система (Защита от читов)
 
@@ -497,33 +512,48 @@ app.use('/api/my', myRoute);
 
 ### Деплой на Railway
 
-⚠️ **TODO:** Настроить Railway для production деплоя.
+✅ **Railway конфигурация готова** (railway.json в backend/ и webapp/)
 
-**Подготовка к деплою:**
+**Подготовка к деплою на Railway:**
 
-1. **Создать проект на Railway:**
-   - Подключить GitHub репозиторий
-   - Добавить PostgreSQL и Redis сервисы
+1. **Создать проект на Railway Dashboard:**
+   - New Project → GitHub
+   - Выбрать репозиторий `EnergyPlanet`
+   - Добавить PostgreSQL сервис
+   - Добавить Redis сервис
+   - Добавить 2 приложения (backend + webapp)
 
-2. **Настроить переменные окружения:**
+2. **Настроить переменные окружения для Backend:**
    ```bash
-   # В Railway Dashboard добавить:
-   NODE_ENV=production
+   # Database
    DB_HOST=${{Postgres.RAILWAY_PRIVATE_DOMAIN}}
    DB_PORT=${{Postgres.PORT}}
    DB_NAME=${{Postgres.DATABASE}}
    DB_USER=${{Postgres.USER}}
    DB_PASSWORD=${{Postgres.PASSWORD}}
+
+   # Redis
    REDIS_HOST=${{Redis.RAILWAY_PRIVATE_DOMAIN}}
    REDIS_PORT=${{Redis.PORT}}
-   JWT_SECRET=<генерировать безопасный ключ>
-   TELEGRAM_BOT_TOKEN=<ваш bot token>
+
+   # Security
+   JWT_SECRET=<генерировать случайный ключ 32+ символа>
+   TELEGRAM_BOT_TOKEN=<bot token от BotFather>
+
+   # Content (контент находится в repo, загружается локально)
+   CONTENT_PATH=/app/content  # или оставить пусто для auto-detection
+   NODE_ENV=production
    ```
 
 3. **Настроить деплой:**
-   - Backend: автодеплой из `main` ветки
-   - Webapp: автодеплой из `main` ветки
-   - Применить миграции после деплоя
+   - Backend: автодеплой из `main` ветки ✅
+   - Webapp: автодеплой из `main` ветки ✅
+   - railway.json в каждой папке уже настроены
+
+4. **После первого деплоя:**
+   - Backend автоматически применит миграции БД при старте (connect + loadContent)
+   - Проверь логи: `docker logs backend`
+   - Тестируй health check: `curl https://<your-app>.railway.app/health`
 
 **Деплой процесс:**
 ```bash

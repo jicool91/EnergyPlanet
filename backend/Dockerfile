@@ -36,9 +36,10 @@ COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
 COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
 
-# Copy content files (game data, configs, feature flags)
-# ContentService will handle missing content gracefully and load from root if needed
-COPY --chown=nodejs:nodejs ../content ./content
+# Create content directory (ContentService will load from env CONTENT_PATH)
+# For production on Railway: pass CONTENT_PATH=/app/content via environment
+# For local dev: content is at repo root, config will find it
+RUN mkdir -p /app/content && chown nodejs:nodejs /app/content
 
 # Create logs directory
 RUN mkdir -p /app/logs && chown nodejs:nodejs /app/logs
