@@ -17,6 +17,3 @@ coverage
 *~
 .prettierrc
 .eslintrc
-vite.config.ts
-.env.sample
-vitest.config.ts

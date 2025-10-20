@@ -18,5 +18,3 @@ coverage
 *~
 .prettierrc
 .eslintrc
-tsconfig.json
-jest.config.js

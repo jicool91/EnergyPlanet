@@ -9,16 +9,13 @@ WORKDIR /app
 
 # Install dependencies (including devDependencies for build)
 COPY package*.json ./
-RUN npm install && npm cache clean --force
+RUN npm ci && npm cache clean --force
 
 # Copy source code
 COPY . .
 
 # Build TypeScript
 RUN npm run build
-
-# Remove devDependencies to reduce final image size
-RUN npm prune --production
 
 # ============================================================================
 # Stage 2: Production
@@ -36,8 +33,10 @@ RUN addgroup -g 1001 -S nodejs && \
 
 # Copy built application from builder
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
-COPY --from=builder --chown=nodejs:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=nodejs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
+
+# Install only production dependencies (clean install)
+RUN npm ci --omit=dev && npm cache clean --force
 
 # Create content directory (ContentService will load from env CONTENT_PATH)
 # For production on Railway: pass CONTENT_PATH=/app/content via environment
