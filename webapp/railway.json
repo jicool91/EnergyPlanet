@@ -5,7 +5,7 @@
     "railpackVersion": "latest"
   },
   "deploy": {
-    "healthcheckPath": "/",
+    "healthcheckPath": "/health",
     "healthcheckTimeout": 60,
     "restartPolicyType": "ALWAYS"
   }
