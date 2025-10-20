@@ -7,7 +7,7 @@ FROM node:18-alpine AS builder
 
 WORKDIR /app
 
-# Install dependencies
+# Install dependencies (including devDependencies for Vite build)
 COPY package*.json ./
 RUN npm install
 
@@ -16,6 +16,9 @@ COPY . .
 
 # Build application
 RUN npm run build
+
+# Remove devDependencies for final nginx stage (not needed at runtime)
+RUN npm prune --production
 
 # ============================================================================
 # Stage 2: Production (Nginx)
