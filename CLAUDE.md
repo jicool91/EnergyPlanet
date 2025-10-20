@@ -736,6 +736,19 @@ npm run test:integration
 - Connection pool: 20-50 соединений
 - Всегда индексировать foreign keys
 
+## 🚀 Railway Deployment Status
+
+**✅ Webapp успешно развёрнута на Railway:**
+- Nginx запущен и слушает на порту 80
+- Health check endpoint `/health` доступен
+- SPA fallback настроен для React Router
+- Static assets кешируются (1 год)
+- Security headers настроены
+
+**⏳ Проверяем Backend deployment...**
+
+---
+
 ## MVP Чеклист (текущий прогресс)
 
 ### Backend (70% готов)
