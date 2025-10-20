@@ -11,6 +11,7 @@ declare global {
 }
 
 const LOCAL_FALLBACK = 'http://localhost:3000/api/v1';
+const PRODUCTION_BACKEND = 'https://backgame-production.up.railway.app/api/v1';
 
 function resolveApiBaseUrl(): string {
   const explicit = import.meta.env.VITE_API_URL?.trim();
@@ -28,6 +29,11 @@ function resolveApiBaseUrl(): string {
 
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
       return LOCAL_FALLBACK;
+    }
+
+    // Production on Railway - use explicit backend URL
+    if (hostname.includes('railway.app')) {
+      return PRODUCTION_BACKEND;
     }
 
     if (host) {
