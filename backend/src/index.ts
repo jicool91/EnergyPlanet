@@ -24,9 +24,11 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use((req, _res, next) => {
-  logger.debug('request', {
+  logger.info('📨 Incoming request', {
     method: req.method,
     path: req.path,
+    origin: req.get('origin'),
+    host: req.get('host'),
   });
   next();
 });
