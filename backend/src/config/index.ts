@@ -145,16 +145,14 @@ export const config = {
         return process.env.CONTENT_PATH;
       }
 
-      // Production: check dist/content first (copied during build), then ../../content
+      // Production: check dist/content first (copied during build)
       const distContent = path.join(__dirname, '../content');
-      const prodContent = path.join(__dirname, '../../content');
       const devContent = path.join(__dirname, '../../../content');
 
       if (__dirname.includes('dist')) {
-        // In production build, prefer dist/content (copied by build script)
-        const resolved = distContent;
-        console.log(`[Config] Content path (production): ${resolved}`);
-        return resolved;
+        // In production build, use dist/content (copied by build script)
+        console.log(`[Config] Content path (production): ${distContent}`);
+        return distContent;
       } else {
         // In development, use ../../../content (repo root)
         console.log(`[Config] Content path (development): ${devContent}`);
