@@ -46,6 +46,7 @@ RUN mkdir -p /app/logs && chown nodejs:nodejs /app/logs
 # via config.ts logic: path.join(__dirname, '../../content')
 # On Railway with RAILPACK, the full repo is available, so ../content works
 # Set CONTENT_PATH env var if content is in a different location
+# v2: cleared Docker cache
 
 # Switch to non-root user
 USER nodejs
