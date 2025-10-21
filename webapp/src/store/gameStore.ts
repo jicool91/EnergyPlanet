@@ -3,7 +3,9 @@
  */
 
 import { create } from 'zustand';
+import { isAxiosError } from 'axios';
 import { apiClient } from '../services/apiClient';
+import { postQueue } from '../services/requestQueue';
 
 interface GameState {
   // User data
@@ -16,11 +18,14 @@ interface GameState {
   // Game state
   isLoading: boolean;
   isInitialized: boolean;
+  authErrorMessage: string | null;
+  isAuthModalOpen: boolean;
 
   // Actions
   initGame: () => Promise<void>;
   tap: (count: number) => Promise<void>;
   upgrade: (type: string, itemId: string) => Promise<void>;
+  dismissAuthError: () => void;
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -32,22 +37,24 @@ export const useGameStore = create<GameState>((set, get) => ({
   energy: 0,
   isLoading: true,
   isInitialized: false,
+  authErrorMessage: null,
+  isAuthModalOpen: false,
 
   // Initialize game
   initGame: async () => {
     try {
-      set({ isLoading: true });
+      set({ isLoading: true, authErrorMessage: null, isAuthModalOpen: false });
 
       // Authenticate with Telegram
       const initData = window.Telegram?.WebApp?.initData || '';
-      const authResponse = await apiClient.post('/auth/telegram', { initData });
+      const authResponse = await postQueue.enqueue(() => apiClient.post('/auth/telegram', { initData }));
 
       // Store tokens
       localStorage.setItem('access_token', authResponse.data.access_token);
       localStorage.setItem('refresh_token', authResponse.data.refresh_token);
 
       // Start session
-      const sessionResponse = await apiClient.post('/session');
+      const sessionResponse = await postQueue.enqueue(() => apiClient.post('/session'));
       const { user, progress } = sessionResponse.data;
 
       set({
@@ -61,7 +68,33 @@ export const useGameStore = create<GameState>((set, get) => ({
       });
     } catch (error) {
       console.error('Failed to initialize game', error);
-      set({ isLoading: false });
+
+      const fallbackMessage = 'Не удалось авторизоваться. Проверьте подключение и попробуйте ещё раз.';
+      let message = fallbackMessage;
+
+      if (isAxiosError(error)) {
+        const status = error.response?.status;
+        const upstreamMessage =
+          (error.response?.data as { message?: string })?.message || error.message;
+
+        if (status === 401) {
+          message = 'Телеграм сессия недействительна. Закройте и заново откройте мини-приложение.';
+        } else if (status === 400) {
+          message = 'От клиента пришли некорректные данные авторизации. Проверьте initData.';
+        } else if (status) {
+          message = `Ошибка ${status}: ${upstreamMessage}`;
+        } else {
+          message = upstreamMessage;
+        }
+      } else if (error instanceof Error) {
+        message = error.message;
+      }
+
+      set({
+        isLoading: false,
+        authErrorMessage: message,
+        isAuthModalOpen: true,
+      });
     }
   },
 
@@ -102,5 +135,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       console.error('Upgrade failed', error);
       throw error;
     }
+  },
+
+  dismissAuthError: () => {
+    set({ authErrorMessage: null, isAuthModalOpen: false });
   },
 }));

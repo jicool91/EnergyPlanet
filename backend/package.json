@@ -17,6 +17,8 @@
     "migrate:up": "node dist/db/migrate.js up",
     "migrate:down": "node dist/db/migrate.js down",
     "seed": "node dist/db/seed.js",
+    "seed:dev": "ts-node src/db/seed.ts",
+    "bootstrap:db": "ts-node scripts/bootstrap-db.ts",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [

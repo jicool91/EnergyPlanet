@@ -45,6 +45,11 @@ interface AuthTokens {
   refreshExpiresAt: Date;
 }
 
+interface ParsedTelegramAuth {
+  telegramUser: TelegramUser;
+  matchedBotToken: string | null;
+}
+
 export class AuthService {
   private readonly jwtSecret: Secret = config.jwt.secret as Secret;
 
@@ -68,7 +73,7 @@ export class AuthService {
     return Math.floor(durationToMilliseconds(config.jwt.accessExpiry) / 1000);
   }
 
-  private verifyTelegramHash(initData: string): TelegramUser {
+  private verifyTelegramHash(initData: string): ParsedTelegramAuth {
     const botTokens = config.telegram.botTokens;
 
     if (!botTokens.length) {
@@ -120,7 +125,7 @@ export class AuthService {
     );
 
     let matchedVariant: 'default' | 'no_signature' | null = null;
-    let matchedToken: string | null = null;
+    let matchedBotToken: string | null = null;
     let lastExpectedDefault: string | null = null;
     let lastExpectedWithoutSignature: string | null = null;
 
@@ -138,13 +143,13 @@ export class AuthService {
 
       if (calculatedHashDefault === hash) {
         matchedVariant = 'default';
-        matchedToken = candidateToken;
+        matchedBotToken = candidateToken;
         break;
       }
 
       if (calculatedHashWithoutSignature === hash) {
         matchedVariant = 'no_signature';
-        matchedToken = candidateToken;
+        matchedBotToken = candidateToken;
         break;
       }
 
@@ -156,7 +161,7 @@ export class AuthService {
       });
     }
 
-    if (!matchedVariant || !matchedToken) {
+    if (!matchedVariant || !matchedBotToken) {
       logger.error('Telegram hash validation failed', {
         providedHash: mask(hash),
         expectedHashDefault: mask(lastExpectedDefault),
@@ -173,13 +178,13 @@ export class AuthService {
       logger.info('Telegram hash matched after removing signature key', {
         initDataLength: initData.length,
         keys: Array.from(urlParams.keys()),
-        botTokenUsed: mask(matchedToken),
+        botTokenUsed: mask(matchedBotToken),
       });
     } else {
       logger.debug('Telegram hash matched with default payload', {
         initDataLength: initData.length,
         keys: Array.from(urlParams.keys()),
-        botTokenUsed: mask(matchedToken),
+        botTokenUsed: mask(matchedBotToken),
       });
     }
 
@@ -204,10 +209,13 @@ export class AuthService {
       throw new AppError(401, 'auth_data_expired');
     }
 
-    return parsed;
+    return {
+      telegramUser: parsed,
+      matchedBotToken,
+    };
   }
 
-  private parseInitData(initData: string): TelegramUser {
+  private parseInitData(initData: string): ParsedTelegramAuth {
     if (config.testing.bypassAuth) {
       try {
         const parsed = JSON.parse(initData) as Partial<TelegramUser>;
@@ -219,22 +227,28 @@ export class AuthService {
           username: parsed.username,
         });
         return {
-          id: parsed.id,
-          first_name: parsed.first_name || 'Test',
-          last_name: parsed.last_name,
-          username: parsed.username || `test_${parsed.id}`,
-          photo_url: parsed.photo_url,
-          auth_date: Math.floor(Date.now() / 1000),
-          hash: '',
+          telegramUser: {
+            id: parsed.id,
+            first_name: parsed.first_name || 'Test',
+            last_name: parsed.last_name,
+            username: parsed.username || `test_${parsed.id}`,
+            photo_url: parsed.photo_url,
+            auth_date: Math.floor(Date.now() / 1000),
+            hash: '',
+          },
+          matchedBotToken: null,
         };
       } catch (error) {
         logger.warn('Bypass auth JSON parse failed, using fallback profile', error);
         return {
-          id: Math.floor(Math.random() * 1_000_000),
-          first_name: 'Test',
-          username: 'test_user',
-          auth_date: Math.floor(Date.now() / 1000),
-          hash: '',
+          telegramUser: {
+            id: Math.floor(Math.random() * 1_000_000),
+            first_name: 'Test',
+            username: 'test_user',
+            auth_date: Math.floor(Date.now() / 1000),
+            hash: '',
+          },
+          matchedBotToken: null,
         };
       }
     }
@@ -261,85 +275,109 @@ export class AuthService {
   }
 
   async authenticateWithTelegram(initData: string) {
-    const telegramUser = this.parseInitData(initData);
+    const initDataLength = initData.length;
+    let matchedBotToken: string | null = null;
+    let telegramUserId: number | null = null;
 
-    const result = await transaction(async client => {
-      let user = await findByTelegramId(telegramUser.id, client);
-      let isNewUser = false;
+    try {
+      const { telegramUser, matchedBotToken: parsedToken } = this.parseInitData(initData);
+      matchedBotToken = parsedToken;
+      telegramUserId = telegramUser.id;
 
-      if (!user) {
-        user = await createUser(
-          {
-            telegramId: telegramUser.id,
-            username: telegramUser.username,
-            firstName: telegramUser.first_name,
-            lastName: telegramUser.last_name,
-          },
-          client
-        );
-        await createDefaultProgress(user.id, client);
-        await ensureProfile(user.id, client);
-        isNewUser = true;
-      } else {
-        const shouldUpdate =
-          user.username !== (telegramUser.username ?? null) ||
-          user.firstName !== (telegramUser.first_name ?? null) ||
-          user.lastName !== (telegramUser.last_name ?? null);
+      const result = await transaction(async client => {
+        let user = await findByTelegramId(telegramUser.id, client);
+        let isNewUser = false;
 
-        if (shouldUpdate) {
-          user = await updateUser(
-            user.id,
+        if (!user) {
+          user = await createUser(
             {
-              username: telegramUser.username ?? null,
-              firstName: telegramUser.first_name ?? null,
-              lastName: telegramUser.last_name ?? null,
+              telegramId: telegramUser.id,
+              username: telegramUser.username,
+              firstName: telegramUser.first_name,
+              lastName: telegramUser.last_name,
             },
             client
           );
+          await createDefaultProgress(user.id, client);
+          await ensureProfile(user.id, client);
+          isNewUser = true;
+        } else {
+          const shouldUpdate =
+            user.username !== (telegramUser.username ?? null) ||
+            user.firstName !== (telegramUser.first_name ?? null) ||
+            user.lastName !== (telegramUser.last_name ?? null);
+
+          if (shouldUpdate) {
+            user = await updateUser(
+              user.id,
+              {
+                username: telegramUser.username ?? null,
+                firstName: telegramUser.first_name ?? null,
+                lastName: telegramUser.last_name ?? null,
+              },
+              client
+            );
+          }
         }
-      }
 
-      const progress = (await getProgress(user.id, client)) ?? (await createDefaultProgress(user.id, client));
+        const progress =
+          (await getProgress(user.id, client)) ?? (await createDefaultProgress(user.id, client));
 
-      await ensureProfile(user.id, client);
+        await ensureProfile(user.id, client);
 
-      const tokens = this.generateTokens(user);
-      const refreshTokenHash = hashToken(tokens.refreshToken);
+        const tokens = this.generateTokens(user);
+        const refreshTokenHash = hashToken(tokens.refreshToken);
 
-      await deleteSessionByHash(refreshTokenHash, client);
-      await createSession(user.id, refreshTokenHash, tokens.refreshExpiresAt, client);
-      await logEvent(
-        user.id,
-        'login',
-        {
-          telegram_id: telegramUser.id,
-          username: telegramUser.username,
-          is_new_user: isNewUser,
-        },
-        { client }
-      );
+        await deleteSessionByHash(refreshTokenHash, client);
+        await createSession(user.id, refreshTokenHash, tokens.refreshExpiresAt, client);
+        await logEvent(
+          user.id,
+          'login',
+          {
+            telegram_id: telegramUser.id,
+            username: telegramUser.username,
+            is_new_user: isNewUser,
+          },
+          { client }
+        );
 
-      return { user, progress, isNewUser, tokens };
-    });
+        return { user, progress, isNewUser, tokens };
+      });
 
-    logger.info('User authenticated', {
-      userId: result.user.id,
-      telegramId: result.user.telegramId,
-      isNewUser: result.isNewUser,
-    });
+      logger.info('User authenticated', {
+        userId: result.user.id,
+        telegramId: result.user.telegramId,
+        isNewUser: result.isNewUser,
+        initDataLength,
+        botToken: matchedBotToken
+          ? `${matchedBotToken.slice(0, 6)}...${matchedBotToken.slice(-4)}`
+          : null,
+      });
 
-    return {
-      access_token: result.tokens.accessToken,
-      refresh_token: result.tokens.refreshToken,
-      refresh_expires_at: result.tokens.refreshExpiresAt.toISOString(),
-      expires_in: this.accessTokenTtlSeconds(),
-      user_id: result.user.id,
-      telegram_id: result.user.telegramId,
-      username: result.user.username,
-      first_name: result.user.firstName,
-      last_name: result.user.lastName,
-      is_new_user: result.isNewUser,
-    };
+      return {
+        access_token: result.tokens.accessToken,
+        refresh_token: result.tokens.refreshToken,
+        refresh_expires_at: result.tokens.refreshExpiresAt.toISOString(),
+        expires_in: this.accessTokenTtlSeconds(),
+        user_id: result.user.id,
+        telegram_id: result.user.telegramId,
+        username: result.user.username,
+        first_name: result.user.firstName,
+        last_name: result.user.lastName,
+        is_new_user: result.isNewUser,
+      };
+    } catch (error) {
+      const reason = error instanceof AppError ? error.message : 'unexpected_error';
+      logger.warn('Telegram authentication failed', {
+        reason,
+        initDataLength,
+        telegramUserId,
+        botToken: matchedBotToken
+          ? `${matchedBotToken.slice(0, 6)}...${matchedBotToken.slice(-4)}`
+          : null,
+      });
+      throw error;
+    }
   }
 
   async refreshAccessToken(refreshToken: string) {

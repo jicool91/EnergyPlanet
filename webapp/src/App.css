@@ -88,3 +88,69 @@
 .tab-button:active {
   color: #00d9ff;
 }
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 1000;
+}
+
+.modal {
+  background: #101328;
+  border-radius: 16px;
+  padding: 24px;
+  width: 100%;
+  max-width: 360px;
+  box-shadow: 0 16px 40px rgba(10, 17, 61, 0.35);
+  border: 1px solid rgba(0, 217, 255, 0.2);
+  color: #f8fbff;
+}
+
+.modal h2 {
+  margin: 0 0 12px;
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.modal p {
+  margin: 0 0 20px;
+  font-size: 14px;
+  line-height: 1.5;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.modal-button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: none;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.modal-button.primary {
+  background: linear-gradient(135deg, #00d9ff 0%, #0073ff 100%);
+  color: #010414;
+  font-weight: 600;
+  box-shadow: 0 8px 20px rgba(0, 115, 255, 0.35);
+}
+
+.modal-button.secondary {
+  background: rgba(255, 255, 255, 0.12);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.modal-button:active {
+  transform: scale(0.97);
+}
