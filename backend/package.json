@@ -6,7 +6,6 @@
   "scripts": {
     "dev": "nodemon --exec ts-node src/index.ts",
     "build": "tsc",
-    "postinstall": "node scripts/copy-content.js",
     "start": "node dist/index.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
