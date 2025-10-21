@@ -35,6 +35,9 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
 
+# Copy content files (game content, cosmetics, etc.)
+COPY --from=builder --chown=nodejs:nodejs /app/content ./content
+
 # Install only production dependencies (clean install)
 RUN npm ci --omit=dev && npm cache clean --force
 
