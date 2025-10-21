@@ -141,12 +141,23 @@ export const config = {
   content: {
     path: (() => {
       const distContent = path.join(__dirname, '../content');
+      const appRootContent = '/app/content';  // Railway RAILPACK copies repo to /app
       const devContent = path.join(__dirname, '../../../content');
 
       // Try in priority order
       if (__dirname.includes('dist')) {
-        // Production: prefer dist/content (copied by build script)
-        console.log(`[Config] Production environment detected, using: ${distContent}`);
+        // Production/Railway: try dist/content first (if copied by postinstall),
+        // then /app/content (RAILPACK copies full repo to /app)
+        if (require('fs').existsSync(distContent)) {
+          console.log(`[Config] Using dist/content: ${distContent}`);
+          return distContent;
+        }
+        if (require('fs').existsSync(appRootContent)) {
+          console.log(`[Config] Using /app/content (Railway RAILPACK): ${appRootContent}`);
+          return appRootContent;
+        }
+        // Fallback
+        console.log(`[Config] Production - no content found, using dist path: ${distContent}`);
         return distContent;
       }
 
