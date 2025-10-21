@@ -75,6 +75,22 @@ export class AuthService {
 
     const urlParams = new URLSearchParams(initData);
     const hash = urlParams.get('hash');
+    const mask = (value: string | null) => {
+      if (!value) {
+        return null;
+      }
+      if (value.length <= 8) {
+        return value;
+      }
+      return `${value.slice(0, 6)}...${value.slice(-4)}`;
+    };
+
+    logger.debug('Telegram init data received', {
+      initDataLength: initData.length,
+      keys: Array.from(urlParams.keys()),
+      hashPresent: Boolean(hash),
+      botTokenSnippet: mask(config.telegram.botToken),
+    });
 
     if (!hash) {
       logger.warn('Telegram init data missing hash', {
@@ -101,16 +117,6 @@ export class AuthService {
       .digest('hex');
 
     if (calculatedHash !== hash) {
-      const mask = (value: string | null) => {
-        if (!value) {
-          return null;
-        }
-        if (value.length <= 8) {
-          return value;
-        }
-        return `${value.slice(0, 6)}...${value.slice(-4)}`;
-      };
-
       logger.error('Telegram hash validation failed', {
         providedHash: mask(hash),
         expectedHash: mask(calculatedHash),
