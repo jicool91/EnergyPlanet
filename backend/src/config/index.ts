@@ -142,7 +142,6 @@ export const config = {
     path: (() => {
       const distContent = path.join(__dirname, '../content');
       const devContent = path.join(__dirname, '../../../content');
-      const envPath = process.env.CONTENT_PATH;
 
       // Try in priority order
       if (__dirname.includes('dist')) {
