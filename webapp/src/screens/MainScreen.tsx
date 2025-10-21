@@ -10,6 +10,7 @@ import { BuildingsPanel } from '../components/BuildingsPanel';
 import { LeaderboardPanel } from '../components/LeaderboardPanel';
 import { ProfilePanel } from '../components/ProfilePanel';
 import { TapParticles } from '../components/animations';
+import { AnimatedNumber } from '../components/AnimatedNumber';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile';
 
@@ -106,7 +107,14 @@ export function MainScreen() {
         {/* Заголовок с уровнем и энергией */}
         <header className="px-5 flex justify-between items-center bg-black/50 py-3 rounded-lg">
           <div className="text-base font-bold text-gold">Level {level}</div>
-          <div className="text-2xl font-bold text-cyan">{Math.floor(energy).toLocaleString()} E</div>
+          <div className="flex items-center gap-1">
+            <AnimatedNumber
+              value={Math.floor(energy)}
+              className="text-2xl font-bold text-cyan"
+              duration={300}
+            />
+            <span className="text-2xl font-bold text-cyan">E</span>
+          </div>
         </header>
 
         {/* Пассивный доход статистика */}
