@@ -5,8 +5,8 @@
       "name": "Solar Panel",
       "description": "Harness the power of the sun to generate clean energy",
       "tier": 1,
-      "base_income": 10,
-      "base_cost": 500,
+      "base_income": 15,
+      "base_cost": 350,
       "cost_multiplier": 1.12,
       "upgrade_cost_multiplier": 1.25,
       "upgrade_income_bonus": 0.20,
@@ -22,8 +22,8 @@
       "name": "Wind Turbine",
       "description": "Convert wind energy into electricity",
       "tier": 1,
-      "base_income": 25,
-      "base_cost": 1200,
+      "base_income": 45,
+      "base_cost": 950,
       "cost_multiplier": 1.12,
       "upgrade_cost_multiplier": 1.25,
       "upgrade_income_bonus": 0.20,
@@ -39,8 +39,8 @@
       "name": "Geothermal Plant",
       "description": "Tap into Earth's internal heat for steady power",
       "tier": 2,
-      "base_income": 100,
-      "base_cost": 8000,
+      "base_income": 180,
+      "base_cost": 6200,
       "cost_multiplier": 1.13,
       "upgrade_cost_multiplier": 1.25,
       "upgrade_income_bonus": 0.20,
@@ -56,8 +56,8 @@
       "name": "Hydro Dam",
       "description": "Generate massive power from flowing water",
       "tier": 2,
-      "base_income": 250,
-      "base_cost": 25000,
+      "base_income": 420,
+      "base_cost": 21000,
       "cost_multiplier": 1.13,
       "upgrade_cost_multiplier": 1.25,
       "upgrade_income_bonus": 0.20,
@@ -73,8 +73,8 @@
       "name": "Nuclear Reactor",
       "description": "Split atoms to release tremendous energy",
       "tier": 3,
-      "base_income": 1000,
-      "base_cost": 150000,
+      "base_income": 1800,
+      "base_cost": 110000,
       "cost_multiplier": 1.14,
       "upgrade_cost_multiplier": 1.30,
       "upgrade_income_bonus": 0.25,
@@ -90,8 +90,8 @@
       "name": "Fusion Core",
       "description": "Replicate the power of stars with fusion technology",
       "tier": 3,
-      "base_income": 5000,
-      "base_cost": 800000,
+      "base_income": 7200,
+      "base_cost": 550000,
       "cost_multiplier": 1.14,
       "upgrade_cost_multiplier": 1.30,
       "upgrade_income_bonus": 0.25,
@@ -161,5 +161,28 @@
     "building_upgrade_cost": "(base_cost * 5) * (upgrade_cost_multiplier ^ level)",
     "building_income": "base_income * count * (1 + level * upgrade_income_bonus)",
     "max_buildings_per_type": "50 + (player_level * 2)"
-  }
+  },
+  "tier_summary": [
+    {
+      "tier": 1,
+      "items": [
+        { "id": "solar_panel", "base_cost": 350, "base_income": 15, "payback_sec": 23.3 },
+        { "id": "wind_turbine", "base_cost": 950, "base_income": 45, "payback_sec": 21.1 }
+      ]
+    },
+    {
+      "tier": 2,
+      "items": [
+        { "id": "geothermal_plant", "base_cost": 6200, "base_income": 180, "payback_sec": 34.4 },
+        { "id": "hydro_dam", "base_cost": 21000, "base_income": 420, "payback_sec": 50.0 }
+      ]
+    },
+    {
+      "tier": 3,
+      "items": [
+        { "id": "nuclear_reactor", "base_cost": 110000, "base_income": 1800, "payback_sec": 61.1 },
+        { "id": "fusion_core", "base_cost": 550000, "base_income": 7200, "payback_sec": 76.4 }
+      ]
+    }
+  ]
 }

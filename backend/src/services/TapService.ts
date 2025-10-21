@@ -1,11 +1,11 @@
-import { transaction } from '../db/connection';
 import { AppError } from '../middleware/errorHandler';
-import { getProgress, updateProgress } from '../repositories/ProgressRepository';
-import { logEvent } from '../repositories/EventRepository';
+import { getProgress } from '../repositories/ProgressRepository';
 import { xpFromEnergy, tapEnergyForLevel } from '../utils/tap';
 import { calculateLevelProgress } from '../utils/level';
 import { getRedis } from '../cache/redis';
 import { logger } from '../utils/logger';
+import { tapAggregator } from './TapAggregator';
+import { logEvent } from '../repositories/EventRepository';
 
 const MAX_TAP_COUNT_PER_REQUEST = 50;
 const MAX_TAPS_PER_MINUTE = 600;
@@ -60,57 +60,34 @@ export class TapService {
 
     await this.enforceRateLimit(userId, tapCount);
 
-    const result = await transaction(async client => {
-      const progress = await getProgress(userId, client);
-      if (!progress) {
-        throw new AppError(404, 'progress_not_found');
-      }
+    const progress = await getProgress(userId);
+    if (!progress) {
+      throw new AppError(404, 'progress_not_found');
+    }
 
-      const tapIncomePerHit = tapEnergyForLevel(progress.tapLevel);
-      const energyGained = tapIncomePerHit * tapCount;
-      const xpGained = xpFromEnergy(energyGained);
-      const totalEnergyProduced = progress.totalEnergyProduced + energyGained;
-      const newEnergy = progress.energy + energyGained;
-      const totalXp = progress.xp + xpGained;
-      const levelInfo = calculateLevelProgress(totalXp);
-      const leveledUp = levelInfo.level !== progress.level;
+    const tapIncomePerHit = tapEnergyForLevel(progress.tapLevel);
+    const energyGained = tapIncomePerHit * tapCount;
+    const xpGained = xpFromEnergy(energyGained);
 
-      const updated = await updateProgress(
-        userId,
-        {
-          energy: newEnergy,
-          totalEnergyProduced,
-          xp: totalXp,
-          level: levelInfo.level,
-        },
-        client
-      );
-
-      await logEvent(
-        userId,
-        'tap',
-        {
-          tap_count: tapCount,
-          energy_gained: energyGained,
-          xp_gained: xpGained,
-          leveled_up: leveledUp,
-        },
-        { client, suspicious: false }
-      );
-
-      return { updated, energyGained, xpGained, leveledUp };
+    const bufferTotals = await tapAggregator.bufferTap(userId, {
+      taps: tapCount,
+      energy: energyGained,
+      xp: xpGained,
     });
 
-    const levelInfo = calculateLevelProgress(result.updated.xp);
+    const projectedEnergy = progress.energy + bufferTotals.energy;
+    const projectedXp = progress.xp + bufferTotals.xp;
+    const levelInfo = calculateLevelProgress(projectedXp);
+    const leveledUp = levelInfo.level !== progress.level;
 
     return {
-      energy: result.updated.energy,
-      energy_gained: result.energyGained,
-      xp_gained: result.xpGained,
-      level: result.updated.level,
+      energy: projectedEnergy,
+      energy_gained: energyGained,
+      xp_gained: xpGained,
+      level: levelInfo.level,
       xp_into_level: levelInfo.xpIntoLevel,
       xp_to_next_level: levelInfo.xpToNextLevel,
-      level_up: result.leveledUp,
+      level_up: leveledUp,
     };
   }
 }

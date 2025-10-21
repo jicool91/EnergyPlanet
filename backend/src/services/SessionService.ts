@@ -15,6 +15,7 @@ import {
   buildBuildingDetails,
   computePassiveIncome as computePassiveIncomeSnapshot,
 } from './passiveIncome';
+import { upsertInventoryItem } from '../repositories/InventoryRepository';
 
 interface OfflineGains {
   energy: number;
@@ -65,7 +66,26 @@ export class SessionService {
         client
       );
 
-      const detailedInventory = buildBuildingDetails(inventory, progress.level);
+      let effectiveInventory = inventory;
+
+      const hasSolarPanel = inventory.some(item => item.buildingId === 'solar_panel');
+      if (!hasSolarPanel && progress.level <= 2) {
+        const granted = await upsertInventoryItem(user.id, 'solar_panel', 1, 0, client);
+        effectiveInventory = [...inventory, granted];
+        await logEvent(
+          userId,
+          'building_purchase',
+          {
+            building_id: 'solar_panel',
+            cost: 0,
+            new_count: granted.count,
+            auto_grant: true,
+          },
+          { client }
+        );
+      }
+
+      const detailedInventory = buildBuildingDetails(effectiveInventory, progress.level);
       const passiveIncomeSnapshot = computePassiveIncomeSnapshot(detailedInventory, boosts);
       const { baseIncome, boostMultiplier, effectiveIncome } = passiveIncomeSnapshot;
 
@@ -102,9 +122,10 @@ export class SessionService {
       if (offlineEnergy > 0) {
         await logEvent(
           userId,
-          'offline_income',
+          'offline_income_grant',
           {
             energy: offlineEnergy,
+            xp: offlineXp,
             duration_sec: offlineSeconds,
             capped: offlineSecondsRaw > maxOfflineSeconds,
             leveled_up: leveledUp,

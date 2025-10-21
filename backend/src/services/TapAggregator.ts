@@ -1,0 +1,233 @@
+import { RedisClientType } from 'redis';
+import { getRedis } from '../cache/redis';
+import { logger } from '../utils/logger';
+import { transaction } from '../db/connection';
+import { getProgress, updateProgress } from '../repositories/ProgressRepository';
+import { calculateLevelProgress } from '../utils/level';
+import { logEvent } from '../repositories/EventRepository';
+import { createTapEvent } from '../repositories/TapEventRepository';
+
+interface BufferTotals {
+  taps: number;
+  energy: number;
+  xp: number;
+  updatedAt?: number;
+}
+
+interface BufferIncrement {
+  taps: number;
+  energy: number;
+  xp: number;
+}
+
+const BUFFER_TTL_SECONDS = 5;
+const LOCK_TTL_MS = 1_000;
+
+export class TapAggregator {
+  private readonly redisKeyPrefix = 'tap';
+  private readonly pendingSetKey = `${this.redisKeyPrefix}:pending`;
+  private readonly flushIntervalMs: number;
+  private readonly flushThreshold: number;
+  private intervalHandle: NodeJS.Timeout | null = null;
+  private readonly redisProvider: () => RedisClientType;
+
+  constructor(
+    options?: { flushIntervalMs?: number; flushThreshold?: number },
+    redisProvider: () => RedisClientType = getRedis
+  ) {
+    this.flushIntervalMs = options?.flushIntervalMs ?? 500;
+    this.flushThreshold = options?.flushThreshold ?? 50;
+    this.redisProvider = redisProvider;
+  }
+
+  start() {
+    if (this.intervalHandle) {
+      return;
+    }
+
+    this.intervalHandle = setInterval(() => {
+      this.flushPending().catch(error => {
+        logger.error('TapAggregator periodic flush failed', {
+          error: error instanceof Error ? error.message : error,
+        });
+      });
+    }, this.flushIntervalMs);
+  }
+
+  stop() {
+    if (this.intervalHandle) {
+      clearInterval(this.intervalHandle);
+      this.intervalHandle = null;
+    }
+  }
+
+  private redis(): RedisClientType {
+    return this.redisProvider();
+  }
+
+  private bufferKey(userId: string): string {
+    return `${this.redisKeyPrefix}:${userId}`;
+  }
+
+  private lockKey(userId: string): string {
+    return `${this.redisKeyPrefix}:${userId}:lock`;
+  }
+
+  async bufferTap(userId: string, increment: BufferIncrement): Promise<BufferTotals> {
+    const redis = this.redis();
+    const key = this.bufferKey(userId);
+    const now = Date.now();
+
+    const multi = redis.multi();
+    multi.hIncrBy(key, 'tapCount', increment.taps);
+    multi.hIncrByFloat(key, 'energy', increment.energy);
+    multi.hIncrByFloat(key, 'xp', increment.xp);
+    multi.hSet(key, 'updatedAt', now.toString());
+    multi.expire(key, BUFFER_TTL_SECONDS);
+    multi.sAdd(this.pendingSetKey, userId);
+
+    const results = await multi.exec();
+    if (!results) {
+      throw new Error('Failed to buffer tap batch in Redis');
+    }
+
+    const tapCount = Number(results[0] ?? increment.taps);
+    const energy = Number(results[1] ?? increment.energy);
+    const xp = Number(results[2] ?? increment.xp);
+
+    if (tapCount >= this.flushThreshold) {
+      this.flushUser(userId).catch(error => {
+        logger.error('TapAggregator threshold flush failed', {
+          userId,
+          error: error instanceof Error ? error.message : error,
+        });
+      });
+    }
+
+    return {
+      taps: tapCount,
+      energy,
+      xp,
+      updatedAt: now,
+    };
+  }
+
+  async getPendingTotals(userId: string): Promise<BufferTotals> {
+    const redis = this.redis();
+    const key = this.bufferKey(userId);
+    const [tapCountRaw, energyRaw, xpRaw] = await redis.hmGet(key, ['tapCount', 'energy', 'xp']);
+    return {
+      taps: tapCountRaw ? Number(tapCountRaw) : 0,
+      energy: energyRaw ? Number(energyRaw) : 0,
+      xp: xpRaw ? Number(xpRaw) : 0,
+    };
+  }
+
+  async flushPending(): Promise<void> {
+    const redis = this.redis();
+    const pendingUsers = await redis.sMembers(this.pendingSetKey);
+
+    if (!pendingUsers.length) {
+      return;
+    }
+
+    await Promise.all(
+      pendingUsers.map(userId =>
+        this.flushUser(userId).catch(error => {
+          logger.error('TapAggregator flush failed', {
+            userId,
+            error: error instanceof Error ? error.message : error,
+          });
+        })
+      )
+    );
+  }
+
+  async flushUser(userId: string): Promise<boolean> {
+    const redis = this.redis();
+    const lockKey = this.lockKey(userId);
+    const lockResult = await redis.set(lockKey, Date.now().toString(), {
+      NX: true,
+      PX: LOCK_TTL_MS,
+    });
+
+    if (!lockResult) {
+      return false;
+    }
+
+    try {
+      const replies = await redis
+        .multi()
+        .hGetAll(this.bufferKey(userId))
+        .del(this.bufferKey(userId))
+        .sRem(this.pendingSetKey, userId)
+        .exec();
+
+      if (!replies || replies.length === 0) {
+        return false;
+      }
+
+      const buffer = (replies[0] as unknown as Record<string, string>) ?? {};
+
+      const taps = Number(buffer?.tapCount ?? 0);
+      const energy = Number(buffer?.energy ?? 0);
+      const xp = Number(buffer?.xp ?? 0);
+      const updatedAt = buffer?.updatedAt ? Number(buffer.updatedAt) : Date.now();
+
+      if (!taps || taps <= 0 || energy === 0) {
+        return false;
+      }
+
+      const energyDelta = Math.round(energy);
+      const xpDelta = Math.round(xp);
+
+      const latencyMs = Math.max(Date.now() - updatedAt, 0);
+
+      await transaction(async client => {
+        const progress = await getProgress(userId, client);
+        if (!progress) {
+          logger.warn('TapAggregator flush skipped: progress missing', { userId });
+          return;
+        }
+
+        const totalEnergyProduced = progress.totalEnergyProduced + energyDelta;
+        const energyBalance = progress.energy + energyDelta;
+        const totalXp = progress.xp + xpDelta;
+        const levelInfo = calculateLevelProgress(totalXp);
+        const leveledUp = levelInfo.level !== progress.level;
+
+        await updateProgress(
+          userId,
+          {
+            energy: energyBalance,
+            totalEnergyProduced,
+            xp: totalXp,
+            level: levelInfo.level,
+          },
+          client
+        );
+
+        await createTapEvent({ userId, taps, energyDelta }, client);
+
+        await logEvent(
+          userId,
+          'tap_batch_commit',
+          {
+            taps,
+            energy_delta: energyDelta,
+            xp_delta: xpDelta,
+            latency_ms: latencyMs,
+            leveled_up: leveledUp,
+          },
+          { client }
+        );
+      });
+
+      return true;
+    } finally {
+      await redis.del(lockKey).catch(() => {});
+    }
+  }
+}
+
+export const tapAggregator = new TapAggregator(undefined, getRedis);

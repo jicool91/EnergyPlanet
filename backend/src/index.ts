@@ -10,6 +10,7 @@ import { connectDatabase, healthCheck as databaseHealth } from './db/connection'
 import { migrateUp, closeMigrationPool } from './db/migrate';
 import { connectRedis, healthCheck as redisHealth } from './cache/redis';
 import { loadContent } from './services/ContentService';
+import { tapAggregator } from './services/TapAggregator';
 
 const app: Application = express();
 
@@ -89,6 +90,7 @@ export async function bootstrap() {
   await connectDatabase();
   await connectRedis();
   await loadContent();
+  tapAggregator.start();
 
   const port = config.server.port;
 
@@ -102,6 +104,7 @@ export async function bootstrap() {
 
   const shutdown = (signal: string) => {
     logger.warn(`${signal} received, shutting down gracefully`);
+    tapAggregator.stop();
     server.close(() => {
       logger.info('HTTP server closed');
       process.exit(0);
