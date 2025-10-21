@@ -145,11 +145,21 @@ export const config = {
         return process.env.CONTENT_PATH;
       }
 
-      const prod = path.join(__dirname, '../../content');
-      const dev = path.join(__dirname, '../../../content');
-      const resolved = __dirname.includes('dist') ? prod : dev;
-      console.log(`[Config] Content path auto-detected (${__dirname.includes('dist') ? 'production' : 'development'}): ${resolved}`);
-      return resolved;
+      // Production: check dist/content first (copied during build), then ../../content
+      const distContent = path.join(__dirname, '../content');
+      const prodContent = path.join(__dirname, '../../content');
+      const devContent = path.join(__dirname, '../../../content');
+
+      if (__dirname.includes('dist')) {
+        // In production build, prefer dist/content (copied by build script)
+        const resolved = distContent;
+        console.log(`[Config] Content path (production): ${resolved}`);
+        return resolved;
+      } else {
+        // In development, use ../../../content (repo root)
+        console.log(`[Config] Content path (development): ${devContent}`);
+        return devContent;
+      }
     })(),
     reloadIntervalMin: parseInt(process.env.CONTENT_RELOAD_INTERVAL_MIN || '60', 10),
   },
