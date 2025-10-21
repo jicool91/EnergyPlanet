@@ -45,6 +45,13 @@ export default {
         'bounce': 'bounce 1s infinite',
         'spin': 'spin 1s linear infinite',
         'fade-in': 'fadeIn 0.3s ease-in',
+        'glow': 'glow 0.6s ease-out',
+        'glow-pulse': 'glowPulse 1.5s ease-in-out infinite',
+        'slide-up': 'slideUp 0.5s ease-out',
+        'scale-in': 'scaleIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)',
+        'ripple': 'ripple 0.8s ease-out',
+        'bounce-in': 'bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
+        'confetti': 'confetti 2.5s ease-in',
       },
       keyframes: {
         'pulse': {
@@ -62,6 +69,78 @@ export default {
         'fadeIn': {
           'from': { opacity: '0' },
           'to': { opacity: '1' },
+        },
+        'glow': {
+          '0%': {
+            boxShadow: '0 0 0 0 rgba(0, 217, 255, 0.7)',
+          },
+          '50%': {
+            boxShadow: '0 0 0 20px rgba(0, 217, 255, 0)',
+          },
+          '100%': {
+            boxShadow: '0 0 0 0 rgba(0, 217, 255, 0)',
+          },
+        },
+        'glowPulse': {
+          '0%, 100%': {
+            boxShadow: '0 0 20px rgba(0, 217, 255, 0.3)',
+          },
+          '50%': {
+            boxShadow: '0 0 40px rgba(0, 217, 255, 0.6)',
+          },
+        },
+        'slideUp': {
+          'from': {
+            transform: 'translateY(20px)',
+            opacity: '0',
+          },
+          'to': {
+            transform: 'translateY(0)',
+            opacity: '1',
+          },
+        },
+        'scaleIn': {
+          'from': {
+            transform: 'scale(0)',
+            opacity: '0',
+          },
+          'to': {
+            transform: 'scale(1)',
+            opacity: '1',
+          },
+        },
+        'ripple': {
+          '0%': {
+            transform: 'scale(0)',
+            opacity: '1',
+          },
+          '100%': {
+            transform: 'scale(4)',
+            opacity: '0',
+          },
+        },
+        'bounceIn': {
+          '0%': {
+            transform: 'scale(0)',
+            opacity: '0',
+          },
+          '50%': {
+            transform: 'scale(1.05)',
+          },
+          '100%': {
+            transform: 'scale(1)',
+            opacity: '1',
+          },
+        },
+        'confetti': {
+          '0%': {
+            transform: 'translateY(0) rotate(0deg)',
+            opacity: '1',
+          },
+          '100%': {
+            transform: 'translateY(500px) rotate(720deg)',
+            opacity: '0',
+          },
         },
       },
       minHeight: {
