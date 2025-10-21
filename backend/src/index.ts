@@ -1,5 +1,5 @@
 import express, { Application } from 'express';
-import cors from 'cors';
+import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
 import apiRouter from './api/routes';
@@ -14,12 +14,25 @@ const app: Application = express();
 
 app.use(helmet());
 app.use(compression());
-app.use(
-  cors({
-    origin: config.cors.origin,
-    credentials: config.cors.credentials,
-  })
-);
+const corsOptions: CorsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = config.cors.origin;
+
+    // Allow requests with no origin (e.g., mobile apps, curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    return callback(null, false);
+  },
+  credentials: config.cors.credentials,
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
