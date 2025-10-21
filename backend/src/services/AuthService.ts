@@ -77,6 +77,10 @@ export class AuthService {
     const hash = urlParams.get('hash');
 
     if (!hash) {
+      logger.warn('Telegram init data missing hash', {
+        initDataLength: initData.length,
+        keys: Array.from(urlParams.keys()),
+      });
       throw new AppError(401, 'missing_telegram_hash');
     }
 
@@ -97,11 +101,31 @@ export class AuthService {
       .digest('hex');
 
     if (calculatedHash !== hash) {
+      const mask = (value: string | null) => {
+        if (!value) {
+          return null;
+        }
+        if (value.length <= 8) {
+          return value;
+        }
+        return `${value.slice(0, 6)}...${value.slice(-4)}`;
+      };
+
+      logger.error('Telegram hash validation failed', {
+        providedHash: mask(hash),
+        expectedHash: mask(calculatedHash),
+        initDataLength: initData.length,
+        keys: Array.from(urlParams.keys()),
+        botTokenConfigured: Boolean(config.telegram.botToken),
+      });
       throw new AppError(401, 'invalid_telegram_hash');
     }
 
     const userParam = urlParams.get('user');
     if (!userParam) {
+      logger.warn('Telegram init data missing user payload', {
+        keys: Array.from(urlParams.keys()),
+      });
       throw new AppError(401, 'missing_user_data');
     }
 
@@ -110,6 +134,11 @@ export class AuthService {
     const authDate = parseInt(urlParams.get('auth_date') || '0', 10);
     const now = Math.floor(Date.now() / 1000);
     if (now - authDate > 86400) {
+      logger.warn('Telegram auth data expired', {
+        authDate,
+        now,
+        ageSeconds: now - authDate,
+      });
       throw new AppError(401, 'auth_data_expired');
     }
 
@@ -123,6 +152,10 @@ export class AuthService {
         if (!parsed.id) {
           throw new Error('id is required');
         }
+        logger.debug('Bypass auth using provided JSON payload', {
+          userId: parsed.id,
+          username: parsed.username,
+        });
         return {
           id: parsed.id,
           first_name: parsed.first_name || 'Test',
