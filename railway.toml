@@ -1,0 +1,14 @@
+# Railway configuration for Energy Planet monorepo
+# This tells Railway where to find and build the backend service
+
+[build]
+builder = "nixpacks"
+
+[[services]]
+name = "backgame"
+root = "backend"
+startCommand = "npm run start"
+
+[[services]]
+name = "frontgame"
+root = "webapp"
