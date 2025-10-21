@@ -100,31 +100,57 @@ export class AuthService {
       throw new AppError(401, 'missing_telegram_hash');
     }
 
-    const dataCheckString = Array.from(urlParams.entries())
-      .filter(([key]) => key !== 'hash')
-      .sort(([a], [b]) => a.localeCompare(b))
-      .map(([key, value]) => `${key}=${value}`)
-      .join('\n');
+    const entries = Array.from(urlParams.entries());
+    const filteredEntries = entries.filter(([key]) => key !== 'hash');
+
+    const buildDataCheckString = (source: [string, string][]) =>
+      source
+        .slice()
+        .sort(([a], [b]) => a.localeCompare(b))
+        .map(([key, value]) => `${key}=${value}`)
+        .join('\n');
+
+    const defaultDataCheckString = buildDataCheckString(filteredEntries);
+    const withoutSignatureDataCheckString = buildDataCheckString(
+      filteredEntries.filter(([key]) => key !== 'signature')
+    );
 
     const secretKey = crypto
       .createHmac('sha256', 'WebAppData')
       .update(config.telegram.botToken)
       .digest();
 
-    const calculatedHash = crypto
-      .createHmac('sha256', secretKey)
-      .update(dataCheckString)
-      .digest('hex');
+    const calculateHash = (data: string) =>
+      crypto.createHmac('sha256', secretKey).update(data).digest('hex');
 
-    if (calculatedHash !== hash) {
+    const calculatedHashDefault = calculateHash(defaultDataCheckString);
+    const calculatedHashWithoutSignature = calculateHash(withoutSignatureDataCheckString);
+
+    let matchedVariant: 'default' | 'no_signature' | null = null;
+    if (calculatedHashDefault === hash) {
+      matchedVariant = 'default';
+    } else if (calculatedHashWithoutSignature === hash) {
+      matchedVariant = 'no_signature';
+    }
+
+    if (!matchedVariant) {
       logger.error('Telegram hash validation failed', {
         providedHash: mask(hash),
-        expectedHash: mask(calculatedHash),
+        expectedHashDefault: mask(calculatedHashDefault),
+        expectedHashWithoutSignature: mask(calculatedHashWithoutSignature),
         initDataLength: initData.length,
         keys: Array.from(urlParams.keys()),
+        botTokenSnippet: mask(config.telegram.botToken),
         botTokenConfigured: Boolean(config.telegram.botToken),
       });
       throw new AppError(401, 'invalid_telegram_hash');
+    }
+
+    if (matchedVariant === 'no_signature') {
+      logger.info('Telegram hash matched after removing signature key', {
+        initDataLength: initData.length,
+        keys: Array.from(urlParams.keys()),
+      });
     }
 
     const userParam = urlParams.get('user');
