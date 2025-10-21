@@ -119,7 +119,7 @@ export const config = {
   },
 
   telegram: {
-    botToken: process.env.TELEGRAM_BOT_TOKEN || '',
+    botToken: process.env.TELEGRAM_BOT_TOKEN || '7740631915:AAEjLlDENe-Hh7HFBlTzodkCdxs9DWkFYgI',
     botUsername: process.env.TELEGRAM_BOT_USERNAME || '',
     miniAppUrl: process.env.TELEGRAM_MINI_APP_URL || '',
     paymentWebhookSecret: process.env.TELEGRAM_PAYMENT_WEBHOOK_SECRET || '',
