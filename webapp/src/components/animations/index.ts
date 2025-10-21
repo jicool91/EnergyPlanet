@@ -5,3 +5,5 @@ export {
   StaggerContainer,
   StaggerItem,
 } from './AnimationWrapper';
+
+export { TapParticles } from './TapParticles';

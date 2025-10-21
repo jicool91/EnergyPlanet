@@ -9,6 +9,7 @@ import { BoostHub } from '../components/BoostHub';
 import { BuildingsPanel } from '../components/BuildingsPanel';
 import { LeaderboardPanel } from '../components/LeaderboardPanel';
 import { ProfilePanel } from '../components/ProfilePanel';
+import { TapParticles } from '../components/animations';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile';
 
@@ -126,11 +127,15 @@ export function MainScreen() {
 
         {/* Планета (таб Home) */}
         {activeTab === 'home' && (
-          <div className="flex-1 flex flex-col items-center justify-center cursor-pointer min-h-0 overflow-hidden" onClick={handleTap}>
-            <div className={`text-[120px] transition-transform duration-100 user-select-none active:scale-95 ${isCriticalStreak ? 'animate-pulse' : ''}`}>
-              🌍
-            </div>
-            <p className="mt-5 text-base text-white/60">Tap to generate energy!</p>
+          <div className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden">
+            <TapParticles onTap={handleTap}>
+              <div className="flex flex-col items-center">
+                <div className={`text-[120px] transition-transform duration-100 user-select-none active:scale-95 ${isCriticalStreak ? 'animate-pulse' : ''}`}>
+                  🌍
+                </div>
+                <p className="mt-5 text-base text-white/60">Tap to generate energy!</p>
+              </div>
+            </TapParticles>
           </div>
         )}
 
