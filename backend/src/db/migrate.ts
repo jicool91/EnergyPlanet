@@ -248,3 +248,7 @@ if (require.main === module) {
 }
 
 export { migrateUp, migrateDown, migrateStatus };
+
+export async function closeMigrationPool(): Promise<void> {
+  await pool.end();
+}

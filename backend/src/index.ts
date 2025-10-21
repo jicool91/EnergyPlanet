@@ -7,10 +7,25 @@ import config from './config';
 import { logger } from './utils/logger';
 import { errorHandler } from './middleware/errorHandler';
 import { connectDatabase, healthCheck as databaseHealth } from './db/connection';
+import { migrateUp, closeMigrationPool } from './db/migrate';
 import { connectRedis, healthCheck as redisHealth } from './cache/redis';
 import { loadContent } from './services/ContentService';
 
 const app: Application = express();
+
+async function ensureMigrations() {
+  try {
+    logger.info('Running database migrations');
+    await migrateUp();
+  } catch (error) {
+    logger.error('Failed to apply database migrations', { error });
+    throw error;
+  } finally {
+    await closeMigrationPool().catch(poolError => {
+      logger.warn('Failed to close migration pool', { error: poolError });
+    });
+  }
+}
 
 app.use(helmet());
 app.use(compression());
@@ -70,6 +85,7 @@ app.use(config.server.apiPrefix, apiRouter);
 app.use(errorHandler);
 
 export async function bootstrap() {
+  await ensureMigrations();
   await connectDatabase();
   await connectRedis();
   await loadContent();

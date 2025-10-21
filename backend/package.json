@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "nodemon --exec ts-node src/index.ts",
-    "build": "tsc && cp -r content dist/",
+    "build": "tsc && cp -r content dist/ && cp -r migrations dist/",
     "start": "node dist/index.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
