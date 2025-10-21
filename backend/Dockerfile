@@ -35,19 +35,17 @@ RUN addgroup -g 1001 -S nodejs && \
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
 
-# Copy content files (game content, cosmetics, etc.)
-COPY --from=builder --chown=nodejs:nodejs /app/content ./content
-
 # Install only production dependencies (clean install)
 RUN npm ci --omit=dev && npm cache clean --force
 
-# Create content directory (ContentService will load from env CONTENT_PATH)
-# For production on Railway: pass CONTENT_PATH=/app/content via environment
-# For local dev: content is at repo root, config will find it
-RUN mkdir -p /app/content && chown nodejs:nodejs /app/content
-
 # Create logs directory
 RUN mkdir -p /app/logs && chown nodejs:nodejs /app/logs
+
+# NOTE: Content loading
+# ContentService will automatically find content at the repo root level
+# via config.ts logic: path.join(__dirname, '../../content')
+# On Railway with RAILPACK, the full repo is available, so ../content works
+# Set CONTENT_PATH env var if content is in a different location
 
 # Switch to non-root user
 USER nodejs
