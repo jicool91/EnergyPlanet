@@ -63,6 +63,11 @@ class ContentService {
 
   async load() {
     try {
+      logger.info('ContentService: Starting to load game content', {
+        contentPath: config.content.path,
+        __dirname: __dirname,
+      });
+
       await Promise.all([
         this.loadBuildings().catch(e => this.handleLoadError('buildings', e)),
         this.loadCosmetics().catch(e => this.handleLoadError('cosmetics', e)),
@@ -83,9 +88,10 @@ class ContentService {
   }
 
   private async handleLoadError(contentType: string, error: any) {
-    logger.debug(`Failed to load ${contentType}`, {
+    logger.warn(`Failed to load ${contentType}`, {
       error: error.message,
       code: error.code,
+      path: config.content.path,
     });
     // Silently continue - defaults will be used
   }

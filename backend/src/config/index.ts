@@ -139,15 +139,18 @@ export const config = {
   },
 
   content: {
-    // First try backend/content (production/docker), then ../../../content (local dev)
-    path: process.env.CONTENT_PATH || (
-      () => {
-        const prod = path.join(__dirname, '../../content');
-        const dev = path.join(__dirname, '../../../content');
-        // In production (dist), use ../../content. In dev (src), use ../../../content
-        return __dirname.includes('dist') ? prod : dev;
+    path: (() => {
+      if (process.env.CONTENT_PATH) {
+        console.log(`[Config] Using explicit CONTENT_PATH: ${process.env.CONTENT_PATH}`);
+        return process.env.CONTENT_PATH;
       }
-    )(),
+
+      const prod = path.join(__dirname, '../../content');
+      const dev = path.join(__dirname, '../../../content');
+      const resolved = __dirname.includes('dist') ? prod : dev;
+      console.log(`[Config] Content path auto-detected (${__dirname.includes('dist') ? 'production' : 'development'}): ${resolved}`);
+      return resolved;
+    })(),
     reloadIntervalMin: parseInt(process.env.CONTENT_RELOAD_INTERVAL_MIN || '60', 10),
   },
 
