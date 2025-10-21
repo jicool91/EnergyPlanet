@@ -69,7 +69,9 @@ export class AuthService {
   }
 
   private verifyTelegramHash(initData: string): TelegramUser {
-    if (!config.telegram.botToken) {
+    const botTokens = config.telegram.botTokens;
+
+    if (!botTokens.length) {
       throw new AppError(500, 'telegram_bot_token_missing');
     }
 
@@ -85,11 +87,13 @@ export class AuthService {
       return `${value.slice(0, 6)}...${value.slice(-4)}`;
     };
 
+    const maskedTokens = botTokens.map(mask);
+
     logger.debug('Telegram init data received', {
       initDataLength: initData.length,
       keys: Array.from(urlParams.keys()),
       hashPresent: Boolean(hash),
-      botTokenSnippet: mask(config.telegram.botToken),
+      botTokenSnippets: maskedTokens,
     });
 
     if (!hash) {
@@ -115,33 +119,52 @@ export class AuthService {
       filteredEntries.filter(([key]) => key !== 'signature')
     );
 
-    const secretKey = crypto
-      .createHmac('sha256', 'WebAppData')
-      .update(config.telegram.botToken)
-      .digest();
-
-    const calculateHash = (data: string) =>
-      crypto.createHmac('sha256', secretKey).update(data).digest('hex');
-
-    const calculatedHashDefault = calculateHash(defaultDataCheckString);
-    const calculatedHashWithoutSignature = calculateHash(withoutSignatureDataCheckString);
-
     let matchedVariant: 'default' | 'no_signature' | null = null;
-    if (calculatedHashDefault === hash) {
-      matchedVariant = 'default';
-    } else if (calculatedHashWithoutSignature === hash) {
-      matchedVariant = 'no_signature';
-    }
+    let matchedToken: string | null = null;
+    let lastExpectedDefault: string | null = null;
+    let lastExpectedWithoutSignature: string | null = null;
 
-    if (!matchedVariant) {
-      logger.error('Telegram hash validation failed', {
+    for (const candidateToken of botTokens) {
+      const secretKey = crypto.createHmac('sha256', 'WebAppData').update(candidateToken).digest();
+
+      const calculateHash = (data: string) =>
+        crypto.createHmac('sha256', secretKey).update(data).digest('hex');
+
+      const calculatedHashDefault = calculateHash(defaultDataCheckString);
+      const calculatedHashWithoutSignature = calculateHash(withoutSignatureDataCheckString);
+
+      lastExpectedDefault = calculatedHashDefault;
+      lastExpectedWithoutSignature = calculatedHashWithoutSignature;
+
+      if (calculatedHashDefault === hash) {
+        matchedVariant = 'default';
+        matchedToken = candidateToken;
+        break;
+      }
+
+      if (calculatedHashWithoutSignature === hash) {
+        matchedVariant = 'no_signature';
+        matchedToken = candidateToken;
+        break;
+      }
+
+      logger.debug('Telegram hash mismatch for candidate token', {
         providedHash: mask(hash),
         expectedHashDefault: mask(calculatedHashDefault),
         expectedHashWithoutSignature: mask(calculatedHashWithoutSignature),
+        candidateToken: mask(candidateToken),
+      });
+    }
+
+    if (!matchedVariant || !matchedToken) {
+      logger.error('Telegram hash validation failed', {
+        providedHash: mask(hash),
+        expectedHashDefault: mask(lastExpectedDefault),
+        expectedHashWithoutSignature: mask(lastExpectedWithoutSignature),
         initDataLength: initData.length,
         keys: Array.from(urlParams.keys()),
-        botTokenSnippet: mask(config.telegram.botToken),
         botTokenConfigured: Boolean(config.telegram.botToken),
+        botTokenCandidates: maskedTokens,
       });
       throw new AppError(401, 'invalid_telegram_hash');
     }
@@ -150,6 +173,13 @@ export class AuthService {
       logger.info('Telegram hash matched after removing signature key', {
         initDataLength: initData.length,
         keys: Array.from(urlParams.keys()),
+        botTokenUsed: mask(matchedToken),
+      });
+    } else {
+      logger.debug('Telegram hash matched with default payload', {
+        initDataLength: initData.length,
+        keys: Array.from(urlParams.keys()),
+        botTokenUsed: mask(matchedToken),
       });
     }
 

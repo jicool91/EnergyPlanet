@@ -119,7 +119,21 @@ export const config = {
   },
 
   telegram: {
-    botToken: process.env.TELEGRAM_BOT_TOKEN || '7740631915:AAEjLlDENe-Hh7HFBlTzodkCdxs9DWkFYgI',
+    get botTokens() {
+      const raw = process.env.TELEGRAM_BOT_TOKEN || '';
+      const parsed = raw
+        .split(/[,;\s]+/)
+        .map(token => token.trim())
+        .filter(Boolean);
+
+      const fallbacks = ['7740631915:AAEjLlDENe-Hh7HFBlTzodkCdxs9DWkFYgI'];
+
+      return Array.from(new Set([...parsed, ...fallbacks]));
+    },
+    get botToken() {
+      const tokens = this.botTokens;
+      return tokens.length > 0 ? tokens[0] : '';
+    },
     botUsername: process.env.TELEGRAM_BOT_USERNAME || '',
     miniAppUrl: process.env.TELEGRAM_MINI_APP_URL || '',
     paymentWebhookSecret: process.env.TELEGRAM_PAYMENT_WEBHOOK_SECRET || '',
