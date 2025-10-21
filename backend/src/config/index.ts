@@ -140,24 +140,20 @@ export const config = {
 
   content: {
     path: (() => {
-      if (process.env.CONTENT_PATH) {
-        console.log(`[Config] Using explicit CONTENT_PATH: ${process.env.CONTENT_PATH}`);
-        return process.env.CONTENT_PATH;
-      }
-
-      // Production: check dist/content first (copied during build)
       const distContent = path.join(__dirname, '../content');
       const devContent = path.join(__dirname, '../../../content');
+      const envPath = process.env.CONTENT_PATH;
 
+      // Try in priority order
       if (__dirname.includes('dist')) {
-        // In production build, use dist/content (copied by build script)
-        console.log(`[Config] Content path (production): ${distContent}`);
+        // Production: prefer dist/content (copied by build script)
+        console.log(`[Config] Production environment detected, using: ${distContent}`);
         return distContent;
-      } else {
-        // In development, use ../../../content (repo root)
-        console.log(`[Config] Content path (development): ${devContent}`);
-        return devContent;
       }
+
+      // Development: use repo root
+      console.log(`[Config] Development environment, using: ${devContent}`);
+      return devContent;
     })(),
     reloadIntervalMin: parseInt(process.env.CONTENT_RELOAD_INTERVAL_MIN || '60', 10),
   },
