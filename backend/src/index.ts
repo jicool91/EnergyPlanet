@@ -9,8 +9,6 @@ import { errorHandler } from './middleware/errorHandler';
 import { connectDatabase, healthCheck as databaseHealth } from './db/connection';
 import { connectRedis, healthCheck as redisHealth } from './cache/redis';
 import { loadContent } from './services/ContentService';
-import fs from 'fs';
-import path from 'path';
 
 const app: Application = express();
 
@@ -58,56 +56,7 @@ app.use(config.server.apiPrefix, apiRouter);
 
 app.use(errorHandler);
 
-/**
- * Initialize content files if they don't exist in dist/
- * This handles Railway deployments where content isn't in expected location
- */
-function initializeContent() {
-  const distContentDir = path.join(__dirname, '../content');
-  const sourceContent = path.join(__dirname, '../../../content');
-
-  // If dist/content doesn't exist, try to copy from repo root
-  if (!fs.existsSync(distContentDir)) {
-    try {
-      if (fs.existsSync(sourceContent)) {
-        logger.info('Initializing content', {
-          source: sourceContent,
-          destination: distContentDir,
-        });
-
-        // Create dist/content directory
-        fs.mkdirSync(distContentDir, { recursive: true });
-
-        // Copy content
-        function copyDir(src: string, dest: string) {
-          fs.readdirSync(src).forEach(file => {
-            const srcPath = path.join(src, file);
-            const destPath = path.join(dest, file);
-            const stat = fs.statSync(srcPath);
-
-            if (stat.isDirectory()) {
-              if (!fs.existsSync(destPath)) {
-                fs.mkdirSync(destPath, { recursive: true });
-              }
-              copyDir(srcPath, destPath);
-            } else {
-              fs.copyFileSync(srcPath, destPath);
-            }
-          });
-        }
-
-        copyDir(sourceContent, distContentDir);
-        logger.info('Content initialized successfully');
-      }
-    } catch (error) {
-      logger.warn('Failed to initialize content', { error });
-      // Continue anyway - content loading has graceful fallbacks
-    }
-  }
-}
-
 export async function bootstrap() {
-  initializeContent();  // Ensure content is available
   await connectDatabase();
   await connectRedis();
   await loadContent();

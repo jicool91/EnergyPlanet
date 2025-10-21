@@ -139,44 +139,9 @@ export const config = {
   },
 
   content: {
-    path: (() => {
-      const fs = require('fs');
-      const distContent = path.join(__dirname, '../content');
-      const repoRootContent = path.join(__dirname, '../../../content');  // ../../../ if /app/dist/services in backend
-      const appRootContent = '/app/content';  // Try absolute path
-      const devContent = path.join(__dirname, '../../../content');
-
-      // Try in priority order
-      if (__dirname.includes('dist')) {
-        // Production/Railway - multiple fallback strategies
-
-        // Strategy 1: Check if content was copied to dist/
-        if (fs.existsSync(distContent)) {
-          console.log(`[Config] Using dist/content: ${distContent}`);
-          return distContent;
-        }
-
-        // Strategy 2: Check repo root (if backend is root, go up 3 levels: /app/dist/services -> /app)
-        if (fs.existsSync(repoRootContent)) {
-          console.log(`[Config] Using repo root content: ${repoRootContent}`);
-          return repoRootContent;
-        }
-
-        // Strategy 3: Check absolute /app/content (if full repo copied to /app)
-        if (fs.existsSync(appRootContent)) {
-          console.log(`[Config] Using /app/content (Railway): ${appRootContent}`);
-          return appRootContent;
-        }
-
-        // Fallback: use dist path (will fail gracefully if no content)
-        console.log(`[Config] Production - content not found, falling back to: ${distContent}`);
-        return distContent;
-      }
-
-      // Development: use repo root
-      console.log(`[Config] Development environment, using: ${devContent}`);
-      return devContent;
-    })(),
+    // Content is now part of backend/ package
+    // Location: backend/content/ (development and production)
+    path: path.join(__dirname, '../content'),
     reloadIntervalMin: parseInt(process.env.CONTENT_RELOAD_INTERVAL_MIN || '60', 10),
   },
 
