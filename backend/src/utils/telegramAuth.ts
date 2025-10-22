@@ -41,6 +41,12 @@ const buildDataCheckString = (entries: [string, string][]) =>
     .map(([key, value]) => `${key}=${value}`)
     .join('\n');
 
+const summarizePayload = (payload: string) => ({
+  length: payload.length,
+  preview: payload.length > 180 ? `${payload.slice(0, 120)}…${payload.slice(-30)}` : payload,
+  sha256: crypto.createHash('sha256').update(payload).digest('hex'),
+});
+
 export function validateTelegramInitData(
   initData: string,
   botTokens: string[]
@@ -73,6 +79,14 @@ export function validateTelegramInitData(
   const withoutSignatureDataCheckString = buildDataCheckString(
     filteredEntries.filter(([key]) => key !== 'signature')
   );
+
+  const defaultSummary = summarizePayload(defaultDataCheckString);
+  const withoutSignatureSummary = summarizePayload(withoutSignatureDataCheckString);
+
+  logger.debug('Telegram data_check_string prepared', {
+    default: defaultSummary,
+    withoutSignature: withoutSignatureSummary,
+  });
 
   let matchedVariant: 'default' | 'no_signature' | null = null;
   let matchedBotToken: string | null = null;
@@ -119,6 +133,8 @@ export function validateTelegramInitData(
       initDataLength: initData.length,
       keys: Array.from(urlParams.keys()),
       botTokenCandidates: botTokens.map(maskSensitive),
+      defaultDataCheck: defaultSummary,
+      withoutSignatureDataCheck: withoutSignatureSummary,
     });
     throw new AppError(401, 'invalid_telegram_hash');
   }
@@ -128,12 +144,14 @@ export function validateTelegramInitData(
       initDataLength: initData.length,
       keys: Array.from(urlParams.keys()),
       botTokenUsed: maskSensitive(matchedBotToken),
+      variant: matchedVariant,
     });
   } else {
     logger.debug('Telegram hash matched with default payload', {
       initDataLength: initData.length,
       keys: Array.from(urlParams.keys()),
       botTokenUsed: maskSensitive(matchedBotToken),
+      variant: matchedVariant,
     });
   }
 
@@ -163,4 +181,3 @@ export function validateTelegramInitData(
     matchedBotToken,
   };
 }
-
