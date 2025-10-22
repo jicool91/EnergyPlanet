@@ -7,6 +7,7 @@ import { streakConfig, useGameStore } from '../store/gameStore';
 import { ShopPanel } from '../components/ShopPanel';
 import { BoostHub } from '../components/BoostHub';
 import { BuildingsPanel } from '../components/BuildingsPanel';
+import { LeaderboardPanel } from '../components/LeaderboardPanel';
 
 function formatLastSync(timestamp: number | null): string {
   if (!timestamp) {
@@ -58,6 +59,7 @@ export function MainScreen() {
     sessionLastSyncedAt,
     sessionErrorMessage,
     refreshSession,
+    loadLeaderboard,
   } = useGameStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -78,6 +80,12 @@ export function MainScreen() {
       setIsRefreshing(false);
     }
   }, [isRefreshing, refreshSession]);
+
+  useEffect(() => {
+    if (activeTab === 'leaderboard') {
+      loadLeaderboard();
+    }
+  }, [activeTab, loadLeaderboard]);
 
   const tabButtons: { key: TabKey; label: string; icon: string }[] = useMemo(
     () => [
@@ -190,6 +198,12 @@ export function MainScreen() {
       {activeTab === 'builds' && (
         <div className="tab-content">
           <BuildingsPanel />
+        </div>
+      )}
+
+      {activeTab === 'leaderboard' && (
+        <div className="tab-content">
+          <LeaderboardPanel />
         </div>
       )}
 

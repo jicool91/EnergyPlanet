@@ -18,6 +18,7 @@ import { fetchStarPacks, StarPack } from '../services/starPacks';
 import { fetchBoostHub, BoostHubItem, claimBoost as claimBoostApi } from '../services/boosts';
 import { fetchBuildingCatalog, BuildingDefinition } from '../services/buildings';
 import { getTelegramInitData, triggerHapticImpact } from '../services/telegram';
+import { fetchLeaderboard, LeaderboardUserEntry } from '../services/leaderboard';
 import { authStore } from './authStore';
 import { uiStore } from './uiStore';
 
@@ -76,6 +77,12 @@ interface GameState {
   isClaimingBoostType: string | null;
   sessionLastSyncedAt: number | null;
   sessionErrorMessage: string | null;
+  leaderboardEntries: LeaderboardUserEntry[];
+  leaderboardLoaded: boolean;
+  isLeaderboardLoading: boolean;
+  leaderboardError: string | null;
+  leaderboardTotal: number;
+  userLeaderboardEntry: LeaderboardUserEntry | null;
 
   // Game state
   isLoading: boolean;
@@ -100,6 +107,7 @@ interface GameState {
   flushPassiveIncome: (options?: { keepAlive?: boolean }) => Promise<void>;
   logoutSession: (useKeepAlive?: boolean) => Promise<void>;
   loadBuildingCatalog: (force?: boolean) => Promise<void>;
+  loadLeaderboard: (force?: boolean) => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
@@ -172,6 +180,12 @@ export const useGameStore = create<GameState>((set, get) => ({
   isClaimingBoostType: null,
   sessionLastSyncedAt: null,
   sessionErrorMessage: null,
+  leaderboardEntries: [],
+  leaderboardLoaded: false,
+  isLeaderboardLoading: false,
+  leaderboardError: null,
+  leaderboardTotal: 0,
+  userLeaderboardEntry: null,
   isLoading: true,
   isInitialized: false,
 
@@ -854,6 +868,32 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (error) {
       console.error('Failed to load building catalog', error);
       set({ isBuildingCatalogLoading: false });
+    }
+  },
+
+  loadLeaderboard: async (force = false) => {
+    const { leaderboardLoaded, isLeaderboardLoading } = get();
+    if (!force && (leaderboardLoaded || isLeaderboardLoading)) {
+      return;
+    }
+
+    set({ isLeaderboardLoading: true, leaderboardError: null });
+
+    try {
+      const response = await fetchLeaderboard(100);
+      set({
+        leaderboardEntries: response.leaderboard,
+        leaderboardTotal: response.total_players,
+        userLeaderboardEntry: response.user_entry,
+        leaderboardLoaded: true,
+        isLeaderboardLoading: false,
+      });
+    } catch (error) {
+      const { message } = describeError(error);
+      set({
+        leaderboardError: message,
+        isLeaderboardLoading: false,
+      });
     }
   },
 }));
