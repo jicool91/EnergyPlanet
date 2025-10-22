@@ -128,13 +128,19 @@ export const config = {
 
   telegram: {
     get botTokens() {
-      const raw = process.env.TELEGRAM_BOT_TOKEN || '';
-      const parsed = raw
-        .split(/[,;\s]+/)
-        .map(token => token.trim())
-        .filter(Boolean);
+      const tokenEnvKeys = Object.keys(process.env).filter(key =>
+        key === 'TELEGRAM_BOT_TOKEN' || key.startsWith('TELEGRAM_BOT_TOKEN_')
+      );
 
-      return Array.from(new Set(parsed));
+      const tokens = tokenEnvKeys.flatMap((key) => {
+        const value = process.env[key] || '';
+        return value
+          .split(/[,;\s]+/)
+          .map(token => token.trim())
+          .filter(Boolean);
+      });
+
+      return Array.from(new Set(tokens));
     },
     get botToken() {
       const tokens = this.botTokens;
