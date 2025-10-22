@@ -54,12 +54,26 @@ interface BuildingFormulas {
   max_buildings_per_type: string;
 }
 
+interface StarPack {
+  id: string;
+  title: string;
+  description?: string;
+  stars: number;
+  bonus_stars?: number;
+  price_usd?: number;
+  price_rub?: number;
+  telegram_product_id?: string;
+  icon_url?: string;
+  featured?: boolean;
+}
+
 class ContentService {
   private buildings: Building[] = [];
   private cosmetics: Cosmetic[] = [];
   private season: Season | null = null;
   private featureFlags: FeatureFlags | null = null;
   private formulas: BuildingFormulas | null = null;
+  private starPacks: StarPack[] = [];
 
   async load() {
     try {
@@ -73,12 +87,14 @@ class ContentService {
         this.loadCosmetics().catch(e => this.handleLoadError('cosmetics', e)),
         this.loadSeason().catch(e => this.handleLoadError('season', e)),
         this.loadFeatureFlags().catch(e => this.handleLoadError('featureFlags', e)),
+        this.loadStarPacks().catch(e => this.handleLoadError('starPacks', e)),
       ]);
 
       logger.info('Content loaded successfully', {
         buildings: this.buildings.length,
         cosmetics: this.cosmetics.length,
         season: this.season?.season.name,
+        starPacks: this.starPacks.length,
       });
     } catch (error) {
       logger.warn('Content loading completed with errors (this is OK for MVP)', error);
@@ -123,6 +139,13 @@ class ContentService {
     this.featureFlags = JSON.parse(data);
   }
 
+  private async loadStarPacks() {
+    const filePath = path.join(config.content.path, 'monetization', 'star_packs.json');
+    const data = await fs.readFile(filePath, 'utf-8');
+    const parsed = JSON.parse(data);
+    this.starPacks = parsed.packs ?? [];
+  }
+
   getBuildings(): Building[] {
     return this.buildings;
   }
@@ -145,6 +168,10 @@ class ContentService {
 
   getFeatureFlags(): FeatureFlags | null {
     return this.featureFlags;
+  }
+
+  getStarPacks(): StarPack[] {
+    return this.starPacks;
   }
 
   isFeatureEnabled(featureName: string): boolean {

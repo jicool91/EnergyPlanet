@@ -57,6 +57,16 @@ const mockInvoice = {
   created_at: new Date().toISOString(),
 };
 
+const mockStarPacks = [
+  {
+    id: 'stars_pack_small',
+    title: 'Горсть звёзд',
+    stars: 120,
+    bonus_stars: 0,
+    price_usd: 0.99,
+  },
+];
+
 jest.mock('../services/CosmeticService', () => ({
   cosmeticService: {
     listCosmetics: jest.fn(async () => mockCosmetics),
@@ -105,6 +115,12 @@ jest.mock('../services/PurchaseService', () => ({
       adToken: null,
     })),
     markFailed: jest.fn(),
+  },
+}));
+
+jest.mock('../services/ContentService', () => ({
+  contentService: {
+    getStarPacks: jest.fn(() => mockStarPacks),
   },
 }));
 
@@ -215,5 +231,14 @@ describe('Monetization routes', () => {
 
     expect(response.status).toBe(202);
     expect(response.body).toEqual({ success: true, message: 'webhook_stub' });
+  });
+
+  it('GET /api/v1/purchase/packs returns star packs', async () => {
+    const response = await request(app).get('/api/v1/purchase/packs');
+
+    expect(response.status).toBe(200);
+    expect(response.body.packs).toEqual(mockStarPacks);
+    const { contentService } = require('../services/ContentService');
+    expect(contentService.getStarPacks).toHaveBeenCalled();
   });
 });

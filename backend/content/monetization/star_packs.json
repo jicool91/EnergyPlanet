@@ -1,0 +1,40 @@
+{
+  "packs": [
+    {
+      "id": "stars_pack_small",
+      "title": "Горсть звёзд",
+      "description": "120 Stars для быстрого старта",
+      "stars": 120,
+      "bonus_stars": 0,
+      "price_usd": 0.99,
+      "price_rub": 119,
+      "telegram_product_id": "stars_pack_small",
+      "icon_url": "https://cdn.energyplanet.game/monetization/stars_small.png",
+      "featured": false
+    },
+    {
+      "id": "stars_pack_medium",
+      "title": "Солнечный запас",
+      "description": "650 Stars + 10% бонуса",
+      "stars": 650,
+      "bonus_stars": 65,
+      "price_usd": 4.99,
+      "price_rub": 479,
+      "telegram_product_id": "stars_pack_medium",
+      "icon_url": "https://cdn.energyplanet.game/monetization/stars_medium.png",
+      "featured": true
+    },
+    {
+      "id": "stars_pack_large",
+      "title": "Орбитальный запас",
+      "description": "1400 Stars + 20% бонуса",
+      "stars": 1400,
+      "bonus_stars": 280,
+      "price_usd": 9.99,
+      "price_rub": 969,
+      "telegram_product_id": "stars_pack_large",
+      "icon_url": "https://cdn.energyplanet.game/monetization/stars_large.png",
+      "featured": false
+    }
+  ]
+}

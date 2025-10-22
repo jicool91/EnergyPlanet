@@ -14,6 +14,7 @@ import {
   unlockCosmetic,
   CosmeticItem,
 } from '../services/cosmetics';
+import { fetchStarPacks, StarPack } from '../services/starPacks';
 
 const STREAK_RESET_MS = 4000;
 const STREAK_CRIT_THRESHOLD = 25;
@@ -44,6 +45,11 @@ interface GameState {
   isCosmeticsLoading: boolean;
   cosmeticsError: string | null;
   isProcessingCosmeticId: string | null;
+  starPacks: StarPack[];
+  starPacksLoaded: boolean;
+  isStarPacksLoading: boolean;
+  starPacksError: string | null;
+  isProcessingStarPackId: string | null;
   sessionLastSyncedAt: number | null;
   sessionErrorMessage: string | null;
 
@@ -65,6 +71,8 @@ interface GameState {
   loadCosmetics: (force?: boolean) => Promise<void>;
   purchaseCosmetic: (cosmeticId: string) => Promise<void>;
   equipCosmetic: (cosmeticId: string) => Promise<void>;
+  loadStarPacks: (force?: boolean) => Promise<void>;
+  purchaseStarPack: (packId: string) => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
@@ -106,6 +114,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   isCosmeticsLoading: false,
   cosmeticsError: null,
   isProcessingCosmeticId: null,
+  starPacks: [],
+  starPacksLoaded: false,
+  isStarPacksLoading: false,
+  starPacksError: null,
+  isProcessingStarPackId: null,
   sessionLastSyncedAt: null,
   sessionErrorMessage: null,
   isLoading: true,
@@ -442,6 +455,93 @@ export const useGameStore = create<GameState>((set, get) => ({
       throw error;
     } finally {
       set({ isProcessingCosmeticId: null });
+    }
+  },
+
+  loadStarPacks: async (force = false) => {
+    const { starPacksLoaded, isStarPacksLoading } = get();
+    if (!force && (starPacksLoaded || isStarPacksLoading)) {
+      return;
+    }
+
+    set({ isStarPacksLoading: true, starPacksError: null });
+
+    try {
+      const packs = await fetchStarPacks();
+      set({ starPacks: packs, starPacksLoaded: true, isStarPacksLoading: false, starPacksError: null });
+    } catch (error) {
+      const { message } = describeError(error);
+      set({ starPacksError: message || 'Не удалось загрузить паки Stars', isStarPacksLoading: false });
+      await logClientEvent(
+        'star_packs_load_failed',
+        { message, source: 'loadStarPacks' },
+        'warn'
+      );
+    }
+  },
+
+  purchaseStarPack: async (packId: string) => {
+    const state = get();
+    const pack = state.starPacks.find(item => item.id === packId);
+    if (!pack) {
+      throw new Error('Star pack not found');
+    }
+
+    if (state.isProcessingStarPackId === packId) {
+      return;
+    }
+
+    const totalStars = pack.stars + (pack.bonus_stars ?? 0);
+    const metadata = {
+      pack_title: pack.title,
+      stars: pack.stars,
+      bonus_stars: pack.bonus_stars ?? 0,
+      price_usd: pack.price_usd ?? null,
+      price_rub: pack.price_rub ?? null,
+    };
+
+    set({ isProcessingStarPackId: packId, starPacksError: null });
+
+    const purchaseId = `stars_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    const payload = {
+      purchase_id: purchaseId,
+      item_id: pack.id,
+      price_stars: totalStars,
+      purchase_type: 'stars_pack' as const,
+      metadata,
+    };
+
+    try {
+      await apiClient.post('/purchase/invoice', payload);
+      await apiClient.post('/purchase', payload);
+
+      await logClientEvent(
+        'star_pack_purchase_mock',
+        {
+          pack_id: pack.id,
+          total_stars: totalStars,
+          purchase_id: purchaseId,
+        },
+        'info'
+      );
+
+      await get().refreshSession();
+    } catch (error) {
+      const { status, message } = describeError(error);
+      await logClientEvent(
+        'star_pack_purchase_error',
+        {
+          pack_id: pack.id,
+          status,
+          message,
+          purchase_id: purchaseId,
+        },
+        'error'
+      );
+      set({ starPacksError: message || 'Не удалось завершить покупку Stars' });
+      throw error;
+    } finally {
+      set({ isProcessingStarPackId: null });
     }
   },
 }));

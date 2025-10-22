@@ -18,6 +18,9 @@ _Updated: 2025-10-22_
   - Возвращает `409 purchase_conflict`, если другой пользователь пытается завершить покупку.
 - `POST /api/v1/purchase/webhook`
   - Заглушка, отдаёт 202; оставлена для реальной подписи Telegram.
+- `GET /api/v1/purchase/packs`
+  - Возвращает список Star-паков из контента (`backend/content/monetization/star_packs.json`).
+  - Используется фронтом для витрины и метаданных mock-инвойсов.
 
 ## Status Lifecycle
 ```
@@ -47,6 +50,7 @@ pending/succeeded -> markFailed(purchase_id) -> failed
 - Завершить покупку → статус `succeeded`, событие `purchase_succeeded`, логи `purchase_succeeded`/`purchase_succeeded_idempotent` при повторе.
 - Попробовать другой userId с тем же `purchase_id` → ожидаемый 409 и лог `purchase_user_mismatch`.
 - Вызвать `markFailed` (через консоль или скрипт) → статус `failed`, событие `purchase_failed`.
+- Для Star-пака убедиться, что metadata содержит размер пака, бонус и локальную цену.
 
 ## Follow-ups
 - Реальная интеграция Telegram: заменить `mockPayments` на live, добавить подпись и webhook-подтверждение.

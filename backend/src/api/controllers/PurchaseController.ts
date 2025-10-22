@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthRequest } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 import { purchaseService } from '../../services/PurchaseService';
+import { contentService } from '../../services/ContentService';
 
 export class PurchaseController {
   invoice = async (req: AuthRequest, res: Response, next: NextFunction) => {
@@ -80,5 +81,14 @@ export class PurchaseController {
   webhook = async (_req: Request, res: Response) => {
     // TODO: verify Telegram signature, update purchases, grant rewards
     res.status(202).json({ success: true, message: 'webhook_stub' });
+  };
+
+  packs = async (_req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      const packs = contentService.getStarPacks();
+      res.status(200).json({ packs });
+    } catch (error) {
+      next(error);
+    }
   };
 }
