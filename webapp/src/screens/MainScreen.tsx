@@ -133,8 +133,8 @@ export function MainScreen() {
   }
 
   return (
-    <div className="grid grid-rows-[1fr_auto] grid-cols-1 w-full h-full relative">
-      <div className="flex flex-col gap-4 overflow-hidden min-h-0 px-5 pt-3 grid-col-1 grid-row-1">
+    <div className="flex flex-col w-full h-full relative overflow-hidden">
+      <div className="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 px-5 pt-3 pb-[calc(60px_+_var(--tg-safe-area-bottom,_0px))]">
         {/* Комбо бaнер */}
         <div className={`transition-all duration-200 ${
           streakCount > 0
@@ -237,7 +237,7 @@ export function MainScreen() {
       </div>
 
       {/* Footer с навигацией */}
-      <footer className="flex justify-around p-2.5 bg-black/80 border-t border-white/10 grid-col-1 grid-row-2 z-100" style={{ paddingBottom: 'calc(10px + var(--tg-safe-area-bottom, 0px))' }}>
+      <footer className="fixed bottom-0 left-0 right-0 flex justify-around p-2.5 bg-black/80 border-t border-white/10 z-[100] w-full" style={{ paddingBottom: 'calc(10px + var(--tg-safe-area-bottom, 0px))', paddingLeft: 'var(--tg-safe-area-left, 0px)', paddingRight: 'var(--tg-safe-area-right, 0px)' }}>
         {tabButtons.map(tab => (
           <button
             key={tab.key}

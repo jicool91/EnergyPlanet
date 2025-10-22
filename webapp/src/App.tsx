@@ -74,7 +74,7 @@ function App() {
   }, [isAuthModalOpen, offlineSummary, dismissAuthError, acknowledgeOfflineSummary]);
 
   return (
-    <div className="w-full h-full min-h-screen flex flex-col flex-1 bg-gradient-to-b from-dark-bg to-black pl-safe-left pr-safe-right">
+    <div className="w-full h-screen flex flex-col bg-gradient-to-b from-dark-bg to-black pl-safe-left pr-safe-right overflow-hidden">
       <MainScreen />
       {isAuthModalOpen && authErrorMessage && (
         <AuthErrorModal message={authErrorMessage} onRetry={handleRetry} onDismiss={dismissAuthError} />
