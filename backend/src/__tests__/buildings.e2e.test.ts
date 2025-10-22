@@ -49,6 +49,7 @@ describe('Buildings catalog', () => {
       base_income: 8,
       base_cost: 200,
       payback_seconds: 25,
+      roi_rank: 1,
     });
   });
 });

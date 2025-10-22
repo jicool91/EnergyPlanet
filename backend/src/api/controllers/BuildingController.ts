@@ -12,7 +12,7 @@ export class BuildingController {
 
       const buildings = contentService.getBuildings();
 
-      const payload = buildings.map(building => {
+      const enriched = buildings.map(building => {
         const baseIncome = Number(building.base_income ?? 0);
         const baseCost = Number(building.base_cost ?? 0);
         const paybackSeconds = baseIncome > 0 ? baseCost / baseIncome : null;
@@ -34,6 +34,20 @@ export class BuildingController {
           payback_seconds: paybackSeconds,
         };
       });
+
+      const sortedByPayback = enriched
+        .filter(b => typeof b.payback_seconds === 'number' && b.payback_seconds! > 0)
+        .sort((a, b) => (a.payback_seconds! - b.payback_seconds!));
+
+      const roiRankMap = new Map<string, number>();
+      sortedByPayback.forEach((building, index) => {
+        roiRankMap.set(building.id, index + 1);
+      });
+
+      const payload = enriched.map(building => ({
+        ...building,
+        roi_rank: roiRankMap.get(building.id) ?? null,
+      }));
 
       res.status(200).json({ buildings: payload });
     } catch (error) {
