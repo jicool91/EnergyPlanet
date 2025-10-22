@@ -16,11 +16,10 @@ export default {
         'dark-secondary': '#101328',
       },
       spacing: {
-        'safe-left': 'var(--tg-safe-area-left, 0px)',
-        'safe-right': 'var(--tg-safe-area-right, 0px)',
-        'safe-top': 'var(--tg-safe-area-top, 0px)',
-        'safe-bottom': 'var(--tg-safe-area-bottom, 0px)',
-        'content-safe-top': 'var(--tg-content-safe-area-top, var(--tg-safe-area-top, 0px))',
+        'safe-left': 'var(--safe-area-left, 0px)',
+        'safe-right': 'var(--safe-area-right, 0px)',
+        'safe-top': 'var(--safe-area-top, 0px)',
+        'safe-bottom': 'var(--safe-area-bottom, 0px)',
       },
       fontSize: {
         'xs': ['12px', { lineHeight: '16px' }],

@@ -87,7 +87,7 @@ export function MainScreen() {
 
   return (
     <div className="flex flex-col w-full h-full relative overflow-hidden">
-      <div className="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 px-5 pb-[calc(60px_+_var(--tg-safe-area-bottom,_0px))]" style={{ paddingTop: 'calc(12px + var(--tg-content-safe-area-top, var(--tg-safe-area-top, 0px)))' }}>
+      <div className="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 px-5" style={{ paddingTop: 'var(--safe-area-top)', paddingBottom: 'calc(60px + var(--safe-area-bottom))' }}>
         {/* Комбо бaнер */}
         <div className={`transition-all duration-200 ${
           streakCount > 0
@@ -171,7 +171,7 @@ export function MainScreen() {
       </div>
 
       {/* Footer с навигацией */}
-      <footer className="fixed bottom-0 left-0 right-0 flex justify-around p-2.5 bg-black/80 border-t border-white/10 z-[100] w-full" style={{ paddingBottom: 'calc(10px + var(--tg-safe-area-bottom, 0px))', paddingLeft: 'var(--tg-safe-area-left, 0px)', paddingRight: 'var(--tg-safe-area-right, 0px)' }}>
+      <footer className="fixed bottom-0 left-0 right-0 flex justify-around p-2.5 bg-black/80 border-t border-white/10 z-[100] w-full" style={{ paddingBottom: 'var(--safe-area-bottom)', paddingLeft: 'var(--safe-area-left)', paddingRight: 'var(--safe-area-right)' }}>
         {tabButtons.map(tab => (
           <button
             key={tab.key}
