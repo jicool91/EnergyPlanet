@@ -118,6 +118,14 @@ export const config = {
     url: redisFromUrl?.url ?? undefined,
   },
 
+  cache: {
+    enabled: process.env.CACHE_ENABLED !== 'false',
+    ttl: {
+      leaderboard: parseInt(process.env.CACHE_TTL_LEADERBOARD || '30', 10),
+      profile: parseInt(process.env.CACHE_TTL_PROFILE || '15', 10),
+    },
+  },
+
   telegram: {
     get botTokens() {
       const raw = process.env.TELEGRAM_BOT_TOKEN || '';

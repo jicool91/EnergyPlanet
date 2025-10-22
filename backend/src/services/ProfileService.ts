@@ -1,11 +1,62 @@
+import config from '../config';
+import { cacheKeys } from '../cache/cacheKeys';
+import { getCache, setCache } from '../cache/redis';
+import { transaction } from '../db/connection';
 import { loadPlayerContext } from './playerContext';
 import { buildBuildingDetails, computePassiveIncome } from './passiveIncome';
 import { calculateLevelProgress } from '../utils/level';
 import { tapEnergyForLevel } from '../utils/tap';
-import { transaction } from '../db/connection';
+
+interface CachedProfile {
+  user: {
+    id: string;
+    telegram_id: number;
+    username: string | null;
+    first_name: string | null;
+    last_name: string | null;
+    is_admin: boolean;
+  };
+  profile: {
+    equipped_avatar_frame: string | null;
+    equipped_planet_skin: string | null;
+    equipped_tap_effect: string | null;
+    equipped_background: string | null;
+    bio: string | null;
+    is_public: boolean;
+    updated_at: string;
+  };
+  progress: {
+    level: number;
+    xp: number;
+    xp_into_level: number;
+    xp_to_next_level: number;
+    total_energy_produced: number;
+    energy: number;
+    tap_level: number;
+    tap_income: number;
+    passive_income_per_sec: number;
+    passive_income_multiplier: number;
+    last_login: string | null;
+    last_logout: string | null;
+  };
+  boosts: Array<{
+    id: string;
+    boost_type: string;
+    multiplier: number;
+    expires_at: string;
+  }>;
+  buildings: ReturnType<typeof buildBuildingDetails>;
+}
 
 export class ProfileService {
   async getProfile(userId: string) {
+    if (config.cache.enabled) {
+      const cached = await getCache<CachedProfile>(cacheKeys.profile(userId));
+      if (cached) {
+        return cached;
+      }
+    }
+
     const context = await transaction(client => loadPlayerContext(userId, client));
 
     const buildingDetails = buildBuildingDetails(context.inventory, context.progress.level);
@@ -13,7 +64,7 @@ export class ProfileService {
     const levelInfo = calculateLevelProgress(context.progress.xp);
     const tapIncome = tapEnergyForLevel(context.progress.tapLevel);
 
-    return {
+    const payload: CachedProfile = {
       user: {
         id: context.user.id,
         telegram_id: context.user.telegramId,
@@ -53,6 +104,12 @@ export class ProfileService {
       })),
       buildings: buildingDetails,
     };
+
+    if (config.cache.enabled) {
+      await setCache(cacheKeys.profile(userId), payload, config.cache.ttl.profile);
+    }
+
+    return payload;
   }
 }
 

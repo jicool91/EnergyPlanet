@@ -74,6 +74,9 @@ export async function setCache(
   value: any,
   expirySeconds?: number
 ): Promise<void> {
+  if (!config.cache.enabled) {
+    return;
+  }
   const client = getRedis();
   const serialized = JSON.stringify(value);
 
@@ -88,6 +91,9 @@ export async function setCache(
  * Получить значение из кеша
  */
 export async function getCache<T = any>(key: string): Promise<T | null> {
+  if (!config.cache.enabled) {
+    return null;
+  }
   const client = getRedis();
   const value = await client.get(key);
 
@@ -107,6 +113,9 @@ export async function getCache<T = any>(key: string): Promise<T | null> {
  * Удалить ключ из кеша
  */
 export async function delCache(key: string): Promise<void> {
+  if (!config.cache.enabled) {
+    return;
+  }
   const client = getRedis();
   await client.del(key);
 }

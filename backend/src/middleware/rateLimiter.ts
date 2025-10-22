@@ -7,7 +7,7 @@ import rateLimit from 'express-rate-limit';
 import { config } from '../config';
 import { AuthRequest } from './auth';
 
-const userKey = (req: Request) => {
+const userKey = (req: Request): string => {
   const authReq = req as AuthRequest;
   if (authReq.user?.id) {
     return `user:${authReq.user.id}`;
@@ -15,7 +15,7 @@ const userKey = (req: Request) => {
   if (authReq.user?.telegramId) {
     return `tg:${authReq.user.telegramId}`;
   }
-  return req.ip;
+  return `ip:${req.ip ?? 'anonymous'}`;
 };
 
 export const rateLimiter = rateLimit({

@@ -10,6 +10,7 @@ import { getLastBoostClaim, logEvent } from '../repositories/EventRepository';
 import { addDuration } from '../utils/time';
 import { loadPlayerContext } from './playerContext';
 import { config } from '../config';
+import { invalidateProfileCache } from '../cache/invalidation';
 
 type BoostType = 'ad_boost' | 'daily_boost' | 'premium_boost';
 
@@ -108,7 +109,7 @@ export class BoostService {
       throw new AppError(400, 'unknown_boost_type');
     }
 
-    return transaction(async client => {
+    const result = await transaction(async client => {
       await loadPlayerContext(userId, client);
 
       if (definition.requiresPremium && !config.monetization.starsEnabled && !config.testing.mockPayments) {
@@ -163,6 +164,9 @@ export class BoostService {
 
       return boost;
     });
+
+    await invalidateProfileCache(userId);
+    return result;
   }
 }
 

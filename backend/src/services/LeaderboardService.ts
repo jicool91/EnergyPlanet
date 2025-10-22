@@ -1,5 +1,6 @@
-import { getRedis } from '../cache/redis';
-import { logger } from '../utils/logger';
+import config from '../config';
+import { getCache, setCache } from '../cache/redis';
+import { cacheKeys } from '../cache/cacheKeys';
 import {
   countPlayers,
   fetchTopEntries,
@@ -9,8 +10,6 @@ import {
 
 const DEFAULT_LIMIT = 50;
 const MAX_LIMIT = 100;
-const CACHE_TTL_SEC = 30;
-
 interface CachedLeaderboard {
   totalPlayers: number;
   entries: LeaderboardEntry[];
@@ -19,7 +18,7 @@ interface CachedLeaderboard {
 
 export class LeaderboardService {
   private cacheKey(limit: number) {
-    return `leaderboard:top:${limit}`;
+    return cacheKeys.leaderboardTop(limit);
   }
 
   private sanitizeLimit(limit?: number) {
@@ -30,26 +29,17 @@ export class LeaderboardService {
   }
 
   private async readCache(limit: number): Promise<CachedLeaderboard | null> {
-    try {
-      const redis = getRedis();
-      const raw = await redis.get(this.cacheKey(limit));
-      if (!raw) {
-        return null;
-      }
-      return JSON.parse(raw) as CachedLeaderboard;
-    } catch (error) {
-      logger.warn('Leaderboard cache read failed', { error });
+    if (!config.cache.enabled) {
       return null;
     }
+    return getCache<CachedLeaderboard>(this.cacheKey(limit));
   }
 
   private async writeCache(limit: number, payload: CachedLeaderboard): Promise<void> {
-    try {
-      const redis = getRedis();
-      await redis.setEx(this.cacheKey(limit), CACHE_TTL_SEC, JSON.stringify(payload));
-    } catch (error) {
-      logger.warn('Leaderboard cache write failed', { error });
+    if (!config.cache.enabled) {
+      return;
     }
+    await setCache(this.cacheKey(limit), payload, config.cache.ttl.leaderboard);
   }
 
   async getLeaderboard(viewerId?: string, limitParam?: number) {

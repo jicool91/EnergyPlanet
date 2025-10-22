@@ -9,6 +9,7 @@ import {
 import { logEvent } from '../repositories/EventRepository';
 import { calculateLevelProgress } from '../utils/level';
 import { xpFromEnergy } from '../utils/tap';
+import { invalidateProfileCache } from '../cache/invalidation';
 
 interface UpgradeRequest {
   buildingId: string;
@@ -48,7 +49,7 @@ export class UpgradeService {
       throw new AppError(404, 'building_not_found');
     }
 
-    return transaction(async client => {
+    const result = await transaction(async client => {
       const progress = await getProgress(userId, client);
       if (!progress) {
         throw new AppError(404, 'progress_not_found');
@@ -185,5 +186,8 @@ export class UpgradeService {
         xp_to_next_level: calculateLevelProgress(updatedProgress.xp).xpToNextLevel,
       };
     });
+
+    await invalidateProfileCache(userId);
+    return result;
   }
 }

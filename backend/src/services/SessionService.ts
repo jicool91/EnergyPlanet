@@ -16,6 +16,7 @@ import {
   computePassiveIncome as computePassiveIncomeSnapshot,
 } from './passiveIncome';
 import { upsertInventoryItem } from '../repositories/InventoryRepository';
+import { invalidateProfileCache } from '../cache/invalidation';
 
 interface OfflineGains {
   energy: number;
@@ -155,6 +156,8 @@ export class SessionService {
         featureFlags,
       };
     });
+
+    await invalidateProfileCache(userId);
 
     const tapIncome = tapEnergyForLevel(state.progress.tapLevel);
     const levelInfo = calculateLevelProgress(state.progress.xp);

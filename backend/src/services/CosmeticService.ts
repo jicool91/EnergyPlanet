@@ -9,6 +9,7 @@ import {
 import { updateEquipment, UpdateEquipmentInput } from '../repositories/ProfileRepository';
 import { logEvent } from '../repositories/EventRepository';
 import { config } from '../config';
+import { invalidateProfileCache } from '../cache/invalidation';
 
 type UnlockType = 'free' | 'level' | 'purchase' | 'event';
 
@@ -108,7 +109,7 @@ function determineStatus(
 
 export class CosmeticService {
   async listCosmetics(userId: string): Promise<CosmeticListItem[]> {
-    return transaction(async client => {
+    const result = await transaction(async client => {
       const context = await loadPlayerContext(userId, client);
       const ownedSet = new Set(context.cosmetics.map(c => c.cosmeticId));
       const cosmetics = contentService.getCosmetics();
@@ -125,7 +126,7 @@ export class CosmeticService {
       const updatedOwnership = await listUserCosmetics(userId, client);
       const ownedLatest = new Set(updatedOwnership.map(c => c.cosmeticId));
 
-      return cosmetics.map<CosmeticListItem>((cosmetic) => {
+      return cosmetics.map<CosmeticListItem>(cosmetic => {
         const unlockType = (cosmetic.unlock_type ?? 'free') as UnlockType;
         const requirement = (cosmetic.unlock_requirement ?? {}) as CosmeticUnlockRequirement;
         const owned = ownedLatest.has(cosmetic.id) || shouldAutoUnlock(unlockType, requirement, context.progress.level);
@@ -150,6 +151,9 @@ export class CosmeticService {
         };
       });
     });
+
+    await invalidateProfileCache(userId);
+    return result;
   }
 
   async purchaseCosmetic(userId: string, cosmeticId: string): Promise<void> {
@@ -214,6 +218,8 @@ export class CosmeticService {
           throw new AppError(403, 'cosmetic_locked');
       }
     });
+
+    await invalidateProfileCache(userId);
   }
 
   async equipCosmetic(userId: string, cosmeticId: string): Promise<void> {
@@ -252,6 +258,8 @@ export class CosmeticService {
         { client }
       );
     });
+
+    await invalidateProfileCache(userId);
   }
 }
 
