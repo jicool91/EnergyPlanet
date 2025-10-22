@@ -7,6 +7,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
+import { useNotification } from '@/hooks/useNotification';
 
 interface Building {
   id: string;
@@ -52,6 +53,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
   const [wasLocked, setWasLocked] = useState(isLocked);
   const [showUnlockAnim, setShowUnlockAnim] = useState(false);
   const playSound = useSoundEffect();
+  const { success, error } = useNotification();
 
   // Detect unlock transition
   useEffect(() => {
@@ -70,6 +72,26 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
 
     setWasLocked(isLocked);
   }, [isLocked, wasLocked, playSound]);
+
+  // Handle purchase with notification
+  const handlePurchase = async () => {
+    try {
+      await onPurchase(building.id);
+      success(`${building.name} куплена!`);
+    } catch (err) {
+      error(`Ошибка при покупке ${building.name}`);
+    }
+  };
+
+  // Handle upgrade with notification
+  const handleUpgrade = async () => {
+    try {
+      await onUpgrade(building.id);
+      success(`${building.name} улучшена!`);
+    } catch (err) {
+      error(`Ошибка при апгрейде ${building.name}`);
+    }
+  };
 
   const payback = building.payback_seconds
     ? `${Math.round(building.payback_seconds)} сек`
@@ -124,7 +146,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
         <motion.button
           type="button"
           className="px-[18px] py-[10px] rounded-md border-0 text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out bg-gradient-to-br from-cyan/25 to-[rgba(38,127,255,0.35)] text-[#f8fbff] disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-[0_10px_26px_rgba(0,217,255,0.3)]"
-          onClick={() => onPurchase(building.id)}
+          onClick={handlePurchase}
           disabled={processing || !canPurchase}
           whileTap={{ scale: 0.95 }}
           whileHover={!processing && canPurchase ? { scale: 1.05 } : {}}
@@ -139,7 +161,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
         <motion.button
           type="button"
           className="px-[18px] py-[10px] rounded-md border-0 text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out bg-cyan/[0.12] text-[#f8fbff] disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-[0_10px_26px_rgba(0,217,255,0.3)]"
-          onClick={() => onUpgrade(building.id)}
+          onClick={handleUpgrade}
           disabled={processing || !canUpgrade}
           whileTap={{ scale: 0.95 }}
           whileHover={!processing && canUpgrade ? { scale: 1.05 } : {}}
