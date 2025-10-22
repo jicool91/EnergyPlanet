@@ -10,6 +10,7 @@ import { updateEquipment, UpdateEquipmentInput } from '../repositories/ProfileRe
 import { logEvent } from '../repositories/EventRepository';
 import { config } from '../config';
 import { invalidateProfileCache } from '../cache/invalidation';
+import { upsertCosmetics } from '../repositories/CosmeticRepository';
 
 type UnlockType = 'free' | 'level' | 'purchase' | 'event';
 
@@ -42,6 +43,40 @@ const CATEGORY_TO_PROFILE_FIELD: Record<string, keyof UpdateEquipmentInput> = {
   tap_effect: 'tapEffect',
   background: 'background',
 };
+
+let cosmeticsSeedPromise: Promise<void> | null = null;
+
+async function ensureCosmeticsSeeded(): Promise<void> {
+  if (!cosmeticsSeedPromise) {
+    cosmeticsSeedPromise = (async () => {
+      const cosmetics = contentService.getCosmetics();
+      if (!cosmetics.length) {
+        return;
+      }
+
+      await transaction(async client => {
+        await upsertCosmetics(
+          cosmetics.map(cosmetic => ({
+            id: cosmetic.id,
+            name: cosmetic.name,
+            description: cosmetic.description ?? null,
+            category: cosmetic.category,
+            rarity: cosmetic.rarity,
+            unlockType: cosmetic.unlock_type ?? 'free',
+            unlockRequirement: cosmetic.unlock_requirement ?? {},
+            assetUrl: cosmetic.asset_url ?? null,
+          })),
+          client
+        );
+      });
+    })().catch(error => {
+      cosmeticsSeedPromise = null;
+      throw error;
+    });
+  }
+
+  return cosmeticsSeedPromise;
+}
 
 function extractPrice(requirement: CosmeticUnlockRequirement): number | null {
   if (typeof requirement?.price_stars === 'number') {
@@ -109,6 +144,8 @@ function determineStatus(
 
 export class CosmeticService {
   async listCosmetics(userId: string): Promise<CosmeticListItem[]> {
+    await ensureCosmeticsSeeded();
+
     const result = await transaction(async client => {
       const context = await loadPlayerContext(userId, client);
       const ownedSet = new Set(context.cosmetics.map(c => c.cosmeticId));

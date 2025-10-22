@@ -30,6 +30,6 @@ body {
 #root {
   width: 100vw;
   min-height: var(--tg-viewport-height, 100vh);
-  height: var(--tg-viewport-height, 100vh);
+  display: flex;
   overflow: hidden;
 }
