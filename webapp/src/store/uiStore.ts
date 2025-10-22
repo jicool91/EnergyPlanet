@@ -9,16 +9,29 @@ export interface OfflineSummarySnapshot {
   capped: boolean;
 }
 
+export interface Notification {
+  id: string;
+  type: 'toast' | 'achievement' | 'alert';
+  title?: string;
+  message: string;
+  duration?: number; // ms, 0 = persistent
+  icon?: 'success' | 'error' | 'warning' | 'info' | 'star' | 'trophy';
+  onDismiss?: () => void;
+}
+
 interface UIState {
   authErrorMessage: string | null;
   isAuthModalOpen: boolean;
   offlineSummary: OfflineSummarySnapshot | null;
   theme: TelegramThemeParams;
+  notifications: Notification[];
   openAuthError: (message: string) => void;
   dismissAuthError: () => void;
   setOfflineSummary: (summary: OfflineSummarySnapshot | null) => void;
   updateTheme: (theme: TelegramThemeParams) => void;
   clearOfflineSummary: () => void;
+  addNotification: (notification: Omit<Notification, 'id'>) => string;
+  removeNotification: (id: string) => void;
 }
 
 export const useUIStore = create<UIState>((set) => ({
@@ -26,11 +39,32 @@ export const useUIStore = create<UIState>((set) => ({
   isAuthModalOpen: false,
   offlineSummary: null,
   theme: DEFAULT_THEME,
+  notifications: [],
   openAuthError: (message: string) => set({ authErrorMessage: message, isAuthModalOpen: true }),
   dismissAuthError: () => set({ authErrorMessage: null, isAuthModalOpen: false }),
   setOfflineSummary: (summary) => set({ offlineSummary: summary }),
   updateTheme: (theme) => set({ theme }),
   clearOfflineSummary: () => set({ offlineSummary: null }),
+  addNotification: (notification) => {
+    const id = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const fullNotification: Notification = { ...notification, id };
+
+    set(state => ({
+      notifications: [...state.notifications, fullNotification]
+    }));
+
+    // Auto-dismiss if duration specified
+    if (notification.duration && notification.duration > 0) {
+      setTimeout(() => {
+        useUIStore.getState().removeNotification(id);
+      }, notification.duration);
+    }
+
+    return id;
+  },
+  removeNotification: (id) => set(state => ({
+    notifications: state.notifications.filter(n => n.id !== id)
+  })),
 }));
 
 export const uiStore = {
@@ -48,6 +82,12 @@ export const uiStore = {
   },
   updateTheme(theme: TelegramThemeParams) {
     useUIStore.getState().updateTheme(theme);
+  },
+  addNotification(notification: Omit<Notification, 'id'>) {
+    return useUIStore.getState().addNotification(notification);
+  },
+  removeNotification(id: string) {
+    useUIStore.getState().removeNotification(id);
   },
   get theme() {
     return useUIStore.getState().theme;

@@ -9,6 +9,7 @@ import { MainScreen } from './screens/MainScreen';
 import { AuthErrorModal } from './components/AuthErrorModal';
 import { OfflineSummaryModal } from './components/OfflineSummaryModal';
 import { LevelUpScreen } from './components/LevelUpScreen';
+import { NotificationContainer } from './components/notifications/NotificationContainer';
 import { withTelegramBackButton } from './services/telegram';
 
 function App() {
@@ -108,6 +109,7 @@ function App() {
           onDismiss={() => setShowLevelUp(false)}
         />
       )}
+      <NotificationContainer />
     </div>
   );
 }
