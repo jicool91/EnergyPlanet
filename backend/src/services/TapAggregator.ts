@@ -10,6 +10,7 @@ import { createTapEvent } from '../repositories/TapEventRepository';
 interface BufferTotals {
   taps: number;
   energy: number;
+  baseEnergy: number;
   xp: number;
   updatedAt?: number;
 }
@@ -17,6 +18,7 @@ interface BufferTotals {
 interface BufferIncrement {
   taps: number;
   energy: number;
+  baseEnergy: number;
   xp: number;
 }
 
@@ -81,6 +83,7 @@ export class TapAggregator {
     const multi = redis.multi();
     multi.hIncrBy(key, 'tapCount', increment.taps);
     multi.hIncrByFloat(key, 'energy', increment.energy);
+    multi.hIncrByFloat(key, 'baseEnergy', increment.baseEnergy);
     multi.hIncrByFloat(key, 'xp', increment.xp);
     multi.hSet(key, 'updatedAt', now.toString());
     multi.expire(key, BUFFER_TTL_SECONDS);
@@ -91,9 +94,10 @@ export class TapAggregator {
       throw new Error('Failed to buffer tap batch in Redis');
     }
 
-    const tapCount = Number(results[0] ?? increment.taps);
-    const energy = Number(results[1] ?? increment.energy);
-    const xp = Number(results[2] ?? increment.xp);
+    const tapCount = Number(results?.[0] ?? increment.taps);
+    const energy = Number(results?.[1] ?? increment.energy);
+    const baseEnergy = Number(results?.[2] ?? increment.baseEnergy);
+    const xp = Number(results?.[3] ?? increment.xp);
 
     if (tapCount >= this.flushThreshold) {
       this.flushUser(userId).catch(error => {
@@ -107,6 +111,7 @@ export class TapAggregator {
     return {
       taps: tapCount,
       energy,
+      baseEnergy,
       xp,
       updatedAt: now,
     };
@@ -115,10 +120,16 @@ export class TapAggregator {
   async getPendingTotals(userId: string): Promise<BufferTotals> {
     const redis = this.redis();
     const key = this.bufferKey(userId);
-    const [tapCountRaw, energyRaw, xpRaw] = await redis.hmGet(key, ['tapCount', 'energy', 'xp']);
+    const [tapCountRaw, energyRaw, baseEnergyRaw, xpRaw] = await redis.hmGet(key, [
+      'tapCount',
+      'energy',
+      'baseEnergy',
+      'xp',
+    ]);
     return {
       taps: tapCountRaw ? Number(tapCountRaw) : 0,
       energy: energyRaw ? Number(energyRaw) : 0,
+      baseEnergy: baseEnergyRaw ? Number(baseEnergyRaw) : 0,
       xp: xpRaw ? Number(xpRaw) : 0,
     };
   }
@@ -171,6 +182,7 @@ export class TapAggregator {
 
       const taps = Number(buffer?.tapCount ?? 0);
       const energy = Number(buffer?.energy ?? 0);
+      const baseEnergy = Number(buffer?.baseEnergy ?? 0);
       const xp = Number(buffer?.xp ?? 0);
       const updatedAt = buffer?.updatedAt ? Number(buffer.updatedAt) : Date.now();
 
@@ -179,6 +191,7 @@ export class TapAggregator {
       }
 
       const energyDelta = Math.round(energy);
+      const baseEnergyDelta = Math.max(Math.round(baseEnergy), 0);
       const xpDelta = Math.round(xp);
 
       const latencyMs = Math.max(Date.now() - updatedAt, 0);
@@ -209,9 +222,13 @@ export class TapAggregator {
 
         await createTapEvent({ userId, taps, energyDelta }, client);
 
+        const boostMultiplier = baseEnergyDelta > 0 ? energyDelta / baseEnergyDelta : 1;
+
         const payload = {
           taps,
           energy_delta: energyDelta,
+          base_energy: baseEnergyDelta,
+          boost_multiplier: Number(boostMultiplier.toFixed(3)),
           xp_delta: xpDelta,
           latency_ms: latencyMs,
           leveled_up: leveledUp,

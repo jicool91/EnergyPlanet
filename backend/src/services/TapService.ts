@@ -6,6 +6,7 @@ import { getRedis } from '../cache/redis';
 import { logger } from '../utils/logger';
 import { tapAggregator } from './TapAggregator';
 import { logEvent } from '../repositories/EventRepository';
+import { getActiveBoosts } from '../repositories/BoostRepository';
 
 const MAX_TAP_COUNT_PER_REQUEST = 50;
 const MAX_TAPS_PER_MINUTE = 600;
@@ -66,12 +67,18 @@ export class TapService {
     }
 
     const tapIncomePerHit = tapEnergyForLevel(progress.tapLevel);
-    const energyGained = tapIncomePerHit * tapCount;
-    const xpGained = xpFromEnergy(energyGained);
+    const baseEnergy = tapIncomePerHit * tapCount;
+
+    const activeBoosts = await getActiveBoosts(userId);
+    const boostMultiplier = activeBoosts.reduce((acc, boost) => acc * boost.multiplier, 1);
+
+    const boostedEnergy = Math.round(baseEnergy * boostMultiplier);
+    const xpGained = xpFromEnergy(boostedEnergy);
 
     const bufferTotals = await tapAggregator.bufferTap(userId, {
       taps: tapCount,
-      energy: energyGained,
+      energy: boostedEnergy,
+      baseEnergy,
       xp: xpGained,
     });
 
@@ -82,12 +89,14 @@ export class TapService {
 
     return {
       energy: projectedEnergy,
-      energy_gained: energyGained,
+      energy_gained: boostedEnergy,
+      energy_base: baseEnergy,
       xp_gained: xpGained,
       level: levelInfo.level,
       xp_into_level: levelInfo.xpIntoLevel,
       xp_to_next_level: levelInfo.xpToNextLevel,
       level_up: leveledUp,
+      boost_multiplier: boostMultiplier,
     };
   }
 }

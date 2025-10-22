@@ -245,12 +245,13 @@ describe('TapAggregator', () => {
   });
 
   it('buffers taps and flushes when threshold exceeded', async () => {
-    await aggregator.bufferTap('user-1', { taps: 30, energy: 300, xp: 30 });
-    await aggregator.bufferTap('user-1', { taps: 25, energy: 250, xp: 25 });
+    await aggregator.bufferTap('user-1', { taps: 30, energy: 300, baseEnergy: 300, xp: 30 });
+    await aggregator.bufferTap('user-1', { taps: 25, energy: 250, baseEnergy: 250, xp: 25 });
 
     const pending = await aggregator.getPendingTotals('user-1');
     expect(pending.taps).toBe(55);
     expect(pending.energy).toBe(550);
+    expect(pending.baseEnergy).toBe(550);
 
     const flushed = await aggregator.flushUser('user-1');
     expect(flushed).toBe(true);
@@ -260,7 +261,12 @@ describe('TapAggregator', () => {
     expect(logEventSpy).toHaveBeenCalledWith(
       expect.objectContaining({
         type: 'tap_batch_processed',
-        payload: expect.objectContaining({ taps: 55, energy_delta: 550 }),
+        payload: expect.objectContaining({
+          taps: 55,
+          energy_delta: 550,
+          base_energy: 550,
+          boost_multiplier: 1,
+        }),
       })
     );
     expect(currentState.energy).toBe(550);
