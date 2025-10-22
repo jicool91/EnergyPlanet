@@ -15,6 +15,7 @@ export interface BuildingDefinition {
   category: string | null;
   rarity: string | null;
   payback_seconds: number | null;
+  roi_rank: number | null;
 }
 
 export async function fetchBuildingCatalog(): Promise<BuildingDefinition[]> {

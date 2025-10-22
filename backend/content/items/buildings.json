@@ -35,6 +35,23 @@
       "rarity": "common"
     },
     {
+      "id": "biomass_generator",
+      "name": "Biomass Generator",
+      "description": "Recycle organic waste into clean energy",
+      "tier": 1,
+      "base_income": 32,
+      "base_cost": 1200,
+      "cost_multiplier": 1.09,
+      "upgrade_cost_multiplier": 1.22,
+      "upgrade_income_bonus": 0.19,
+      "max_count": 999,
+      "unlock_level": 2,
+      "icon_url": "https://cdn.energyplanet.game/buildings/biomass_generator.png",
+      "animation_url": "https://cdn.energyplanet.game/buildings/biomass_generator_anim.webm",
+      "category": "renewable",
+      "rarity": "uncommon"
+    },
+    {
       "id": "geothermal_plant",
       "name": "Geothermal Plant",
       "description": "Tap into Earth's internal heat for steady power",
@@ -65,6 +82,23 @@
       "unlock_level": 5,
       "icon_url": "https://cdn.energyplanet.game/buildings/hydro_dam.png",
       "animation_url": "https://cdn.energyplanet.game/buildings/hydro_dam_anim.webm",
+      "category": "renewable",
+      "rarity": "uncommon"
+    },
+    {
+      "id": "tidal_station",
+      "name": "Tidal Station",
+      "description": "Harness the moon-driven tides for stable output",
+      "tier": 2,
+      "base_income": 410,
+      "base_cost": 19000,
+      "cost_multiplier": 1.12,
+      "upgrade_cost_multiplier": 1.24,
+      "upgrade_income_bonus": 0.23,
+      "max_count": 999,
+      "unlock_level": 7,
+      "icon_url": "https://cdn.energyplanet.game/buildings/tidal_station.png",
+      "animation_url": "https://cdn.energyplanet.game/buildings/tidal_station_anim.webm",
       "category": "renewable",
       "rarity": "uncommon"
     },
@@ -103,6 +137,23 @@
       "rarity": "rare"
     },
     {
+      "id": "orbital_solar_array",
+      "name": "Orbital Solar Array",
+      "description": "Deploy solar collectors in geostationary orbit",
+      "tier": 3,
+      "base_income": 6200,
+      "base_cost": 820000,
+      "cost_multiplier": 1.14,
+      "upgrade_cost_multiplier": 1.29,
+      "upgrade_income_bonus": 0.28,
+      "max_count": 999,
+      "unlock_level": 12,
+      "icon_url": "https://cdn.energyplanet.game/buildings/orbital_solar_array.png",
+      "animation_url": "https://cdn.energyplanet.game/buildings/orbital_solar_array_anim.webm",
+      "category": "advanced",
+      "rarity": "rare"
+    },
+    {
       "id": "dyson_sphere_node",
       "name": "Dyson Sphere Node",
       "description": "A single node of a megastructure encircling the sun",
@@ -137,6 +188,24 @@
       "category": "futuristic",
       "rarity": "epic",
       "feature_flag": "tier_4_buildings_enabled"
+    },
+    {
+      "id": "antimatter_forge",
+      "name": "Antimatter Forge",
+      "description": "Stabilise antimatter streams for unparalleled energy density",
+      "tier": 4,
+      "base_income": 90000,
+      "base_cost": 12000000,
+      "cost_multiplier": 1.17,
+      "upgrade_cost_multiplier": 1.34,
+      "upgrade_income_bonus": 0.35,
+      "max_count": 999,
+      "unlock_level": 22,
+      "icon_url": "https://cdn.energyplanet.game/buildings/antimatter_forge.png",
+      "animation_url": "https://cdn.energyplanet.game/buildings/antimatter_forge_anim.webm",
+      "category": "futuristic",
+      "rarity": "legendary",
+      "feature_flag": "tier_4_buildings_enabled"
     }
   ],
   "categories": {
@@ -167,21 +236,32 @@
       "tier": 1,
       "items": [
         { "id": "solar_panel", "base_cost": 200, "base_income": 8, "payback_sec": 25.0 },
-        { "id": "wind_turbine", "base_cost": 550, "base_income": 20, "payback_sec": 27.5 }
+        { "id": "wind_turbine", "base_cost": 550, "base_income": 20, "payback_sec": 27.5 },
+        { "id": "biomass_generator", "base_cost": 1200, "base_income": 32, "payback_sec": 37.5 }
       ]
     },
     {
       "tier": 2,
       "items": [
         { "id": "geothermal_plant", "base_cost": 3200, "base_income": 95, "payback_sec": 33.7 },
-        { "id": "hydro_dam", "base_cost": 12800, "base_income": 260, "payback_sec": 49.2 }
+        { "id": "hydro_dam", "base_cost": 12800, "base_income": 260, "payback_sec": 49.2 },
+        { "id": "tidal_station", "base_cost": 19000, "base_income": 410, "payback_sec": 46.3 }
       ]
     },
     {
       "tier": 3,
       "items": [
         { "id": "nuclear_reactor", "base_cost": 72000, "base_income": 1100, "payback_sec": 65.5 },
-        { "id": "fusion_core", "base_cost": 360000, "base_income": 4800, "payback_sec": 75.0 }
+        { "id": "fusion_core", "base_cost": 360000, "base_income": 4800, "payback_sec": 75.0 },
+        { "id": "orbital_solar_array", "base_cost": 820000, "base_income": 6200, "payback_sec": 132.3 }
+      ]
+    },
+    {
+      "tier": 4,
+      "items": [
+        { "id": "dyson_sphere_node", "base_cost": 1800000, "base_income": 16000, "payback_sec": 112.5 },
+        { "id": "quantum_generator", "base_cost": 9000000, "base_income": 70000, "payback_sec": 128.6 },
+        { "id": "antimatter_forge", "base_cost": 12000000, "base_income": 90000, "payback_sec": 133.3 }
       ]
     }
   ]

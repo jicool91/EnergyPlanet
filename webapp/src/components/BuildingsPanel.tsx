@@ -13,24 +13,26 @@ export function BuildingsPanel() {
     loadBuildingCatalog,
     isBuildingCatalogLoading,
   } = useGameStore();
+  const playerLevel = useGameStore(state => state.level);
 
   useEffect(() => {
     loadBuildingCatalog();
   }, [loadBuildingCatalog]);
 
   const sortedBuildings = useMemo(() => {
-    const merged = buildingCatalog.map(def => {
-      const owned = buildings.find(b => b.buildingId === def.id);
+      const merged = buildingCatalog.map(def => {
+        const owned = buildings.find(b => b.buildingId === def.id);
 
-      return {
-        ...def,
-        count: owned?.count ?? 0,
-        level: owned?.level ?? 0,
-        incomePerSec: owned?.incomePerSec ?? def.base_income,
-        nextCost: owned?.nextCost ?? def.base_cost,
-        nextUpgradeCost: owned?.nextUpgradeCost ?? Math.round((def.base_cost ?? 0) * 5),
-      };
-    });
+        return {
+          ...def,
+          count: owned?.count ?? 0,
+          level: owned?.level ?? 0,
+          incomePerSec: owned?.incomePerSec ?? def.base_income,
+          nextCost: owned?.nextCost ?? def.base_cost,
+          nextUpgradeCost: owned?.nextUpgradeCost ?? Math.round((def.base_cost ?? 0) * 5),
+          roiRank: def.roi_rank ?? null,
+        };
+      });
 
     return merged.sort((a, b) => {
       if (a.unlock_level === b.unlock_level) {
@@ -77,17 +79,23 @@ export function BuildingsPanel() {
       ) : (
         <div className="buildings-grid">
           {sortedBuildings.map(building => {
-            const canPurchase = building.nextCost > 0 && energy >= building.nextCost;
-            const canUpgrade = building.nextUpgradeCost > 0 && energy >= building.nextUpgradeCost;
+            const isLocked =
+              building.unlock_level !== null && building.unlock_level !== undefined
+                ? playerLevel < building.unlock_level
+                : false;
+            const canPurchase = !isLocked && building.nextCost > 0 && energy >= building.nextCost;
+            const canUpgrade =
+              building.count > 0 && building.nextUpgradeCost > 0 && energy >= building.nextUpgradeCost;
             const processing = isProcessingBuildingId === building.id;
             const payback = building.payback_seconds
               ? `${Math.round(building.payback_seconds)} сек`
               : '—';
+            const roiRank = building.roiRank;
 
             return (
               <div
                 key={building.id}
-                className={`buildings-card${bestPaybackId === building.id ? ' recommended' : ''}`}
+                className={`buildings-card${bestPaybackId === building.id ? ' recommended' : ''}${isLocked ? ' locked' : ''}`}
               >
                 <div className="buildings-card-header">
                   <h3>{building.name}</h3>
@@ -97,7 +105,13 @@ export function BuildingsPanel() {
                   <span>Уровень: {building.level}</span>
                   <span>Доход: {building.incomePerSec.toLocaleString()} /с</span>
                   <span>Окупаемость: {payback}</span>
+                  {roiRank && (
+                    <span className="buildings-roi">ROI #{roiRank}</span>
+                  )}
                 </div>
+                {isLocked && building.unlock_level && (
+                  <div className="buildings-locked">Требуется уровень {building.unlock_level}</div>
+                )}
                 <div className="buildings-actions">
                   <button
                     type="button"
@@ -105,7 +119,11 @@ export function BuildingsPanel() {
                     onClick={() => purchaseBuilding(building.id)}
                     disabled={processing || !canPurchase}
                   >
-                    {processing ? 'Ожидание…' : `Купить (${building.nextCost.toLocaleString()} E)`}
+                    {processing
+                      ? 'Ожидание…'
+                      : isLocked
+                        ? 'Недоступно'
+                        : `Купить (${building.nextCost.toLocaleString()} E)`}
                   </button>
                   <button
                     type="button"
