@@ -8,7 +8,6 @@ import { useUIStore } from './store/uiStore';
 import { MainScreen } from './screens/MainScreen';
 import { AuthErrorModal } from './components/AuthErrorModal';
 import { OfflineSummaryModal } from './components/OfflineSummaryModal';
-import './App.css';
 import { withTelegramBackButton } from './services/telegram';
 
 function App() {
@@ -75,7 +74,7 @@ function App() {
   }, [isAuthModalOpen, offlineSummary, dismissAuthError, acknowledgeOfflineSummary]);
 
   return (
-    <div className="app">
+    <div className="w-full h-full min-h-screen flex flex-col flex-1 bg-gradient-to-b from-dark-bg to-black pl-safe-left pr-safe-right">
       <MainScreen />
       {isAuthModalOpen && authErrorMessage && (
         <AuthErrorModal message={authErrorMessage} onRetry={handleRetry} onDismiss={dismissAuthError} />

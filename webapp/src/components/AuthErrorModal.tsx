@@ -6,15 +6,15 @@ interface AuthErrorModalProps {
 
 export function AuthErrorModal({ message, onRetry, onDismiss }: AuthErrorModalProps) {
   return (
-    <div className="modal-backdrop" role="alertdialog" aria-modal="true">
-      <div className="modal">
-        <h2>Ошибка авторизации</h2>
-        <p>{message}</p>
-        <div className="modal-actions">
-          <button className="modal-button secondary" type="button" onClick={onDismiss}>
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[1000]" role="alertdialog" aria-modal="true">
+      <div className="bg-dark-secondary rounded-lg p-6 w-full max-w-[360px] shadow-[0_16px_40px_rgba(10,17,61,0.35)] border border-cyan/20 text-[#f8fbff]">
+        <h2 className="m-0 mb-3 text-xl font-semibold">Ошибка авторизации</h2>
+        <p className="m-0 mb-5 text-sm leading-[1.5] text-white/75">{message}</p>
+        <div className="flex gap-3 justify-end">
+          <button className="px-[18px] py-[10px] rounded-[10px] border-0 text-sm cursor-pointer transition-all duration-[120ms] ease-in-out bg-white/[0.12] text-white/85 active:scale-[0.97]" type="button" onClick={onDismiss}>
             Закрыть
           </button>
-          <button className="modal-button primary" type="button" onClick={onRetry}>
+          <button className="px-[18px] py-[10px] rounded-[10px] border-0 text-sm cursor-pointer transition-all duration-[120ms] ease-in-out bg-gradient-to-br from-cyan to-[#0073ff] text-[#010414] font-semibold shadow-[0_8px_20px_rgba(0,115,255,0.35)] active:scale-[0.97]" type="button" onClick={onRetry}>
             Повторить
           </button>
         </div>

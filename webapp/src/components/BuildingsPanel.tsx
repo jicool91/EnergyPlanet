@@ -61,23 +61,23 @@ export function BuildingsPanel() {
   }, [sortedBuildings]);
 
   return (
-    <div className="buildings-panel">
-      <div className="buildings-header">
+    <div className="flex flex-col gap-4 p-0">
+      <div className="flex justify-between items-start gap-3">
         <div>
-          <h2>Постройки</h2>
-          <p className="buildings-subtitle">Развивайте инфраструктуру и увеличивайте пассивный доход</p>
+          <h2 className="m-0 text-xl text-[#f8fbff]">Постройки</h2>
+          <p className="m-0 text-[13px] text-white/60">Развивайте инфраструктуру и увеличивайте пассивный доход</p>
         </div>
-        <div className="buildings-balance">Энергия: {Math.floor(energy).toLocaleString()}</div>
+        <div className="text-[13px] text-white/75 font-semibold">Энергия: {Math.floor(energy).toLocaleString()}</div>
       </div>
 
-      {buildingsError && <div className="shop-error">{buildingsError}</div>}
+      {buildingsError && <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">{buildingsError}</div>}
 
       {isBuildingCatalogLoading && sortedBuildings.length === 0 ? (
-        <div className="buildings-loader">Загружаем данные построек…</div>
+        <div className="p-4 text-white/65 text-center">Загружаем данные построек…</div>
       ) : sortedBuildings.length === 0 ? (
-        <div className="buildings-empty">Постройки пока недоступны. Продвигайтесь по уровням, чтобы разблокировать их.</div>
+        <div className="p-4 rounded-[14px] border border-dashed border-cyan/30 text-white/65 text-center">Постройки пока недоступны. Продвигайтесь по уровням, чтобы разблокировать их.</div>
       ) : (
-        <div className="buildings-grid">
+        <div className="flex flex-col gap-4">
           {sortedBuildings.map(building => {
             const isLocked =
               building.unlock_level !== null && building.unlock_level !== undefined
@@ -95,27 +95,27 @@ export function BuildingsPanel() {
             return (
               <div
                 key={building.id}
-                className={`buildings-card${bestPaybackId === building.id ? ' recommended' : ''}${isLocked ? ' locked' : ''}`}
+                className={`flex flex-col gap-3 p-4 rounded-lg bg-[rgba(10,14,32,0.92)] border shadow-[0_18px_40px_rgba(7,12,35,0.35)] ${bestPaybackId === building.id ? 'border-lime/60 shadow-[0_20px_48px_rgba(72,255,173,0.35)] relative after:content-["Лучший_ROI"] after:absolute after:-top-[10px] after:right-4 after:bg-gradient-to-br after:from-lime/90 after:to-cyan/90 after:text-[#04121a] after:text-[11px] after:font-bold after:px-[10px] after:py-1 after:rounded-full after:tracking-[0.5px]' : 'border-cyan/[0.14]'} ${isLocked ? 'border-[rgba(255,196,87,0.45)] bg-[rgba(45,35,18,0.9)]' : ''}`}
               >
-                <div className="buildings-card-header">
-                  <h3>{building.name}</h3>
-                  <span className="buildings-count">×{building.count}</span>
+                <div className="flex justify-between items-center">
+                  <h3 className="m-0 text-base text-[#f8fbff]">{building.name}</h3>
+                  <span className="text-[13px] text-white/70 font-semibold">×{building.count}</span>
                 </div>
-                <div className="buildings-meta">
+                <div className="flex gap-4 text-xs text-white/65 flex-wrap">
                   <span>Уровень: {building.level}</span>
                   <span>Доход: {building.incomePerSec.toLocaleString()} /с</span>
                   <span>Окупаемость: {payback}</span>
                   {roiRank && (
-                    <span className="buildings-roi">ROI #{roiRank}</span>
+                    <span className="text-lime/[0.85] font-semibold">ROI #{roiRank}</span>
                   )}
                 </div>
                 {isLocked && building.unlock_level && (
-                  <div className="buildings-locked">Требуется уровень {building.unlock_level}</div>
+                  <div className="text-xs text-[#ffc957]">Требуется уровень {building.unlock_level}</div>
                 )}
-                <div className="buildings-actions">
+                <div className="flex gap-3 flex-wrap">
                   <button
                     type="button"
-                    className="buildings-button primary"
+                    className="px-[18px] py-[10px] rounded-md border-0 text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out bg-gradient-to-br from-cyan/25 to-[rgba(38,127,255,0.35)] text-[#f8fbff] disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-[0_10px_26px_rgba(0,217,255,0.3)]"
                     onClick={() => purchaseBuilding(building.id)}
                     disabled={processing || !canPurchase}
                   >
@@ -127,7 +127,7 @@ export function BuildingsPanel() {
                   </button>
                   <button
                     type="button"
-                    className="buildings-button secondary"
+                    className="px-[18px] py-[10px] rounded-md border-0 text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out bg-cyan/[0.12] text-[#f8fbff] disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-[0_10px_26px_rgba(0,217,255,0.3)]"
                     onClick={() => upgradeBuilding(building.id)}
                     disabled={processing || !canUpgrade}
                   >

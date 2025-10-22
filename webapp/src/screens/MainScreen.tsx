@@ -126,40 +126,46 @@ export function MainScreen() {
 
   if (isLoading) {
     return (
-      <div className="loading-screen">
+      <div className="flex items-center justify-center w-full h-full min-h-screen text-lg">
         <p>Loading Energy Planet...</p>
       </div>
     );
   }
 
   return (
-    <div className="main-screen">
-      <div className="main-body">
-        <div
-          className={`streak-banner${streakCount > 0 ? ' active' : ''}${
-            isCriticalStreak ? ' critical' : ''
-          }`}
-        >
-          <span className="streak-label">Комбо</span>
-          <span className="streak-count">{streakCount}</span>
-          <span className="streak-best">Лучшее: {bestStreak}</span>
+    <div className="grid grid-rows-[1fr_auto] grid-cols-1 w-full h-full relative">
+      <div className="flex flex-col gap-4 overflow-hidden min-h-0 px-5 pt-3 grid-col-1 grid-row-1">
+        {/* Комбо бaнер */}
+        <div className={`transition-all duration-200 ${
+          streakCount > 0
+            ? 'absolute top-2 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-lime/20 border border-lime text-lime text-sm font-semibold'
+            : 'absolute top-2 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-transparent border-0'
+        } ${isCriticalStreak ? 'animate-pulse' : ''}`}>
+          {streakCount > 0 && (
+            <>
+              <span>🔥 Комбо: {streakCount} </span>
+              <span className="text-xs opacity-80">(Лучшее: {bestStreak})</span>
+            </>
+          )}
         </div>
 
-        <header className="header">
-          <div className="level">Level {level}</div>
-          <div className="energy">{Math.floor(energy).toLocaleString()} E</div>
+        {/* Заголовок с уровнем и энергией */}
+        <header className="px-5 flex justify-between items-center bg-black/50 py-3 rounded-lg">
+          <div className="text-base font-bold text-gold">Level {level}</div>
+          <div className="text-2xl font-bold text-cyan">{Math.floor(energy).toLocaleString()} E</div>
         </header>
 
-        <div className="session-status">
-          <div className="status-text">
-            <span className="status-label">Снапшот</span>
-            <span className="status-value">{formatLastSync(sessionLastSyncedAt)}</span>
+        {/* Статус сессии */}
+        <div className="mx-2 my-2 p-4 rounded-2xl bg-blue-900/70 border border-cyan/20 flex items-center justify-between gap-4 backdrop-blur">
+          <div className="flex flex-col gap-1">
+            <span className="text-xs uppercase tracking-wide text-white/45">Снапшот</span>
+            <span className="text-sm font-semibold text-white">{formatLastSync(sessionLastSyncedAt)}</span>
             {sessionErrorMessage && (
-              <span className="status-error">{truncateMessage(sessionErrorMessage)}</span>
+              <span className="text-xs text-orange">{truncateMessage(sessionErrorMessage)}</span>
             )}
           </div>
           <button
-            className="status-refresh"
+            className="px-3 py-2 rounded-2xl bg-gradient-to-r from-cyan/20 to-blue-500/35 text-white text-xs font-semibold cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-default disabled:shadow-none"
             type="button"
             onClick={handleRefresh}
             disabled={isRefreshing}
@@ -168,84 +174,85 @@ export function MainScreen() {
           </button>
         </div>
 
-        <div className="passive-panel">
-          <div className="passive-stat">
-            <span className="label">Пассивный доход</span>
-            <strong>{passiveIncomePerSec > 0 ? `${passiveIncomePerSec.toFixed(1)} /с` : '—'}</strong>
+        {/* Пассивный доход статистика */}
+        <div className="grid grid-cols-3 gap-3">
+          <div className="p-3 rounded-lg bg-dark-secondary/50 border border-cyan/10 flex flex-col gap-1">
+            <span className="text-xs text-white/60">Пассивный доход</span>
+            <strong className="text-sm text-white">{passiveIncomePerSec > 0 ? `${passiveIncomePerSec.toFixed(1)} /с` : '—'}</strong>
           </div>
-          <div className="passive-stat">
-            <span className="label">Множитель</span>
-            <strong>{passiveIncomeMultiplier > 0 ? `x${passiveIncomeMultiplier.toFixed(2)}` : '—'}</strong>
+          <div className="p-3 rounded-lg bg-dark-secondary/50 border border-cyan/10 flex flex-col gap-1">
+            <span className="text-xs text-white/60">Множитель</span>
+            <strong className="text-sm text-white">{passiveIncomeMultiplier > 0 ? `x${passiveIncomeMultiplier.toFixed(2)}` : '—'}</strong>
           </div>
-          <div className="passive-stat">
-            <span className="label">XP</span>
-            <strong>{xp > 0 ? Math.floor(xp).toLocaleString() : '—'}</strong>
+          <div className="p-3 rounded-lg bg-dark-secondary/50 border border-cyan/10 flex flex-col gap-1">
+            <span className="text-xs text-white/60">XP</span>
+            <strong className="text-sm text-white">{xp > 0 ? Math.floor(xp).toLocaleString() : '—'}</strong>
           </div>
         </div>
 
+        {/* Планета (таб Home) */}
         {activeTab === 'home' && (
-          <div className="planet-container" onClick={handleTap}>
-            <div className={`planet${isCriticalStreak ? ' planet-critical' : ''}`}>
-              <span>🌍</span>
+          <div className="flex-1 flex flex-col items-center justify-center cursor-pointer min-h-0 overflow-hidden" onClick={handleTap}>
+            <div className={`text-[120px] transition-transform duration-100 user-select-none active:scale-95 ${isCriticalStreak ? 'animate-pulse' : ''}`}>
+              🌍
             </div>
-            <p className="tap-hint">Tap to generate energy!</p>
+            <p className="mt-5 text-base text-white/60">Tap to generate energy!</p>
           </div>
         )}
 
+        {/* Магазин */}
         {activeTab === 'shop' && (
-          <div className="tab-content">
+          <div className="flex-1 overflow-auto">
             <ShopPanel />
           </div>
         )}
 
+        {/* Boost Hub */}
         {activeTab === 'boosts' && (
-          <div className="tab-content">
+          <div className="flex-1 overflow-auto">
             <BoostHub />
           </div>
         )}
 
+        {/* Постройки */}
         {activeTab === 'builds' && (
-          <div className="tab-content">
+          <div className="flex-1 overflow-auto">
             <BuildingsPanel />
           </div>
         )}
 
+        {/* Рейтинг */}
         {activeTab === 'leaderboard' && (
-          <div className="tab-content">
+          <div className="flex-1 overflow-auto">
             <LeaderboardPanel />
           </div>
         )}
 
+        {/* Профиль */}
         {activeTab === 'profile' && (
-          <div className="tab-content">
+          <div className="flex-1 overflow-auto">
             <ProfilePanel />
           </div>
         )}
-
-        {activeTab !== 'home' &&
-          activeTab !== 'shop' &&
-          activeTab !== 'boosts' &&
-          activeTab !== 'builds' &&
-          activeTab !== 'leaderboard' &&
-          activeTab !== 'profile' && (
-            <div className="tab-content soon">
-              <div className="coming-soon">Раздел в разработке</div>
-            </div>
-          )}
       </div>
 
-      <footer className="footer">
+      {/* Footer с навигацией */}
+      <footer className="flex justify-around p-2.5 bg-black/80 border-t border-white/10 grid-col-1 grid-row-2 z-100" style={{ paddingBottom: 'calc(10px + var(--tg-safe-area-bottom, 0px))' }}>
         {tabButtons.map(tab => (
           <button
             key={tab.key}
-            className={`tab-button${activeTab === tab.key ? ' active' : ''}`}
+            className={`flex-1 flex flex-col gap-1 items-center bg-none border-none text-sm py-2.5 px-2.5 cursor-pointer transition-colors ${
+              activeTab === tab.key
+                ? 'text-cyan font-semibold'
+                : 'text-white/60 hover:text-cyan active:text-cyan'
+            }`}
             type="button"
             onClick={() => setActiveTab(tab.key)}
           >
-            <span className="tab-icon" aria-hidden="true">
+            <span className="text-lg" aria-hidden="true">
               {tab.icon}
             </span>
-            <span className="tab-label">{tab.label}</span>
+            <span className="text-xs">{tab.label}</span>
           </button>
         ))}
       </footer>
