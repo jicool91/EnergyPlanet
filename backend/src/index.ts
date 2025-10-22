@@ -2,7 +2,6 @@ import express, { Application } from 'express';
 import cors, { CorsOptions } from 'cors';
 import helmet from 'helmet';
 import compression from 'compression';
-import apiRouter from './api/routes';
 import config from './config';
 import { logger } from './utils/logger';
 import { errorHandler } from './middleware/errorHandler';
@@ -11,6 +10,8 @@ import { migrateUp, closeMigrationPool } from './db/migrate';
 import { connectRedis, healthCheck as redisHealth } from './cache/redis';
 import { loadContent } from './services/ContentService';
 import { tapAggregator } from './services/TapAggregator';
+import apiRouter from './api/routes';
+import { rateLimiter } from './middleware/rateLimiter';
 
 const app: Application = express();
 
@@ -61,6 +62,10 @@ app.use((req, _res, next) => {
   });
   next();
 });
+
+if (config.rateLimit.enabled) {
+  app.use(config.server.apiPrefix, rateLimiter);
+}
 
 app.get('/health', async (_req, res) => {
   const [dbHealthy, redisHealthy] = await Promise.all([

@@ -2,8 +2,21 @@
  * Rate Limiter Middleware
  */
 
+import { Request } from 'express';
 import rateLimit from 'express-rate-limit';
 import { config } from '../config';
+import { AuthRequest } from './auth';
+
+const userKey = (req: Request) => {
+  const authReq = req as AuthRequest;
+  if (authReq.user?.id) {
+    return `user:${authReq.user.id}`;
+  }
+  if (authReq.user?.telegramId) {
+    return `tg:${authReq.user.telegramId}`;
+  }
+  return req.ip;
+};
 
 export const rateLimiter = rateLimit({
   windowMs: config.rateLimit.windowMs,
@@ -14,6 +27,7 @@ export const rateLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  keyGenerator: userKey,
 });
 
 export const tapRateLimiter = rateLimit({
@@ -23,6 +37,9 @@ export const tapRateLimiter = rateLimit({
     error: 'tap_rate_limit_exceeded',
     message: 'Too many taps, slow down!',
   },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: userKey,
 });
 
 export const upgradeRateLimiter = rateLimit({
@@ -31,6 +48,9 @@ export const upgradeRateLimiter = rateLimit({
   message: {
     error: 'upgrade_rate_limit_exceeded',
   },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: userKey,
 });
 
 export const purchaseRateLimiter = rateLimit({
@@ -39,4 +59,7 @@ export const purchaseRateLimiter = rateLimit({
   message: {
     error: 'purchase_rate_limit_exceeded',
   },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: userKey,
 });

@@ -3,6 +3,7 @@ import { authenticate } from '../../middleware/auth';
 import { CosmeticController } from '../controllers/CosmeticController';
 import { BoostController } from '../controllers/BoostController';
 import { PurchaseController } from '../controllers/PurchaseController';
+import { purchaseRateLimiter } from '../../middleware/rateLimiter';
 
 const router = Router();
 const cosmeticController = new CosmeticController();
@@ -10,9 +11,9 @@ const boostController = new BoostController();
 const purchaseController = new PurchaseController();
 
 router.get('/cosmetics', authenticate, cosmeticController.list);
-router.post('/cosmetics/purchase', authenticate, cosmeticController.purchase);
+router.post('/cosmetics/purchase', authenticate, purchaseRateLimiter, cosmeticController.purchase);
 router.post('/purchase/invoice', authenticate, purchaseController.invoice);
-router.post('/purchase', authenticate, purchaseController.create);
+router.post('/purchase', authenticate, purchaseRateLimiter, purchaseController.create);
 router.post('/purchase/webhook', purchaseController.webhook);
 router.get('/purchase/packs', authenticate, purchaseController.packs);
 router.post('/cosmetics/equip', authenticate, cosmeticController.equip);
