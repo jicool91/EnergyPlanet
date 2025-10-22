@@ -2,44 +2,13 @@
  * Main Game Screen
  */
 
-import { useEffect, useState, useCallback, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { streakConfig, useGameStore } from '../store/gameStore';
 import { ShopPanel } from '../components/ShopPanel';
 import { BoostHub } from '../components/BoostHub';
 import { BuildingsPanel } from '../components/BuildingsPanel';
 import { LeaderboardPanel } from '../components/LeaderboardPanel';
 import { ProfilePanel } from '../components/ProfilePanel';
-
-function formatLastSync(timestamp: number | null): string {
-  if (!timestamp) {
-    return 'ещё нет данных';
-  }
-
-  const diffSeconds = Math.floor((Date.now() - timestamp) / 1000);
-
-  if (diffSeconds < 5) {
-    return 'только что';
-  }
-
-  if (diffSeconds < 60) {
-    return `${diffSeconds}с назад`;
-  }
-
-  if (diffSeconds < 3600) {
-    const minutes = Math.floor(diffSeconds / 60);
-    return `${minutes} мин назад`;
-  }
-
-  const date = new Date(timestamp);
-  return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
-}
-
-function truncateMessage(message: string, maxLength = 140): string {
-  if (message.length <= maxLength) {
-    return message;
-  }
-  return `${message.slice(0, maxLength - 1)}…`;
-}
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile';
 
@@ -57,31 +26,15 @@ export function MainScreen() {
     isLoading,
     tap,
     resetStreak,
-    sessionLastSyncedAt,
-    sessionErrorMessage,
-    refreshSession,
     loadLeaderboard,
     loadProfile,
   } = useGameStore();
 
-  const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState<TabKey>('home');
 
   const handleTap = () => {
     tap(1);
   };
-
-  const handleRefresh = useCallback(async () => {
-    if (isRefreshing) {
-      return;
-    }
-    setIsRefreshing(true);
-    try {
-      await refreshSession();
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [isRefreshing, refreshSession]);
 
   useEffect(() => {
     if (activeTab === 'leaderboard') {
@@ -134,7 +87,7 @@ export function MainScreen() {
 
   return (
     <div className="flex flex-col w-full h-full relative overflow-hidden">
-      <div className="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 px-5 pt-3 pb-[calc(60px_+_var(--tg-safe-area-bottom,_0px))]">
+      <div className="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 px-5 pb-[calc(60px_+_var(--tg-safe-area-bottom,_0px))]" style={{ paddingTop: 'calc(12px + var(--tg-content-safe-area-top, var(--tg-safe-area-top, 0px)))' }}>
         {/* Комбо бaнер */}
         <div className={`transition-all duration-200 ${
           streakCount > 0
@@ -154,25 +107,6 @@ export function MainScreen() {
           <div className="text-base font-bold text-gold">Level {level}</div>
           <div className="text-2xl font-bold text-cyan">{Math.floor(energy).toLocaleString()} E</div>
         </header>
-
-        {/* Статус сессии */}
-        <div className="mx-2 my-2 p-4 rounded-2xl bg-blue-900/70 border border-cyan/20 flex items-center justify-between gap-4 backdrop-blur">
-          <div className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wide text-white/45">Снапшот</span>
-            <span className="text-sm font-semibold text-white">{formatLastSync(sessionLastSyncedAt)}</span>
-            {sessionErrorMessage && (
-              <span className="text-xs text-orange">{truncateMessage(sessionErrorMessage)}</span>
-            )}
-          </div>
-          <button
-            className="px-3 py-2 rounded-2xl bg-gradient-to-r from-cyan/20 to-blue-500/35 text-white text-xs font-semibold cursor-pointer transition-all hover:shadow-lg hover:-translate-y-0.5 disabled:opacity-60 disabled:cursor-default disabled:shadow-none"
-            type="button"
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
-            {isRefreshing ? 'Обновление…' : 'Обновить'}
-          </button>
-        </div>
 
         {/* Пассивный доход статистика */}
         <div className="grid grid-cols-3 gap-3">
