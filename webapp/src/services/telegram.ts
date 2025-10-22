@@ -99,7 +99,7 @@ const THEME_VARIABLE_MAP: Record<ThemeColorKey, string> = {
   secondary_bg_color: '--tg-theme-secondary-bg-color',
 };
 
-const DEFAULT_THEME: TelegramThemeParams = {
+export const DEFAULT_THEME: TelegramThemeParams = {
   bg_color: '#0f0f0f',
   text_color: '#ffffff',
   hint_color: '#a0a0a0',

@@ -18,6 +18,8 @@ import { fetchStarPacks, StarPack } from '../services/starPacks';
 import { fetchBoostHub, BoostHubItem, claimBoost as claimBoostApi } from '../services/boosts';
 import { fetchBuildingCatalog, BuildingDefinition } from '../services/buildings';
 import { getTelegramInitData, triggerHapticImpact } from '../services/telegram';
+import { authStore } from './authStore';
+import { uiStore } from './uiStore';
 
 interface BuildingState {
   buildingId: string;
@@ -49,12 +51,6 @@ interface GameState {
   bestStreak: number;
   isCriticalStreak: boolean;
   lastTapAt: number | null;
-  offlineSummary: {
-    energy: number;
-    xp: number;
-    duration_sec: number;
-    capped: boolean;
-  } | null;
   pendingPassiveEnergy: number;
   pendingPassiveSeconds: number;
   buildings: BuildingState[];
@@ -84,18 +80,14 @@ interface GameState {
   // Game state
   isLoading: boolean;
   isInitialized: boolean;
-  authErrorMessage: string | null;
-  isAuthModalOpen: boolean;
 
   // Actions
   initGame: () => Promise<void>;
   tap: (count: number) => Promise<void>;
   upgrade: (type: string, itemId: string) => Promise<void>;
-  dismissAuthError: () => void;
   resetStreak: () => void;
   configurePassiveIncome: (perSec: number, multiplier: number) => void;
   refreshSession: () => Promise<void>;
-  acknowledgeOfflineSummary: () => void;
   loadCosmetics: (force?: boolean) => Promise<void>;
   purchaseCosmetic: (cosmeticId: string) => Promise<void>;
   equipCosmetic: (cosmeticId: string) => Promise<void>;
@@ -155,7 +147,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   bestStreak: 0,
   isCriticalStreak: false,
   lastTapAt: null,
-  offlineSummary: null,
   pendingPassiveEnergy: 0,
   pendingPassiveSeconds: 0,
   buildings: [],
@@ -183,21 +174,22 @@ export const useGameStore = create<GameState>((set, get) => ({
   sessionErrorMessage: null,
   isLoading: true,
   isInitialized: false,
-  authErrorMessage: null,
-  isAuthModalOpen: false,
 
   // Initialize game
   initGame: async () => {
     try {
-      set({ isLoading: true, authErrorMessage: null, isAuthModalOpen: false, sessionErrorMessage: null });
+      uiStore.dismissAuthError();
+      set({ isLoading: true, sessionErrorMessage: null });
 
       // Authenticate with Telegram
       const initData = getTelegramInitData();
       const authResponse = await postQueue.enqueue(() => apiClient.post('/auth/telegram', { initData }));
 
       // Store tokens
-      localStorage.setItem('access_token', authResponse.data.access_token);
-      localStorage.setItem('refresh_token', authResponse.data.refresh_token);
+      authStore.setTokens({
+        accessToken: authResponse.data.access_token,
+        refreshToken: authResponse.data.refresh_token,
+      });
 
       // Start session
       let sessionResponse;
@@ -224,6 +216,18 @@ export const useGameStore = create<GameState>((set, get) => ({
       const passiveMultiplier = progress.passive_income_multiplier ?? 1;
       const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
+      const offlineSummary =
+        offlineGains && offlineGains.energy > 0
+          ? {
+              energy: offlineGains.energy,
+              xp: offlineGains.xp ?? 0,
+              duration_sec: offlineGains.duration_sec,
+              capped: offlineGains.capped,
+            }
+          : null;
+
+      uiStore.setOfflineSummary(offlineSummary);
+
       set({
         userId: user.id,
         username: user.username,
@@ -236,15 +240,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         bestStreak: 0,
         isCriticalStreak: false,
         lastTapAt: Date.now(),
-        offlineSummary:
-          offlineGains && offlineGains.energy > 0
-            ? {
-                energy: offlineGains.energy,
-                xp: offlineGains.xp ?? 0,
-                duration_sec: offlineGains.duration_sec,
-                capped: offlineGains.capped,
-              }
-            : null,
         buildings,
         buildingsError: null,
         pendingPassiveEnergy: 0,
@@ -279,10 +274,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         message = error.message;
       }
 
+      uiStore.openAuthError(message);
       set(state => ({
         isLoading: false,
-        authErrorMessage: message,
-        isAuthModalOpen: true,
         sessionErrorMessage: state.sessionErrorMessage ?? message,
       }));
     }
@@ -349,11 +343,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  dismissAuthError: () => {
-    set({ authErrorMessage: null, isAuthModalOpen: false });
-  },
-
-  resetStreak: () => {
+ resetStreak: () => {
     if (get().streakCount === 0) {
       return;
     }
@@ -398,6 +388,18 @@ export const useGameStore = create<GameState>((set, get) => ({
       const { user, progress, offline_gains: offlineGains, inventory } = response.data;
       const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
+      const offlineSummary =
+        offlineGains && offlineGains.energy > 0
+          ? {
+              energy: offlineGains.energy,
+              xp: offlineGains.xp ?? 0,
+              duration_sec: offlineGains.duration_sec,
+              capped: offlineGains.capped,
+            }
+          : null;
+
+      uiStore.setOfflineSummary(offlineSummary);
+
       set({
         userId: user.id,
         username: user.username,
@@ -405,15 +407,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         xp: progress.xp,
         energy: progress.energy,
         lastTapAt: Date.now(),
-        offlineSummary:
-          offlineGains && offlineGains.energy > 0
-            ? {
-                energy: offlineGains.energy,
-                xp: offlineGains.xp ?? 0,
-                duration_sec: offlineGains.duration_sec,
-                capped: offlineGains.capped,
-              }
-            : null,
         buildings,
         buildingsError: null,
         pendingPassiveEnergy: 0,
@@ -441,10 +434,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         status && status >= 500 ? 'error' : 'warn'
       );
     }
-  },
-
-  acknowledgeOfflineSummary: () => {
-    set({ offlineSummary: null });
   },
 
   loadCosmetics: async (force = false) => {
@@ -713,12 +702,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       let payload: any;
 
       if (keepAlive) {
-        const token = localStorage.getItem('access_token');
-        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-        if (token) {
-          headers.Authorization = `Bearer ${token}`;
-        }
-
+        const headers = authStore.getAuthHeaders();
         const response = await fetch(`${API_BASE_URL}/tick`, {
           method: 'POST',
           body: JSON.stringify({ time_delta: pendingSeconds }),
@@ -835,11 +819,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   logoutSession: async (useKeepAlive = true) => {
     try {
       await get().flushPassiveIncome({ keepAlive: useKeepAlive });
-      const token = localStorage.getItem('access_token');
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
-      }
+      const headers = authStore.getAuthHeaders();
 
       const body = JSON.stringify({});
 

@@ -4,6 +4,7 @@
 
 import { useEffect, useCallback } from 'react';
 import { useGameStore } from './store/gameStore';
+import { useUIStore } from './store/uiStore';
 import { MainScreen } from './screens/MainScreen';
 import { AuthErrorModal } from './components/AuthErrorModal';
 import { OfflineSummaryModal } from './components/OfflineSummaryModal';
@@ -12,11 +13,11 @@ import { withTelegramBackButton } from './services/telegram';
 
 function App() {
   const initGame = useGameStore(state => state.initGame);
-  const authErrorMessage = useGameStore(state => state.authErrorMessage);
-  const isAuthModalOpen = useGameStore(state => state.isAuthModalOpen);
-  const dismissAuthError = useGameStore(state => state.dismissAuthError);
-  const offlineSummary = useGameStore(state => state.offlineSummary);
-  const acknowledgeOfflineSummary = useGameStore(state => state.acknowledgeOfflineSummary);
+  const authErrorMessage = useUIStore(state => state.authErrorMessage);
+  const isAuthModalOpen = useUIStore(state => state.isAuthModalOpen);
+  const dismissAuthError = useUIStore(state => state.dismissAuthError);
+  const offlineSummary = useUIStore(state => state.offlineSummary);
+  const acknowledgeOfflineSummary = useUIStore(state => state.clearOfflineSummary);
   const isInitialized = useGameStore(state => state.isInitialized);
   const logoutSession = useGameStore(state => state.logoutSession);
   const refreshSession = useGameStore(state => state.refreshSession);

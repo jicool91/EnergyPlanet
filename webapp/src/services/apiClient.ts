@@ -3,6 +3,7 @@
  */
 
 import axios from 'axios';
+import { authStore } from '../store/authStore';
 
 declare global {
   interface Window {
@@ -57,7 +58,7 @@ export const apiClient = axios.create({
 // Request interceptor - add auth token
 apiClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = authStore.accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -77,20 +78,24 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = authStore.refreshToken;
+        if (!refreshToken) {
+          authStore.clearTokens();
+          window.location.reload();
+          return Promise.reject(error);
+        }
         const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
           refresh_token: refreshToken,
         });
 
         const { access_token } = response.data;
-        localStorage.setItem('access_token', access_token);
+        authStore.setAccessToken(access_token);
 
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh failed, logout user
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        authStore.clearTokens();
         window.location.reload();
       }
     }

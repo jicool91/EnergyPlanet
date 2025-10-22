@@ -1,0 +1,91 @@
+import { create } from 'zustand';
+
+const ACCESS_TOKEN_KEY = 'access_token';
+const REFRESH_TOKEN_KEY = 'refresh_token';
+
+export interface AuthTokens {
+  accessToken: string;
+  refreshToken: string;
+}
+
+interface AuthState {
+  accessToken: string | null;
+  refreshToken: string | null;
+  hydrated: boolean;
+  hydrate: () => void;
+  setTokens: (tokens: AuthTokens) => void;
+  setAccessToken: (token: string) => void;
+  clearTokens: () => void;
+  getAuthHeaders: () => Record<string, string>;
+}
+
+function persist(key: string, value: string | null) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+  if (value === null) {
+    window.localStorage.removeItem(key);
+  } else {
+    window.localStorage.setItem(key, value);
+  }
+}
+
+export const useAuthStore = create<AuthState>((set, get) => ({
+  accessToken: null,
+  refreshToken: null,
+  hydrated: false,
+  hydrate: () => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    const access = window.localStorage.getItem(ACCESS_TOKEN_KEY);
+    const refresh = window.localStorage.getItem(REFRESH_TOKEN_KEY);
+    set({ accessToken: access, refreshToken: refresh, hydrated: true });
+  },
+  setTokens: ({ accessToken, refreshToken }) => {
+    persist(ACCESS_TOKEN_KEY, accessToken);
+    persist(REFRESH_TOKEN_KEY, refreshToken);
+    set({ accessToken, refreshToken });
+  },
+  setAccessToken: (token: string) => {
+    persist(ACCESS_TOKEN_KEY, token);
+    set({ accessToken: token });
+  },
+  clearTokens: () => {
+    persist(ACCESS_TOKEN_KEY, null);
+    persist(REFRESH_TOKEN_KEY, null);
+    set({ accessToken: null, refreshToken: null });
+  },
+  getAuthHeaders: () => {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    const token = get().accessToken;
+    if (token) {
+      headers.Authorization = `Bearer ${token}`;
+    }
+    return headers;
+  },
+}));
+
+export const authStore = {
+  get accessToken() {
+    return useAuthStore.getState().accessToken;
+  },
+  get refreshToken() {
+    return useAuthStore.getState().refreshToken;
+  },
+  setTokens(tokens: AuthTokens) {
+    useAuthStore.getState().setTokens(tokens);
+  },
+  setAccessToken(token: string) {
+    useAuthStore.getState().setAccessToken(token);
+  },
+  clearTokens() {
+    useAuthStore.getState().clearTokens();
+  },
+  hydrate() {
+    useAuthStore.getState().hydrate();
+  },
+  getAuthHeaders() {
+    return useAuthStore.getState().getAuthHeaders();
+  },
+};
