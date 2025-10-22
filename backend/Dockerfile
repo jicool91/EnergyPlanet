@@ -34,6 +34,7 @@ RUN addgroup -g 1001 -S nodejs && \
 # Copy built application from builder
 COPY --from=builder --chown=nodejs:nodejs /app/dist ./dist
 COPY --from=builder --chown=nodejs:nodejs /app/package*.json ./
+COPY --from=builder --chown=nodejs:nodejs /app/migrations ./migrations
 
 # Install only production dependencies (clean install)
 RUN npm ci --omit=dev && npm cache clean --force
