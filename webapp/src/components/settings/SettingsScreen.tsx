@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
 import { usePreferencesStore, type ThemeMode, type Language } from '../../store/preferencesStore';
 import { useNotification } from '../../hooks/useNotification';
+import { useHaptic } from '../../hooks/useHaptic';
 import { Toggle } from './Toggle';
 import { SliderControl } from './SliderControl';
 import { SettingsSection } from './SettingsSection';
@@ -14,6 +15,7 @@ interface SettingsScreenProps {
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
   const { user, logoutSession } = useGameStore();
   const { success, warning } = useNotification();
+  const { light } = useHaptic();
   const [confirmLogout, setConfirmLogout] = useState(false);
 
   // Preferences
@@ -102,7 +104,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
               {(['light', 'medium', 'strong'] as const).map((intensity) => (
                 <motion.button
                   key={intensity}
-                  onClick={() => setHapticIntensity(intensity)}
+                  onClick={() => {
+                    light();
+                    setHapticIntensity(intensity);
+                  }}
                   whileTap={{ scale: 0.95 }}
                   className={`py-2 rounded-lg font-medium transition-all ${
                     hapticIntensity === intensity
@@ -147,7 +152,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
             {(['light', 'dark', 'auto'] as ThemeMode[]).map((t) => (
               <motion.button
                 key={t}
-                onClick={() => setTheme(t)}
+                onClick={() => {
+                  light();
+                  setTheme(t);
+                }}
                 whileTap={{ scale: 0.95 }}
                 className={`py-2 rounded-lg font-medium transition-all ${
                   theme === t
@@ -167,7 +175,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
             {(['ru', 'en'] as Language[]).map((lang) => (
               <motion.button
                 key={lang}
-                onClick={() => setLanguage(lang)}
+                onClick={() => {
+                  light();
+                  setLanguage(lang);
+                }}
                 whileTap={{ scale: 0.95 }}
                 className={`py-2 rounded-lg font-medium transition-all ${
                   language === lang
@@ -194,6 +205,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       <div className="flex flex-col gap-2 p-4 rounded-lg bg-dark-secondary border border-cyan/[0.14]">
         <motion.button
           onClick={() => {
+            light();
             resetToDefaults();
             success('Настройки сброшены на значения по умолчанию');
           }}
@@ -212,14 +224,20 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
             <p className="m-0 text-sm text-red-error">Вы уверены? Это действие нельзя отменить.</p>
             <div className="flex gap-2">
               <motion.button
-                onClick={() => setConfirmLogout(false)}
+                onClick={() => {
+                  light();
+                  setConfirmLogout(false);
+                }}
                 whileTap={{ scale: 0.95 }}
                 className="flex-1 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium transition-colors"
               >
                 Отмена
               </motion.button>
               <motion.button
-                onClick={handleLogout}
+                onClick={() => {
+                  light();
+                  handleLogout();
+                }}
                 whileTap={{ scale: 0.95 }}
                 className="flex-1 py-2 rounded-lg bg-red-error hover:bg-red-error/90 text-white font-medium transition-colors"
               >
@@ -229,7 +247,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
           </>
         ) : (
           <motion.button
-            onClick={() => setConfirmLogout(true)}
+            onClick={() => {
+              light();
+              setConfirmLogout(true);
+            }}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
             className="w-full py-3 rounded-lg bg-red-error/20 hover:bg-red-error/30 text-red-error font-medium transition-colors border border-red-error/40"

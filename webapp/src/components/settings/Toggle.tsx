@@ -1,5 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useHaptic } from '../../hooks/useHaptic';
 
 interface ToggleProps {
   enabled: boolean;
@@ -8,9 +9,18 @@ interface ToggleProps {
 }
 
 export const Toggle: React.FC<ToggleProps> = ({ enabled, onChange, disabled = false }) => {
+  const { light } = useHaptic();
+
+  const handleChange = (newState: boolean) => {
+    if (!disabled) {
+      light();
+      onChange(newState);
+    }
+  };
+
   return (
     <motion.button
-      onClick={() => !disabled && onChange(!enabled)}
+      onClick={() => handleChange(!enabled)}
       disabled={disabled}
       className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
         enabled ? 'bg-lime-500' : 'bg-gray-600'

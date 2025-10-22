@@ -13,6 +13,7 @@ import { SettingsScreen } from '../components/settings';
 import { TapParticles } from '../components/animations';
 import { AnimatedNumber } from '../components/AnimatedNumber';
 import { ScreenTransition } from '../components/ScreenTransition';
+import { useHaptic } from '../hooks/useHaptic';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 
@@ -34,10 +35,12 @@ export function MainScreen() {
     loadProfile,
   } = useGameStore();
 
+  const { tap: hapticTap } = useHaptic();
   const [activeTab, setActiveTab] = useState<TabKey>('home');
 
   const handleTap = () => {
     tap(1);
+    hapticTap();
   };
 
   useEffect(() => {

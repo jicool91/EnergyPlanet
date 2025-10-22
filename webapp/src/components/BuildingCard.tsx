@@ -8,6 +8,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
 import { useNotification } from '@/hooks/useNotification';
+import { useHaptic } from '@/hooks/useHaptic';
 
 interface Building {
   id: string;
@@ -54,6 +55,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
   const [showUnlockAnim, setShowUnlockAnim] = useState(false);
   const playSound = useSoundEffect();
   const { success, error } = useNotification();
+  const { success: hapticSuccess, error: hapticError } = useHaptic();
 
   // Detect unlock transition
   useEffect(() => {
@@ -61,6 +63,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       // Building just unlocked!
       setShowUnlockAnim(true);
       playSound('unlock');
+      hapticSuccess();
 
       // Stop animation after 1 second
       const timer = setTimeout(() => {
@@ -71,14 +74,16 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
     }
 
     setWasLocked(isLocked);
-  }, [isLocked, wasLocked, playSound]);
+  }, [isLocked, wasLocked, playSound, hapticSuccess]);
 
   // Handle purchase with notification
   const handlePurchase = async () => {
     try {
       await onPurchase(building.id);
+      hapticSuccess();
       success(`${building.name} куплена!`);
     } catch (err) {
+      hapticError();
       error(`Ошибка при покупке ${building.name}`);
     }
   };
@@ -87,8 +92,10 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
   const handleUpgrade = async () => {
     try {
       await onUpgrade(building.id);
+      hapticSuccess();
       success(`${building.name} улучшена!`);
     } catch (err) {
+      hapticError();
       error(`Ошибка при апгрейде ${building.name}`);
     }
   };
