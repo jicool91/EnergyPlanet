@@ -4,7 +4,7 @@
 
 import { create } from 'zustand';
 import { isAxiosError } from 'axios';
-import { apiClient } from '../services/apiClient';
+import { apiClient, API_BASE_URL } from '../services/apiClient';
 import { postQueue } from '../services/requestQueue';
 import { logClientEvent } from '../services/telemetry';
 import {
@@ -31,6 +31,8 @@ const STREAK_RESET_MS = 4000;
 const STREAK_CRIT_THRESHOLD = 25;
 
 let passiveTicker: ReturnType<typeof setInterval> | null = null;
+let passiveFlushTimer: ReturnType<typeof setInterval> | null = null;
+let passiveFlushInFlight = false;
 
 interface GameState {
   // User data
@@ -98,7 +100,8 @@ interface GameState {
   claimBoost: (boostType: string) => Promise<void>;
   purchaseBuilding: (buildingId: string) => Promise<void>;
   upgradeBuilding: (buildingId: string) => Promise<void>;
-  flushPassiveIncome: () => Promise<void>;
+  flushPassiveIncome: (options?: { keepAlive?: boolean }) => Promise<void>;
+  logoutSession: (useKeepAlive?: boolean) => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
@@ -347,11 +350,18 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   configurePassiveIncome: (perSec: number, multiplier: number) => {
+    const flushPassiveIncome = get().flushPassiveIncome;
+
     set({ passiveIncomePerSec: perSec, passiveIncomeMultiplier: multiplier });
 
     if (passiveTicker) {
       clearInterval(passiveTicker);
       passiveTicker = null;
+    }
+
+    if (passiveFlushTimer) {
+      clearInterval(passiveFlushTimer);
+      passiveFlushTimer = null;
     }
 
     if (perSec > 0) {
@@ -362,6 +372,12 @@ export const useGameStore = create<GameState>((set, get) => ({
           pendingPassiveSeconds: state.pendingPassiveSeconds + 1,
         }));
       }, 1000);
+
+      passiveFlushTimer = setInterval(() => {
+        flushPassiveIncome().catch(error => {
+          console.warn('Failed to flush passive income', error);
+        });
+      }, 15000);
     }
   },
 
@@ -675,21 +691,46 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  flushPassiveIncome: async () => {
+  flushPassiveIncome: async ({ keepAlive = false }: { keepAlive?: boolean } = {}) => {
     const pendingSeconds = get().pendingPassiveSeconds;
-    if (!pendingSeconds || pendingSeconds <= 0) {
+    if (!pendingSeconds || pendingSeconds <= 0 || passiveFlushInFlight) {
       return;
     }
 
     try {
-      const response = await apiClient.post('/tick', { time_delta: pendingSeconds });
-      const passivePerSec = response.data.passive_income_per_sec ?? get().passiveIncomePerSec;
+      passiveFlushInFlight = true;
+      let payload: any;
+
+      if (keepAlive) {
+        const token = localStorage.getItem('access_token');
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) {
+          headers.Authorization = `Bearer ${token}`;
+        }
+
+        const response = await fetch(`${API_BASE_URL}/tick`, {
+          method: 'POST',
+          body: JSON.stringify({ time_delta: pendingSeconds }),
+          headers,
+          keepalive: true,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Tick sync failed (${response.status})`);
+        }
+        payload = await response.json();
+      } else {
+        const response = await apiClient.post('/tick', { time_delta: pendingSeconds });
+        payload = response.data;
+      }
+
+      const passivePerSec = payload.passive_income_per_sec ?? get().passiveIncomePerSec;
       const passiveMultiplier = get().passiveIncomeMultiplier;
 
       set(state => ({
-        energy: response.data.energy,
-        level: response.data.level,
-        xp: state.xp + (response.data.xp_gained ?? 0),
+        energy: payload.energy,
+        level: payload.level,
+        xp: state.xp + (payload.xp_gained ?? 0),
         pendingPassiveEnergy: 0,
         pendingPassiveSeconds: 0,
         passiveIncomePerSec: passivePerSec,
@@ -698,6 +739,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       }));
     } catch (error) {
       console.error('Failed to sync passive income', error);
+    } finally {
+      passiveFlushInFlight = false;
     }
   },
 
@@ -775,6 +818,30 @@ export const useGameStore = create<GameState>((set, get) => ({
       throw error;
     } finally {
       set({ isProcessingBuildingId: null });
+    }
+  },
+
+  logoutSession: async (useKeepAlive = true) => {
+    try {
+      await get().flushPassiveIncome({ keepAlive: useKeepAlive });
+      const token = localStorage.getItem('access_token');
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) {
+        headers.Authorization = `Bearer ${token}`;
+      }
+
+      const body = JSON.stringify({});
+
+      await fetch(`${API_BASE_URL}/session/logout`, {
+        method: 'POST',
+        body,
+        headers,
+        keepalive: useKeepAlive,
+      });
+    } catch (error) {
+      console.warn('Failed to send logout event', error);
+    } finally {
+      set({ pendingPassiveSeconds: 0, pendingPassiveEnergy: 0 });
     }
   },
 }));

@@ -16,6 +16,9 @@ function App() {
   const dismissAuthError = useGameStore(state => state.dismissAuthError);
   const offlineSummary = useGameStore(state => state.offlineSummary);
   const acknowledgeOfflineSummary = useGameStore(state => state.acknowledgeOfflineSummary);
+  const isInitialized = useGameStore(state => state.isInitialized);
+  const logoutSession = useGameStore(state => state.logoutSession);
+  const refreshSession = useGameStore(state => state.refreshSession);
 
   useEffect(() => {
     // Initialize game on mount
@@ -26,6 +29,32 @@ function App() {
     dismissAuthError();
     initGame();
   }, [dismissAuthError, initGame]);
+
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        logoutSession(true);
+      } else {
+        refreshSession();
+      }
+    };
+
+    const handleBeforeUnload = () => {
+      logoutSession(true);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isInitialized, logoutSession, refreshSession]);
 
   return (
     <div className="app">
