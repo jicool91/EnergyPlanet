@@ -16,6 +16,7 @@ import {
 } from '../services/cosmetics';
 import { fetchStarPacks, StarPack } from '../services/starPacks';
 import { fetchBoostHub, BoostHubItem, claimBoost as claimBoostApi } from '../services/boosts';
+import { fetchBuildingCatalog, BuildingDefinition } from '../services/buildings';
 
 interface BuildingState {
   buildingId: string;
@@ -58,6 +59,9 @@ interface GameState {
   buildings: BuildingState[];
   buildingsError: string | null;
   isProcessingBuildingId: string | null;
+  buildingCatalog: BuildingDefinition[];
+  buildingCatalogLoaded: boolean;
+  isBuildingCatalogLoading: boolean;
   cosmetics: CosmeticItem[];
   cosmeticsLoaded: boolean;
   isCosmeticsLoading: boolean;
@@ -102,6 +106,7 @@ interface GameState {
   upgradeBuilding: (buildingId: string) => Promise<void>;
   flushPassiveIncome: (options?: { keepAlive?: boolean }) => Promise<void>;
   logoutSession: (useKeepAlive?: boolean) => Promise<void>;
+  loadBuildingCatalog: (force?: boolean) => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
@@ -155,6 +160,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   buildings: [],
   buildingsError: null,
   isProcessingBuildingId: null,
+  buildingCatalog: [],
+  buildingCatalogLoaded: false,
+  isBuildingCatalogLoading: false,
   cosmetics: [],
   cosmeticsLoaded: false,
   isCosmeticsLoading: false,
@@ -842,6 +850,27 @@ export const useGameStore = create<GameState>((set, get) => ({
       console.warn('Failed to send logout event', error);
     } finally {
       set({ pendingPassiveSeconds: 0, pendingPassiveEnergy: 0 });
+    }
+  },
+
+  loadBuildingCatalog: async (force = false) => {
+    const { buildingCatalogLoaded, isBuildingCatalogLoading } = get();
+    if (!force && (buildingCatalogLoaded || isBuildingCatalogLoading)) {
+      return;
+    }
+
+    set({ isBuildingCatalogLoading: true });
+
+    try {
+      const catalog = await fetchBuildingCatalog();
+      set({
+        buildingCatalog: catalog,
+        buildingCatalogLoaded: true,
+        isBuildingCatalogLoading: false,
+      });
+    } catch (error) {
+      console.error('Failed to load building catalog', error);
+      set({ isBuildingCatalogLoading: false });
     }
   },
 }));

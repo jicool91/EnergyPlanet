@@ -10,6 +10,7 @@ import socialRoutes from './social';
 import monetizationRoutes from './monetization';
 import adminRoutes from './admin';
 import telemetryRoutes from './telemetry';
+import contentRoutes from './content';
 
 const router = Router();
 
@@ -19,6 +20,7 @@ router.use('/', gameplayRoutes); // /tap, /tick, /upgrade
 router.use('/', socialRoutes); // /leaderboard, /profile
 router.use('/', monetizationRoutes); // /cosmetics, /purchase, /boost
 router.use('/telemetry', telemetryRoutes);
+router.use('/', contentRoutes); // /buildings
 router.use('/admin', adminRoutes);
 
 export default router;
