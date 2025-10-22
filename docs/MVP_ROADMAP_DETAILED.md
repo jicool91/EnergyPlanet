@@ -1,5 +1,5 @@
 # Energy Planet — MVP Detailed Roadmap
-_Last updated: 2025-10-21_
+_Last updated: 2025-10-22_
 
 ## 1. Roadmap Planning Prompt Template
 Use the following prompt when you need to regenerate or adjust the roadmap. It embeds best practices around prioritisation frameworks, buffer allocation, and stakeholder-friendly storytelling:
@@ -28,7 +28,7 @@ Constraints & expectations:
 
 ## 3. Sprint-by-Sprint Breakdown
 
-### Sprint 0 (Oct 22 – Oct 28) — Stabilise & Instrument
+### Sprint 0 (Oct 22 – Oct 28) — Stabilise & Instrument _(Status: ✅ Completed 21.10.2025)_
 **Focus:** выровнять схему базы, стабилизировать авторизацию, собрать базовые метрики, чтобы не тормозить игровую работу в следующих спринтах.
 
 **Must Have (MoSCoW: Must)**  
@@ -61,7 +61,7 @@ Constraints & expectations:
 - Документированный healthcheck, endpoint статуса миграций, UX авторизации без зацикливания.
 - Обновлённый `STATUS.md` с конфигом окружения.
 
-### Sprint 1 (Oct 29 – Nov 4) — Core Loop Monetisation
+### Sprint 1 (Oct 29 – Nov 4) — Core Loop Monetisation _(Status: ⏳ In progress)_
 **Focus:** довести игрока от первого тапа до косметической покупки Stars, усилить ключевые UI-потоки и расширить внутреннее логирование без внешних дашбордов.
 
 **Must Have (MoSCoW: Must; ≈65% capacity)**

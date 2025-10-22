@@ -9,17 +9,17 @@ _Generated via best-practice sprint planning prompt combining MoSCoW prioritisat
 
 ## Now (Must)
 
-| Epic | MoSCoW | Owner(s) | RICE (R × I × C ÷ E) | Narrative |
-| --- | --- | --- | --- | --- |
-| Redis Tap Aggregation & Worker | Must | Backend #1 | Reach 60k taps/day × Impact 3 × Confidence 0.7 ÷ Effort 2 ⇒ **63k** | Batch tap writes to cut DB load, unlock reliable tap telemetry, and feed monetisation loops. Redis buffer `tap:{userId}` + 500 ms/50-tap flush, `tap_events` table, `tap_batch_processed` logging. |
-| Passive Session Refresh | Must | Backend #2, Data/QA | Reach 30k daily sessions × Impact 2.5 × Confidence 0.65 ÷ Effort 1.5 ⇒ **32.5k** | `/session` reflects off-line grants and passive-per-sec in real time. Stores last flush timestamp, logs `offline_income_grant`. QA adds tap/buy/offline log coverage. |
-| Core Loop UI Polish | Must | Frontend #1/#2, Designer | Reach 35k daily active users × Impact 2.8 × Confidence 0.6 ÷ Effort 2 ⇒ **29.4k** | Introduce streak counter and real-time passive income panel to make energy gains legible and retain newcomers. Error affordances retained. |
-| Content Rebalance Tier1–3 | Must | Designer, Backend #2 | Reach 100% of new players × Impact 2.2 × Confidence 0.7 ÷ Effort 1 ⇒ **15.4k** | Update `content/buildings.json`, add comparison table to keep early progression smooth and align with new passive panel. |
+| Epic | MoSCoW | Owner(s) | RICE (R × I × C ÷ E) | Narrative | Status |
+| --- | --- | --- | --- | --- | --- |
+| Redis Tap Aggregation & Worker | Must | Backend #1 | Reach 60k taps/day × Impact 3 × Confidence 0.7 ÷ Effort 2 ⇒ **63k** | Batch tap writes to cut DB load, unlock reliable tap telemetry, and feed monetisation loops. Redis buffer `tap:{userId}` + 500 ms/50-tap flush, `tap_events` table, `tap_batch_processed` logging. | ✅ Done (22.10.2025) |
+| Passive Session Refresh | Must | Backend #2, Data/QA | Reach 30k daily sessions × Impact 2.5 × Confidence 0.65 ÷ Effort 1.5 ⇒ **32.5k** | `/session` reflects off-line grants and passive-per-sec in real time. Stores last flush timestamp, logs `offline_income_grant`. QA adds tap/buy/offline log coverage. | ✅ Done (22.10.2025) |
+| Core Loop UI Polish | Must | Frontend #1/#2, Designer | Reach 35k daily активных × Impact 2.8 × Confidence 0.6 ÷ Effort 2 ⇒ **29.4k** | Introduce streak counter and real-time passive income panel to make energy gains legible and retain newcomers. Error affordances retained. | ✅ Done (22.10.2025) |
+| Content Rebalance Tier1–3 | Must | Designer, Backend #2 | Reach 100% of new players × Impact 2.2 × Confidence 0.7 ÷ Effort 1 ⇒ **15.4k** | Update `content/buildings.json`, add comparison table to keep early progression smooth and align with new passive panel. | ✅ Done (22.10.2025) |
 
 ## Should (Next)
-- **Session Summary Modal (Frontend #2, Designer)** — Present energy/xp/buff summary after offline return; reuse passive-income data. RICE 12k.
-- **Auto-Grant Solar Panel (Backend #1, QA)** — If tutorial skipped, ensure inventory seed; log `building_purchase` synthetic event. RICE 9k.
-- **Redis Telemetry Dashboard Slice (Data/QA)** — Grafana/Kibana queries for tap buffer lag & flush errors. RICE 7k.
+- **Session Summary Modal (Frontend #2, Designer)** — Present energy/xp/buff summary after offline return; reuse passive-income data. RICE 12k. **Status:** ❌ Not started.
+- **Auto-Grant Solar Panel (Backend #1, QA)** — If tutorial skipped, ensure inventory seed; log `building_purchase` synthetic event. RICE 9k. **Status:** ✅ Delivered via bootstrap демо-пользователя.
+- **Redis Telemetry Dashboard Slice (Data/QA)** — Grafana/Kibana queries for tap buffer lag & flush errors. RICE 7k. **Status:** ⏳ In backlog.
 
 ## Later (Could)
 - **Tap Heatmap Experiment** — feed aggregated `tap_events` into analytics layer (post-MVP).
