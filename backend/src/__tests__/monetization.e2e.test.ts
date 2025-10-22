@@ -41,7 +41,7 @@ const mockBoost = {
 
 const mockPurchase = {
   purchase_id: 'purchase-123',
-  status: 'completed',
+  status: 'succeeded',
   item_id: 'stars_pack_small',
   price_stars: 100,
   purchase_type: 'stars_pack',

@@ -2,8 +2,42 @@
  * Main Game Screen
  */
 
-import { useEffect } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { streakConfig, useGameStore } from '../store/gameStore';
+import { ShopPanel } from '../components/ShopPanel';
+
+function formatLastSync(timestamp: number | null): string {
+  if (!timestamp) {
+    return 'ещё нет данных';
+  }
+
+  const diffSeconds = Math.floor((Date.now() - timestamp) / 1000);
+
+  if (diffSeconds < 5) {
+    return 'только что';
+  }
+
+  if (diffSeconds < 60) {
+    return `${diffSeconds}с назад`;
+  }
+
+  if (diffSeconds < 3600) {
+    const minutes = Math.floor(diffSeconds / 60);
+    return `${minutes} мин назад`;
+  }
+
+  const date = new Date(timestamp);
+  return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+}
+
+function truncateMessage(message: string, maxLength = 140): string {
+  if (message.length <= maxLength) {
+    return message;
+  }
+  return `${message.slice(0, maxLength - 1)}…`;
+}
+
+type TabKey = 'home' | 'buildings' | 'leaderboard' | 'profile' | 'shop';
 
 export function MainScreen() {
   const {
@@ -19,11 +53,40 @@ export function MainScreen() {
     isLoading,
     tap,
     resetStreak,
+    sessionLastSyncedAt,
+    sessionErrorMessage,
+    refreshSession,
   } = useGameStore();
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [activeTab, setActiveTab] = useState<TabKey>('home');
 
   const handleTap = () => {
     tap(1);
   };
+
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) {
+      return;
+    }
+    setIsRefreshing(true);
+    try {
+      await refreshSession();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [isRefreshing, refreshSession]);
+
+  const tabButtons: { key: TabKey; label: string; icon: string }[] = useMemo(
+    () => [
+      { key: 'home', label: 'Главная', icon: '🏠' },
+      { key: 'shop', label: 'Магазин', icon: '🛍️' },
+      { key: 'buildings', label: 'Постройки', icon: '🏗️' },
+      { key: 'leaderboard', label: 'Рейтинг', icon: '🏆' },
+      { key: 'profile', label: 'Профиль', icon: '👤' },
+    ],
+    []
+  );
 
   useEffect(() => {
     if (streakCount === 0) {
@@ -67,33 +130,74 @@ export function MainScreen() {
         <div className="energy">{Math.floor(energy).toLocaleString()} E</div>
       </header>
 
+      <div className="session-status">
+        <div className="status-text">
+          <span className="status-label">Снапшот</span>
+          <span className="status-value">{formatLastSync(sessionLastSyncedAt)}</span>
+          {sessionErrorMessage && (
+            <span className="status-error">{truncateMessage(sessionErrorMessage)}</span>
+          )}
+        </div>
+        <button
+          className="status-refresh"
+          type="button"
+          onClick={handleRefresh}
+          disabled={isRefreshing}
+        >
+          {isRefreshing ? 'Обновление…' : 'Обновить'}
+        </button>
+      </div>
+
       <div className="passive-panel">
         <div className="passive-stat">
           <span className="label">Пассивный доход</span>
-          <strong>{passiveIncomePerSec.toFixed(1)} /с</strong>
+          <strong>{passiveIncomePerSec > 0 ? `${passiveIncomePerSec.toFixed(1)} /с` : '—'}</strong>
         </div>
         <div className="passive-stat">
           <span className="label">Множитель</span>
-          <strong>x{passiveIncomeMultiplier.toFixed(2)}</strong>
+          <strong>{passiveIncomeMultiplier > 0 ? `x${passiveIncomeMultiplier.toFixed(2)}` : '—'}</strong>
         </div>
         <div className="passive-stat">
           <span className="label">XP</span>
-          <strong>{Math.floor(xp).toLocaleString()}</strong>
+          <strong>{xp > 0 ? Math.floor(xp).toLocaleString() : '—'}</strong>
         </div>
       </div>
 
-      <div className="planet-container" onClick={handleTap}>
-        <div className={`planet${isCriticalStreak ? ' planet-critical' : ''}`}>
-          <span>🌍</span>
+      {activeTab === 'home' && (
+        <div className="planet-container" onClick={handleTap}>
+          <div className={`planet${isCriticalStreak ? ' planet-critical' : ''}`}>
+            <span>🌍</span>
+          </div>
+          <p className="tap-hint">Tap to generate energy!</p>
         </div>
-        <p className="tap-hint">Tap to generate energy!</p>
-      </div>
+      )}
+
+      {activeTab === 'shop' && (
+        <div className="tab-content">
+          <ShopPanel />
+        </div>
+      )}
+
+      {activeTab !== 'home' && activeTab !== 'shop' && (
+        <div className="tab-content soon">
+          <div className="coming-soon">Раздел в разработке</div>
+        </div>
+      )}
 
       <footer className="footer">
-        <button className="tab-button">🏠 Home</button>
-        <button className="tab-button">🏗️ Buildings</button>
-        <button className="tab-button">🏆 Leaderboard</button>
-        <button className="tab-button">👤 Profile</button>
+        {tabButtons.map(tab => (
+          <button
+            key={tab.key}
+            className={`tab-button${activeTab === tab.key ? ' active' : ''}`}
+            type="button"
+            onClick={() => setActiveTab(tab.key)}
+          >
+            <span className="tab-icon" aria-hidden="true">
+              {tab.icon}
+            </span>
+            <span className="tab-label">{tab.label}</span>
+          </button>
+        ))}
       </footer>
     </div>
   );

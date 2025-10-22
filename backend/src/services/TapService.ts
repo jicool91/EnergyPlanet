@@ -32,19 +32,19 @@ export class TapService {
       const minuteCount = Number(minuteResults?.[0] ?? tapCount);
 
       if (secondCount > MAX_TAPS_PER_SECOND || minuteCount > MAX_TAPS_PER_MINUTE) {
-        await logEvent(
-          userId,
-          'tap_rate_limit',
-          {
-            tap_count: tapCount,
-            second_total: secondCount,
-            minute_total: minuteCount,
-          },
-          { suspicious: true }
-        );
+        const payload = {
+          tap_count: tapCount,
+          second_total: secondCount,
+          minute_total: minuteCount,
+        };
+        await logEvent(userId, 'tap_rate_limit', payload, { suspicious: true });
+        logger.warn('Tap rate limit triggered', { userId, ...payload });
         throw new AppError(429, 'tap_rate_limited');
       }
     } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
       logger.warn('Tap rate limit degraded, redis unavailable', { error });
     }
   }

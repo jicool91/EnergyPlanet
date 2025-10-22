@@ -11,7 +11,7 @@ _Generated via best-practice sprint planning prompt combining MoSCoW prioritisat
 
 | Epic | MoSCoW | Owner(s) | RICE (R × I × C ÷ E) | Narrative |
 | --- | --- | --- | --- | --- |
-| Redis Tap Aggregation & Worker | Must | Backend #1 | Reach 60k taps/day × Impact 3 × Confidence 0.7 ÷ Effort 2 ⇒ **63k** | Batch tap writes to cut DB load, unlock reliable tap telemetry, and feed monetisation loops. Redis buffer `tap:{userId}` + 500 ms/50-tap flush, `tap_events` table, `tap_batch_commit` logging. |
+| Redis Tap Aggregation & Worker | Must | Backend #1 | Reach 60k taps/day × Impact 3 × Confidence 0.7 ÷ Effort 2 ⇒ **63k** | Batch tap writes to cut DB load, unlock reliable tap telemetry, and feed monetisation loops. Redis buffer `tap:{userId}` + 500 ms/50-tap flush, `tap_events` table, `tap_batch_processed` logging. |
 | Passive Session Refresh | Must | Backend #2, Data/QA | Reach 30k daily sessions × Impact 2.5 × Confidence 0.65 ÷ Effort 1.5 ⇒ **32.5k** | `/session` reflects off-line grants and passive-per-sec in real time. Stores last flush timestamp, logs `offline_income_grant`. QA adds tap/buy/offline log coverage. |
 | Core Loop UI Polish | Must | Frontend #1/#2, Designer | Reach 35k daily active users × Impact 2.8 × Confidence 0.6 ÷ Effort 2 ⇒ **29.4k** | Introduce streak counter and real-time passive income panel to make energy gains legible and retain newcomers. Error affordances retained. |
 | Content Rebalance Tier1–3 | Must | Designer, Backend #2 | Reach 100% of new players × Impact 2.2 × Confidence 0.7 ÷ Effort 1 ⇒ **15.4k** | Update `content/buildings.json`, add comparison table to keep early progression smooth and align with new passive panel. |

@@ -61,37 +61,51 @@ Constraints & expectations:
 - Документированный healthcheck, endpoint статуса миграций, UX авторизации без зацикливания.
 - Обновлённый `STATUS.md` с конфигом окружения.
 
-### Sprint 1 (Oct 29 – Nov 4) — Core Loop Polish
-**Focus:** довести основной игровий цикл до «приятного на ощупь» состояния и зафиксировать прогресс игрока.
+### Sprint 1 (Oct 29 – Nov 4) — Core Loop Monetisation
+**Focus:** довести игрока от первого тапа до косметической покупки Stars, усилить ключевые UI-потоки и расширить внутреннее логирование без внешних дашбордов.
 
-**Must Have**
+**Must Have (MoSCoW: Must; ≈65% capacity)**
 - **Backend**
-  - Ввести агрегацию тапов: Redis-буфер (ключ `tap:{userId}`) + воркер сброса в PostgreSQL каждые 500мс или при превышении 50 тапов. — ✅ 21.10.2025
-  - Создать таблицу `tap_events` (id, user_id, taps, energy_delta, created_at) с индексом по `user_id`. — ✅ 21.10.2025
-  - Пересчитать выдачу оффлайн-дохода: хранить timestamp последнего сброса, вернуть в `/session`. — ✅ 21.10.2025
+  - Обновить `tapSession` сервис: батчить /tap события, добавить антифрод (порог частоты, userId, latency) и структурированные логи `tap_batch_processed`.
+  - Завершить связку `/purchase/invoice` → `/purchase`: статусы `pending/succeeded/failed`, подпись-заглушка и подробное логирование транзакций в `stars_transactions`.
 - **Frontend**
-  - Реализовать streak-систему (визуальный счётчик + крит-анимация на N тап). — ✅ 21.10.2025
-  - Переписать панель построек: отображать пассивный доход в реальном времени (подставлять данные из `/session` + апдейт на каждую покупку). — ✅ 21.10.2025
-- **Content**
-  - Баланс Tier1–Tier3: пересчитать cost/profit, обновить `content/buildings.json`, добавить таблицу сравнения. — ✅ 21.10.2025
-- **QA/Data**
-  - Логировать события `tap_batch_commit`, `building_purchase`, `offline_income_grant` (минимальные payload: userId, величина, источник). — ✅ 21.10.2025
+  - `Home` экран: отрисовывать прогресс и оффлайн-доход с fallback-состояниями, логировать ошибки сети как `offline_income_error`.
+  - `Shop` экран: косметика v1 (витрина, покупка за Stars, отображение активного скина) с копиями от дизайнера.
+- **Design**
+  - Финализировать FTUE (3 шага, RU/EN тексты, подсказки по авторизации и магазину) и ассеты для магазина.
 
-**Should Have**
-- Экран «Итоги сессии» после возврата из офлайна с детализацией: энергия, XP, бусты. — ✅ 21.10.2025 (модалка Offline Summary)
-- Авто-добавление первой солнечной панели, если игрок пропустил обучение. — ✅ 21.10.2025
-- Redis Telemetry Dashboard Slice (Data/QA). — ⏳ Перенесено (ожидает постановки)
+**Should Have (MoSCoW: Should; ≈10% capacity)**
+- Data/QA: обновить чек-лист ручных сценариев (повреждённый initData, повторная покупка, двойной тап), задокументировать места логов.
+- Backend: описать поток Stars в `docs/payment_flow.md` и перечислить ключевые события логирования.
 
-**Dependencies**
-- Требуется завершённый Sprint 0 (стабильная авторизация и миграции).
-- Контент-правки согласовать с дизайнером и сохранить changelog.
+**Could Have (MoSCoW: Could)**
+- Frontend: лёгкая анимация активации скина (CSS-only).
+- Design: мини-гайд FTUE (`docs/ftue_playbook.md`) для саппорта.
 
-**Testing**
-- Написать Jest-тест для Redis-буфера (симулировать burst тапов).
-- Визуальное тестирование streak-анимаций на фронте (story/preview).
+**Buffer & Tech Debt (25% reserved)**
+- Backend: расширить `scripts/bootstrap-db.ts` демо-пользователем c балансом и логами шагов.
+- Frontend: Storybook истории для `Shop` и `FTUEIntro`, снепшоты для регрессии.
+- Data/QA: локальные предупреждения (console warn + scripts) на аномалии /tap и покупок.
+- Вся команда: ревью на наличие `logger.warn/error` в критических местах (авторизация, платежи, оффлайн-доход).
+
+**RICE Snapshot (Must initiatives)**
+- Tap антифрод + логирование — Reach 4 · Impact 3 · Confidence 0.7 · Effort 3 ⇒ RICE ≈ 2.8.
+- Stars purchase completion — Reach 3 · Impact 3 · Confidence 0.75 · Effort 3 ⇒ RICE ≈ 2.25.
+- Offline income UI — Reach 3 · Impact 2.5 · Confidence 0.6 · Effort 2 ⇒ RICE ≈ 2.25.
+- Shop v1 cosmetics — Reach 2 · Impact 2.5 · Confidence 0.7 · Effort 2 ⇒ RICE ≈ 1.75.
+
+**Dependencies & Risks**
+- Ассеты и тексты магазина должны быть готовы к 30 Oct.
+- Нужен тестовый Telegram Stars бот для прогонов моковых платежей.
+- Без внешней телеметрии QA обязаны выгружать логи `/tap` и `/purchase` вручную.
+
+**Success Criteria & Verification**
+- Happy-path: новый игрок → авторизация → 50 тапов → оффлайн-доход → покупка косметики → смена скина.
+- Логи фиксируют `tap_batch_processed`, `purchase_succeeded`, `ftue_completed`; ошибки `/tap` < 1% по QA-журналам.
+- Время ответа `/tap` < 200 мс на локальном стенде; 0 критических багов в чек-листе QA.
 
 **Deliverables**
-- Стабильный тап-цикл, пассивный доход, сохранение прогресса, обновлённые конфиги.
+- Полный игровой цикл с косметической покупкой, FTUE v1, обновлённые документы по платежам и логированию.
 
 ### Sprint 2 (Nov 5 – Nov 11) — Monetisation MVP
 **Focus:** провести пользователя по полному циклу покупки Stars и выдачи награды.
@@ -111,7 +125,7 @@ Constraints & expectations:
 
 **Should Have**
 - Баннер «первый платеж» с бонусной косметикой.
-- Сбор аналитики: эвент `stars_purchase_complete` (userId, packId, цена, время до оплаты).
+- Сбор аналитики: эвент `purchase_succeeded` (userId, packId, цена, время до оплаты).
 
 **Dependencies**
 - Требуется актуальный список пакетов от контента и доступ к Telegram test payment.

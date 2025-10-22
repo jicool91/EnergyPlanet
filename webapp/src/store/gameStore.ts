@@ -6,6 +6,14 @@ import { create } from 'zustand';
 import { isAxiosError } from 'axios';
 import { apiClient } from '../services/apiClient';
 import { postQueue } from '../services/requestQueue';
+import { logClientEvent } from '../services/telemetry';
+import {
+  equipCosmetic as equipCosmeticApi,
+  completeCosmeticPurchase,
+  fetchCosmetics,
+  unlockCosmetic,
+  CosmeticItem,
+} from '../services/cosmetics';
 
 const STREAK_RESET_MS = 4000;
 const STREAK_CRIT_THRESHOLD = 25;
@@ -31,6 +39,13 @@ interface GameState {
     duration_sec: number;
     capped: boolean;
   } | null;
+  cosmetics: CosmeticItem[];
+  cosmeticsLoaded: boolean;
+  isCosmeticsLoading: boolean;
+  cosmeticsError: string | null;
+  isProcessingCosmeticId: string | null;
+  sessionLastSyncedAt: number | null;
+  sessionErrorMessage: string | null;
 
   // Game state
   isLoading: boolean;
@@ -47,6 +62,29 @@ interface GameState {
   configurePassiveIncome: (perSec: number, multiplier: number) => void;
   refreshSession: () => Promise<void>;
   acknowledgeOfflineSummary: () => void;
+  loadCosmetics: (force?: boolean) => Promise<void>;
+  purchaseCosmetic: (cosmeticId: string) => Promise<void>;
+  equipCosmetic: (cosmeticId: string) => Promise<void>;
+}
+
+const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
+
+function describeError(error: unknown): { status: number | null; message: string } {
+  if (isAxiosError(error)) {
+    const status = error.response?.status ?? null;
+    const upstreamMessage =
+      (error.response?.data as { message?: string })?.message || error.message;
+    return {
+      status,
+      message: upstreamMessage,
+    };
+  }
+
+  if (error instanceof Error) {
+    return { status: null, message: error.message };
+  }
+
+  return { status: null, message: fallbackSessionError };
 }
 
 export const useGameStore = create<GameState>((set, get) => ({
@@ -63,6 +101,13 @@ export const useGameStore = create<GameState>((set, get) => ({
   isCriticalStreak: false,
   lastTapAt: null,
   offlineSummary: null,
+  cosmetics: [],
+  cosmeticsLoaded: false,
+  isCosmeticsLoading: false,
+  cosmeticsError: null,
+  isProcessingCosmeticId: null,
+  sessionLastSyncedAt: null,
+  sessionErrorMessage: null,
   isLoading: true,
   isInitialized: false,
   authErrorMessage: null,
@@ -71,7 +116,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   // Initialize game
   initGame: async () => {
     try {
-      set({ isLoading: true, authErrorMessage: null, isAuthModalOpen: false });
+      set({ isLoading: true, authErrorMessage: null, isAuthModalOpen: false, sessionErrorMessage: null });
 
       // Authenticate with Telegram
       const initData = window.Telegram?.WebApp?.initData || '';
@@ -82,7 +127,25 @@ export const useGameStore = create<GameState>((set, get) => ({
       localStorage.setItem('refresh_token', authResponse.data.refresh_token);
 
       // Start session
-      const sessionResponse = await postQueue.enqueue(() => apiClient.post('/session'));
+      let sessionResponse;
+      try {
+        sessionResponse = await postQueue.enqueue(() => apiClient.post('/session'));
+      } catch (sessionError) {
+        const { status, message } = describeError(sessionError);
+        set({ sessionErrorMessage: message || fallbackSessionError });
+
+        await logClientEvent(
+          'offline_income_error',
+          {
+            status,
+            message,
+            source: 'initGame',
+          },
+          status && status >= 500 ? 'error' : 'warn'
+        );
+
+        throw sessionError;
+      }
       const { user, progress, offline_gains: offlineGains } = sessionResponse.data;
       const passivePerSec = progress.passive_income_per_sec ?? 0;
       const passiveMultiplier = progress.passive_income_multiplier ?? 1;
@@ -110,6 +173,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             : null,
         isInitialized: true,
         isLoading: false,
+        sessionLastSyncedAt: Date.now(),
+        sessionErrorMessage: null,
       });
 
       get().configurePassiveIncome(passivePerSec, passiveMultiplier);
@@ -137,11 +202,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         message = error.message;
       }
 
-      set({
+      set(state => ({
         isLoading: false,
         authErrorMessage: message,
         isAuthModalOpen: true,
-      });
+        sessionErrorMessage: state.sessionErrorMessage ?? message,
+      }));
     }
   },
 
@@ -241,6 +307,8 @@ export const useGameStore = create<GameState>((set, get) => ({
                 capped: offlineGains.capped,
               }
             : null,
+        sessionLastSyncedAt: Date.now(),
+        sessionErrorMessage: null,
       });
 
       const passivePerSec = progress.passive_income_per_sec ?? 0;
@@ -248,11 +316,133 @@ export const useGameStore = create<GameState>((set, get) => ({
       get().configurePassiveIncome(passivePerSec, passiveMultiplier);
     } catch (error) {
       console.error('Failed to refresh session snapshot', error);
+
+      const { status, message } = describeError(error);
+      set({ sessionErrorMessage: message || fallbackSessionError });
+
+      await logClientEvent(
+        'offline_income_error',
+        {
+          status,
+          message,
+          source: 'refreshSession',
+        },
+        status && status >= 500 ? 'error' : 'warn'
+      );
     }
   },
 
   acknowledgeOfflineSummary: () => {
     set({ offlineSummary: null });
+  },
+
+  loadCosmetics: async (force = false) => {
+    const { cosmeticsLoaded, isCosmeticsLoading } = get();
+    if (!force && (cosmeticsLoaded || isCosmeticsLoading)) {
+      return;
+    }
+
+    set({ isCosmeticsLoading: true, cosmeticsError: null });
+
+    try {
+      const cosmetics = await fetchCosmetics();
+      set({ cosmetics, cosmeticsLoaded: true, isCosmeticsLoading: false, cosmeticsError: null });
+    } catch (error) {
+      const { message } = describeError(error);
+      set({ cosmeticsError: message || 'Не удалось загрузить магазин', isCosmeticsLoading: false });
+      await logClientEvent(
+        'cosmetics_load_failed',
+        { message, source: 'loadCosmetics' },
+        'warn'
+      );
+    }
+  },
+
+  purchaseCosmetic: async (cosmeticId: string) => {
+    const state = get();
+    const target = state.cosmetics.find(item => item.id === cosmeticId);
+    if (!target) {
+      throw new Error('Cosmetic not found');
+    }
+
+    if (state.isProcessingCosmeticId === cosmeticId) {
+      return;
+    }
+
+    set({ isProcessingCosmeticId: cosmeticId });
+
+    try {
+      if (target.status === 'purchase_required' && target.price_stars) {
+        await completeCosmeticPurchase(target, {
+          metadata: { source: 'shop_screen' },
+        });
+      }
+
+      await unlockCosmetic(cosmeticId);
+      await get().loadCosmetics(true);
+      await logClientEvent('cosmetic_unlocked', { cosmetic_id: cosmeticId }, 'info');
+    } catch (error) {
+      const { status, message } = describeError(error);
+      await logClientEvent(
+        'cosmetic_purchase_error',
+        {
+          cosmetic_id: cosmeticId,
+          status,
+          message,
+        },
+        'warn'
+      );
+      set({ cosmeticsError: message || 'Не удалось купить косметику' });
+      throw error;
+    } finally {
+      set({ isProcessingCosmeticId: null });
+    }
+  },
+
+  equipCosmetic: async (cosmeticId: string) => {
+    const { cosmetics } = get();
+    const target = cosmetics.find(item => item.id === cosmeticId);
+    if (!target) {
+      throw new Error('Cosmetic not found');
+    }
+
+    set({ isProcessingCosmeticId: cosmeticId });
+
+    try {
+      await equipCosmeticApi(cosmeticId);
+
+      set(state => ({
+        cosmetics: state.cosmetics.map(item => {
+          if (item.category !== target.category) {
+            return item;
+          }
+
+          return {
+            ...item,
+            equipped: item.id === cosmeticId,
+            owned: item.owned || item.id === cosmeticId,
+            status: item.id === cosmeticId ? 'owned' : item.status,
+          };
+        }),
+      }));
+
+      await logClientEvent('cosmetic_equipped', { cosmetic_id: cosmeticId, category: target.category }, 'info');
+    } catch (error) {
+      const { status, message } = describeError(error);
+      await logClientEvent(
+        'cosmetic_equip_error',
+        {
+          cosmetic_id: cosmeticId,
+          status,
+          message,
+        },
+        'warn'
+      );
+      set({ cosmeticsError: message || 'Не удалось экипировать косметику' });
+      throw error;
+    } finally {
+      set({ isProcessingCosmeticId: null });
+    }
   },
 }));
 

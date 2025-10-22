@@ -209,18 +209,17 @@ export class TapAggregator {
 
         await createTapEvent({ userId, taps, energyDelta }, client);
 
-        await logEvent(
-          userId,
-          'tap_batch_commit',
-          {
-            taps,
-            energy_delta: energyDelta,
-            xp_delta: xpDelta,
-            latency_ms: latencyMs,
-            leveled_up: leveledUp,
-          },
-          { client }
-        );
+        const payload = {
+          taps,
+          energy_delta: energyDelta,
+          xp_delta: xpDelta,
+          latency_ms: latencyMs,
+          leveled_up: leveledUp,
+        };
+
+        logger.info('tap_batch_processed', { userId, ...payload });
+
+        await logEvent(userId, 'tap_batch_processed', payload, { client });
       });
 
       return true;

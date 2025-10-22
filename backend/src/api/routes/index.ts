@@ -9,6 +9,7 @@ import gameplayRoutes from './gameplay';
 import socialRoutes from './social';
 import monetizationRoutes from './monetization';
 import adminRoutes from './admin';
+import telemetryRoutes from './telemetry';
 
 const router = Router();
 
@@ -17,6 +18,7 @@ router.use('/session', sessionRoutes);
 router.use('/', gameplayRoutes); // /tap, /tick, /upgrade
 router.use('/', socialRoutes); // /leaderboard, /profile
 router.use('/', monetizationRoutes); // /cosmetics, /purchase, /boost
+router.use('/telemetry', telemetryRoutes);
 router.use('/admin', adminRoutes);
 
 export default router;

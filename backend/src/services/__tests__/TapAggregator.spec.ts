@@ -56,8 +56,8 @@ jest.mock('../../repositories/TapEventRepository', () => ({
 }));
 
 jest.mock('../../repositories/EventRepository', () => ({
-  logEvent: jest.fn(async (_userId: string, _type: string, payload: any) => {
-    logEventSpy(payload);
+  logEvent: jest.fn(async (_userId: string, type: string, payload: any) => {
+    logEventSpy({ type, payload });
   }),
 }));
 
@@ -258,7 +258,10 @@ describe('TapAggregator', () => {
     expect(updateProgressSpy).toHaveBeenCalled();
     expect(createTapEventSpy).toHaveBeenCalled();
     expect(logEventSpy).toHaveBeenCalledWith(
-      expect.objectContaining({ taps: 55, energy_delta: 550 })
+      expect.objectContaining({
+        type: 'tap_batch_processed',
+        payload: expect.objectContaining({ taps: 55, energy_delta: 550 }),
+      })
     );
     expect(currentState.energy).toBe(550);
     expect(currentState.totalEnergyProduced).toBe(550);
