@@ -2,12 +2,13 @@
  * Main App Component
  */
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useCallback, useState } from 'react';
 import { useGameStore } from './store/gameStore';
 import { useUIStore } from './store/uiStore';
 import { MainScreen } from './screens/MainScreen';
 import { AuthErrorModal } from './components/AuthErrorModal';
 import { OfflineSummaryModal } from './components/OfflineSummaryModal';
+import { LevelUpScreen } from './components/LevelUpScreen';
 import { withTelegramBackButton } from './services/telegram';
 
 function App() {
@@ -20,6 +21,19 @@ function App() {
   const isInitialized = useGameStore(state => state.isInitialized);
   const logoutSession = useGameStore(state => state.logoutSession);
   const refreshSession = useGameStore(state => state.refreshSession);
+  const currentLevel = useGameStore(state => state.level);
+
+  // Track level up events
+  const [previousLevel, setPreviousLevel] = useState(1);
+  const [showLevelUp, setShowLevelUp] = useState(false);
+
+  // Detect level up
+  useEffect(() => {
+    if (isInitialized && currentLevel > previousLevel) {
+      setShowLevelUp(true);
+      setPreviousLevel(currentLevel);
+    }
+  }, [currentLevel, previousLevel, isInitialized]);
 
   useEffect(() => {
     // Initialize game on mount
@@ -86,6 +100,12 @@ function App() {
           durationSec={offlineSummary.duration_sec}
           capped={offlineSummary.capped}
           onClose={acknowledgeOfflineSummary}
+        />
+      )}
+      {showLevelUp && (
+        <LevelUpScreen
+          newLevel={currentLevel}
+          onDismiss={() => setShowLevelUp(false)}
         />
       )}
     </div>
