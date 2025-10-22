@@ -9,11 +9,12 @@ import { BoostHub } from '../components/BoostHub';
 import { BuildingsPanel } from '../components/BuildingsPanel';
 import { LeaderboardPanel } from '../components/LeaderboardPanel';
 import { ProfilePanel } from '../components/ProfilePanel';
+import { SettingsScreen } from '../components/settings';
 import { TapParticles } from '../components/animations';
 import { AnimatedNumber } from '../components/AnimatedNumber';
 import { ScreenTransition } from '../components/ScreenTransition';
 
-type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile';
+type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 
 export function MainScreen() {
   const {
@@ -59,6 +60,7 @@ export function MainScreen() {
       { key: 'builds', label: 'Постройки', icon: '🏗️' },
       { key: 'leaderboard', label: 'Рейтинг', icon: '🏆' },
       { key: 'profile', label: 'Профиль', icon: '👤' },
+      { key: 'settings', label: 'Настройки', icon: '⚙️' },
     ],
     []
   );
@@ -180,6 +182,13 @@ export function MainScreen() {
         {activeTab === 'profile' && (
           <ScreenTransition key="profile" type="slide" className="flex-1 overflow-auto">
             <ProfilePanel />
+          </ScreenTransition>
+        )}
+
+        {/* Настройки */}
+        {activeTab === 'settings' && (
+          <ScreenTransition key="settings" type="slide" className="flex-1 overflow-auto">
+            <SettingsScreen onClose={() => setActiveTab('home')} />
           </ScreenTransition>
         )}
       </div>
