@@ -17,6 +17,16 @@ import {
 import { fetchStarPacks, StarPack } from '../services/starPacks';
 import { fetchBoostHub, BoostHubItem, claimBoost as claimBoostApi } from '../services/boosts';
 
+interface BuildingState {
+  buildingId: string;
+  name: string;
+  count: number;
+  level: number;
+  incomePerSec: number;
+  nextCost: number;
+  nextUpgradeCost: number;
+}
+
 const STREAK_RESET_MS = 4000;
 const STREAK_CRIT_THRESHOLD = 25;
 
@@ -41,6 +51,9 @@ interface GameState {
     duration_sec: number;
     capped: boolean;
   } | null;
+  buildings: BuildingState[];
+  buildingsError: string | null;
+  isProcessingBuildingId: string | null;
   cosmetics: CosmeticItem[];
   cosmeticsLoaded: boolean;
   isCosmeticsLoading: boolean;
@@ -81,6 +94,8 @@ interface GameState {
   purchaseStarPack: (packId: string) => Promise<void>;
   loadBoostHub: (force?: boolean) => Promise<void>;
   claimBoost: (boostType: string) => Promise<void>;
+  purchaseBuilding: (buildingId: string) => Promise<void>;
+  upgradeBuilding: (buildingId: string) => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
@@ -103,6 +118,18 @@ function describeError(error: unknown): { status: number | null; message: string
   return { status: null, message: fallbackSessionError };
 }
 
+function mapBuilding(entry: any): BuildingState {
+  return {
+    buildingId: entry.building_id,
+    name: entry.name,
+    count: entry.count,
+    level: entry.level,
+    incomePerSec: entry.income_per_sec,
+    nextCost: entry.next_cost,
+    nextUpgradeCost: entry.next_upgrade_cost,
+  };
+}
+
 export const useGameStore = create<GameState>((set, get) => ({
   // Initial state
   userId: null,
@@ -117,6 +144,9 @@ export const useGameStore = create<GameState>((set, get) => ({
   isCriticalStreak: false,
   lastTapAt: null,
   offlineSummary: null,
+  buildings: [],
+  buildingsError: null,
+  isProcessingBuildingId: null,
   cosmetics: [],
   cosmeticsLoaded: false,
   isCosmeticsLoading: false,
@@ -172,9 +202,10 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         throw sessionError;
       }
-      const { user, progress, offline_gains: offlineGains } = sessionResponse.data;
+      const { user, progress, offline_gains: offlineGains, inventory } = sessionResponse.data;
       const passivePerSec = progress.passive_income_per_sec ?? 0;
       const passiveMultiplier = progress.passive_income_multiplier ?? 1;
+      const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
       set({
         userId: user.id,
@@ -197,6 +228,8 @@ export const useGameStore = create<GameState>((set, get) => ({
                 capped: offlineGains.capped,
               }
             : null,
+        buildings,
+        buildingsError: null,
         isInitialized: true,
         isLoading: false,
         sessionLastSyncedAt: Date.now(),
@@ -315,7 +348,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   refreshSession: async () => {
     try {
       const response = await apiClient.post('/session');
-      const { user, progress, offline_gains: offlineGains } = response.data;
+      const { user, progress, offline_gains: offlineGains, inventory } = response.data;
+      const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
       set({
         userId: user.id,
@@ -333,6 +367,8 @@ export const useGameStore = create<GameState>((set, get) => ({
                 capped: offlineGains.capped,
               }
             : null,
+        buildings,
+        buildingsError: null,
         sessionLastSyncedAt: Date.now(),
         sessionErrorMessage: null,
       });
@@ -614,6 +650,81 @@ export const useGameStore = create<GameState>((set, get) => ({
       throw error;
     } finally {
       set({ isClaimingBoostType: null });
+    }
+  },
+
+  purchaseBuilding: async (buildingId: string) => {
+    if (!buildingId) {
+      return;
+    }
+
+    set({ isProcessingBuildingId: buildingId, buildingsError: null });
+
+    try {
+      await logClientEvent('building_purchase_request', { building_id: buildingId }, 'info');
+
+      const response = await apiClient.post('/upgrade', {
+        building_id: buildingId,
+        action: 'purchase',
+      });
+
+      await logClientEvent('building_purchase_success', {
+        building_id: buildingId,
+        cost: response.data?.building?.next_cost ?? null,
+      });
+
+      await get().refreshSession();
+    } catch (error) {
+      const { status, message } = describeError(error);
+      await logClientEvent(
+        'building_purchase_error',
+        {
+          building_id: buildingId,
+          status,
+          message,
+        },
+        'warn'
+      );
+      set({ buildingsError: message || 'Не удалось купить постройку' });
+      throw error;
+    } finally {
+      set({ isProcessingBuildingId: null });
+    }
+  },
+
+  upgradeBuilding: async (buildingId: string) => {
+    if (!buildingId) {
+      return;
+    }
+
+    set({ isProcessingBuildingId: buildingId, buildingsError: null });
+
+    try {
+      await logClientEvent('building_upgrade_request', { building_id: buildingId }, 'info');
+
+      await apiClient.post('/upgrade', {
+        building_id: buildingId,
+        action: 'upgrade',
+      });
+
+      await logClientEvent('building_upgrade_success', { building_id: buildingId }, 'info');
+
+      await get().refreshSession();
+    } catch (error) {
+      const { status, message } = describeError(error);
+      await logClientEvent(
+        'building_upgrade_error',
+        {
+          building_id: buildingId,
+          status,
+          message,
+        },
+        'warn'
+      );
+      set({ buildingsError: message || 'Не удалось улучшить постройку' });
+      throw error;
+    } finally {
+      set({ isProcessingBuildingId: null });
     }
   },
 }));

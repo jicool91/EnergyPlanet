@@ -561,6 +561,125 @@
   box-shadow: none;
 }
 
+.buildings-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 0 16px 80px;
+}
+
+.buildings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.buildings-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #f8fbff;
+}
+
+.buildings-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.buildings-balance {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+  font-weight: 600;
+}
+
+.buildings-empty {
+  padding: 16px;
+  border-radius: 14px;
+  border: 1px dashed rgba(0, 217, 255, 0.3);
+  color: rgba(255, 255, 255, 0.65);
+  text-align: center;
+}
+
+.buildings-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.buildings-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 16px;
+  background: rgba(10, 14, 32, 0.92);
+  border: 1px solid rgba(0, 217, 255, 0.14);
+  box-shadow: 0 18px 40px rgba(7, 12, 35, 0.35);
+}
+
+.buildings-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.buildings-card-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: #f8fbff;
+}
+
+.buildings-count {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 600;
+}
+
+.buildings-meta {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.buildings-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.buildings-button {
+  padding: 10px 18px;
+  border-radius: 12px;
+  border: none;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease, opacity 0.12s ease;
+}
+
+.buildings-button.primary {
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.25), rgba(38, 127, 255, 0.35));
+  color: #f8fbff;
+}
+
+.buildings-button.secondary {
+  background: rgba(0, 217, 255, 0.12);
+  color: #f8fbff;
+}
+
+.buildings-button:disabled {
+  opacity: 0.6;
+  cursor: default;
+  box-shadow: none;
+}
+
+.buildings-button:not(:disabled):hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(0, 217, 255, 0.3);
+}
+
 .shop-action {
   display: flex;
   align-items: center;
