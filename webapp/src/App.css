@@ -22,10 +22,10 @@
 .main-screen {
   display: grid;
   grid-template-rows: 1fr auto;
+  grid-template-columns: 1fr;
   width: 100%;
   height: 100%;
   position: relative;
-  padding-bottom: var(--tg-safe-area-bottom, 0px);
 }
 
 .main-body {
@@ -35,6 +35,8 @@
   overflow: hidden;
   min-height: 0;
   padding: calc(12px + var(--tg-content-safe-area-top, var(--tg-safe-area-top, 0px))) 20px 0;
+  grid-column: 1 / -1;
+  grid-row: 1;
 }
 
 .header {
@@ -156,7 +158,9 @@
   padding-bottom: calc(10px + var(--tg-safe-area-bottom, 0px));
   background: rgba(0, 0, 0, 0.8);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
-  margin-top: auto;
+  grid-column: 1 / -1;
+  grid-row: 2;
+  z-index: 100;
 }
 
 .tab-button {
@@ -196,7 +200,7 @@
   flex: 1;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 8px 16px calc(16px + var(--tg-content-safe-area-bottom, var(--tg-safe-area-bottom, 0px)));
+  padding: 8px 16px calc(80px + var(--tg-safe-area-bottom, 0px));
   min-height: 0;
 }
 
@@ -216,7 +220,7 @@
 }
 
 .leaderboard-panel {
-  padding: 0 16px calc(64px + var(--tg-content-safe-area-bottom, var(--tg-safe-area-bottom, 0px)));
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -310,7 +314,7 @@
 }
 
 .profile-panel {
-  padding: 0 16px calc(64px + var(--tg-content-safe-area-bottom, var(--tg-safe-area-bottom, 0px)));
+  padding: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -404,7 +408,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0 16px calc(80px + var(--tg-content-safe-area-bottom, var(--tg-safe-area-bottom, 0px)));
+  padding: 0;
 }
 
 .shop-header {
@@ -465,7 +469,7 @@
 .shop-section-tabs {
   display: flex;
   gap: 8px;
-  padding: 0 16px;
+  padding: 0;
 }
 
 .shop-section-tab {
@@ -491,7 +495,7 @@
   display: flex;
   gap: 8px;
   flex-wrap: wrap;
-  padding: 0 16px;
+  padding: 0;
 }
 
 .shop-category {
@@ -525,7 +529,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0 16px calc(80px + var(--tg-content-safe-area-bottom, var(--tg-safe-area-bottom, 0px)));
+  padding: 0;
 }
 
 .shop-card {
@@ -645,7 +649,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0 16px calc(80px + var(--tg-content-safe-area-bottom, var(--tg-safe-area-bottom, 0px)));
+  padding: 0;
 }
 
 .boost-header {
@@ -772,7 +776,7 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
-  padding: 0 16px calc(80px + var(--tg-content-safe-area-bottom, var(--tg-safe-area-bottom, 0px)));
+  padding: 0;
 }
 
 .buildings-header {
