@@ -51,6 +51,8 @@ interface GameState {
     duration_sec: number;
     capped: boolean;
   } | null;
+  pendingPassiveEnergy: number;
+  pendingPassiveSeconds: number;
   buildings: BuildingState[];
   buildingsError: string | null;
   isProcessingBuildingId: string | null;
@@ -96,6 +98,7 @@ interface GameState {
   claimBoost: (boostType: string) => Promise<void>;
   purchaseBuilding: (buildingId: string) => Promise<void>;
   upgradeBuilding: (buildingId: string) => Promise<void>;
+  flushPassiveIncome: () => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
@@ -132,7 +135,7 @@ function mapBuilding(entry: any): BuildingState {
 
 export const useGameStore = create<GameState>((set, get) => ({
   // Initial state
-  userId: null,
+ userId: null,
   username: null,
   level: 1,
   xp: 0,
@@ -144,6 +147,8 @@ export const useGameStore = create<GameState>((set, get) => ({
   isCriticalStreak: false,
   lastTapAt: null,
   offlineSummary: null,
+  pendingPassiveEnergy: 0,
+  pendingPassiveSeconds: 0,
   buildings: [],
   buildingsError: null,
   isProcessingBuildingId: null,
@@ -230,6 +235,7 @@ export const useGameStore = create<GameState>((set, get) => ({
             : null,
         buildings,
         buildingsError: null,
+        pendingPassiveEnergy: 0,
         isInitialized: true,
         isLoading: false,
         sessionLastSyncedAt: Date.now(),
@@ -273,15 +279,25 @@ export const useGameStore = create<GameState>((set, get) => ({
   // Handle tap
   tap: async (count: number) => {
     try {
+      await get().flushPassiveIncome();
       const response = await apiClient.post('/tap', { tap_count: count });
-      const { energy, xp_gained, level, level_up } = response.data;
+      const {
+        energy: serverEnergy,
+        energy_gained: energyGained = 0,
+        xp_gained,
+        level,
+        level_up,
+      } = response.data;
 
       const previousStreak = get().streakCount;
       const newStreak = previousStreak + count;
       const isCritical = newStreak > 0 && newStreak % STREAK_CRIT_THRESHOLD === 0;
 
       set(state => ({
-        energy,
+        energy: Math.max(
+          serverEnergy + state.pendingPassiveEnergy,
+          state.energy + energyGained
+        ),
         level,
         xp: state.xp + xp_gained,
         streakCount: newStreak,
@@ -340,7 +356,11 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     if (perSec > 0) {
       passiveTicker = setInterval(() => {
-        set(state => ({ energy: state.energy + perSec }));
+        set(state => ({
+          energy: state.energy + perSec,
+          pendingPassiveEnergy: state.pendingPassiveEnergy + perSec,
+          pendingPassiveSeconds: state.pendingPassiveSeconds + 1,
+        }));
       }, 1000);
     }
   },
@@ -369,6 +389,8 @@ export const useGameStore = create<GameState>((set, get) => ({
             : null,
         buildings,
         buildingsError: null,
+        pendingPassiveEnergy: 0,
+        pendingPassiveSeconds: 0,
         sessionLastSyncedAt: Date.now(),
         sessionErrorMessage: null,
       });
@@ -653,6 +675,32 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
+  flushPassiveIncome: async () => {
+    const pendingSeconds = get().pendingPassiveSeconds;
+    if (!pendingSeconds || pendingSeconds <= 0) {
+      return;
+    }
+
+    try {
+      const response = await apiClient.post('/tick', { time_delta: pendingSeconds });
+      const passivePerSec = response.data.passive_income_per_sec ?? get().passiveIncomePerSec;
+      const passiveMultiplier = get().passiveIncomeMultiplier;
+
+      set(state => ({
+        energy: response.data.energy,
+        level: response.data.level,
+        xp: state.xp + (response.data.xp_gained ?? 0),
+        pendingPassiveEnergy: 0,
+        pendingPassiveSeconds: 0,
+        passiveIncomePerSec: passivePerSec,
+        passiveIncomeMultiplier: passiveMultiplier,
+        sessionLastSyncedAt: Date.now(),
+      }));
+    } catch (error) {
+      console.error('Failed to sync passive income', error);
+    }
+  },
+
   purchaseBuilding: async (buildingId: string) => {
     if (!buildingId) {
       return;
@@ -661,6 +709,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ isProcessingBuildingId: buildingId, buildingsError: null });
 
     try {
+      await get().flushPassiveIncome();
       await logClientEvent('building_purchase_request', { building_id: buildingId }, 'info');
 
       const response = await apiClient.post('/upgrade', {
@@ -700,6 +749,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ isProcessingBuildingId: buildingId, buildingsError: null });
 
     try {
+      await get().flushPassiveIncome();
       await logClientEvent('building_upgrade_request', { building_id: buildingId }, 'info');
 
       await apiClient.post('/upgrade', {
