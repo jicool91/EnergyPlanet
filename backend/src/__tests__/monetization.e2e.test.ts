@@ -39,6 +39,26 @@ const mockBoost = {
   expires_at: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
 };
 
+const mockBoostHub = {
+  server_time: new Date().toISOString(),
+  boosts: [
+    {
+      boost_type: 'daily_boost',
+      multiplier: 3,
+      duration_minutes: 120,
+      cooldown_minutes: 1440,
+      requires_premium: false,
+      active: {
+        id: 'boost-id',
+        expires_at: mockBoost.expires_at,
+        remaining_seconds: 3600,
+      },
+      cooldown_remaining_seconds: 0,
+      available_at: new Date().toISOString(),
+    },
+  ],
+};
+
 const mockPurchase = {
   purchase_id: 'purchase-123',
   status: 'succeeded',
@@ -85,6 +105,7 @@ jest.mock('../services/BoostService', () => ({
       createdAt: new Date(),
       userId: 'test-user-id',
     })),
+    getBoostHub: jest.fn(async () => mockBoostHub),
   },
 }));
 
@@ -171,6 +192,15 @@ describe('Monetization routes', () => {
     expect(response.body.boost).toMatchObject(mockBoost);
     const { boostService } = require('../services/BoostService');
     expect(boostService.claimBoost).toHaveBeenCalledWith('test-user-id', 'daily_boost');
+  });
+
+  it('GET /api/v1/boost returns boost hub data', async () => {
+    const response = await request(app).get('/api/v1/boost');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(mockBoostHub);
+    const { boostService } = require('../services/BoostService');
+    expect(boostService.getBoostHub).toHaveBeenCalledWith('test-user-id');
   });
 
   it('POST /api/v1/purchase records mock purchase', async () => {

@@ -44,6 +44,59 @@ export class BoostService {
     return BOOST_DEFINITIONS;
   }
 
+  async getBoostHub(userId: string) {
+    const definitions = this.getDefinitions();
+    const activeBoosts = await getActiveBoosts(userId);
+    const now = new Date();
+
+    const entries = await Promise.all(
+      (Object.keys(definitions) as BoostType[]).map(async boostType => {
+        const definition = definitions[boostType];
+        const active = activeBoosts.find(boost => boost.boostType === boostType) ?? null;
+
+        const lastClaim = await getLastBoostClaim(userId, boostType);
+        const availableAt = lastClaim
+          ? new Date(lastClaim.getTime() + definition.cooldownMinutes * 60_000)
+          : now;
+        const cooldownRemainingMs = Math.max(availableAt.getTime() - now.getTime(), 0);
+
+        let activePayload: null | {
+          id: string;
+          expires_at: string;
+          remaining_seconds: number;
+        } = null;
+
+        if (active) {
+          const remainingSeconds = Math.max(
+            Math.ceil((active.expiresAt.getTime() - now.getTime()) / 1000),
+            0
+          );
+          activePayload = {
+            id: active.id,
+            expires_at: active.expiresAt.toISOString(),
+            remaining_seconds: remainingSeconds,
+          };
+        }
+
+        return {
+          boost_type: boostType,
+          multiplier: definition.multiplier,
+          duration_minutes: definition.durationMinutes,
+          cooldown_minutes: definition.cooldownMinutes,
+          requires_premium: Boolean(definition.requiresPremium),
+          active: activePayload,
+          cooldown_remaining_seconds: Math.ceil(cooldownRemainingMs / 1000),
+          available_at: availableAt.toISOString(),
+        };
+      })
+    );
+
+    return {
+      server_time: now.toISOString(),
+      boosts: entries,
+    };
+  }
+
   async listBoosts(userId: string): Promise<BoostRecord[]> {
     return getActiveBoosts(userId);
   }

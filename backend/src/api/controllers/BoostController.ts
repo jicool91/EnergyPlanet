@@ -4,6 +4,19 @@ import { AppError } from '../../middleware/errorHandler';
 import { boostService } from '../../services/BoostService';
 
 export class BoostController {
+  list = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'unauthorized');
+      }
+
+      const hub = await boostService.getBoostHub(req.user.id);
+      res.status(200).json(hub);
+    } catch (error) {
+      next(error);
+    }
+  };
+
   claim = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {

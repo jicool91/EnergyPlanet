@@ -5,6 +5,7 @@
 import { useEffect, useState, useCallback, useMemo } from 'react';
 import { streakConfig, useGameStore } from '../store/gameStore';
 import { ShopPanel } from '../components/ShopPanel';
+import { BoostHub } from '../components/BoostHub';
 
 function formatLastSync(timestamp: number | null): string {
   if (!timestamp) {
@@ -37,7 +38,7 @@ function truncateMessage(message: string, maxLength = 140): string {
   return `${message.slice(0, maxLength - 1)}…`;
 }
 
-type TabKey = 'home' | 'buildings' | 'leaderboard' | 'profile' | 'shop';
+type TabKey = 'home' | 'shop' | 'boosts' | 'leaderboard' | 'profile';
 
 export function MainScreen() {
   const {
@@ -81,7 +82,7 @@ export function MainScreen() {
     () => [
       { key: 'home', label: 'Главная', icon: '🏠' },
       { key: 'shop', label: 'Магазин', icon: '🛍️' },
-      { key: 'buildings', label: 'Постройки', icon: '🏗️' },
+      { key: 'boosts', label: 'Boost Hub', icon: '🚀' },
       { key: 'leaderboard', label: 'Рейтинг', icon: '🏆' },
       { key: 'profile', label: 'Профиль', icon: '👤' },
     ],
@@ -178,7 +179,13 @@ export function MainScreen() {
         </div>
       )}
 
-      {activeTab !== 'home' && activeTab !== 'shop' && (
+      {activeTab === 'boosts' && (
+        <div className="tab-content">
+          <BoostHub />
+        </div>
+      )}
+
+      {activeTab !== 'home' && activeTab !== 'shop' && activeTab !== 'boosts' && (
         <div className="tab-content soon">
           <div className="coming-soon">Раздел в разработке</div>
         </div>

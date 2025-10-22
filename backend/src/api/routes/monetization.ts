@@ -17,7 +17,7 @@ router.post('/purchase/webhook', purchaseController.webhook);
 router.get('/purchase/packs', authenticate, purchaseController.packs);
 router.post('/cosmetics/equip', authenticate, cosmeticController.equip);
 
-// TODO: Implement boost claims
+router.get('/boost', authenticate, boostController.list);
 router.post('/boost/claim', authenticate, boostController.claim);
 
 export default router;

@@ -15,6 +15,7 @@ import {
   CosmeticItem,
 } from '../services/cosmetics';
 import { fetchStarPacks, StarPack } from '../services/starPacks';
+import { fetchBoostHub, BoostHubItem, claimBoost as claimBoostApi } from '../services/boosts';
 
 const STREAK_RESET_MS = 4000;
 const STREAK_CRIT_THRESHOLD = 25;
@@ -50,6 +51,11 @@ interface GameState {
   isStarPacksLoading: boolean;
   starPacksError: string | null;
   isProcessingStarPackId: string | null;
+  boostHub: BoostHubItem[];
+  boostHubLoaded: boolean;
+  isBoostHubLoading: boolean;
+  boostHubError: string | null;
+  isClaimingBoostType: string | null;
   sessionLastSyncedAt: number | null;
   sessionErrorMessage: string | null;
 
@@ -73,6 +79,8 @@ interface GameState {
   equipCosmetic: (cosmeticId: string) => Promise<void>;
   loadStarPacks: (force?: boolean) => Promise<void>;
   purchaseStarPack: (packId: string) => Promise<void>;
+  loadBoostHub: (force?: boolean) => Promise<void>;
+  claimBoost: (boostType: string) => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
@@ -119,6 +127,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   isStarPacksLoading: false,
   starPacksError: null,
   isProcessingStarPackId: null,
+  boostHub: [],
+  boostHubLoaded: false,
+  isBoostHubLoading: false,
+  boostHubError: null,
+  isClaimingBoostType: null,
   sessionLastSyncedAt: null,
   sessionErrorMessage: null,
   isLoading: true,
@@ -542,6 +555,65 @@ export const useGameStore = create<GameState>((set, get) => ({
       throw error;
     } finally {
       set({ isProcessingStarPackId: null });
+    }
+  },
+
+  loadBoostHub: async (force = false) => {
+    const { boostHubLoaded, isBoostHubLoading } = get();
+    if (!force && (boostHubLoaded || isBoostHubLoading)) {
+      return;
+    }
+
+    set({ isBoostHubLoading: true, boostHubError: null });
+
+    try {
+      const response = await fetchBoostHub();
+      set({
+        boostHub: response.boosts,
+        boostHubLoaded: true,
+        isBoostHubLoading: false,
+        boostHubError: null,
+      });
+    } catch (error) {
+      const { message } = describeError(error);
+      set({ boostHubError: message || 'Не удалось загрузить бусты', isBoostHubLoading: false });
+      await logClientEvent(
+        'boost_hub_load_failed',
+        { message },
+        'warn'
+      );
+    }
+  },
+
+  claimBoost: async (boostType: string) => {
+    const { isClaimingBoostType } = get();
+    if (isClaimingBoostType === boostType) {
+      return;
+    }
+
+    set({ isClaimingBoostType: boostType, boostHubError: null });
+
+    try {
+      await logClientEvent('boost_claim_request', { boost_type: boostType }, 'info');
+      await claimBoostApi(boostType);
+      await logClientEvent('boost_claim_success', { boost_type: boostType }, 'info');
+      await get().loadBoostHub(true);
+      await get().refreshSession();
+    } catch (error) {
+      const { status, message } = describeError(error);
+      await logClientEvent(
+        'boost_claim_error',
+        {
+          boost_type: boostType,
+          status,
+          message,
+        },
+        'warn'
+      );
+      set({ boostHubError: message || 'Не удалось активировать буст' });
+      throw error;
+    } finally {
+      set({ isClaimingBoostType: null });
     }
   },
 }));
