@@ -92,11 +92,11 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
               bounce: 0.6,
               duration: 0.8,
             }}
-            className="relative"
+            className="relative will-animate"
           >
             {/* Glow effect behind number */}
             <motion.div
-              className="absolute inset-0 rounded-full blur-3xl bg-gradient-to-br from-cyan/40 to-lime/40 pointer-events-none"
+              className="absolute inset-0 rounded-full blur-3xl bg-gradient-to-br from-cyan/40 to-lime/40 pointer-events-none will-transform"
               animate={{
                 scale: [1, 1.2, 1],
                 opacity: [0.5, 1, 0.5],
@@ -109,7 +109,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
 
             {/* Level number */}
             <motion.div
-              className="relative text-[180px] font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan via-lime to-gold drop-shadow-[0_0_30px_rgba(0,217,255,0.6)]"
+              className="relative text-[180px] font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan via-lime to-gold drop-shadow-[0_0_30px_rgba(0,217,255,0.6)] will-transform"
               animate={{
                 scale: [1, 1.1, 1],
               }}

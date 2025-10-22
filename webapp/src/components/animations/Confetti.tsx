@@ -1,10 +1,12 @@
 /**
  * Confetti Animation Component
  * Displays falling confetti particles on success events
+ * Adapts particle count based on device capabilities
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useDeviceCapabilities } from '@/hooks/useDeviceCapabilities';
 
 interface ConfettiProps {
   count?: number;
@@ -26,15 +28,29 @@ const colors = ['#00d9ff', '#48ffad', '#ffd700', '#ff8d4d'];
 /**
  * Confetti: Generates falling confetti particles
  * Each particle has random position, rotation, size, and color
+ * Adapts particle count based on device capabilities
  */
 export const Confetti: React.FC<ConfettiProps> = ({
   count = 30,
   duration = 2.5,
 }) => {
+  const capabilities = useDeviceCapabilities();
+  const [isReady, setIsReady] = useState(false);
+
+  // Use adaptive particle count based on device capabilities
+  const adaptiveCount = Math.min(count, capabilities.maxParticles);
+
+  // Lazy initialize particles only when component mounts
+  useEffect(() => {
+    setIsReady(true);
+  }, []);
+
   const particles = useMemo<Particle[]>(() => {
+    if (!isReady) return [];
+
     const result: Particle[] = [];
 
-    for (let i = 0; i < count; i++) {
+    for (let i = 0; i < adaptiveCount; i++) {
       result.push({
         id: i,
         left: `${Math.random() * 100}%`,
@@ -47,14 +63,14 @@ export const Confetti: React.FC<ConfettiProps> = ({
     }
 
     return result;
-  }, [count, duration]);
+  }, [adaptiveCount, duration, isReady]);
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
       {particles.map((particle) => (
         <motion.div
           key={particle.id}
-          className="absolute rounded-full"
+          className="absolute rounded-full will-transform"
           style={{
             left: particle.left,
             top: 0,

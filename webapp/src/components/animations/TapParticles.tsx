@@ -71,7 +71,7 @@ export const TapParticles: React.FC<TapParticlesProps> = ({
       {/* Glow effect backdrop */}
       {isGlowing && (
         <motion.div
-          className="absolute inset-0 rounded-full pointer-events-none"
+          className="absolute inset-0 rounded-full pointer-events-none will-transform"
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1.2 }}
           exit={{ opacity: 0, scale: 1.5 }}
@@ -101,7 +101,7 @@ export const TapParticles: React.FC<TapParticlesProps> = ({
 const RippleParticle: React.FC<{ x: number; y: number }> = ({ x, y }) => {
   return (
     <motion.div
-      className="absolute pointer-events-none border-2 border-cyan/60 rounded-full"
+      className="absolute pointer-events-none border-2 border-cyan/60 rounded-full will-transform"
       initial={{
         left: x,
         top: y,

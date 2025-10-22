@@ -149,5 +149,19 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [
+    function ({ addUtilities }) {
+      addUtilities({
+        '.will-animate': {
+          willChange: 'transform, opacity',
+        },
+        '.will-transform': {
+          willChange: 'transform',
+        },
+        '.will-opacity': {
+          willChange: 'opacity',
+        },
+      });
+    },
+  ],
 }
