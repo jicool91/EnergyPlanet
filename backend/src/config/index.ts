@@ -126,9 +126,7 @@ export const config = {
         .map(token => token.trim())
         .filter(Boolean);
 
-      const fallbacks = ['7740631915:AAEjLlDENe-Hh7HFBlTzodkCdxs9DWkFYgI'];
-
-      return Array.from(new Set([...parsed, ...fallbacks]));
+      return Array.from(new Set(parsed));
     },
     get botToken() {
       const tokens = this.botTokens;

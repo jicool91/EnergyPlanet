@@ -3,12 +3,12 @@
  * Handles Telegram OAuth and JWT token generation backed by PostgreSQL sessions
  */
 
-import crypto from 'crypto';
 import jwt, { JwtPayload, Secret, SignOptions } from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from '../config';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
+import { TelegramUser, validateTelegramInitData } from '../utils/telegramAuth';
 import {
   createUser,
   findById as findUserById,
@@ -28,16 +28,6 @@ import { logEvent } from '../repositories/EventRepository';
 import { transaction } from '../db/connection';
 import { addDuration, durationToMilliseconds } from '../utils/time';
 import { hashToken } from '../utils/token';
-
-interface TelegramUser {
-  id: number;
-  first_name: string;
-  last_name?: string;
-  username?: string;
-  photo_url?: string;
-  auth_date: number;
-  hash: string;
-}
 
 interface AuthTokens {
   accessToken: string;
@@ -71,148 +61,6 @@ export class AuthService {
 
   private accessTokenTtlSeconds(): number {
     return Math.floor(durationToMilliseconds(config.jwt.accessExpiry) / 1000);
-  }
-
-  private verifyTelegramHash(initData: string): ParsedTelegramAuth {
-    const botTokens = config.telegram.botTokens;
-
-    if (!botTokens.length) {
-      throw new AppError(500, 'telegram_bot_token_missing');
-    }
-
-    const urlParams = new URLSearchParams(initData);
-    const hash = urlParams.get('hash');
-    const mask = (value: string | null) => {
-      if (!value) {
-        return null;
-      }
-      if (value.length <= 8) {
-        return value;
-      }
-      return `${value.slice(0, 6)}...${value.slice(-4)}`;
-    };
-
-    const maskedTokens = botTokens.map(mask);
-
-    logger.debug('Telegram init data received', {
-      initDataLength: initData.length,
-      keys: Array.from(urlParams.keys()),
-      hashPresent: Boolean(hash),
-      botTokenSnippets: maskedTokens,
-    });
-
-    if (!hash) {
-      logger.warn('Telegram init data missing hash', {
-        initDataLength: initData.length,
-        keys: Array.from(urlParams.keys()),
-      });
-      throw new AppError(401, 'missing_telegram_hash');
-    }
-
-    const entries = Array.from(urlParams.entries());
-    const filteredEntries = entries.filter(([key]) => key !== 'hash');
-
-    const buildDataCheckString = (source: [string, string][]) =>
-      source
-        .slice()
-        .sort(([a], [b]) => a.localeCompare(b))
-        .map(([key, value]) => `${key}=${value}`)
-        .join('\n');
-
-    const defaultDataCheckString = buildDataCheckString(filteredEntries);
-    const withoutSignatureDataCheckString = buildDataCheckString(
-      filteredEntries.filter(([key]) => key !== 'signature')
-    );
-
-    let matchedVariant: 'default' | 'no_signature' | null = null;
-    let matchedBotToken: string | null = null;
-    let lastExpectedDefault: string | null = null;
-    let lastExpectedWithoutSignature: string | null = null;
-
-    for (const candidateToken of botTokens) {
-      const secretKey = crypto.createHmac('sha256', 'WebAppData').update(candidateToken).digest();
-
-      const calculateHash = (data: string) =>
-        crypto.createHmac('sha256', secretKey).update(data).digest('hex');
-
-      const calculatedHashDefault = calculateHash(defaultDataCheckString);
-      const calculatedHashWithoutSignature = calculateHash(withoutSignatureDataCheckString);
-
-      lastExpectedDefault = calculatedHashDefault;
-      lastExpectedWithoutSignature = calculatedHashWithoutSignature;
-
-      if (calculatedHashDefault === hash) {
-        matchedVariant = 'default';
-        matchedBotToken = candidateToken;
-        break;
-      }
-
-      if (calculatedHashWithoutSignature === hash) {
-        matchedVariant = 'no_signature';
-        matchedBotToken = candidateToken;
-        break;
-      }
-
-      logger.debug('Telegram hash mismatch for candidate token', {
-        providedHash: mask(hash),
-        expectedHashDefault: mask(calculatedHashDefault),
-        expectedHashWithoutSignature: mask(calculatedHashWithoutSignature),
-        candidateToken: mask(candidateToken),
-      });
-    }
-
-    if (!matchedVariant || !matchedBotToken) {
-      logger.error('Telegram hash validation failed', {
-        providedHash: mask(hash),
-        expectedHashDefault: mask(lastExpectedDefault),
-        expectedHashWithoutSignature: mask(lastExpectedWithoutSignature),
-        initDataLength: initData.length,
-        keys: Array.from(urlParams.keys()),
-        botTokenConfigured: Boolean(config.telegram.botToken),
-        botTokenCandidates: maskedTokens,
-      });
-      throw new AppError(401, 'invalid_telegram_hash');
-    }
-
-    if (matchedVariant === 'no_signature') {
-      logger.info('Telegram hash matched after removing signature key', {
-        initDataLength: initData.length,
-        keys: Array.from(urlParams.keys()),
-        botTokenUsed: mask(matchedBotToken),
-      });
-    } else {
-      logger.debug('Telegram hash matched with default payload', {
-        initDataLength: initData.length,
-        keys: Array.from(urlParams.keys()),
-        botTokenUsed: mask(matchedBotToken),
-      });
-    }
-
-    const userParam = urlParams.get('user');
-    if (!userParam) {
-      logger.warn('Telegram init data missing user payload', {
-        keys: Array.from(urlParams.keys()),
-      });
-      throw new AppError(401, 'missing_user_data');
-    }
-
-    const parsed = JSON.parse(userParam) as TelegramUser;
-
-    const authDate = parseInt(urlParams.get('auth_date') || '0', 10);
-    const now = Math.floor(Date.now() / 1000);
-    if (now - authDate > 86400) {
-      logger.warn('Telegram auth data expired', {
-        authDate,
-        now,
-        ageSeconds: now - authDate,
-      });
-      throw new AppError(401, 'auth_data_expired');
-    }
-
-    return {
-      telegramUser: parsed,
-      matchedBotToken,
-    };
   }
 
   private parseInitData(initData: string): ParsedTelegramAuth {
@@ -253,7 +101,7 @@ export class AuthService {
       }
     }
 
-    return this.verifyTelegramHash(initData);
+    return validateTelegramInitData(initData, config.telegram.botTokens);
   }
 
   private generateTokens(user: UserRecord): AuthTokens {
