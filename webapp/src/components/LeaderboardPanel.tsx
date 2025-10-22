@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { LeaderboardSkeleton, ErrorBoundary } from './skeletons';
 
 export function LeaderboardPanel() {
   const {
@@ -22,17 +23,19 @@ export function LeaderboardPanel() {
 
   if (!leaderboardLoaded && isLeaderboardLoading) {
     return (
-      <div className="p-0 flex flex-col gap-4 items-center justify-center text-center text-white/70">
-        <p>Загружаем таблицу лидеров…</p>
-      </div>
+      <ErrorBoundary>
+        <LeaderboardSkeleton count={5} />
+      </ErrorBoundary>
     );
   }
 
   if (leaderboardError) {
     return (
-      <div className="p-0 flex flex-col gap-4 items-center justify-center text-center text-white/70">
-        <p>Не удалось получить рейтинг.</p>
-        <small>{leaderboardError}</small>
+      <div className="p-0 flex flex-col gap-4">
+        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">
+          <p className="m-0 mb-2">Не удалось получить рейтинг.</p>
+          <small className="text-white/60">{leaderboardError}</small>
+        </div>
       </div>
     );
   }

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { ShopSkeleton, ErrorBoundary } from './skeletons';
 
 type CategoryOption = {
   id: string;
@@ -168,7 +169,9 @@ export function ShopPanel() {
       <div className="flex flex-col gap-4 p-0">
         {activeSection === 'star_packs' ? (
           isStarPacksLoading && starPacks.length === 0 ? (
-            <div className="p-6 text-center text-white/70 text-sm">Получаем паки Stars…</div>
+            <ErrorBoundary>
+              <ShopSkeleton count={3} />
+            </ErrorBoundary>
           ) : (
             starPacks.map(pack => {
               const processing = isProcessingStarPackId === pack.id;
@@ -214,7 +217,9 @@ export function ShopPanel() {
             })
           )
         ) : isCosmeticsLoading && filteredCosmetics.length === 0 ? (
-          <div className="p-6 text-center text-white/70 text-sm">Загрузка ассортимента…</div>
+          <ErrorBoundary>
+            <ShopSkeleton count={4} />
+          </ErrorBoundary>
         ) : (
           filteredCosmetics.map(cosmetic => {
             const processing = isProcessingCosmeticId === cosmetic.id;

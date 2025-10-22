@@ -1,6 +1,7 @@
 import { useMemo, useEffect } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { BuildingCard } from './BuildingCard';
+import { BuildingSkeleton, ErrorBoundary } from './skeletons';
 
 export function BuildingsPanel() {
   const {
@@ -71,10 +72,22 @@ export function BuildingsPanel() {
         <div className="text-[13px] text-white/75 font-semibold">Энергия: {Math.floor(energy).toLocaleString()}</div>
       </div>
 
-      {buildingsError && <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">{buildingsError}</div>}
+      {buildingsError && (
+        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px] flex items-center justify-between">
+          <span>{buildingsError}</span>
+          <button
+            onClick={() => loadBuildingCatalog()}
+            className="text-xs px-2 py-1 bg-red-error/20 hover:bg-red-error/30 rounded transition-colors"
+          >
+            Переload
+          </button>
+        </div>
+      )}
 
       {isBuildingCatalogLoading && sortedBuildings.length === 0 ? (
-        <div className="p-4 text-white/65 text-center">Загружаем данные построек…</div>
+        <ErrorBoundary>
+          <BuildingSkeleton count={3} />
+        </ErrorBoundary>
       ) : sortedBuildings.length === 0 ? (
         <div className="p-4 rounded-[14px] border border-dashed border-cyan/30 text-white/65 text-center">Постройки пока недоступны. Продвигайтесь по уровням, чтобы разблокировать их.</div>
       ) : (

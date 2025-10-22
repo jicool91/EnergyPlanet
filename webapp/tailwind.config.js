@@ -52,6 +52,7 @@ export default {
         'ripple': 'ripple 0.8s ease-out',
         'bounce-in': 'bounceIn 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55)',
         'confetti': 'confetti 2.5s ease-in',
+        'shimmer': 'shimmer 2s infinite',
       },
       keyframes: {
         'pulse': {
@@ -140,6 +141,14 @@ export default {
           '100%': {
             transform: 'translateY(500px) rotate(720deg)',
             opacity: '0',
+          },
+        },
+        'shimmer': {
+          '0%': {
+            backgroundPosition: '-1000px 0',
+          },
+          '100%': {
+            backgroundPosition: '1000px 0',
           },
         },
       },
