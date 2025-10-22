@@ -8,6 +8,7 @@ import { MainScreen } from './screens/MainScreen';
 import { AuthErrorModal } from './components/AuthErrorModal';
 import { OfflineSummaryModal } from './components/OfflineSummaryModal';
 import './App.css';
+import { withTelegramBackButton } from './services/telegram';
 
 function App() {
   const initGame = useGameStore(state => state.initGame);
@@ -55,6 +56,22 @@ function App() {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
   }, [isInitialized, logoutSession, refreshSession]);
+
+  useEffect(() => {
+    if (!isAuthModalOpen && !offlineSummary) {
+      return;
+    }
+
+    const backHandler = () => {
+      if (isAuthModalOpen) {
+        dismissAuthError();
+      } else if (offlineSummary) {
+        acknowledgeOfflineSummary();
+      }
+    };
+
+    return withTelegramBackButton(backHandler);
+  }, [isAuthModalOpen, offlineSummary, dismissAuthError, acknowledgeOfflineSummary]);
 
   return (
     <div className="app">

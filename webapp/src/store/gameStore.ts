@@ -17,6 +17,7 @@ import {
 import { fetchStarPacks, StarPack } from '../services/starPacks';
 import { fetchBoostHub, BoostHubItem, claimBoost as claimBoostApi } from '../services/boosts';
 import { fetchBuildingCatalog, BuildingDefinition } from '../services/buildings';
+import { getTelegramInitData, triggerHapticImpact } from '../services/telegram';
 
 interface BuildingState {
   buildingId: string;
@@ -191,7 +192,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ isLoading: true, authErrorMessage: null, isAuthModalOpen: false, sessionErrorMessage: null });
 
       // Authenticate with Telegram
-      const initData = window.Telegram?.WebApp?.initData || '';
+      const initData = getTelegramInitData();
       const authResponse = await postQueue.enqueue(() => apiClient.post('/auth/telegram', { initData }));
 
       // Store tokens
@@ -303,6 +304,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       const previousStreak = get().streakCount;
       const newStreak = previousStreak + count;
       const isCritical = newStreak > 0 && newStreak % STREAK_CRIT_THRESHOLD === 0;
+
+      triggerHapticImpact(isCritical ? 'heavy' : 'light');
 
       set(state => ({
         energy: Math.max(

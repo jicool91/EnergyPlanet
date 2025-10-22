@@ -71,15 +71,12 @@ export async function completeCosmeticPurchase(
 
   const invoiceResponse = await apiClient.post<InvoiceResponse>('/purchase/invoice', invoicePayload);
 
-  const telegram = typeof window !== 'undefined' ? window.Telegram : undefined;
-  const hasTelegramInvoice =
-    telegram?.WebApp && typeof telegram.WebApp.openInvoice === 'function';
+  const openInvoice =
+    typeof window !== 'undefined' ? window.Telegram?.WebApp?.openInvoice : undefined;
 
-  if (hasTelegramInvoice && invoiceResponse.data.invoice?.pay_url) {
+  if (typeof openInvoice === 'function' && invoiceResponse.data.invoice?.purchase_id) {
     try {
-      await telegram!.WebApp.openInvoice(invoiceResponse.data.invoice.purchase_id, () => {
-        /* no-op callback for compatibility */
-      });
+      await openInvoice(invoiceResponse.data.invoice.purchase_id);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.warn('openInvoice failed, falling back to mock completion', error);

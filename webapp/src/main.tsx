@@ -6,21 +6,9 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { initializeTelegramWebApp } from './services/telegram';
 
-// Initialize Telegram WebApp
-declare global {
-  interface Window {
-    Telegram?: {
-      WebApp: any;
-    };
-  }
-}
-
-if (window.Telegram?.WebApp) {
-  const tg = window.Telegram.WebApp;
-  tg.ready();
-  tg.expand();
-}
+initializeTelegramWebApp();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
