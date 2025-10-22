@@ -8,6 +8,7 @@ import { ShopPanel } from '../components/ShopPanel';
 import { BoostHub } from '../components/BoostHub';
 import { BuildingsPanel } from '../components/BuildingsPanel';
 import { LeaderboardPanel } from '../components/LeaderboardPanel';
+import { ProfilePanel } from '../components/ProfilePanel';
 
 function formatLastSync(timestamp: number | null): string {
   if (!timestamp) {
@@ -60,6 +61,7 @@ export function MainScreen() {
     sessionErrorMessage,
     refreshSession,
     loadLeaderboard,
+    loadProfile,
   } = useGameStore();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -86,6 +88,12 @@ export function MainScreen() {
       loadLeaderboard();
     }
   }, [activeTab, loadLeaderboard]);
+
+  useEffect(() => {
+    if (activeTab === 'profile') {
+      loadProfile();
+    }
+  }, [activeTab, loadProfile]);
 
   const tabButtons: { key: TabKey; label: string; icon: string }[] = useMemo(
     () => [
@@ -207,7 +215,18 @@ export function MainScreen() {
         </div>
       )}
 
-      {activeTab !== 'home' && activeTab !== 'shop' && activeTab !== 'boosts' && activeTab !== 'builds' && (
+      {activeTab === 'profile' && (
+        <div className="tab-content">
+          <ProfilePanel />
+        </div>
+      )}
+
+      {activeTab !== 'home' &&
+        activeTab !== 'shop' &&
+        activeTab !== 'boosts' &&
+        activeTab !== 'builds' &&
+        activeTab !== 'leaderboard' &&
+        activeTab !== 'profile' && (
         <div className="tab-content soon">
           <div className="coming-soon">Раздел в разработке</div>
         </div>

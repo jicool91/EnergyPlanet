@@ -19,6 +19,7 @@ import { fetchBoostHub, BoostHubItem, claimBoost as claimBoostApi } from '../ser
 import { fetchBuildingCatalog, BuildingDefinition } from '../services/buildings';
 import { getTelegramInitData, triggerHapticImpact } from '../services/telegram';
 import { fetchLeaderboard, LeaderboardUserEntry } from '../services/leaderboard';
+import { fetchProfile, ProfileResponse } from '../services/profile';
 import { authStore } from './authStore';
 import { uiStore } from './uiStore';
 
@@ -83,6 +84,10 @@ interface GameState {
   leaderboardError: string | null;
   leaderboardTotal: number;
   userLeaderboardEntry: LeaderboardUserEntry | null;
+  profile: ProfileResponse | null;
+  profileBoosts: ProfileResponse['boosts'];
+  isProfileLoading: boolean;
+  profileError: string | null;
 
   // Game state
   isLoading: boolean;
@@ -108,6 +113,7 @@ interface GameState {
   logoutSession: (useKeepAlive?: boolean) => Promise<void>;
   loadBuildingCatalog: (force?: boolean) => Promise<void>;
   loadLeaderboard: (force?: boolean) => Promise<void>;
+  loadProfile: (force?: boolean) => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
@@ -186,6 +192,10 @@ export const useGameStore = create<GameState>((set, get) => ({
   leaderboardError: null,
   leaderboardTotal: 0,
   userLeaderboardEntry: null,
+  profile: null,
+  profileBoosts: [],
+  isProfileLoading: false,
+  profileError: null,
   isLoading: true,
   isInitialized: false,
 
@@ -893,6 +903,32 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({
         leaderboardError: message,
         isLeaderboardLoading: false,
+      });
+    }
+  },
+
+  loadProfile: async (force = false) => {
+    const { userId, profile, isProfileLoading } = get();
+    if (!userId) {
+      return;
+    }
+    if (!force && (profile?.user.id === userId || isProfileLoading)) {
+      return;
+    }
+
+    set({ isProfileLoading: true, profileError: null });
+    try {
+      const response = await fetchProfile(userId);
+      set({
+        profile: response,
+        profileBoosts: response.boosts,
+        isProfileLoading: false,
+      });
+    } catch (error) {
+      const { message } = describeError(error);
+      set({
+        profileError: message,
+        isProfileLoading: false,
       });
     }
   },
