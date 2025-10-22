@@ -1,16 +1,18 @@
 .app {
   width: 100%;
-  height: 100vh;
+  min-height: var(--tg-viewport-height, 100vh);
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #0a0e27 0%, #000000 100%);
+  padding-left: var(--tg-safe-area-left);
+  padding-right: var(--tg-safe-area-right);
 }
 
 .loading-screen {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100vh;
+  min-height: var(--tg-viewport-height, 100vh);
   font-size: 18px;
 }
 
@@ -22,7 +24,7 @@
 }
 
 .header {
-  padding: 20px;
+  padding: calc(20px + var(--tg-safe-area-top)) 20px 20px;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -134,7 +136,7 @@
 .footer {
   display: flex;
   justify-content: space-around;
-  padding: 10px;
+  padding: 10px 10px calc(10px + var(--tg-content-safe-area-bottom));
   background: rgba(0, 0, 0, 0.8);
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
@@ -175,7 +177,7 @@
 .tab-content {
   flex: 1;
   overflow-y: auto;
-  padding: 16px 0 8px;
+  padding: 16px 0 calc(16px + var(--tg-content-safe-area-bottom));
 }
 
 .tab-content.soon {

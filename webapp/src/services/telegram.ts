@@ -17,10 +17,18 @@ export type TelegramThemeParams = Partial<Record<ThemeColorKey, string>> & {
   bottom_bar_color?: string;
 };
 
+type TelegramSafeArea = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
 type TelegramWebAppEvents =
   | 'themeChanged'
   | 'viewportChanged'
-  | 'backButtonClicked';
+  | 'backButtonClicked'
+  | 'safe_area_changed';
 
 type TelegramHapticStyle = 'light' | 'medium' | 'heavy' | 'rigid' | 'soft';
 type TelegramHapticNotification = 'error' | 'success' | 'warning';
@@ -53,6 +61,10 @@ interface TelegramWebApp {
   platform: string;
   colorScheme: 'light' | 'dark';
   themeParams: TelegramThemeParams;
+  safeAreaInset?: TelegramSafeArea;
+  contentSafeAreaInset?: TelegramSafeArea;
+  viewportHeight?: number;
+  viewportStableHeight?: number;
   ready(): void;
   expand(): void;
   close(): void;
@@ -63,15 +75,21 @@ interface TelegramWebApp {
   openInvoice?: (slug: string, callback?: (status?: unknown) => void) => Promise<unknown>;
   onEvent<EventName extends TelegramWebAppEvents>(
     eventType: EventName,
-    handler: EventName extends 'viewportChanged'
-      ? (event: TelegramViewportEvent) => void
-      : () => void
+    handler:
+      EventName extends 'viewportChanged'
+        ? (event: TelegramViewportEvent) => void
+        : EventName extends 'safe_area_changed'
+          ? (inset: TelegramSafeArea) => void
+          : () => void
   ): void;
   offEvent<EventName extends TelegramWebAppEvents>(
     eventType: EventName,
-    handler: EventName extends 'viewportChanged'
-      ? (event: TelegramViewportEvent) => void
-      : () => void
+    handler:
+      EventName extends 'viewportChanged'
+        ? (event: TelegramViewportEvent) => void
+        : EventName extends 'safe_area_changed'
+          ? (inset: TelegramSafeArea) => void
+          : () => void
   ): void;
   BackButton?: TelegramBackButton;
   HapticFeedback?: TelegramHapticFeedback;
@@ -169,6 +187,40 @@ function applyTheme(theme: TelegramThemeParams | undefined) {
   });
 }
 
+function applySafeArea(options: {
+  safe?: TelegramSafeArea;
+  content?: TelegramSafeArea;
+}) {
+  const root = document.documentElement;
+  const safe = options.safe ?? { top: 0, right: 0, bottom: 0, left: 0 };
+  const content = options.content ?? safe;
+
+  root.style.setProperty('--tg-safe-area-top', `${safe.top}px`);
+  root.style.setProperty('--tg-safe-area-right', `${safe.right}px`);
+  root.style.setProperty('--tg-safe-area-bottom', `${safe.bottom}px`);
+  root.style.setProperty('--tg-safe-area-left', `${safe.left}px`);
+
+  root.style.setProperty('--tg-content-safe-area-top', `${content.top}px`);
+  root.style.setProperty('--tg-content-safe-area-right', `${content.right}px`);
+  root.style.setProperty('--tg-content-safe-area-bottom', `${content.bottom}px`);
+  root.style.setProperty('--tg-content-safe-area-left', `${content.left}px`);
+}
+
+function applyViewportVars(webApp: TelegramWebApp | null) {
+  const root = document.documentElement;
+  if (!webApp) {
+    return;
+  }
+
+  if (typeof webApp.viewportHeight === 'number') {
+    root.style.setProperty('--tg-viewport-height', `${webApp.viewportHeight}px`);
+  }
+
+  if (typeof webApp.viewportStableHeight === 'number') {
+    root.style.setProperty('--tg-viewport-stable-height', `${webApp.viewportStableHeight}px`);
+  }
+}
+
 /**
  * Initialize Telegram WebApp integrations.
  * Safe to call multiple times.
@@ -190,16 +242,29 @@ export function initializeTelegramWebApp(): void {
     webApp.expand();
     webApp.disableVerticalSwipes();
     applyTheme(webApp.themeParams);
+    applySafeArea({
+      safe: webApp.safeAreaInset,
+      content: webApp.contentSafeAreaInset,
+    });
+    applyViewportVars(webApp);
 
     const handleThemeChange = () => applyTheme(webApp.themeParams);
     const handleViewportChange = (event: TelegramViewportEvent) => {
       if (!event.isExpanded) {
         webApp.expand();
       }
+      applyViewportVars(webApp);
+    };
+    const handleSafeAreaChange = () => {
+      applySafeArea({
+        safe: webApp.safeAreaInset,
+        content: webApp.contentSafeAreaInset,
+      });
     };
 
     webApp.onEvent('themeChanged', handleThemeChange);
     webApp.onEvent('viewportChanged', handleViewportChange);
+    webApp.onEvent('safe_area_changed', handleSafeAreaChange);
 
     initialized = true;
   } catch (error) {
