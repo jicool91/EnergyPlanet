@@ -18,32 +18,45 @@ export function BuildingsPanel() {
     loadBuildingCatalog();
   }, [loadBuildingCatalog]);
 
-  const sortedBuildings = useMemo(
-    () => {
-      const merged = buildingCatalog.map(def => {
-        const owned = buildings.find(b => b.buildingId === def.id);
+  const sortedBuildings = useMemo(() => {
+    const merged = buildingCatalog.map(def => {
+      const owned = buildings.find(b => b.buildingId === def.id);
 
-        return {
-          ...def,
-          count: owned?.count ?? 0,
-          level: owned?.level ?? 0,
-          incomePerSec: owned?.incomePerSec ?? def.base_income,
-          nextCost: owned?.nextCost ?? def.base_cost,
-          nextUpgradeCost: owned?.nextUpgradeCost ?? Math.round(def.base_cost * 5),
-        };
-      });
+      return {
+        ...def,
+        count: owned?.count ?? 0,
+        level: owned?.level ?? 0,
+        incomePerSec: owned?.incomePerSec ?? def.base_income,
+        nextCost: owned?.nextCost ?? def.base_cost,
+        nextUpgradeCost: owned?.nextUpgradeCost ?? Math.round((def.base_cost ?? 0) * 5),
+      };
+    });
 
-      return merged.sort((a, b) => {
-        if (a.unlock_level === b.unlock_level) {
-          return (a.base_cost ?? 0) - (b.base_cost ?? 0);
+    return merged.sort((a, b) => {
+      if (a.unlock_level === b.unlock_level) {
+        return (a.base_cost ?? 0) - (b.base_cost ?? 0);
+      }
+      if (a.unlock_level === null) return 1;
+      if (b.unlock_level === null) return -1;
+      return (a.unlock_level ?? 0) - (b.unlock_level ?? 0);
+    });
+  }, [buildings, buildingCatalog]);
+
+  const bestPaybackId = useMemo(() => {
+    let bestId: string | null = null;
+    let bestValue = Number.POSITIVE_INFINITY;
+
+    for (const building of sortedBuildings) {
+      if (building.payback_seconds && building.payback_seconds > 0) {
+        if (building.payback_seconds < bestValue) {
+          bestValue = building.payback_seconds;
+          bestId = building.id;
         }
-        if (a.unlock_level === null) return 1;
-        if (b.unlock_level === null) return -1;
-        return a.unlock_level - b.unlock_level;
-      });
-    },
-    [buildings, buildingCatalog]
-  );
+      }
+    }
+
+    return bestId;
+  }, [sortedBuildings]);
 
   return (
     <div className="buildings-panel">
@@ -72,7 +85,10 @@ export function BuildingsPanel() {
               : '—';
 
             return (
-              <div key={building.id} className="buildings-card">
+              <div
+                key={building.id}
+                className={`buildings-card${bestPaybackId === building.id ? ' recommended' : ''}`}
+              >
                 <div className="buildings-card-header">
                   <h3>{building.name}</h3>
                   <span className="buildings-count">×{building.count}</span>

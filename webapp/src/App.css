@@ -624,6 +624,26 @@
   box-shadow: 0 18px 40px rgba(7, 12, 35, 0.35);
 }
 
+.buildings-card.recommended {
+  border-color: rgba(72, 255, 173, 0.6);
+  box-shadow: 0 20px 48px rgba(72, 255, 173, 0.35);
+  position: relative;
+}
+
+.buildings-card.recommended::after {
+  content: 'Лучший ROI';
+  position: absolute;
+  top: -10px;
+  right: 16px;
+  background: linear-gradient(135deg, rgba(72, 255, 173, 0.9), rgba(0, 217, 255, 0.9));
+  color: #04121a;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.5px;
+}
+
 .buildings-card-header {
   display: flex;
   justify-content: space-between;
