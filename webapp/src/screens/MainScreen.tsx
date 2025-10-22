@@ -134,103 +134,105 @@ export function MainScreen() {
 
   return (
     <div className="main-screen">
-      <div
-        className={`streak-banner${streakCount > 0 ? ' active' : ''}${
-          isCriticalStreak ? ' critical' : ''
-        }`}
-      >
-        <span className="streak-label">Комбо</span>
-        <span className="streak-count">{streakCount}</span>
-        <span className="streak-best">Лучшее: {bestStreak}</span>
-      </div>
-
-      <header className="header">
-        <div className="level">Level {level}</div>
-        <div className="energy">{Math.floor(energy).toLocaleString()} E</div>
-      </header>
-
-      <div className="session-status">
-        <div className="status-text">
-          <span className="status-label">Снапшот</span>
-          <span className="status-value">{formatLastSync(sessionLastSyncedAt)}</span>
-          {sessionErrorMessage && (
-            <span className="status-error">{truncateMessage(sessionErrorMessage)}</span>
-          )}
-        </div>
-        <button
-          className="status-refresh"
-          type="button"
-          onClick={handleRefresh}
-          disabled={isRefreshing}
+      <div className="main-body">
+        <div
+          className={`streak-banner${streakCount > 0 ? ' active' : ''}${
+            isCriticalStreak ? ' critical' : ''
+          }`}
         >
-          {isRefreshing ? 'Обновление…' : 'Обновить'}
-        </button>
-      </div>
+          <span className="streak-label">Комбо</span>
+          <span className="streak-count">{streakCount}</span>
+          <span className="streak-best">Лучшее: {bestStreak}</span>
+        </div>
 
-      <div className="passive-panel">
-        <div className="passive-stat">
-          <span className="label">Пассивный доход</span>
-          <strong>{passiveIncomePerSec > 0 ? `${passiveIncomePerSec.toFixed(1)} /с` : '—'}</strong>
-        </div>
-        <div className="passive-stat">
-          <span className="label">Множитель</span>
-          <strong>{passiveIncomeMultiplier > 0 ? `x${passiveIncomeMultiplier.toFixed(2)}` : '—'}</strong>
-        </div>
-        <div className="passive-stat">
-          <span className="label">XP</span>
-          <strong>{xp > 0 ? Math.floor(xp).toLocaleString() : '—'}</strong>
-        </div>
-      </div>
+        <header className="header">
+          <div className="level">Level {level}</div>
+          <div className="energy">{Math.floor(energy).toLocaleString()} E</div>
+        </header>
 
-      {activeTab === 'home' && (
-        <div className="planet-container" onClick={handleTap}>
-          <div className={`planet${isCriticalStreak ? ' planet-critical' : ''}`}>
-            <span>🌍</span>
+        <div className="session-status">
+          <div className="status-text">
+            <span className="status-label">Снапшот</span>
+            <span className="status-value">{formatLastSync(sessionLastSyncedAt)}</span>
+            {sessionErrorMessage && (
+              <span className="status-error">{truncateMessage(sessionErrorMessage)}</span>
+            )}
           </div>
-          <p className="tap-hint">Tap to generate energy!</p>
+          <button
+            className="status-refresh"
+            type="button"
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            {isRefreshing ? 'Обновление…' : 'Обновить'}
+          </button>
         </div>
-      )}
 
-      {activeTab === 'shop' && (
-        <div className="tab-content">
-          <ShopPanel />
+        <div className="passive-panel">
+          <div className="passive-stat">
+            <span className="label">Пассивный доход</span>
+            <strong>{passiveIncomePerSec > 0 ? `${passiveIncomePerSec.toFixed(1)} /с` : '—'}</strong>
+          </div>
+          <div className="passive-stat">
+            <span className="label">Множитель</span>
+            <strong>{passiveIncomeMultiplier > 0 ? `x${passiveIncomeMultiplier.toFixed(2)}` : '—'}</strong>
+          </div>
+          <div className="passive-stat">
+            <span className="label">XP</span>
+            <strong>{xp > 0 ? Math.floor(xp).toLocaleString() : '—'}</strong>
+          </div>
         </div>
-      )}
 
-      {activeTab === 'boosts' && (
-        <div className="tab-content">
-          <BoostHub />
-        </div>
-      )}
+        {activeTab === 'home' && (
+          <div className="planet-container" onClick={handleTap}>
+            <div className={`planet${isCriticalStreak ? ' planet-critical' : ''}`}>
+              <span>🌍</span>
+            </div>
+            <p className="tap-hint">Tap to generate energy!</p>
+          </div>
+        )}
 
-      {activeTab === 'builds' && (
-        <div className="tab-content">
-          <BuildingsPanel />
-        </div>
-      )}
+        {activeTab === 'shop' && (
+          <div className="tab-content">
+            <ShopPanel />
+          </div>
+        )}
 
-      {activeTab === 'leaderboard' && (
-        <div className="tab-content">
-          <LeaderboardPanel />
-        </div>
-      )}
+        {activeTab === 'boosts' && (
+          <div className="tab-content">
+            <BoostHub />
+          </div>
+        )}
 
-      {activeTab === 'profile' && (
-        <div className="tab-content">
-          <ProfilePanel />
-        </div>
-      )}
+        {activeTab === 'builds' && (
+          <div className="tab-content">
+            <BuildingsPanel />
+          </div>
+        )}
 
-      {activeTab !== 'home' &&
-        activeTab !== 'shop' &&
-        activeTab !== 'boosts' &&
-        activeTab !== 'builds' &&
-        activeTab !== 'leaderboard' &&
-        activeTab !== 'profile' && (
-        <div className="tab-content soon">
-          <div className="coming-soon">Раздел в разработке</div>
-        </div>
-      )}
+        {activeTab === 'leaderboard' && (
+          <div className="tab-content">
+            <LeaderboardPanel />
+          </div>
+        )}
+
+        {activeTab === 'profile' && (
+          <div className="tab-content">
+            <ProfilePanel />
+          </div>
+        )}
+
+        {activeTab !== 'home' &&
+          activeTab !== 'shop' &&
+          activeTab !== 'boosts' &&
+          activeTab !== 'builds' &&
+          activeTab !== 'leaderboard' &&
+          activeTab !== 'profile' && (
+            <div className="tab-content soon">
+              <div className="coming-soon">Раздел в разработке</div>
+            </div>
+          )}
+      </div>
 
       <footer className="footer">
         {tabButtons.map(tab => (
