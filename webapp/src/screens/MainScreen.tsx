@@ -11,6 +11,7 @@ import { LeaderboardPanel } from '../components/LeaderboardPanel';
 import { ProfilePanel } from '../components/ProfilePanel';
 import { TapParticles } from '../components/animations';
 import { AnimatedNumber } from '../components/AnimatedNumber';
+import { ScreenTransition } from '../components/ScreenTransition';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile';
 
@@ -135,7 +136,7 @@ export function MainScreen() {
 
         {/* Планета (таб Home) */}
         {activeTab === 'home' && (
-          <div className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden">
+          <ScreenTransition key="home" type="fade" className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden">
             <TapParticles onTap={handleTap}>
               <div className="flex flex-col items-center">
                 <div className={`text-[120px] transition-transform duration-100 user-select-none active:scale-95 ${isCriticalStreak ? 'animate-pulse' : ''}`}>
@@ -144,42 +145,42 @@ export function MainScreen() {
                 <p className="mt-5 text-base text-white/60">Tap to generate energy!</p>
               </div>
             </TapParticles>
-          </div>
+          </ScreenTransition>
         )}
 
         {/* Магазин */}
         {activeTab === 'shop' && (
-          <div className="flex-1 overflow-auto">
+          <ScreenTransition key="shop" type="slide" className="flex-1 overflow-auto">
             <ShopPanel />
-          </div>
+          </ScreenTransition>
         )}
 
         {/* Boost Hub */}
         {activeTab === 'boosts' && (
-          <div className="flex-1 overflow-auto">
+          <ScreenTransition key="boosts" type="slide" className="flex-1 overflow-auto">
             <BoostHub />
-          </div>
+          </ScreenTransition>
         )}
 
         {/* Постройки */}
         {activeTab === 'builds' && (
-          <div className="flex-1 overflow-auto">
+          <ScreenTransition key="builds" type="slide" className="flex-1 overflow-auto">
             <BuildingsPanel />
-          </div>
+          </ScreenTransition>
         )}
 
         {/* Рейтинг */}
         {activeTab === 'leaderboard' && (
-          <div className="flex-1 overflow-auto">
+          <ScreenTransition key="leaderboard" type="slide" className="flex-1 overflow-auto">
             <LeaderboardPanel />
-          </div>
+          </ScreenTransition>
         )}
 
         {/* Профиль */}
         {activeTab === 'profile' && (
-          <div className="flex-1 overflow-auto">
+          <ScreenTransition key="profile" type="slide" className="flex-1 overflow-auto">
             <ProfilePanel />
-          </div>
+          </ScreenTransition>
         )}
       </div>
 

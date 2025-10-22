@@ -67,18 +67,19 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
         onClick={onDismiss}
       >
-        {/* Modal Content */}
+        {/* Modal Content with Spring Animation */}
         <motion.div
           className="bg-dark-secondary rounded-lg p-8 w-full max-w-[360px] shadow-[0_16px_40px_rgba(10,17,61,0.35)] border border-lime/40 text-center"
-          initial={{ scale: 0, y: 20, opacity: 0 }}
+          initial={{ scale: 0.5, y: 30, opacity: 0 }}
           animate={{ scale: 1, y: 0, opacity: 1 }}
-          exit={{ scale: 0, y: 20, opacity: 0 }}
+          exit={{ scale: 0.5, y: 30, opacity: 0 }}
           transition={{
             type: 'spring',
-            bounce: 0.5,
-            duration: 0.6,
+            bounce: 0.6,
+            duration: 0.5,
           }}
           onClick={(e) => e.stopPropagation()}
         >
