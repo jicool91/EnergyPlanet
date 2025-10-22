@@ -28,8 +28,7 @@ type TelegramWebAppEvents =
   | 'themeChanged'
   | 'viewportChanged'
   | 'backButtonClicked'
-  | 'safe_area_changed'
-  | 'content_safe_area_changed';
+  | 'safe_area_changed';
 
 type TelegramHapticStyle = 'light' | 'medium' | 'heavy' | 'rigid' | 'soft';
 type TelegramHapticNotification = 'error' | 'success' | 'warning';
@@ -55,7 +54,7 @@ interface TelegramViewportEvent {
   width: number;
 }
 
-export interface TelegramWebApp {
+interface TelegramWebApp {
   initData: string;
   initDataUnsafe?: unknown;
   version: string;
@@ -96,10 +95,6 @@ export interface TelegramWebApp {
   HapticFeedback?: TelegramHapticFeedback;
   setHeaderColor?: (color: string) => void;
   setBottomBarColor?: (color: string) => void;
-  MainButton?: {
-    height?: number;
-    isVisible?: boolean | (() => boolean);
-  };
 }
 
 declare global {
