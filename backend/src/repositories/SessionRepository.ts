@@ -121,3 +121,26 @@ export async function updateSessionExpiry(
 
   return mapSession(result.rows[0]);
 }
+
+export async function rotateSessionToken(
+  id: string,
+  refreshTokenHash: string,
+  expiresAt: Date,
+  client?: PoolClient
+): Promise<SessionRecord> {
+  const result = await runQuery<SessionRow>(
+    `UPDATE sessions
+     SET refresh_token = $1,
+         expires_at = $2
+     WHERE id = $3
+     RETURNING *`,
+    [refreshTokenHash, expiresAt.toISOString(), id],
+    client
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error(`Session ${id} not found`);
+  }
+
+  return mapSession(result.rows[0]);
+}

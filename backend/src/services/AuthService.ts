@@ -22,7 +22,7 @@ import {
   createSession,
   deleteSessionByHash,
   findByRefreshTokenHash,
-  updateSessionExpiry,
+  rotateSessionToken,
 } from '../repositories/SessionRepository';
 import { logEvent } from '../repositories/EventRepository';
 import { transaction } from '../db/connection';
@@ -265,18 +265,21 @@ export class AuthService {
       throw new AppError(404, 'user_not_found');
     }
 
-    const accessToken = this.signAccessToken(user);
-    const refreshExpiresAt = addDuration(new Date(), config.jwt.refreshExpiry);
+    const tokens = this.generateTokens(user);
+    const newRefreshHash = hashToken(tokens.refreshToken);
 
-    await updateSessionExpiry(session.id, refreshExpiresAt);
+    await rotateSessionToken(session.id, newRefreshHash, tokens.refreshExpiresAt);
     const refreshResult = {
-      access_token: accessToken,
-      refresh_token: refreshToken,
-      refresh_expires_at: refreshExpiresAt.toISOString(),
+      access_token: tokens.accessToken,
+      refresh_token: tokens.refreshToken,
+      refresh_expires_at: tokens.refreshExpiresAt.toISOString(),
       expires_in: this.accessTokenTtlSeconds(),
     };
 
-    await logEvent(user.id, 'token_refresh', { session_id: session.id });
+    await logEvent(user.id, 'token_refresh', {
+      session_id: session.id,
+      rotated: true,
+    });
 
     return refreshResult;
   }
