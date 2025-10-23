@@ -59,6 +59,20 @@
   --safe-area-right: max(0px, env(safe-area-inset-right), var(--tg-safe-area-right, 0px));
 }
 
+@media (prefers-color-scheme: light) {
+  :root {
+    --app-bg: var(--tg-theme-bg-color, #ffffff);
+    --app-text: var(--tg-theme-text-color, #0b1120);
+    --app-text-subtle: var(--tg-theme-hint-color, #475569);
+    --app-accent: var(--tg-theme-accent-text-color, #1d4ed8);
+    --app-card-bg: var(--tg-theme-section-bg-color, #f5f8ff);
+    --app-card-border: var(--tg-theme-section-separator-color, rgba(15, 23, 42, 0.08));
+    --app-header-bg: var(--tg-theme-header-bg-color, #f9fbff);
+    --app-bottom-bar-bg: var(--tg-theme-bottom-bar-bg-color, #f9fbff);
+    --app-danger-text: var(--tg-theme-destructive-text-color, #b91c1c);
+  }
+}
+
 html {
   /* Ensure content covers entire viewport with safe area */
   position: fixed;
