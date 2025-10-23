@@ -89,6 +89,26 @@ export function ShopPanel() {
     [cosmetics, activeCategory]
   );
 
+  // Calculate best value pack (lowest price per star)
+  const bestValuePack = useMemo(() => {
+    const regularPacks = starPacks.filter(pack => !pack.featured);
+    if (regularPacks.length === 0) return null;
+
+    const withRatio = regularPacks.map(pack => ({
+      ...pack,
+      pricePerStar: pack.price_rub ? pack.price_rub / (pack.stars + (pack.bonus_stars ?? 0)) : Infinity,
+    }));
+
+    return withRatio.reduce((best, current) =>
+      current.pricePerStar < best.pricePerStar ? current : best
+    );
+  }, [starPacks]);
+
+  // Determine "Most Popular" cosmetic (first in category, or could be random/configurable)
+  const mostPopularCosmeticId = useMemo(() => {
+    return filteredCosmetics.length > 0 ? filteredCosmetics[0]?.id : null;
+  }, [filteredCosmetics]);
+
   const { success: hapticSuccess, error: hapticError } = useHaptic();
 
   const handlePurchaseCosmetic = async (cosmeticId: string) => {
@@ -272,16 +292,17 @@ export function ShopPanel() {
               const totalStars = pack.stars + (pack.bonus_stars ?? 0);
               const bonus = pack.bonus_stars ?? 0;
               const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
+              const isBestValue = !!(bestValuePack && pack.id === bestValuePack.id);
 
               return (
                 <Card
                   key={pack.id}
-                  highlighted={pack.featured}
-                  highlightBadge={pack.featured ? 'Лучший выбор' : undefined}
-                  className="flex gap-4"
+                  highlighted={isBestValue}
+                  highlightBadge={isBestValue ? '💰 BEST VALUE' : undefined}
+                  className={`flex gap-4 ${isBestValue ? 'bg-gradient-to-br from-dark-secondary/60 to-dark-tertiary/60 border-lime/30' : ''}`}
                 >
                   {/* Icon */}
-                  <div className="w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden border border-cyan/10 flex-shrink-0">
+                  <div className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isBestValue ? 'border-2 border-lime/40' : 'border border-cyan/10'}`}>
                     {pack.icon_url ? (
                       <OptimizedImage
                         src={pack.icon_url}
@@ -300,18 +321,23 @@ export function ShopPanel() {
                   {/* Content */}
                   <div className="flex-1 flex flex-col gap-2">
                     <div className="flex justify-between items-center gap-2">
-                      <h3 className="m-0 text-body font-semibold text-white">{pack.title}</h3>
-                      <Badge variant="primary" size="sm">
-                        Stars
+                      <h3 className={`m-0 text-body font-semibold ${isBestValue ? 'text-lime' : 'text-white'}`}>{pack.title}</h3>
+                      <Badge variant={isBestValue ? 'success' : 'primary'} size="sm">
+                        {totalStars} ⭐
                       </Badge>
                     </div>
                     <p className="m-0 text-caption text-white/70">
                       {pack.description ?? `Получите ${totalStars} Stars`}
                     </p>
-                    <div className="text-caption text-white/65">{priceLabel}</div>
+                    <div className={`text-caption ${isBestValue ? 'text-lime/80 font-semibold' : 'text-white/65'}`}>{priceLabel}</div>
                     <div className="flex gap-3 text-caption text-white/70">
                       <span className="font-semibold">{totalStars} ⭐ всего</span>
                       {bonus > 0 && <span className="text-gold font-semibold">+{bonus} бонус</span>}
+                      {isBestValue && pack.price_rub && (
+                        <span className="text-lime font-bold">
+                          {(pack.price_rub / totalStars).toFixed(1)} ₽/⭐
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -338,6 +364,7 @@ export function ShopPanel() {
           filteredCosmetics.map(cosmetic => {
             const processing = isProcessingCosmeticId === cosmetic.id;
             const price = cosmetic.price_stars ?? 0;
+            const isMostPopular = cosmetic.id === mostPopularCosmeticId;
 
             // Determine rarity variant for badge
             const rarityMap: Record<
@@ -403,9 +430,14 @@ export function ShopPanel() {
             }
 
             return (
-              <Card key={cosmetic.id} className="flex gap-4">
+              <Card
+                key={cosmetic.id}
+                highlighted={isMostPopular}
+                highlightBadge={isMostPopular ? '⭐ POPULAR' : undefined}
+                className={`flex gap-4 ${isMostPopular ? 'bg-gradient-to-br from-dark-secondary/60 to-dark-tertiary/60 border-cyan/30' : ''}`}
+              >
                 {/* Icon */}
-                <div className="w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden border border-cyan/10 flex-shrink-0">
+                <div className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isMostPopular ? 'border-2 border-cyan/40' : 'border border-cyan/10'}`}>
                   {cosmetic.preview_url ? (
                     <OptimizedImage
                       src={cosmetic.preview_url}
@@ -424,9 +456,12 @@ export function ShopPanel() {
                 {/* Content */}
                 <div className="flex-1 flex flex-col gap-2">
                   <div className="flex justify-between items-center gap-2">
-                    <h3 className="m-0 text-body font-semibold text-white">{cosmetic.name}</h3>
-                    <Badge variant={rarityMap[cosmetic.rarity] || 'default'} size="sm">
-                      {cosmetic.rarity}
+                    <h3 className={`m-0 text-body font-semibold ${isMostPopular ? 'text-cyan' : 'text-white'}`}>{cosmetic.name}</h3>
+                    <Badge
+                      variant={isMostPopular ? 'primary' : (rarityMap[cosmetic.rarity] || 'default')}
+                      size="sm"
+                    >
+                      {isMostPopular ? '⭐ Popular' : cosmetic.rarity}
                     </Badge>
                   </div>
                   <p className="m-0 text-caption text-white/70">{cosmetic.description}</p>
