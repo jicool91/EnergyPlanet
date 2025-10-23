@@ -121,27 +121,37 @@ export function ShopPanel() {
     }
   };
 
+  const featuredPack = starPacks.find(pack => pack.featured);
+
   return (
     <div className="flex flex-col gap-4 p-0">
-      {/* Header */}
+      {/* Header with Power Up title */}
       <div className="flex justify-between items-start gap-3">
-        <div>
-          <h2 className="m-0 mb-1 text-heading text-white font-semibold">Магазин</h2>
-          <p className="m-0 text-caption text-white/60">Покупайте Stars и кастомизируйте планету</p>
+        <div className="flex-1">
+          <h2 className="m-0 mb-1 text-heading text-white font-bold bg-gradient-to-r from-gold to-orange bg-clip-text text-transparent">
+            🚀 Power Up
+          </h2>
+          <p className="m-0 text-caption text-white/60">
+            {activeSection === 'star_packs'
+              ? 'Получите Stars и разблокируйте новые возможности'
+              : 'Кастомизируйте вашу планету эксклюзивной косметикой'}
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button
-            variant="secondary"
-            size="md"
-            loading={isStarPacksLoading || isCosmeticsLoading}
-            onClick={() => {
-              loadStarPacks(true);
-              loadCosmetics(true);
-            }}
-          >
-            Обновить
-          </Button>
-        </div>
+        <button
+          onClick={() => {
+            loadStarPacks(true);
+            loadCosmetics(true);
+          }}
+          disabled={isStarPacksLoading || isCosmeticsLoading}
+          className="flex-shrink-0 p-2.5 rounded-lg hover:bg-white/10 active:bg-white/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xl"
+          title="Обновить"
+          aria-label="Обновить магазин"
+          type="button"
+        >
+          <span className={`inline-block ${isStarPacksLoading || isCosmeticsLoading ? 'animate-spin' : ''}`}>
+            🔄
+          </span>
+        </button>
       </div>
 
       {/* Section Tabs */}
@@ -164,6 +174,69 @@ export function ShopPanel() {
       )}
       {activeSection === 'cosmetics' && cosmeticsError && (
         <Card className="bg-red-error/15 border-red-error/40 text-red-error">{cosmeticsError}</Card>
+      )}
+
+      {/* Featured Star Pack Section */}
+      {activeSection === 'star_packs' && featuredPack && !isStarPacksLoading && (
+        <div className="relative">
+          <div className="absolute -inset-px bg-gradient-to-r from-gold via-orange to-gold opacity-20 rounded-2xl blur-lg pointer-events-none" />
+          <Card
+            highlighted
+            highlightBadge="✨ ЛУЧШИЙ ВЫБОР"
+            className="relative flex gap-4 bg-gradient-to-br from-dark-secondary/80 to-dark-tertiary/80 border-gold/30"
+          >
+            {/* Icon */}
+            <div className="w-[80px] h-[80px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden border-2 border-gold/40 flex-shrink-0">
+              {featuredPack.icon_url ? (
+                <OptimizedImage
+                  src={featuredPack.icon_url}
+                  alt={featuredPack.title}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <span className="text-[32px]" aria-hidden="true">
+                  ⭐
+                </span>
+              )}
+            </div>
+
+            {/* Content */}
+            <div className="flex-1 flex flex-col gap-2">
+              <div className="flex justify-between items-center gap-2">
+                <h3 className="m-0 text-body font-bold text-gold">{featuredPack.title}</h3>
+                <Badge variant="warning" size="sm">
+                  {featuredPack.stars + (featuredPack.bonus_stars ?? 0)} ⭐
+                </Badge>
+              </div>
+              <p className="m-0 text-caption text-white/80">
+                {featuredPack.description ?? `Получите ${featuredPack.stars + (featuredPack.bonus_stars ?? 0)} Stars с бонусом`}
+              </p>
+              <div className="flex gap-3 text-sm">
+                <span className="font-semibold text-gold">{featuredPack.stars} ⭐ базовых</span>
+                {(featuredPack.bonus_stars ?? 0) > 0 && (
+                  <span className="text-lime font-semibold">+{featuredPack.bonus_stars} ✨ бонус</span>
+                )}
+              </div>
+              <div className="text-caption text-gold/80 font-semibold">
+                {formatPriceLabel(featuredPack.price_rub, featuredPack.price_usd)}
+              </div>
+            </div>
+
+            {/* Button */}
+            <div className="flex items-center flex-shrink-0">
+              <Button
+                variant="success"
+                size="lg"
+                loading={isProcessingStarPackId === featuredPack.id}
+                onClick={() => handlePurchaseStarPack(featuredPack.id)}
+              >
+                Купить
+              </Button>
+            </div>
+          </Card>
+        </div>
       )}
 
       {/* Cosmetics Categories */}
@@ -194,7 +267,7 @@ export function ShopPanel() {
               <ShopSkeleton count={3} />
             </ErrorBoundary>
           ) : (
-            starPacks.map(pack => {
+            starPacks.filter(pack => !pack.featured).map(pack => {
               const processing = isProcessingStarPackId === pack.id;
               const totalStars = pack.stars + (pack.bonus_stars ?? 0);
               const bonus = pack.bonus_stars ?? 0;
