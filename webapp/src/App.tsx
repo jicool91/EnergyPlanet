@@ -39,6 +39,7 @@ function App() {
   const refreshSession = useGameStore(state => state.refreshSession);
   const currentLevel = useGameStore(state => state.level);
   const previousLevelRef = useRef(1);
+  const hasBootstrappedLevelRef = useRef(false);
   const { toast } = useNotification();
 
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -47,7 +48,12 @@ function App() {
   // Detect level up
   useEffect(() => {
     if (!isInitialized) {
+      return;
+    }
+
+    if (!hasBootstrappedLevelRef.current) {
       previousLevelRef.current = currentLevel;
+      hasBootstrappedLevelRef.current = true;
       return;
     }
 
