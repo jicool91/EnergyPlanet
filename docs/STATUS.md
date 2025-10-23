@@ -71,13 +71,13 @@
 
 ---
 
-### Фаза 5: Monetization UX 🟡 **17% COMPLETE** (1 из 6 микротасков)
+### Фаза 5: Monetization UX 🟡 **33% COMPLETE** (2 из 6 микротасков)
 
 #### ✅ Завершено:
 - ✅ **Task 5.1** – Stars индикатор в Header (⭐ + число в gold цвете)
+- ✅ **Task 5.2** – Quick Top-Up button (+) рядом со Stars (pulsing animation)
 
 #### ⏳ TODO:
-- [ ] Task 5.2 – Quick Top-Up кнопка (🛍️)
 - [ ] Task 5.3 – Shop Header улучшение (заголовок, featured section)
 - [ ] Task 5.4 – Recommended/Best Value badges
 - [ ] Task 5.5 – Bundle визуализация Star Packs
@@ -95,8 +95,8 @@
 | 2 | ✅ DONE | 14/14 | 10 | Oct 23 |
 | 3 | ✅ DONE | 13/13 | 11 | Oct 24 |
 | 4 | ✅ DONE | 12/12 | 12 | Oct 24 |
-| 5 | 🟡 17% | 1/6 | 1 | Oct 24 |
-| **TOTAL** | **🟢 80%** | **52/63** | **36** | **In Progress** |
+| 5 | 🟡 33% | 2/6 | 2 | Oct 24 |
+| **TOTAL** | **🟢 81%** | **53/63** | **37** | **In Progress** |
 
 ---
 
