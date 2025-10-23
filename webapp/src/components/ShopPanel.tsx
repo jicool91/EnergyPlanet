@@ -4,6 +4,7 @@ import { ShopSkeleton, ErrorBoundary } from './skeletons';
 import { Button } from './Button';
 import { Card } from './Card';
 import { Badge } from './Badge';
+import { OptimizedImage } from './OptimizedImage';
 
 type CategoryOption = {
   id: string;
@@ -200,9 +201,11 @@ export function ShopPanel() {
                   {/* Icon */}
                   <div className="w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden border border-cyan/10 flex-shrink-0">
                     {pack.icon_url ? (
-                      <img
+                      <OptimizedImage
                         src={pack.icon_url}
                         alt={pack.title}
+                        width={72}
+                        height={72}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -322,9 +325,11 @@ export function ShopPanel() {
                 {/* Icon */}
                 <div className="w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden border border-cyan/10 flex-shrink-0">
                   {cosmetic.preview_url ? (
-                    <img
+                    <OptimizedImage
                       src={cosmetic.preview_url}
                       alt={cosmetic.name}
+                      width={72}
+                      height={72}
                       className="w-full h-full object-cover"
                     />
                   ) : (

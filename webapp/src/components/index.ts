@@ -10,6 +10,7 @@ export { Button, type ButtonProps } from './Button';
 export { Card, type CardProps } from './Card';
 export { Input, type InputProps } from './Input';
 export { Badge, type BadgeProps } from './Badge';
+export { OptimizedImage, type OptimizedImageProps } from './OptimizedImage';
 export { ModalBase, type ModalBaseProps, type ModalAction } from './ModalBase';
 export { StatCard, type StatCardProps } from './StatCard';
 export { XPProgressCard } from './XPProgressCard';
