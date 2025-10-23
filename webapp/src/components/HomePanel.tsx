@@ -16,6 +16,7 @@ import { Card } from './Card';
 import { StatCard } from './StatCard';
 import { XPProgressCard } from './XPProgressCard';
 import { SocialProofCard } from './SocialProofCard';
+import { DailyRewardBanner } from './DailyRewardBanner';
 import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
 
 export interface HomePanelProps {
@@ -141,6 +142,9 @@ export function HomePanel({
 
       {/* Bottom: XP Progress + Next Goal + Social Proof (scrollable if needed) */}
       <div className="flex flex-col gap-2 px-4 py-2 overflow-y-auto">
+        {/* Daily Reward Banner */}
+        <DailyRewardBanner />
+
         {/* XP Progress Card */}
         <XPProgressCard
           level={level}
