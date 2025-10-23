@@ -16,7 +16,15 @@ export function Achievement({ notification }: AchievementProps) {
       exit={{ opacity: 0, scale: 0.5, y: 50 }}
       transition={{ type: 'spring', stiffness: 200, damping: 20 }}
       onClick={() => removeNotification(notification.id)}
-      className="cursor-pointer"
+      role="button"
+      tabIndex={0}
+      onKeyDown={event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          removeNotification(notification.id);
+        }
+      }}
+      className="cursor-pointer focus-ring"
     >
       {/* Glow effect */}
       <motion.div
