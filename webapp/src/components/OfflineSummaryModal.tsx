@@ -22,7 +22,13 @@ const formatDuration = (seconds: number) => {
   return `${remaining}с`;
 };
 
-export function OfflineSummaryModal({ energy, xp, durationSec, capped, onClose }: OfflineSummaryModalProps) {
+export function OfflineSummaryModal({
+  energy,
+  xp,
+  durationSec,
+  capped,
+  onClose,
+}: OfflineSummaryModalProps) {
   return (
     <motion.div
       className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-[1000]"
@@ -42,12 +48,21 @@ export function OfflineSummaryModal({ energy, xp, durationSec, capped, onClose }
       >
         <h2 className="m-0 mb-3 text-xl font-semibold">Возврат офлайн</h2>
         <p className="m-0 mb-5 text-sm leading-[1.5] text-white/75">
-          За {formatDuration(durationSec)} вы накопили <strong>{Math.floor(energy).toLocaleString()} энергии</strong>
+          За {formatDuration(durationSec)} вы накопили{' '}
+          <strong>{Math.floor(energy).toLocaleString()} энергии</strong>
           {xp > 0 ? ` и ${Math.floor(xp).toLocaleString()} XP` : ''}.
         </p>
-        {capped && <p className="m-0 mb-5 text-sm leading-[1.5] text-white/75">Достигнут лимит офлайна — подключайтесь чаще, чтобы не терять доход!</p>}
+        {capped && (
+          <p className="m-0 mb-5 text-sm leading-[1.5] text-white/75">
+            Достигнут лимит офлайна — подключайтесь чаще, чтобы не терять доход!
+          </p>
+        )}
         <div className="flex gap-3 justify-end">
-          <button className="px-[18px] py-[10px] rounded-[10px] border-0 text-sm cursor-pointer transition-all duration-[120ms] ease-in-out bg-gradient-to-br from-cyan to-[#0073ff] text-[#010414] font-semibold shadow-[0_8px_20px_rgba(0,115,255,0.35)] active:scale-[0.97]" type="button" onClick={onClose}>
+          <button
+            className="px-[18px] py-[10px] rounded-[10px] border-0 text-sm cursor-pointer transition-all duration-[120ms] ease-in-out bg-gradient-to-br from-cyan to-[#0073ff] text-[#010414] font-semibold shadow-[0_8px_20px_rgba(0,115,255,0.35)] active:scale-[0.97]"
+            type="button"
+            onClick={onClose}
+          >
             Понял
           </button>
         </div>

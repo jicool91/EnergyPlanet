@@ -80,10 +80,7 @@ export function BoostHub() {
         );
 
         const activeRemaining = item.active
-          ? Math.max(
-              item.active.remaining_seconds - Math.floor((Date.now() - now) / 1000),
-              0
-            )
+          ? Math.max(item.active.remaining_seconds - Math.floor((Date.now() - now) / 1000), 0)
           : 0;
 
         return {
@@ -110,7 +107,11 @@ export function BoostHub() {
         </button>
       </div>
 
-      {boostHubError && <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">{boostHubError}</div>}
+      {boostHubError && (
+        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">
+          {boostHubError}
+        </div>
+      )}
 
       <div className="flex flex-col gap-4">
         {isBoostHubLoading && boostHub.length === 0 ? (
@@ -125,24 +126,32 @@ export function BoostHub() {
                 : 'Бесплатный буст с кулдауном';
 
             const buttonDisabled =
-              item.activeRemaining > 0 || item.cooldownRemaining > 0 || isClaimingBoostType === item.boost_type;
+              item.activeRemaining > 0 ||
+              item.cooldownRemaining > 0 ||
+              isClaimingBoostType === item.boost_type;
 
-            const buttonLabel = item.activeRemaining > 0
-              ? `Активно — ${formatSeconds(item.activeRemaining)}`
-              : item.cooldownRemaining > 0
-                ? `Кулдаун ${formatSeconds(item.cooldownRemaining)}`
-                : isClaimingBoostType === item.boost_type
-                  ? 'Активация…'
-                  : item.boost_type === 'ad_boost'
-                    ? 'Получить ×2'
-                    : 'Активировать';
+            const buttonLabel =
+              item.activeRemaining > 0
+                ? `Активно — ${formatSeconds(item.activeRemaining)}`
+                : item.cooldownRemaining > 0
+                  ? `Кулдаун ${formatSeconds(item.cooldownRemaining)}`
+                  : isClaimingBoostType === item.boost_type
+                    ? 'Активация…'
+                    : item.boost_type === 'ad_boost'
+                      ? 'Получить ×2'
+                      : 'Активировать';
 
             return (
-              <div key={item.boost_type} className="flex flex-col gap-[14px] p-[18px] rounded-lg bg-[rgba(10,14,32,0.92)] border border-cyan/[0.14] shadow-[0_18px_40px_rgba(7,12,35,0.35)]">
+              <div
+                key={item.boost_type}
+                className="flex flex-col gap-[14px] p-[18px] rounded-lg bg-[rgba(10,14,32,0.92)] border border-cyan/[0.14] shadow-[0_18px_40px_rgba(7,12,35,0.35)]"
+              >
                 <div>
                   <div className="flex justify-between items-center gap-3">
                     <h3 className="m-0 text-base text-[#f8fbff]">{label}</h3>
-                    <span className="px-[10px] py-1 rounded-full bg-[rgba(255,193,77,0.25)] text-[#ffd27d] font-semibold text-[13px]">x{item.multiplier}</span>
+                    <span className="px-[10px] py-1 rounded-full bg-[rgba(255,193,77,0.25)] text-[#ffd27d] font-semibold text-[13px]">
+                      x{item.multiplier}
+                    </span>
                   </div>
                   <p className="m-0 text-[13px] text-white/70">{description}</p>
                 </div>

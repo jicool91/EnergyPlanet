@@ -143,8 +143,16 @@ export function ShopPanel() {
         ))}
       </div>
 
-      {activeSection === 'star_packs' && starPacksError && <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">{starPacksError}</div>}
-      {activeSection === 'cosmetics' && cosmeticsError && <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">{cosmeticsError}</div>}
+      {activeSection === 'star_packs' && starPacksError && (
+        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">
+          {starPacksError}
+        </div>
+      )}
+      {activeSection === 'cosmetics' && cosmeticsError && (
+        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">
+          {cosmeticsError}
+        </div>
+      )}
 
       {activeSection === 'cosmetics' && (
         <div className="flex gap-2 flex-wrap p-0">
@@ -180,10 +188,17 @@ export function ShopPanel() {
               const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
 
               return (
-                <div key={pack.id} className={`flex gap-4 p-4 rounded-lg bg-[rgba(10,14,32,0.9)] border border-cyan/[0.12] shadow-[0_18px_40px_rgba(7,12,35,0.4)] ${pack.featured ? 'border-[rgba(255,193,77,0.5)] shadow-[0_22px_48px_rgba(255,193,77,0.3)] bg-gradient-to-br from-[rgba(28,20,52,0.95)] to-[rgba(64,38,72,0.95)]' : ''}`}>
+                <div
+                  key={pack.id}
+                  className={`flex gap-4 p-4 rounded-lg bg-[rgba(10,14,32,0.9)] border border-cyan/[0.12] shadow-[0_18px_40px_rgba(7,12,35,0.4)] ${pack.featured ? 'border-[rgba(255,193,77,0.5)] shadow-[0_22px_48px_rgba(255,193,77,0.3)] bg-gradient-to-br from-[rgba(28,20,52,0.95)] to-[rgba(64,38,72,0.95)]' : ''}`}
+                >
                   <div className="w-[72px] h-[72px] rounded-[18px] bg-[rgba(15,24,52,0.85)] flex items-center justify-center overflow-hidden border border-cyan/10">
                     {pack.icon_url ? (
-                      <img src={pack.icon_url} alt={pack.title} className="w-full h-full object-cover" />
+                      <img
+                        src={pack.icon_url}
+                        alt={pack.title}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
                       <span className="text-[28px]" aria-hidden="true">
                         ⭐
@@ -193,13 +208,19 @@ export function ShopPanel() {
                   <div className="flex-1 flex flex-col gap-[6px]">
                     <div className="flex justify-between items-center gap-2">
                       <h3 className="m-0 text-base text-[#f8fbff]">{pack.title}</h3>
-                      <span className="px-2 py-[2px] rounded-full text-[11px] uppercase tracking-[0.8px] bg-[rgba(78,159,255,0.2)] text-[#7bb7ff]">Stars</span>
+                      <span className="px-2 py-[2px] rounded-full text-[11px] uppercase tracking-[0.8px] bg-[rgba(78,159,255,0.2)] text-[#7bb7ff]">
+                        Stars
+                      </span>
                     </div>
-                    <p className="m-0 text-[13px] text-white/70">{pack.description ?? `Получите ${totalStars} Stars`}</p>
+                    <p className="m-0 text-[13px] text-white/70">
+                      {pack.description ?? `Получите ${totalStars} Stars`}
+                    </p>
                     <div className="text-[13px] text-white/65">{priceLabel}</div>
                     <div className="flex gap-3 text-xs text-white/70">
                       <span className="font-semibold">{totalStars} ⭐ всего</span>
-                      {bonus > 0 && <span className="text-[#ffd27d] font-semibold">+{bonus} бонус</span>}
+                      {bonus > 0 && (
+                        <span className="text-[#ffd27d] font-semibold">+{bonus} бонус</span>
+                      )}
                     </div>
                   </div>
                   <div className="flex items-center">
@@ -229,7 +250,11 @@ export function ShopPanel() {
 
             if (cosmetic.equipped) {
               actionButton = (
-                <button className="px-[18px] py-[10px] rounded-md border-0 bg-[rgba(92,255,145,0.18)] text-[#75ffb1] text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out disabled:opacity-60 disabled:cursor-default disabled:shadow-none" type="button" disabled>
+                <button
+                  className="px-[18px] py-[10px] rounded-md border-0 bg-[rgba(92,255,145,0.18)] text-[#75ffb1] text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out disabled:opacity-60 disabled:cursor-default disabled:shadow-none"
+                  type="button"
+                  disabled
+                >
                   Экипировано
                 </button>
               );
@@ -257,7 +282,9 @@ export function ShopPanel() {
               );
             } else if (cosmetic.status === 'locked' && cosmetic.unlock_requirement?.level) {
               actionButton = (
-                <div className="text-xs text-white/60">Откроется с {cosmetic.unlock_requirement.level} уровня</div>
+                <div className="text-xs text-white/60">
+                  Откроется с {cosmetic.unlock_requirement.level} уровня
+                </div>
               );
             } else if (cosmetic.status === 'event_locked') {
               actionButton = <div className="text-xs text-white/60">Доступно на событии</div>;
@@ -278,14 +305,21 @@ export function ShopPanel() {
               common: 'bg-white/[0.12] text-white/75',
               rare: 'bg-[rgba(78,159,255,0.2)] text-[#7bb7ff]',
               epic: 'bg-[rgba(180,84,255,0.2)] text-[#d2a6ff]',
-              legendary: 'bg-[rgba(255,193,77,0.25)] text-[#ffd27d]'
+              legendary: 'bg-[rgba(255,193,77,0.25)] text-[#ffd27d]',
             };
 
             return (
-              <div key={cosmetic.id} className="flex gap-4 p-4 rounded-lg bg-[rgba(10,14,32,0.9)] border border-cyan/[0.12] shadow-[0_18px_40px_rgba(7,12,35,0.4)]">
+              <div
+                key={cosmetic.id}
+                className="flex gap-4 p-4 rounded-lg bg-[rgba(10,14,32,0.9)] border border-cyan/[0.12] shadow-[0_18px_40px_rgba(7,12,35,0.4)]"
+              >
                 <div className="w-[72px] h-[72px] rounded-[18px] bg-[rgba(15,24,52,0.85)] flex items-center justify-center overflow-hidden border border-cyan/10">
                   {cosmetic.preview_url ? (
-                    <img src={cosmetic.preview_url} alt={cosmetic.name} className="w-full h-full object-cover" />
+                    <img
+                      src={cosmetic.preview_url}
+                      alt={cosmetic.name}
+                      className="w-full h-full object-cover"
+                    />
                   ) : (
                     <span className="text-[28px]" aria-hidden="true">
                       ✦
@@ -295,7 +329,11 @@ export function ShopPanel() {
                 <div className="flex-1 flex flex-col gap-[6px]">
                   <div className="flex justify-between items-center gap-2">
                     <h3 className="m-0 text-base text-[#f8fbff]">{cosmetic.name}</h3>
-                    <span className={`px-2 py-[2px] rounded-full text-[11px] uppercase tracking-[0.8px] ${rarityClasses[cosmetic.rarity as keyof typeof rarityClasses] || rarityClasses.common}`}>{cosmetic.rarity}</span>
+                    <span
+                      className={`px-2 py-[2px] rounded-full text-[11px] uppercase tracking-[0.8px] ${rarityClasses[cosmetic.rarity as keyof typeof rarityClasses] || rarityClasses.common}`}
+                    >
+                      {cosmetic.rarity}
+                    </span>
                   </div>
                   <p className="m-0 text-[13px] text-white/70">{cosmetic.description}</p>
                   {price > 0 && cosmetic.status !== 'owned' && (

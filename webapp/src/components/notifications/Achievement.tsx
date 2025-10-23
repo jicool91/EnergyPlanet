@@ -69,7 +69,7 @@ export function Achievement({ notification }: AchievementProps) {
 
         {/* Confetti animation (stars) */}
         <div className="flex justify-center gap-2">
-          {[0, 1, 2].map((i) => (
+          {[0, 1, 2].map(i => (
             <motion.span
               key={i}
               className="text-2xl"

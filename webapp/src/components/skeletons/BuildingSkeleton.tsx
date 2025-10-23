@@ -9,7 +9,10 @@ export const BuildingSkeleton: React.FC<BuildingSkeletonProps> = ({ count = 3 })
   return (
     <div className="flex flex-col gap-4">
       {Array.from({ length: count }).map((_, i) => (
-        <div key={i} className="flex flex-col gap-3 p-4 rounded-lg bg-dark-secondary border border-cyan/[0.14]">
+        <div
+          key={i}
+          className="flex flex-col gap-3 p-4 rounded-lg bg-dark-secondary border border-cyan/[0.14]"
+        >
           {/* Header: Name + Count */}
           <div className="flex justify-between items-center gap-3">
             <Skeleton width="40%" height={20} variant="text" />

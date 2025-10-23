@@ -33,16 +33,12 @@ export function Alert({ notification }: AlertProps) {
       >
         {/* Header */}
         <div className="border-b border-dark-border px-6 py-4">
-          <h2 className="text-xl font-bold text-white">
-            {notification.title || 'Alert'}
-          </h2>
+          <h2 className="text-xl font-bold text-white">{notification.title || 'Alert'}</h2>
         </div>
 
         {/* Body */}
         <div className="px-6 py-4">
-          <p className="text-gray-300 text-sm leading-relaxed">
-            {notification.message}
-          </p>
+          <p className="text-gray-300 text-sm leading-relaxed">{notification.message}</p>
         </div>
 
         {/* Footer */}

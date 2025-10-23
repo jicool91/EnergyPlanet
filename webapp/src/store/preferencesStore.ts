@@ -52,18 +52,18 @@ interface PreferencesState extends Preferences {
 
 export const usePreferencesStore = create<PreferencesState>()(
   persist(
-    (set) => ({
+    set => ({
       ...DEFAULT_PREFERENCES,
       resetToDefaults: () => set(DEFAULT_PREFERENCES),
-      setSoundEnabled: (enabled) => set({ soundEnabled: enabled }),
-      setTapSoundVolume: (volume) => set({ tapSoundVolume: Math.min(100, Math.max(0, volume)) }),
-      setHapticEnabled: (enabled) => set({ hapticEnabled: enabled }),
-      setHapticIntensity: (intensity) => set({ hapticIntensity: intensity }),
-      setNotificationsEnabled: (enabled) => set({ notificationsEnabled: enabled }),
-      setPushNotificationsEnabled: (enabled) => set({ pushNotificationsEnabled: enabled }),
-      setTheme: (theme) => set({ theme }),
-      setLanguage: (language) => set({ language }),
-      setReduceMotion: (reduce) => set({ reduceMotion: reduce }),
+      setSoundEnabled: enabled => set({ soundEnabled: enabled }),
+      setTapSoundVolume: volume => set({ tapSoundVolume: Math.min(100, Math.max(0, volume)) }),
+      setHapticEnabled: enabled => set({ hapticEnabled: enabled }),
+      setHapticIntensity: intensity => set({ hapticIntensity: intensity }),
+      setNotificationsEnabled: enabled => set({ notificationsEnabled: enabled }),
+      setPushNotificationsEnabled: enabled => set({ pushNotificationsEnabled: enabled }),
+      setTheme: theme => set({ theme }),
+      setLanguage: language => set({ language }),
+      setReduceMotion: reduce => set({ reduceMotion: reduce }),
     }),
     {
       name: 'energyplanet-preferences',

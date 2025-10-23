@@ -35,9 +35,7 @@ export class RequestQueue {
 
     const runPromise = this.tail.then(() => execute());
 
-    this.tail = runPromise
-      .then(() => undefined)
-      .catch(() => undefined);
+    this.tail = runPromise.then(() => undefined).catch(() => undefined);
 
     return runPromise;
   }

@@ -3,12 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { ProfileSkeleton, ErrorBoundary } from './skeletons';
 
 export function ProfilePanel() {
-  const {
-    isProfileLoading,
-    profileError,
-    profile,
-    profileBoosts,
-  } = useGameStore(state => ({
+  const { isProfileLoading, profileError, profile, profileBoosts } = useGameStore(state => ({
     isProfileLoading: state.isProfileLoading,
     profileError: state.profileError,
     profile: state.profile,
@@ -47,7 +42,10 @@ export function ProfilePanel() {
   return (
     <div className="p-0 flex flex-col gap-4">
       <header className="flex items-center gap-3">
-        <div className="w-14 h-14 rounded-lg bg-cyan/[0.15] flex items-center justify-center text-[30px]" aria-hidden>
+        <div
+          className="w-14 h-14 rounded-lg bg-cyan/[0.15] flex items-center justify-center text-[30px]"
+          aria-hidden
+        >
           {profile.profile.equipped_avatar_frame ? '🛡️' : '🙂'}
         </div>
         <div>

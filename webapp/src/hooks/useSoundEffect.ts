@@ -21,16 +21,30 @@ export const useSoundEffect = () => {
 
     // For now, use Web Audio API to create a simple beep
     try {
-      const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+      type WindowWithWebkitAudio = typeof window & {
+        webkitAudioContext?: typeof AudioContext;
+      };
 
-      const soundConfigs: Record<SoundEffectType, { freq: number; duration: number; volume: number }> = {
-        unlock: { freq: 800, duration: 0.3, volume: 0.3 },      // Medium-high beep
-        purchase: { freq: 600, duration: 0.2, volume: 0.2 },    // Lower beep
-        upgrade: { freq: 700, duration: 0.25, volume: 0.25 },   // Medium beep
-        levelup: { freq: 1000, duration: 0.4, volume: 0.3 },    // High beep
-        tap: { freq: 500, duration: 0.1, volume: 0.15 },        // Low short beep
-        success: { freq: 900, duration: 0.3, volume: 0.25 },    // Success tone
-        error: { freq: 300, duration: 0.2, volume: 0.2 },       // Error tone
+      const AudioContextConstructor =
+        window.AudioContext ?? (window as WindowWithWebkitAudio).webkitAudioContext;
+
+      if (!AudioContextConstructor) {
+        return;
+      }
+
+      const audioContext = new AudioContextConstructor();
+
+      const soundConfigs: Record<
+        SoundEffectType,
+        { freq: number; duration: number; volume: number }
+      > = {
+        unlock: { freq: 800, duration: 0.3, volume: 0.3 }, // Medium-high beep
+        purchase: { freq: 600, duration: 0.2, volume: 0.2 }, // Lower beep
+        upgrade: { freq: 700, duration: 0.25, volume: 0.25 }, // Medium beep
+        levelup: { freq: 1000, duration: 0.4, volume: 0.3 }, // High beep
+        tap: { freq: 500, duration: 0.1, volume: 0.15 }, // Low short beep
+        success: { freq: 900, duration: 0.3, volume: 0.25 }, // Success tone
+        error: { freq: 300, duration: 0.2, volume: 0.2 }, // Error tone
       };
 
       const config = soundConfigs[soundType];

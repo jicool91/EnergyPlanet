@@ -33,6 +33,41 @@ interface BuildingState {
   nextUpgradeCost: number;
 }
 
+interface InventoryBuildingPayload {
+  building_id: string;
+  name: string;
+  count: number;
+  level: number;
+  income_per_sec: number;
+  next_cost: number;
+  next_upgrade_cost: number;
+}
+
+interface TickSyncResponse {
+  energy: number;
+  level: number;
+  xp_gained?: number;
+  xp_into_level?: number;
+  xp_to_next_level?: number;
+  passive_income_per_sec?: number;
+}
+
+interface UpgradeResponsePayload {
+  energy?: number;
+  level?: number;
+  xp_gained?: number;
+  xp_into_level?: number;
+  xp_to_next_level?: number;
+  building?: {
+    building_id: string;
+    count: number;
+    level: number;
+    income_per_sec: number;
+    next_cost: number;
+    next_upgrade_cost: number;
+  };
+}
+
 const STREAK_RESET_MS = 4000;
 const STREAK_CRIT_THRESHOLD = 25;
 
@@ -140,7 +175,7 @@ function describeError(error: unknown): { status: number | null; message: string
   return { status: null, message: fallbackSessionError };
 }
 
-function mapBuilding(entry: any): BuildingState {
+function mapBuilding(entry: InventoryBuildingPayload): BuildingState {
   return {
     buildingId: entry.building_id,
     name: entry.name,
@@ -215,7 +250,9 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       // Authenticate with Telegram
       const initData = getTelegramInitData();
-      const authResponse = await postQueue.enqueue(() => apiClient.post('/auth/telegram', { initData }));
+      const authResponse = await postQueue.enqueue(() =>
+        apiClient.post('/auth/telegram', { initData })
+      );
 
       // Store tokens
       authStore.setTokens({
@@ -293,7 +330,8 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (error) {
       console.error('Failed to initialize game', error);
 
-      const fallbackMessage = 'Не удалось авторизоваться. Проверьте подключение и попробуйте ещё раз.';
+      const fallbackMessage =
+        'Не удалось авторизоваться. Проверьте подключение и попробуйте ещё раз.';
       let message = fallbackMessage;
 
       if (isAxiosError(error)) {
@@ -345,10 +383,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       triggerHapticImpact(isCritical ? 'heavy' : 'light');
 
       set(state => ({
-        energy: Math.max(
-          serverEnergy + state.pendingPassiveEnergy,
-          state.energy + energyGained
-        ),
+        energy: Math.max(serverEnergy + state.pendingPassiveEnergy, state.energy + energyGained),
         level,
         xp: state.xp + xp_gained,
         xpIntoLevel: xp_into_level ?? Math.max(0, state.xpIntoLevel + xp_gained),
@@ -389,7 +424,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
- resetStreak: () => {
+  resetStreak: () => {
     if (get().streakCount === 0) {
       return;
     }
@@ -506,11 +541,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (error) {
       const { message } = describeError(error);
       set({ cosmeticsError: message || 'Не удалось загрузить магазин', isCosmeticsLoading: false });
-      await logClientEvent(
-        'cosmetics_load_failed',
-        { message, source: 'loadCosmetics' },
-        'warn'
-      );
+      await logClientEvent('cosmetics_load_failed', { message, source: 'loadCosmetics' }, 'warn');
     }
   },
 
@@ -582,7 +613,11 @@ export const useGameStore = create<GameState>((set, get) => ({
         }),
       }));
 
-      await logClientEvent('cosmetic_equipped', { cosmetic_id: cosmeticId, category: target.category }, 'info');
+      await logClientEvent(
+        'cosmetic_equipped',
+        { cosmetic_id: cosmeticId, category: target.category },
+        'info'
+      );
     } catch (error) {
       const { status, message } = describeError(error);
       await logClientEvent(
@@ -611,15 +646,19 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     try {
       const packs = await fetchStarPacks();
-      set({ starPacks: packs, starPacksLoaded: true, isStarPacksLoading: false, starPacksError: null });
+      set({
+        starPacks: packs,
+        starPacksLoaded: true,
+        isStarPacksLoading: false,
+        starPacksError: null,
+      });
     } catch (error) {
       const { message } = describeError(error);
-      set({ starPacksError: message || 'Не удалось загрузить паки Stars', isStarPacksLoading: false });
-      await logClientEvent(
-        'star_packs_load_failed',
-        { message, source: 'loadStarPacks' },
-        'warn'
-      );
+      set({
+        starPacksError: message || 'Не удалось загрузить паки Stars',
+        isStarPacksLoading: false,
+      });
+      await logClientEvent('star_packs_load_failed', { message, source: 'loadStarPacks' }, 'warn');
     }
   },
 
@@ -707,11 +746,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (error) {
       const { message } = describeError(error);
       set({ boostHubError: message || 'Не удалось загрузить бусты', isBoostHubLoading: false });
-      await logClientEvent(
-        'boost_hub_load_failed',
-        { message },
-        'warn'
-      );
+      await logClientEvent('boost_hub_load_failed', { message }, 'warn');
     }
   },
 
@@ -755,7 +790,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
     try {
       passiveFlushInFlight = true;
-      let payload: any;
+      let payload: TickSyncResponse;
 
       if (keepAlive) {
         const headers = authStore.getAuthHeaders();
@@ -769,10 +804,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         if (!response.ok) {
           throw new Error(`Tick sync failed (${response.status})`);
         }
-        payload = await response.json();
+        payload = (await response.json()) as TickSyncResponse;
       } else {
         const response = await apiClient.post('/tick', { time_delta: pendingSeconds });
-        payload = response.data;
+        payload = response.data as TickSyncResponse;
       }
 
       const passivePerSec = payload.passive_income_per_sec ?? get().passiveIncomePerSec;
@@ -782,7 +817,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         energy: payload.energy,
         level: payload.level,
         xp: state.xp + (payload.xp_gained ?? 0),
-        xpIntoLevel: payload.xp_into_level ?? Math.max(0, state.xpIntoLevel + (payload.xp_gained ?? 0)),
+        xpIntoLevel:
+          payload.xp_into_level ?? Math.max(0, state.xpIntoLevel + (payload.xp_gained ?? 0)),
         xpToNextLevel: payload.xp_to_next_level ?? state.xpToNextLevel,
         pendingPassiveEnergy: 0,
         pendingPassiveSeconds: 0,
@@ -805,7 +841,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ isProcessingBuildingId: buildingId, buildingsError: null });
 
     let successfulPurchases = 0;
-    let lastResponse: any = null;
+    let lastResponse: UpgradeResponsePayload | null = null;
 
     try {
       await get().flushPassiveIncome();
@@ -817,20 +853,21 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       for (let index = 0; index < quantity; index += 1) {
         try {
-          const response = await apiClient.post('/upgrade', {
+          const response = await apiClient.post<UpgradeResponsePayload>('/upgrade', {
             building_id: buildingId,
             action: 'purchase',
           });
           successfulPurchases += 1;
-          lastResponse = response;
+          const payload = response.data ?? {};
+          lastResponse = payload;
 
           set(state => ({
-            xp: state.xp + (response.data?.xp_gained ?? 0),
+            xp: state.xp + (payload.xp_gained ?? 0),
             xpIntoLevel:
-              response.data?.xp_into_level ?? Math.max(0, state.xpIntoLevel + (response.data?.xp_gained ?? 0)),
-            xpToNextLevel: response.data?.xp_to_next_level ?? state.xpToNextLevel,
-            energy: response.data?.energy ?? state.energy,
-            level: response.data?.level ?? state.level,
+              payload.xp_into_level ?? Math.max(0, state.xpIntoLevel + (payload.xp_gained ?? 0)),
+            xpToNextLevel: payload.xp_to_next_level ?? state.xpToNextLevel,
+            energy: payload.energy ?? state.energy,
+            level: payload.level ?? state.level,
           }));
         } catch (iterationError) {
           if (successfulPurchases > 0) {
@@ -854,7 +891,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         {
           building_id: buildingId,
           quantity: successfulPurchases,
-          next_cost: lastResponse?.data?.building?.next_cost ?? null,
+          next_cost: lastResponse?.building?.next_cost ?? null,
         },
         'info'
       );
@@ -891,25 +928,26 @@ export const useGameStore = create<GameState>((set, get) => ({
       await get().flushPassiveIncome();
       await logClientEvent('building_upgrade_request', { building_id: buildingId }, 'info');
 
-      const response = await apiClient.post('/upgrade', {
+      const response = await apiClient.post<UpgradeResponsePayload>('/upgrade', {
         building_id: buildingId,
         action: 'upgrade',
       });
+      const payload = response.data ?? {};
 
       set(state => ({
-        energy: response.data?.energy ?? state.energy,
-        level: response.data?.level ?? state.level,
-        xp: state.xp + (response.data?.xp_gained ?? 0),
+        energy: payload.energy ?? state.energy,
+        level: payload.level ?? state.level,
+        xp: state.xp + (payload.xp_gained ?? 0),
         xpIntoLevel:
-          response.data?.xp_into_level ?? Math.max(0, state.xpIntoLevel + (response.data?.xp_gained ?? 0)),
-        xpToNextLevel: response.data?.xp_to_next_level ?? state.xpToNextLevel,
+          payload.xp_into_level ?? Math.max(0, state.xpIntoLevel + (payload.xp_gained ?? 0)),
+        xpToNextLevel: payload.xp_to_next_level ?? state.xpToNextLevel,
       }));
 
       await logClientEvent(
         'building_upgrade_success',
         {
           building_id: buildingId,
-          new_level: response.data?.building?.level ?? null,
+          new_level: payload.building?.level ?? null,
         },
         'info'
       );

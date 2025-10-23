@@ -69,7 +69,10 @@ export async function completeCosmeticPurchase(
     metadata: options.metadata ?? {},
   };
 
-  const invoiceResponse = await apiClient.post<InvoiceResponse>('/purchase/invoice', invoicePayload);
+  const invoiceResponse = await apiClient.post<InvoiceResponse>(
+    '/purchase/invoice',
+    invoicePayload
+  );
 
   const openInvoice =
     typeof window !== 'undefined' ? window.Telegram?.WebApp?.openInvoice : undefined;

@@ -16,65 +16,68 @@ export function useHaptic() {
     return 'vibrate' in navigator;
   }, [hapticEnabled]);
 
-  const trigger = useCallback((pattern: HapticPattern) => {
-    if (!checkSupport()) return;
+  const trigger = useCallback(
+    (pattern: HapticPattern) => {
+      if (!checkSupport()) return;
 
-    let vibration: number | number[];
+      let vibration: number | number[];
 
-    switch (pattern) {
-      // Light patterns
-      case 'tap':
-        vibration = hapticIntensity === 'light' ? 8 : hapticIntensity === 'medium' ? 15 : 25;
-        break;
-      case 'light':
-        vibration = 10;
-        break;
+      switch (pattern) {
+        // Light patterns
+        case 'tap':
+          vibration = hapticIntensity === 'light' ? 8 : hapticIntensity === 'medium' ? 15 : 25;
+          break;
+        case 'light':
+          vibration = 10;
+          break;
 
-      // Medium patterns (success, button press)
-      case 'success':
-      case 'medium':
-        if (hapticIntensity === 'light') {
-          vibration = [8, 15];
-        } else if (hapticIntensity === 'medium') {
-          vibration = [12, 20, 12];
-        } else {
-          vibration = [15, 25, 15];
-        }
-        break;
+        // Medium patterns (success, button press)
+        case 'success':
+        case 'medium':
+          if (hapticIntensity === 'light') {
+            vibration = [8, 15];
+          } else if (hapticIntensity === 'medium') {
+            vibration = [12, 20, 12];
+          } else {
+            vibration = [15, 25, 15];
+          }
+          break;
 
-      // Strong patterns (error, warning)
-      case 'error':
-      case 'strong':
-        if (hapticIntensity === 'light') {
-          vibration = [15, 30];
-        } else if (hapticIntensity === 'medium') {
-          vibration = [20, 30, 20];
-        } else {
-          vibration = [30, 40, 30];
-        }
-        break;
+        // Strong patterns (error, warning)
+        case 'error':
+        case 'strong':
+          if (hapticIntensity === 'light') {
+            vibration = [15, 30];
+          } else if (hapticIntensity === 'medium') {
+            vibration = [20, 30, 20];
+          } else {
+            vibration = [30, 40, 30];
+          }
+          break;
 
-      case 'warning':
-        if (hapticIntensity === 'light') {
-          vibration = [10, 20];
-        } else if (hapticIntensity === 'medium') {
-          vibration = [15, 25, 15];
-        } else {
-          vibration = [20, 30, 20];
-        }
-        break;
+        case 'warning':
+          if (hapticIntensity === 'light') {
+            vibration = [10, 20];
+          } else if (hapticIntensity === 'medium') {
+            vibration = [15, 25, 15];
+          } else {
+            vibration = [20, 30, 20];
+          }
+          break;
 
-      default:
-        vibration = 10;
-    }
+        default:
+          vibration = 10;
+      }
 
-    try {
-      navigator.vibrate(vibration);
-    } catch (error) {
-      // Silently fail if vibration not supported
-      console.debug('Haptic feedback not supported:', error);
-    }
-  }, [checkSupport, hapticIntensity]);
+      try {
+        navigator.vibrate(vibration);
+      } catch (error) {
+        // Silently fail if vibration not supported
+        console.debug('Haptic feedback not supported:', error);
+      }
+    },
+    [checkSupport, hapticIntensity]
+  );
 
   const tapVibrate = useCallback(() => trigger('tap'), [trigger]);
   const successVibrate = useCallback(() => trigger('success'), [trigger]);

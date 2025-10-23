@@ -75,21 +75,19 @@ interface TelegramWebApp {
   openInvoice?: (slug: string, callback?: (status?: unknown) => void) => Promise<unknown>;
   onEvent<EventName extends TelegramWebAppEvents>(
     eventType: EventName,
-    handler:
-      EventName extends 'viewportChanged'
-        ? (event: TelegramViewportEvent) => void
-        : EventName extends 'safe_area_changed'
-          ? (inset: TelegramSafeArea) => void
-          : () => void
+    handler: EventName extends 'viewportChanged'
+      ? (event: TelegramViewportEvent) => void
+      : EventName extends 'safe_area_changed'
+        ? (inset: TelegramSafeArea) => void
+        : () => void
   ): void;
   offEvent<EventName extends TelegramWebAppEvents>(
     eventType: EventName,
-    handler:
-      EventName extends 'viewportChanged'
-        ? (event: TelegramViewportEvent) => void
-        : EventName extends 'safe_area_changed'
-          ? (inset: TelegramSafeArea) => void
-          : () => void
+    handler: EventName extends 'viewportChanged'
+      ? (event: TelegramViewportEvent) => void
+      : EventName extends 'safe_area_changed'
+        ? (inset: TelegramSafeArea) => void
+        : () => void
   ): void;
   BackButton?: TelegramBackButton;
   HapticFeedback?: TelegramHapticFeedback;
@@ -163,7 +161,9 @@ function applyTheme(theme: TelegramThemeParams | undefined) {
     getWebApp()?.setBottomBarColor?.(params.bottom_bar_color);
   }
 
-  const colorScheme = getWebApp()?.colorScheme ?? (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const colorScheme =
+    getWebApp()?.colorScheme ??
+    (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
   root.dataset.colorScheme = colorScheme;
 
   // Update theme-color meta for mobile status bar
@@ -187,10 +187,7 @@ function applyTheme(theme: TelegramThemeParams | undefined) {
   });
 }
 
-function applySafeArea(options: {
-  safe?: TelegramSafeArea;
-  content?: TelegramSafeArea;
-}) {
+function applySafeArea(options: { safe?: TelegramSafeArea; content?: TelegramSafeArea }) {
   const root = document.documentElement;
   const safe = options.safe ?? { top: 0, right: 0, bottom: 0, left: 0 };
   const content = options.content ?? safe;

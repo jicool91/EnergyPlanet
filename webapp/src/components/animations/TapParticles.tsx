@@ -31,26 +31,32 @@ export const TapParticles: React.FC<TapParticlesProps> = ({
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const [isGlowing, setIsGlowing] = useState(false);
 
-  const handleTap = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (disabled) return;
-
-    // Get tap position relative to element
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-
-    // Create ripple effect
+  const triggerRipple = (x: number, y: number) => {
     const id = Date.now();
-    setRipples((prev) => [...prev, { id, x, y }]);
+    setRipples(prev => [...prev, { id, x, y }]);
 
     // Remove ripple after animation
     setTimeout(() => {
-      setRipples((prev) => prev.filter((r) => r.id !== id));
+      setRipples(prev => prev.filter(r => r.id !== id));
     }, 800);
+  };
 
-    // Trigger glow
+  const triggerGlow = () => {
     setIsGlowing(true);
     setTimeout(() => setIsGlowing(false), 600);
+  };
+
+  const handleMouseTap = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (disabled) {
+      return;
+    }
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    triggerRipple(x, y);
+    triggerGlow();
 
     // Call parent tap handler
     onTap();
@@ -59,12 +65,23 @@ export const TapParticles: React.FC<TapParticlesProps> = ({
   return (
     <div
       className="relative cursor-pointer select-none"
-      onClick={handleTap}
+      onClick={handleMouseTap}
       role="button"
       tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          handleTap(e as any);
+      onKeyDown={event => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          if (disabled) {
+            return;
+          }
+
+          const rect = event.currentTarget.getBoundingClientRect();
+          const x = rect.width / 2;
+          const y = rect.height / 2;
+
+          triggerRipple(x, y);
+          triggerGlow();
+          onTap();
         }
       }}
     >
@@ -83,12 +100,10 @@ export const TapParticles: React.FC<TapParticlesProps> = ({
       )}
 
       {/* Main content */}
-      <div className="relative z-10">
-        {children}
-      </div>
+      <div className="relative z-10">{children}</div>
 
       {/* Ripple particles */}
-      {ripples.map((ripple) => (
+      {ripples.map(ripple => (
         <RippleParticle key={ripple.id} x={ripple.x} y={ripple.y} />
       ))}
     </div>

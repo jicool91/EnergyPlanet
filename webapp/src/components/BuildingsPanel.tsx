@@ -1,6 +1,7 @@
 import { useMemo, useEffect, useState, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { BuildingCard } from './BuildingCard';
+import type { BuildingCardBuilding } from './BuildingCard';
 import { BuildingSkeleton, ErrorBoundary } from './skeletons';
 
 const PURCHASE_OPTIONS = [
@@ -25,6 +26,17 @@ interface BulkPlan {
   insufficientEnergy: boolean;
 }
 
+type CatalogBuilding = BuildingCardBuilding & {
+  base_cost?: number | null;
+  base_income?: number | null;
+  cost_multiplier?: number | null;
+  upgrade_cost_multiplier?: number | null;
+  max_count?: number | null;
+  unlock_level?: number | null;
+  roi_rank?: number | null;
+  payback_seconds?: number | null;
+};
+
 export function BuildingsPanel() {
   const {
     buildings,
@@ -46,7 +58,7 @@ export function BuildingsPanel() {
   );
 
   const estimatePlan = useCallback(
-    (building: any, option = selectedOption): BulkPlan => {
+    (building: CatalogBuilding, option = selectedOption): BulkPlan => {
       const desired = option.value;
       const baseCost = building.base_cost ?? building.nextCost ?? 0;
       const costMultiplier = building.cost_multiplier ?? 1;
@@ -104,19 +116,19 @@ export function BuildingsPanel() {
   }, [loadBuildingCatalog]);
 
   const sortedBuildings = useMemo(() => {
-      const merged = buildingCatalog.map(def => {
-        const owned = buildings.find(b => b.buildingId === def.id);
+    const merged: CatalogBuilding[] = buildingCatalog.map(def => {
+      const owned = buildings.find(b => b.buildingId === def.id);
 
-        return {
-          ...def,
-          count: owned?.count ?? 0,
-          level: owned?.level ?? 0,
-          incomePerSec: owned?.incomePerSec ?? def.base_income,
-          nextCost: owned?.nextCost ?? def.base_cost,
-          nextUpgradeCost: owned?.nextUpgradeCost ?? Math.round((def.base_cost ?? 0) * 5),
-          roiRank: def.roi_rank ?? null,
-        };
-      });
+      return {
+        ...def,
+        count: owned?.count ?? 0,
+        level: owned?.level ?? 0,
+        incomePerSec: owned?.incomePerSec ?? def.base_income ?? 0,
+        nextCost: owned?.nextCost ?? def.base_cost ?? 0,
+        nextUpgradeCost: owned?.nextUpgradeCost ?? Math.round((def.base_cost ?? 0) * 5),
+        roiRank: def.roi_rank ?? null,
+      };
+    });
 
     return merged.sort((a, b) => {
       if (a.unlock_level === b.unlock_level) {
@@ -149,9 +161,13 @@ export function BuildingsPanel() {
       <div className="flex justify-between items-start gap-3">
         <div>
           <h2 className="m-0 text-xl text-[#f8fbff]">Постройки</h2>
-          <p className="m-0 text-[13px] text-white/60">Развивайте инфраструктуру и увеличивайте пассивный доход</p>
+          <p className="m-0 text-[13px] text-white/60">
+            Развивайте инфраструктуру и увеличивайте пассивный доход
+          </p>
         </div>
-        <div className="text-[13px] text-white/75 font-semibold">Энергия: {Math.floor(energy).toLocaleString()}</div>
+        <div className="text-[13px] text-white/75 font-semibold">
+          Энергия: {Math.floor(energy).toLocaleString()}
+        </div>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -196,7 +212,9 @@ export function BuildingsPanel() {
           <BuildingSkeleton count={3} />
         </ErrorBoundary>
       ) : sortedBuildings.length === 0 ? (
-        <div className="p-4 rounded-[14px] border border-dashed border-cyan/30 text-white/65 text-center">Постройки пока недоступны. Продвигайтесь по уровням, чтобы разблокировать их.</div>
+        <div className="p-4 rounded-[14px] border border-dashed border-cyan/30 text-white/65 text-center">
+          Постройки пока недоступны. Продвигайтесь по уровням, чтобы разблокировать их.
+        </div>
       ) : (
         <div className="flex flex-col gap-4">
           {sortedBuildings.map(building => {
@@ -207,7 +225,9 @@ export function BuildingsPanel() {
             const purchasePlan = estimatePlan(building);
             const canPurchase = !isLocked && purchasePlan.quantity > 0;
             const canUpgrade =
-              building.count > 0 && building.nextUpgradeCost > 0 && energy >= building.nextUpgradeCost;
+              building.count > 0 &&
+              building.nextUpgradeCost > 0 &&
+              energy >= building.nextUpgradeCost;
             const processing = isProcessingBuildingId === building.id;
             const isBestPayback = bestPaybackId === building.id;
 

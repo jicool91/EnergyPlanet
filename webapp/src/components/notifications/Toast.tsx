@@ -39,14 +39,14 @@ export function Toast({ notification }: ToastProps) {
       className="flex items-center gap-3 bg-dark-card border border-dark-border rounded-lg px-4 py-3 shadow-lg backdrop-blur-sm min-w-[280px]"
     >
       {/* Icon Badge */}
-      <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${colorClass}`}>
+      <div
+        className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${colorClass}`}
+      >
         {symbol}
       </div>
 
       {/* Message */}
-      <div className="flex-1 text-sm font-medium text-white">
-        {notification.message}
-      </div>
+      <div className="flex-1 text-sm font-medium text-white">{notification.message}</div>
 
       {/* Close Button */}
       <button

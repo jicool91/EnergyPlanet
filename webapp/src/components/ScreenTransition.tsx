@@ -4,7 +4,7 @@
  */
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type MotionProps, type Transition } from 'framer-motion';
 
 type TransitionType = 'fade' | 'slide' | 'slide-right';
 
@@ -34,13 +34,15 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
   className = '',
   key,
 }) => {
+  type MotionTarget = Exclude<MotionProps['initial'], boolean | undefined>;
+
   const transitionConfigs: Record<
     TransitionType,
     {
-      initial: any;
-      animate: any;
-      exit: any;
-      transition: any;
+      initial: MotionTarget;
+      animate: MotionTarget;
+      exit: MotionTarget;
+      transition: Transition;
     }
   > = {
     fade: {

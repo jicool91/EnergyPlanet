@@ -75,7 +75,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
             </div>
             <div className="flex justify-between">
               <span className="text-white/60">ID:</span>
-              <span className="text-white/80 font-mono text-xs">{profile.user.id.slice(0, 8)}...</span>
+              <span className="text-white/80 font-mono text-xs">
+                {profile.user.id.slice(0, 8)}...
+              </span>
             </div>
           </div>
         ) : (
@@ -121,7 +123,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-white/80">Интенсивность</label>
             <div className="grid grid-cols-3 gap-2">
-              {(['light', 'medium', 'strong'] as const).map((intensity) => (
+              {(['light', 'medium', 'strong'] as const).map(intensity => (
                 <motion.button
                   key={intensity}
                   onClick={() => {
@@ -169,7 +171,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-white/80">Тема оформления</label>
           <div className="grid grid-cols-3 gap-2">
-            {(['light', 'dark', 'auto'] as ThemeMode[]).map((t) => (
+            {(['light', 'dark', 'auto'] as ThemeMode[]).map(t => (
               <motion.button
                 key={t}
                 onClick={() => {
@@ -192,7 +194,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-white/80">Язык</label>
           <div className="grid grid-cols-2 gap-2">
-            {(['ru', 'en'] as Language[]).map((lang) => (
+            {(['ru', 'en'] as Language[]).map(lang => (
               <motion.button
                 key={lang}
                 onClick={() => {
@@ -286,10 +288,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
           <div>Energy Planet v1.0.0</div>
           <div className="text-white/40">© 2025 Energy Planet. Все права защищены.</div>
           <div className="flex gap-2 mt-2">
-            <a
-              href="#privacy"
-              className="text-cyan hover:text-cyan/80 transition-colors underline"
-            >
+            <a href="#privacy" className="text-cyan hover:text-cyan/80 transition-colors underline">
               Политика приватности
             </a>
             <span className="text-white/20">•</span>

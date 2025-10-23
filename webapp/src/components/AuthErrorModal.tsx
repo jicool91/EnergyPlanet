@@ -27,10 +27,18 @@ export function AuthErrorModal({ message, onRetry, onDismiss }: AuthErrorModalPr
         <h2 className="m-0 mb-3 text-xl font-semibold">Ошибка авторизации</h2>
         <p className="m-0 mb-5 text-sm leading-[1.5] text-white/75">{message}</p>
         <div className="flex gap-3 justify-end">
-          <button className="px-[18px] py-[10px] rounded-[10px] border-0 text-sm cursor-pointer transition-all duration-[120ms] ease-in-out bg-white/[0.12] text-white/85 active:scale-[0.97]" type="button" onClick={onDismiss}>
+          <button
+            className="px-[18px] py-[10px] rounded-[10px] border-0 text-sm cursor-pointer transition-all duration-[120ms] ease-in-out bg-white/[0.12] text-white/85 active:scale-[0.97]"
+            type="button"
+            onClick={onDismiss}
+          >
             Закрыть
           </button>
-          <button className="px-[18px] py-[10px] rounded-[10px] border-0 text-sm cursor-pointer transition-all duration-[120ms] ease-in-out bg-gradient-to-br from-cyan to-[#0073ff] text-[#010414] font-semibold shadow-[0_8px_20px_rgba(0,115,255,0.35)] active:scale-[0.97]" type="button" onClick={onRetry}>
+          <button
+            className="px-[18px] py-[10px] rounded-[10px] border-0 text-sm cursor-pointer transition-all duration-[120ms] ease-in-out bg-gradient-to-br from-cyan to-[#0073ff] text-[#010414] font-semibold shadow-[0_8px_20px_rgba(0,115,255,0.35)] active:scale-[0.97]"
+            type="button"
+            onClick={onRetry}
+          >
             Повторить
           </button>
         </div>

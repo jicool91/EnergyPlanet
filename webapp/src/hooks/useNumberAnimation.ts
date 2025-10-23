@@ -22,10 +22,7 @@ interface AnimationState {
  * - Tracks animation state for visual effects (flash, slide-up)
  * - Calculates delta (change amount) for display
  */
-export const useNumberAnimation = (
-  targetValue: number,
-  duration: number = 300
-): AnimationState => {
+export const useNumberAnimation = (targetValue: number, duration: number = 300): AnimationState => {
   const [displayValue, setDisplayValue] = useState(targetValue);
   const [isAnimating, setIsAnimating] = useState(false);
   const [deltaValue, setDeltaValue] = useState(0);

@@ -11,7 +11,7 @@ import { useNotification } from '@/hooks/useNotification';
 import { useHaptic } from '@/hooks/useHaptic';
 import { formatNumberWithSpaces } from '@/utils/number';
 
-interface Building {
+export interface BuildingCardBuilding {
   id: string;
   name: string;
   count: number;
@@ -28,7 +28,7 @@ interface Building {
 }
 
 interface BuildingCardProps {
-  building: Building;
+  building: BuildingCardBuilding;
   isLocked: boolean;
   canPurchase: boolean;
   canUpgrade: boolean;
@@ -118,9 +118,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
     }
   };
 
-  const payback = building.payback_seconds
-    ? `${Math.round(building.payback_seconds)} сек`
-    : '—';
+  const payback = building.payback_seconds ? `${Math.round(building.payback_seconds)} сек` : '—';
   const roiRank = building.roiRank;
   const purchaseQuantityLabel =
     purchasePlan.requestedLabel === 'MAX'
@@ -128,9 +126,10 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       : purchasePlan.partial
         ? `${purchasePlan.requestedLabel} → ×${purchasePlan.quantity}`
         : `${purchasePlan.requestedLabel}`;
-  const purchaseCostLabel = purchasePlan.totalCost > 0
-    ? `${formatNumberWithSpaces(purchasePlan.totalCost)} E`
-    : `${formatNumberWithSpaces(building.nextCost ?? 0)} E`;
+  const purchaseCostLabel =
+    purchasePlan.totalCost > 0
+      ? `${formatNumberWithSpaces(purchasePlan.totalCost)} E`
+      : `${formatNumberWithSpaces(building.nextCost ?? 0)} E`;
   const purchaseDisabled = processing || !canPurchase || purchasePlan.quantity <= 0 || isLocked;
 
   return (

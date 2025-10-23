@@ -15,7 +15,8 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   height,
   count = 1,
 }) => {
-  const baseClass = 'animate-shimmer bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 bg-[length:200%_100%]';
+  const baseClass =
+    'animate-shimmer bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 bg-[length:200%_100%]';
 
   const getVariantClass = () => {
     switch (variant) {
@@ -42,11 +43,7 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   return (
     <>
       {Array.from({ length: count }).map((_, i) => (
-        <div
-          key={i}
-          className={`${variantClass} ${className}`}
-          style={style}
-        />
+        <div key={i} className={`${variantClass} ${className}`} style={style} />
       ))}
     </>
   );

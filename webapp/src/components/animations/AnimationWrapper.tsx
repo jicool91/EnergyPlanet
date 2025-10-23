@@ -4,9 +4,15 @@
  */
 
 import React from 'react';
-import { motion, MotionProps } from 'framer-motion';
+import { motion, type MotionProps, type Transition } from 'framer-motion';
 
-type AnimationType = 'fadeIn' | 'fadeInUp' | 'scaleIn' | 'slideInRight' | 'slideInLeft' | 'bounceIn';
+type AnimationType =
+  | 'fadeIn'
+  | 'fadeInUp'
+  | 'scaleIn'
+  | 'slideInRight'
+  | 'slideInLeft'
+  | 'bounceIn';
 
 interface AnimationWrapperProps extends MotionProps {
   children: React.ReactNode;
@@ -14,12 +20,17 @@ interface AnimationWrapperProps extends MotionProps {
   className?: string;
 }
 
-const animationConfigs: Record<AnimationType, {
-  initial: any;
-  animate: any;
-  exit: any;
-  transition: any;
-}> = {
+type MotionTarget = Exclude<MotionProps['initial'], boolean | undefined>;
+
+const animationConfigs: Record<
+  AnimationType,
+  {
+    initial: MotionTarget;
+    animate: MotionTarget;
+    exit: MotionTarget;
+    transition: Transition;
+  }
+> = {
   fadeIn: {
     initial: { opacity: 0 },
     animate: { opacity: 1 },

@@ -81,7 +81,7 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
             bounce: 0.6,
             duration: 0.5,
           }}
-          onClick={(e) => e.stopPropagation()}
+          onClick={e => e.stopPropagation()}
         >
           {/* Checkmark */}
           <div className="mb-6">
@@ -113,7 +113,8 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
             )}
             {cost !== undefined && (
               <p className="m-0 text-sm">
-                Стоимость: <span className="text-gold font-semibold">{cost.toLocaleString()} E</span>
+                Стоимость:{' '}
+                <span className="text-gold font-semibold">{cost.toLocaleString()} E</span>
               </p>
             )}
           </motion.div>

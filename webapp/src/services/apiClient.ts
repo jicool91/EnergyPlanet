@@ -57,20 +57,20 @@ export const apiClient = axios.create({
 
 // Request interceptor - add auth token
 apiClient.interceptors.request.use(
-  (config) => {
+  config => {
     const token = authStore.accessToken;
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  error => Promise.reject(error)
 );
 
 // Response interceptor - handle errors
 apiClient.interceptors.response.use(
-  (response) => response,
-  async (error) => {
+  response => response,
+  async error => {
     const originalRequest = error.config;
 
     // Handle token expiration

@@ -44,12 +44,7 @@ export const AnimatedNumber: React.FC<AnimatedNumberProps> = ({
     deltaFormatter ??
     formatter ??
     ((val: number) => (val > 0 ? `+${val.toLocaleString()}` : val.toLocaleString()));
-  const deltaTone =
-    deltaValue === 0
-      ? ''
-      : deltaValue > 0
-        ? 'text-lime'
-        : 'text-red-error';
+  const deltaTone = deltaValue === 0 ? '' : deltaValue > 0 ? 'text-lime' : 'text-red-error';
 
   return (
     <div className="relative inline-block">

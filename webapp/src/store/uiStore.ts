@@ -34,7 +34,7 @@ interface UIState {
   removeNotification: (id: string) => void;
 }
 
-export const useUIStore = create<UIState>((set) => ({
+export const useUIStore = create<UIState>(set => ({
   authErrorMessage: null,
   isAuthModalOpen: false,
   offlineSummary: null,
@@ -42,15 +42,15 @@ export const useUIStore = create<UIState>((set) => ({
   notifications: [],
   openAuthError: (message: string) => set({ authErrorMessage: message, isAuthModalOpen: true }),
   dismissAuthError: () => set({ authErrorMessage: null, isAuthModalOpen: false }),
-  setOfflineSummary: (summary) => set({ offlineSummary: summary }),
-  updateTheme: (theme) => set({ theme }),
+  setOfflineSummary: summary => set({ offlineSummary: summary }),
+  updateTheme: theme => set({ theme }),
   clearOfflineSummary: () => set({ offlineSummary: null }),
-  addNotification: (notification) => {
+  addNotification: notification => {
     const id = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     const fullNotification: Notification = { ...notification, id };
 
     set(state => ({
-      notifications: [...state.notifications, fullNotification]
+      notifications: [...state.notifications, fullNotification],
     }));
 
     // Auto-dismiss if duration specified
@@ -62,9 +62,10 @@ export const useUIStore = create<UIState>((set) => ({
 
     return id;
   },
-  removeNotification: (id) => set(state => ({
-    notifications: state.notifications.filter(n => n.id !== id)
-  })),
+  removeNotification: id =>
+    set(state => ({
+      notifications: state.notifications.filter(n => n.id !== id),
+    })),
 }));
 
 export const uiStore = {

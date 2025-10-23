@@ -31,7 +31,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
           max={max}
           step={step}
           value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
+          onChange={e => onChange(Number(e.target.value))}
           disabled={disabled}
           className="flex-1 h-2 rounded-lg bg-gray-700 appearance-none cursor-pointer accent-lime-500"
           style={{

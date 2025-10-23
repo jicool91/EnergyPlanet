@@ -26,17 +26,13 @@ export function NotificationContainer() {
       {/* Achievements - Top center */}
       <div className="fixed top-1/4 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
         <AnimatePresence mode="wait">
-          {achievements.length > 0 && (
-            <Achievement notification={achievements[0]} />
-          )}
+          {achievements.length > 0 && <Achievement notification={achievements[0]} />}
         </AnimatePresence>
       </div>
 
       {/* Alerts - Center of screen (modal) */}
       <AnimatePresence>
-        {alerts.length > 0 && (
-          <Alert key={alerts[0].id} notification={alerts[0]} />
-        )}
+        {alerts.length > 0 && <Alert key={alerts[0].id} notification={alerts[0]} />}
       </AnimatePresence>
     </>
   );

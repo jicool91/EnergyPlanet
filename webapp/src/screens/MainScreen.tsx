@@ -50,10 +50,7 @@ export function MainScreen() {
     hapticTap();
   };
 
-  const energyFull = useMemo(
-    () => formatNumberWithSpaces(Math.floor(energy)),
-    [energy]
-  );
+  const energyFull = useMemo(() => formatNumberWithSpaces(Math.floor(energy)), [energy]);
   const tapIncomeDisplay = useMemo(
     () => Math.max(0, tapIncome).toLocaleString('ru-RU'),
     [tapIncome]
@@ -76,7 +73,8 @@ export function MainScreen() {
       const levelOwned = owned?.level ?? 0;
       const incomePerSec = owned?.incomePerSec ?? def.base_income ?? 0;
       const nextCost = owned?.nextCost ?? def.base_cost ?? 0;
-      const paybackSeconds = def.payback_seconds ?? (incomePerSec > 0 ? nextCost / incomePerSec : null);
+      const paybackSeconds =
+        def.payback_seconds ?? (incomePerSec > 0 ? nextCost / incomePerSec : null);
 
       return {
         ...def,
@@ -107,7 +105,10 @@ export function MainScreen() {
         if (rankA !== rankB) {
           return rankA - rankB;
         }
-        return (a.paybackSeconds ?? Number.POSITIVE_INFINITY) - (b.paybackSeconds ?? Number.POSITIVE_INFINITY);
+        return (
+          (a.paybackSeconds ?? Number.POSITIVE_INFINITY) -
+          (b.paybackSeconds ?? Number.POSITIVE_INFINITY)
+        );
       });
 
     const cheapestUnlocked = [...unlocked].sort(
@@ -186,13 +187,21 @@ export function MainScreen() {
 
   return (
     <div className="flex flex-col w-full h-full relative overflow-hidden">
-      <div className="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 px-5" style={{ paddingTop: 'var(--safe-area-top)', paddingBottom: 'calc(60px + var(--safe-area-bottom))' }}>
+      <div
+        className="flex flex-col gap-4 overflow-y-auto flex-1 min-h-0 px-5"
+        style={{
+          paddingTop: 'var(--safe-area-top)',
+          paddingBottom: 'calc(60px + var(--safe-area-bottom))',
+        }}
+      >
         {/* Комбо бaнер */}
-        <div className={`transition-all duration-200 ${
-          streakCount > 0
-            ? 'absolute top-2 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-lime/20 border border-lime text-lime text-sm font-semibold'
-            : 'absolute top-2 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-transparent border-0'
-        } ${isCriticalStreak ? 'animate-pulse' : ''}`}>
+        <div
+          className={`transition-all duration-200 ${
+            streakCount > 0
+              ? 'absolute top-2 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-lime/20 border border-lime text-lime text-sm font-semibold'
+              : 'absolute top-2 left-1/2 -translate-x-1/2 z-20 px-4 py-2 rounded-full bg-transparent border-0'
+          } ${isCriticalStreak ? 'animate-pulse' : ''}`}
+        >
           {streakCount > 0 && (
             <>
               <span>🔥 Комбо: {streakCount} </span>
@@ -231,7 +240,10 @@ export function MainScreen() {
         {/* Пассивный доход статистика */}
         <div className="grid grid-cols-2 gap-3">
           <div className="p-3 rounded-lg bg-dark-secondary/50 border border-cyan/10 flex flex-col gap-1">
-            <span className="text-xs text-white/60" title="Пассивная энергия поступает каждую секунду от построек и бустов.">
+            <span
+              className="text-xs text-white/60"
+              title="Пассивная энергия поступает каждую секунду от построек и бустов."
+            >
               Пассивный доход
             </span>
             <strong className="text-sm text-white">
@@ -239,7 +251,10 @@ export function MainScreen() {
             </strong>
           </div>
           <div className="p-3 rounded-lg bg-dark-secondary/50 border border-cyan/10 flex flex-col gap-1">
-            <span className="text-xs text-white/60" title="Множитель учитывает активные бусты и бонусы.">
+            <span
+              className="text-xs text-white/60"
+              title="Множитель учитывает активные бусты и бонусы."
+            >
               Множитель
             </span>
             <strong className="text-sm text-white">
@@ -297,9 +312,13 @@ export function MainScreen() {
         {purchaseInsight && (
           <div className="p-3 rounded-lg bg-[rgba(10,14,32,0.9)] border border-cyan/15 flex flex-col gap-2">
             <div className="flex justify-between items-center">
-              <span className="text-[11px] uppercase text-white/45 tracking-[0.6px]">Следующая цель</span>
+              <span className="text-[11px] uppercase text-white/45 tracking-[0.6px]">
+                Следующая цель
+              </span>
               {purchaseInsight.roiRank && (
-                <span className="text-[11px] text-lime/80 font-semibold">ROI #{purchaseInsight.roiRank}</span>
+                <span className="text-[11px] text-lime/80 font-semibold">
+                  ROI #{purchaseInsight.roiRank}
+                </span>
               )}
             </div>
             <div className="text-sm text-white font-semibold">{purchaseInsight.name}</div>
@@ -323,10 +342,16 @@ export function MainScreen() {
 
         {/* Планета (таб Home) */}
         {activeTab === 'home' && (
-          <ScreenTransition key="home" type="fade" className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden">
+          <ScreenTransition
+            key="home"
+            type="fade"
+            className="flex-1 flex flex-col items-center justify-center min-h-0 overflow-hidden"
+          >
             <TapParticles onTap={handleTap}>
               <div className="flex flex-col items-center">
-                <div className={`text-[120px] transition-transform duration-100 user-select-none active:scale-95 ${isCriticalStreak ? 'animate-pulse' : ''}`}>
+                <div
+                  className={`text-[120px] transition-transform duration-100 user-select-none active:scale-95 ${isCriticalStreak ? 'animate-pulse' : ''}`}
+                >
                   🌍
                 </div>
                 <p className="mt-5 text-base text-white/60">Tap to generate energy!</p>
@@ -379,7 +404,14 @@ export function MainScreen() {
       </div>
 
       {/* Footer с навигацией */}
-      <footer className="fixed bottom-0 left-0 right-0 flex justify-around p-2.5 bg-black/80 border-t border-white/10 z-[100] w-full" style={{ paddingBottom: 'var(--safe-area-bottom)', paddingLeft: 'var(--safe-area-left)', paddingRight: 'var(--safe-area-right)' }}>
+      <footer
+        className="fixed bottom-0 left-0 right-0 flex justify-around p-2.5 bg-black/80 border-t border-white/10 z-[100] w-full"
+        style={{
+          paddingBottom: 'var(--safe-area-bottom)',
+          paddingLeft: 'var(--safe-area-left)',
+          paddingRight: 'var(--safe-area-right)',
+        }}
+      >
         {tabButtons.map(tab => (
           <button
             key={tab.key}

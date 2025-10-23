@@ -30,10 +30,7 @@ const colors = ['#00d9ff', '#48ffad', '#ffd700', '#ff8d4d'];
  * Each particle has random position, rotation, size, and color
  * Adapts particle count based on device capabilities
  */
-export const Confetti: React.FC<ConfettiProps> = ({
-  count = 30,
-  duration = 2.5,
-}) => {
+export const Confetti: React.FC<ConfettiProps> = ({ count = 30, duration = 2.5 }) => {
   const capabilities = useDeviceCapabilities();
   const [isReady, setIsReady] = useState(false);
 
@@ -67,7 +64,7 @@ export const Confetti: React.FC<ConfettiProps> = ({
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
-      {particles.map((particle) => (
+      {particles.map(particle => (
         <motion.div
           key={particle.id}
           className="absolute rounded-full will-transform"

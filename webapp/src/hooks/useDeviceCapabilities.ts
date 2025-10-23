@@ -6,11 +6,11 @@
 import { useMemo } from 'react';
 
 interface DeviceCapabilities {
-  isLowEnd: boolean;      // Low-end device (limit animations)
-  isHighEnd: boolean;     // High-end device (full effects)
-  supportsGPU: boolean;   // GPU acceleration available
-  maxParticles: number;   // Max confetti particles
-  reduceMotion: boolean;  // User prefers reduced motion
+  isLowEnd: boolean; // Low-end device (limit animations)
+  isHighEnd: boolean; // High-end device (full effects)
+  supportsGPU: boolean; // GPU acceleration available
+  maxParticles: number; // Max confetti particles
+  reduceMotion: boolean; // User prefers reduced motion
 }
 
 /**
@@ -24,6 +24,10 @@ interface DeviceCapabilities {
  * - reduceMotion: user prefers reduced motion (accessibility)
  */
 export const useDeviceCapabilities = (): DeviceCapabilities => {
+  interface NavigatorWithMemory extends Navigator {
+    deviceMemory?: number;
+  }
+
   return useMemo(() => {
     // Check for reduced motion preference (accessibility)
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -35,13 +39,13 @@ export const useDeviceCapabilities = (): DeviceCapabilities => {
     const isMobile = isAndroid || isIOS;
 
     // Get device memory if available (Chrome)
-    const deviceMemory = (navigator as any).deviceMemory || 8;
+    const deviceMemory = (navigator as NavigatorWithMemory).deviceMemory ?? 8;
 
     // Estimate GPU support
     const canvas = document.createElement('canvas');
     const gl =
       canvas.getContext('webgl') ||
-      (canvas.getContext('experimental-webgl') as any);
+      (canvas.getContext('experimental-webgl') as WebGLRenderingContext | null);
     const supportsGPU = gl !== null && gl !== undefined;
 
     // Determine device tier
