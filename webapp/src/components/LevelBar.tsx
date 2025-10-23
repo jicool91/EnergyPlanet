@@ -20,6 +20,7 @@
  */
 
 import { useState, useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { formatNumberWithSpaces } from '../utils/number';
 
 interface LevelBarProps {
@@ -47,11 +48,27 @@ export function LevelBar({ progress, xpCurrent, xpTotal, showLabel = false }: Le
       title={tooltip || undefined}
     >
       {/* Progress bar container */}
-      <div className="h-0.5 w-full bg-white/5 overflow-hidden">
+      <div className="h-0.5 w-full bg-white/5 overflow-hidden relative">
         {/* Animated progress fill */}
-        <div
-          className="h-full bg-gradient-to-r from-cyan via-lime to-gold transition-all duration-500 ease-out"
-          style={{ width: `${percentage}%` }}
+        <motion.div
+          className="h-full bg-gradient-to-r from-cyan via-lime to-gold"
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ type: 'spring', stiffness: 80, damping: 20, duration: 0.8 }}
+        />
+
+        {/* Shimmer effect for thin bar */}
+        <motion.div
+          className="absolute inset-0 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-40"
+          animate={{
+            x: ['-100%', '100%'],
+            opacity: [0, 0.4, 0],
+          }}
+          transition={{
+            duration: 1.5,
+            repeat: Infinity,
+            delay: 0.3,
+          }}
         />
       </div>
 

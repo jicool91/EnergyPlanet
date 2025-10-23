@@ -22,6 +22,7 @@
  */
 
 import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { Card } from './Card';
 import { formatNumberWithSpaces } from '../utils/number';
 
@@ -70,12 +71,30 @@ export function XPProgressCard({
         </div>
       </div>
 
-      {/* Progress bar */}
+      {/* Progress bar with animation */}
       <div className="mb-3">
-        <div className="h-3 rounded-full bg-white/10 overflow-hidden mb-2">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-cyan via-lime to-gold transition-all duration-500"
-            style={{ width: `${percentage}%` }}
+        <div className="h-3 rounded-full bg-white/10 overflow-hidden mb-2 relative">
+          {/* Animated fill */}
+          <motion.div
+            className="h-full rounded-full bg-gradient-to-r from-cyan via-lime to-gold"
+            initial={{ width: 0 }}
+            animate={{ width: `${percentage}%` }}
+            transition={{ type: 'spring', stiffness: 100, damping: 25, duration: 0.6 }}
+          />
+
+          {/* Shimmer effect overlay */}
+          <motion.div
+            className="absolute inset-0 h-full rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-30"
+            animate={{
+              x: ['0%', '200%'],
+              opacity: [0, 0.3, 0],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Infinity,
+              delay: 0.5,
+            }}
+            style={{ width: '100%' }}
           />
         </div>
         <div className="text-xs text-white/60">
