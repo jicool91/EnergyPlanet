@@ -12,6 +12,13 @@ import { useNotification } from '@/hooks/useNotification';
 import { useHaptic } from '@/hooks/useHaptic';
 import { formatNumberWithSpaces } from '@/utils/number';
 
+interface ButtonStateType {
+  [key: string]: {
+    success: boolean;
+    error: boolean;
+  };
+}
+
 export interface BuildingCardBuilding {
   id: string;
   name: string;
@@ -67,6 +74,10 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
 }) => {
   const [wasLocked, setWasLocked] = useState(isLocked);
   const [showUnlockAnim, setShowUnlockAnim] = useState(false);
+  const [buttonStates, setButtonStates] = useState<ButtonStateType>({
+    purchase: { success: false, error: false },
+    upgrade: { success: false, error: false },
+  });
   const playSound = useSoundEffect();
   const { success, error } = useNotification();
   const { success: hapticSuccess, error: hapticError } = useHaptic();
@@ -90,33 +101,58 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
     setWasLocked(isLocked);
   }, [isLocked, wasLocked, playSound, hapticSuccess]);
 
-  // Handle purchase with notification
+  // Handle purchase with notification and button state
   const handlePurchase = async () => {
     if (purchasePlan.quantity <= 0) {
+      setButtonStates(prev => ({ ...prev, purchase: { success: false, error: true } }));
       hapticError();
       error('Недостаточно энергии для выбранного пакета');
+      // Reset error state after 1.5s
+      setTimeout(() => {
+        setButtonStates(prev => ({ ...prev, purchase: { success: false, error: false } }));
+      }, 1500);
       return;
     }
 
     try {
       await onPurchase(building.id, purchasePlan.quantity);
+      setButtonStates(prev => ({ ...prev, purchase: { success: true, error: false } }));
       hapticSuccess();
       success(`${building.name} ×${purchasePlan.quantity} куплено!`);
+      // Reset success state after 1.5s
+      setTimeout(() => {
+        setButtonStates(prev => ({ ...prev, purchase: { success: false, error: false } }));
+      }, 1500);
     } catch (err) {
+      setButtonStates(prev => ({ ...prev, purchase: { success: false, error: true } }));
       hapticError();
       error(`Ошибка при покупке ${building.name}`);
+      // Reset error state after 1.5s
+      setTimeout(() => {
+        setButtonStates(prev => ({ ...prev, purchase: { success: false, error: false } }));
+      }, 1500);
     }
   };
 
-  // Handle upgrade with notification
+  // Handle upgrade with notification and button state
   const handleUpgrade = async () => {
     try {
       await onUpgrade(building.id);
+      setButtonStates(prev => ({ ...prev, upgrade: { success: true, error: false } }));
       hapticSuccess();
       success(`${building.name} улучшена!`);
+      // Reset success state after 1.5s
+      setTimeout(() => {
+        setButtonStates(prev => ({ ...prev, upgrade: { success: false, error: false } }));
+      }, 1500);
     } catch (err) {
+      setButtonStates(prev => ({ ...prev, upgrade: { success: false, error: true } }));
       hapticError();
       error(`Ошибка при апгрейде ${building.name}`);
+      // Reset error state after 1.5s
+      setTimeout(() => {
+        setButtonStates(prev => ({ ...prev, upgrade: { success: false, error: false } }));
+      }, 1500);
     }
   };
 
@@ -210,39 +246,35 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
 
       {/* Action buttons: Purchase + Upgrade */}
       <div className="flex gap-3 flex-wrap">
-        {/* Purchase button */}
-        <motion.div
-          whileTap={!purchaseDisabled ? { scale: 0.95 } : {}}
-          whileHover={!purchaseDisabled ? { scale: 1.05 } : {}}
+        {/* Purchase button with micro-interactions */}
+        <Button
+          variant="primary"
+          size="md"
+          loading={processing}
+          loadingText="Ожидание…"
+          disabled={purchaseDisabled}
+          success={buttonStates.purchase.success}
+          error={buttonStates.purchase.error}
+          successText="Куплено!"
+          onClick={handlePurchase}
         >
-          <Button
-            variant="primary"
-            size="md"
-            loading={processing}
-            loadingText="Ожидание…"
-            disabled={purchaseDisabled}
-            onClick={handlePurchase}
-          >
-            {isLocked ? 'Недоступно' : `Купить ${purchaseQuantityLabel}`}
-          </Button>
-        </motion.div>
+          {isLocked ? 'Недоступно' : `Купить ${purchaseQuantityLabel}`}
+        </Button>
 
-        {/* Upgrade button */}
-        <motion.div
-          whileTap={!processing && canUpgrade ? { scale: 0.95 } : {}}
-          whileHover={!processing && canUpgrade ? { scale: 1.05 } : {}}
+        {/* Upgrade button with micro-interactions */}
+        <Button
+          variant="secondary"
+          size="md"
+          loading={processing}
+          loadingText="Ожидание…"
+          disabled={processing || !canUpgrade}
+          success={buttonStates.upgrade.success}
+          error={buttonStates.upgrade.error}
+          successText="Апгрейдено!"
+          onClick={handleUpgrade}
         >
-          <Button
-            variant="secondary"
-            size="md"
-            loading={processing}
-            loadingText="Ожидание…"
-            disabled={processing || !canUpgrade}
-            onClick={handleUpgrade}
-          >
-            Апгрейд
-          </Button>
-        </motion.div>
+          Апгрейд
+        </Button>
       </div>
     </motion.div>
   );
