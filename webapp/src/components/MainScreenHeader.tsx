@@ -69,7 +69,9 @@ export function MainScreenHeader({
 
           {/* Energy */}
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-lg flex-shrink-0">⚡</span>
+            <span className="text-lg flex-shrink-0" role="img" aria-label="Energy">
+              ⚡
+            </span>
             <div className="min-w-0">
               <p className="m-0 text-xs text-[var(--color-text-secondary)] truncate">Energy</p>
               <p className="m-0 text-sm font-semibold text-[var(--color-text-primary)] truncate">
@@ -80,7 +82,9 @@ export function MainScreenHeader({
 
           {/* Stars + Quick Top-Up */}
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-lg flex-shrink-0">⭐</span>
+            <span className="text-lg flex-shrink-0" role="img" aria-label="Stars">
+              ⭐
+            </span>
             <div className="min-w-0">
               <p className="m-0 text-xs text-[var(--color-text-secondary)] truncate">Stars</p>
               <p className="m-0 text-sm font-semibold text-[var(--color-text-accent)] truncate">
@@ -104,7 +108,9 @@ export function MainScreenHeader({
                   opacity: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
                 }}
               >
-                <span className="text-xs font-bold">+</span>
+                <span className="text-xs font-bold" aria-hidden="true">
+                  +
+                </span>
               </motion.button>
             )}
           </div>
@@ -121,7 +127,9 @@ export function MainScreenHeader({
               type="button"
               aria-label="Top-up Stars"
             >
-              <span className="text-sm">🛍️</span>
+              <span className="text-sm" aria-hidden="true">
+                🛍️
+              </span>
             </button>
           )}
 
@@ -134,7 +142,9 @@ export function MainScreenHeader({
               aria-label="Settings"
               type="button"
             >
-              <span className="text-lg">⚙️</span>
+              <span className="text-lg" aria-hidden="true">
+                ⚙️
+              </span>
             </button>
           )}
         </div>
