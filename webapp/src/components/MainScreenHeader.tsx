@@ -29,6 +29,7 @@ import { LevelBar } from './LevelBar';
 interface MainScreenHeaderProps {
   level: number;
   energy: number;
+  stars?: number;
   xpProgress?: number; // 0-1
   onSettingsClick?: () => void;
   onShopClick?: () => void;
@@ -37,11 +38,13 @@ interface MainScreenHeaderProps {
 export function MainScreenHeader({
   level,
   energy,
+  stars = 0,
   xpProgress,
   onSettingsClick,
   onShopClick,
 }: MainScreenHeaderProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
+  const starsCompact = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
 
   return (
     <header
@@ -67,6 +70,15 @@ export function MainScreenHeader({
             <div className="min-w-0">
               <p className="m-0 text-xs text-white/60 truncate">Energy</p>
               <p className="m-0 text-sm font-semibold text-white truncate">{energyCompact}</p>
+            </div>
+          </div>
+
+          {/* Stars */}
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="text-lg flex-shrink-0">⭐</span>
+            <div className="min-w-0">
+              <p className="m-0 text-xs text-gold/70 truncate">Stars</p>
+              <p className="m-0 text-sm font-semibold text-gold truncate">{starsCompact}</p>
             </div>
           </div>
         </div>

@@ -43,6 +43,7 @@ function App() {
   const currentLevel = useGameStore(state => state.level);
   const level = useGameStore(state => state.level);
   const energy = useGameStore(state => state.energy);
+  const stars = useGameStore(state => state.stars);
   const xpIntoLevel = useGameStore(state => state.xpIntoLevel);
   const xpToNextLevel = useGameStore(state => state.xpToNextLevel);
   const previousLevelRef = useRef(1);
@@ -153,6 +154,7 @@ function App() {
       <MainScreenHeader
         level={level}
         energy={energy}
+        stars={stars}
         xpProgress={xpIntoLevel + xpToNextLevel > 0 ? Math.min(1, xpIntoLevel / (xpIntoLevel + xpToNextLevel)) : 0}
         onShopClick={() => setActiveTab('shop')}
         onSettingsClick={() => setActiveTab('settings')}

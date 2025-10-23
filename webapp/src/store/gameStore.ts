@@ -86,6 +86,7 @@ interface GameState {
   tapLevel: number;
   tapIncome: number;
   energy: number;
+  stars: number; // ⭐ Player's star balance
   passiveIncomePerSec: number;
   passiveIncomeMultiplier: number;
   streakCount: number;
@@ -198,6 +199,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   tapLevel: 1,
   tapIncome: 0,
   energy: 0,
+  stars: 0,
   passiveIncomePerSec: 0,
   passiveIncomeMultiplier: 1,
   streakCount: 0,
