@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react';
 
-interface StatCardProps {
+export interface StatCardProps {
   icon: ReactNode;
   label: string;
   value: ReactNode;
@@ -9,10 +9,14 @@ interface StatCardProps {
   onClick?: () => void;
 }
 
+/**
+ * Design System: Tone-based styling using standardized tokens
+ * No hardcoded colors - all colors from tailwind.config.js
+ */
 const toneStyles: Record<NonNullable<StatCardProps['tone']>, string> = {
   default: 'bg-dark-secondary/70 border-white/10 text-white/80',
-  positive: 'bg-lime/10 border-lime/30 text-[#b5ffd8]',
-  warning: 'bg-orange/10 border-orange/30 text-[#ffd798]',
+  positive: 'bg-lime/10 border-lime/30 text-lime',
+  warning: 'bg-orange/10 border-orange/30 text-orange',
 };
 
 export function StatCard({
@@ -23,19 +27,26 @@ export function StatCard({
   tone = 'default',
   onClick,
 }: StatCardProps) {
+  // Base: flex + gap + rounded + border + padding + transition
   const base =
-    'flex flex-col gap-1.5 rounded-2xl border px-4 py-3 transition-transform duration-150 ease-out';
+    'flex flex-col gap-2 rounded-md border px-4 py-3 transition-transform duration-150 ease-out';
   const toneClass = toneStyles[tone];
+
   const content = (
     <>
-      <div className="flex items-center gap-2 text-sm font-medium">
+      {/* Label row: icon + text label */}
+      <div className="flex items-center gap-2">
         <span className="text-lg" aria-hidden>
           {icon}
         </span>
-        <span className="uppercase tracking-[0.6px] text-xs">{label}</span>
+        <span className="text-micro uppercase tracking-wide">{label}</span>
       </div>
-      <div className="text-xl font-semibold text-white">{value}</div>
-      {subLabel && <div className="text-xs text-white/60">{subLabel}</div>}
+
+      {/* Value: large, bold, white */}
+      <div className="text-heading font-semibold text-white">{value}</div>
+
+      {/* Optional subLabel: small, muted */}
+      {subLabel && <div className="text-caption text-white/60">{subLabel}</div>}
     </>
   );
 

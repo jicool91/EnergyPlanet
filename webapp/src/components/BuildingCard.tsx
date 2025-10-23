@@ -27,7 +27,7 @@ export interface BuildingCardBuilding {
   roi_rank?: number | null;
 }
 
-interface BuildingCardProps {
+export interface BuildingCardProps {
   building: BuildingCardBuilding;
   isLocked: boolean;
   canPurchase: boolean;
@@ -50,6 +50,7 @@ interface BuildingCardProps {
 
 /**
  * BuildingCard: Displays a single building with unlock animation
+ * Design System: Uses standardized colors, spacing, and typography
  * Shows fade-in + scale-up when building is newly unlocked
  */
 export const BuildingCard: React.FC<BuildingCardProps> = ({
@@ -132,17 +133,20 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       : `${formatNumberWithSpaces(building.nextCost ?? 0)} E`;
   const purchaseDisabled = processing || !canPurchase || purchasePlan.quantity <= 0 || isLocked;
 
+  // Design System: Base card styles using tokens
+  const baseCardClass = 'flex flex-col gap-3 p-4 rounded-lg border shadow-lg';
+  const cardVariant = isBestPayback
+    ? 'border-lime/60 bg-dark-secondary/70 shadow-lg relative'
+    : 'border-cyan/[0.14] bg-dark-secondary/60';
+  const lockedClass = isLocked ? 'border-warning/45 bg-dark-tertiary/50 opacity-70' : '';
+
   return (
     <motion.div
       key={building.id}
       initial={isLocked ? { opacity: 0.7, scale: 0.98 } : { opacity: 1, scale: 1 }}
       animate={isLocked ? { opacity: 0.7, scale: 0.98 } : { opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className={`flex flex-col gap-3 p-4 rounded-lg bg-[rgba(10,14,32,0.92)] border shadow-[0_18px_40px_rgba(7,12,35,0.35)] ${
-        isBestPayback
-          ? 'border-lime/60 shadow-[0_20px_48px_rgba(72,255,173,0.35)] relative after:content-["Лучший_ROI"] after:absolute after:-top-[10px] after:right-4 after:bg-gradient-to-br after:from-lime/90 after:to-cyan/90 after:text-[#04121a] after:text-[11px] after:font-bold after:px-[10px] after:py-1 after:rounded-full after:tracking-[0.5px]'
-          : 'border-cyan/[0.14]'
-      } ${isLocked ? 'border-[rgba(255,196,87,0.45)] bg-[rgba(45,35,18,0.9)]' : ''}`}
+      className={`${baseCardClass} ${cardVariant} ${lockedClass}`}
     >
       {/* Unlock animation pulse */}
       {showUnlockAnim && (
@@ -154,10 +158,11 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
         />
       )}
 
+      {/* Header: Building name + count */}
       <div className="flex justify-between items-center">
-        <h3 className="m-0 text-base text-[#f8fbff]">{building.name}</h3>
+        <h3 className="m-0 text-subheading font-semibold text-white">{building.name}</h3>
         <motion.span
-          className="text-[13px] text-white/70 font-semibold"
+          className="text-caption text-white/70 font-semibold"
           animate={showUnlockAnim ? { scale: [1, 1.2, 1] } : { scale: 1 }}
           transition={{ duration: 0.6 }}
         >
@@ -165,61 +170,67 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
         </motion.span>
       </div>
 
-      <div className="flex gap-4 text-xs text-white/65 flex-wrap">
+      {/* Stats: Level, Income, Payback, ROI */}
+      <div className="flex gap-4 text-caption text-white/65 flex-wrap">
         <span>Уровень: {building.level}</span>
         <span>Доход: {building.incomePerSec.toLocaleString()} /с</span>
         <span>Окупаемость: {payback}</span>
-        {roiRank && <span className="text-lime/[0.85] font-semibold">ROI #{roiRank}</span>}
+        {roiRank && <span className="text-lime/85 font-semibold">ROI #{roiRank}</span>}
       </div>
 
+      {/* Unlock requirement */}
       {isLocked && building.unlock_level && (
-        <div className="text-xs text-[#ffc957]">Требуется уровень {building.unlock_level}</div>
+        <div className="text-caption text-warning">Требуется уровень {building.unlock_level}</div>
       )}
 
-      <div className="flex flex-wrap gap-3 text-[11px] text-white/55">
+      {/* Purchase info: Quantity, Cost, Income gain */}
+      <div className="flex flex-wrap gap-3 text-micro text-white/55">
         <span>Пакет: {purchaseQuantityLabel}</span>
         <span>Стоимость: {purchaseCostLabel}</span>
         {purchasePlan.incomeGain > 0 && (
-          <span>+{formatNumberWithSpaces(purchasePlan.incomeGain)} E/с</span>
+          <span className="text-lime/90">
+            +{formatNumberWithSpaces(purchasePlan.incomeGain)} E/с
+          </span>
         )}
       </div>
+
+      {/* Purchase warnings */}
       {purchasePlan.partial && !isLocked && (
-        <div className="text-[11px] text-[#ffd27d]">
+        <div className="text-micro text-warning">
           Энергии хватит на ×{purchasePlan.quantity} из {purchasePlan.requestedValue}
         </div>
       )}
       {purchasePlan.limitedByCap && !isLocked && (
-        <div className="text-[11px] text-[#ffd27d]">Достигнут лимит построек для уровня</div>
+        <div className="text-micro text-warning">Достигнут лимит построек для уровня</div>
       )}
       {purchasePlan.insufficientEnergy && !isLocked && (
-        <div className="text-[11px] text-[#ffb8b8]">Недостаточно энергии для выбранного пакета</div>
+        <div className="text-micro text-red-error">Недостаточно энергии для выбранного пакета</div>
       )}
 
+      {/* Action buttons: Purchase + Upgrade */}
       <div className="flex gap-3 flex-wrap">
+        {/* Purchase button */}
         <motion.button
           type="button"
-          className="px-[18px] py-[10px] rounded-md border-0 text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out bg-gradient-to-br from-cyan/25 to-[rgba(38,127,255,0.35)] text-[#f8fbff] disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-[0_10px_26px_rgba(0,217,255,0.3)]"
+          className="px-4 py-2 rounded-md border-0 text-caption font-semibold cursor-pointer transition-all duration-120 ease-in-out bg-gradient-to-br from-cyan/25 to-blue-500/35 text-white disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-glow"
           onClick={handlePurchase}
           disabled={purchaseDisabled}
           whileTap={{ scale: 0.95 }}
           whileHover={!purchaseDisabled ? { scale: 1.05 } : {}}
         >
-          {processing
-            ? 'Ожидание…'
-            : isLocked
-              ? 'Недоступно'
-              : `Купить ${purchaseQuantityLabel} (${purchaseCostLabel})`}
+          {processing ? 'Ожидание…' : isLocked ? 'Недоступно' : `Купить ${purchaseQuantityLabel}`}
         </motion.button>
 
+        {/* Upgrade button */}
         <motion.button
           type="button"
-          className="px-[18px] py-[10px] rounded-md border-0 text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out bg-cyan/[0.12] text-[#f8fbff] disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-[0_10px_26px_rgba(0,217,255,0.3)]"
+          className="px-4 py-2 rounded-md border-0 text-caption font-semibold cursor-pointer transition-all duration-120 ease-in-out bg-cyan/20 text-white disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-card-hover"
           onClick={handleUpgrade}
           disabled={processing || !canUpgrade}
           whileTap={{ scale: 0.95 }}
           whileHover={!processing && canUpgrade ? { scale: 1.05 } : {}}
         >
-          {processing ? 'Ожидание…' : `Апгрейд (${building.nextUpgradeCost.toLocaleString()} E)`}
+          {processing ? 'Ожидание…' : `Апгрейд`}
         </motion.button>
       </div>
     </motion.div>

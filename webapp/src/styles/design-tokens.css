@@ -1,0 +1,207 @@
+/**
+ * Energy Planet Design System - Design Tokens
+ *
+ * This file documents all design tokens used in the application.
+ * These tokens are defined in tailwind.config.js and referenced here
+ * for easy lookup and documentation.
+ */
+
+:root {
+  /* ===== COLORS ===== */
+
+  /* Brand Colors */
+  --color-cyan: #00d9ff;
+  --color-gold: #ffd700;
+  --color-lime: #48ffad;
+  --color-orange: #ff8d4d;
+
+  /* Status Colors */
+  --color-success: #48ffad;
+  --color-warning: #ffc957;
+  --color-error: #ff5a5a;
+
+  /* Background Colors */
+  --color-dark-bg: #0a0e27;
+  --color-dark-secondary: #101328;
+  --color-dark-tertiary: #1a2540;
+
+  /* ===== TYPOGRAPHY ===== */
+
+  /* Display: 48px / 56px (bold) */
+  --font-display: 48px;
+  --line-height-display: 56px;
+  --font-weight-display: 700;
+
+  /* Heading: 24px / 32px (semibold) */
+  --font-heading: 24px;
+  --line-height-heading: 32px;
+  --font-weight-heading: 600;
+
+  /* Subheading: 16px / 24px (semibold) */
+  --font-subheading: 16px;
+  --line-height-subheading: 24px;
+  --font-weight-subheading: 600;
+
+  /* Body: 14px / 20px (normal) */
+  --font-body: 14px;
+  --line-height-body: 20px;
+  --font-weight-body: 400;
+
+  /* Caption: 12px / 16px (normal) */
+  --font-caption: 12px;
+  --line-height-caption: 16px;
+  --font-weight-caption: 400;
+
+  /* Micro: 11px / 14px (semibold) */
+  --font-micro: 11px;
+  --line-height-micro: 14px;
+  --font-weight-micro: 600;
+
+  /* ===== SPACING (8px base) ===== */
+
+  --spacing-xs: 4px;      /* 0.5 × 8px */
+  --spacing-sm: 8px;      /* 1 × 8px */
+  --spacing-md: 16px;     /* 2 × 8px */
+  --spacing-lg: 24px;     /* 3 × 8px */
+  --spacing-xl: 32px;     /* 4 × 8px */
+  --spacing-2xl: 40px;    /* 5 × 8px */
+
+  /* ===== BORDER RADIUS ===== */
+
+  --border-radius-xs: 4px;
+  --border-radius-sm: 6px;
+  --border-radius-default: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-xl: 24px;
+  --border-radius-2xl: 32px;
+
+  /* ===== SHADOWS ===== */
+
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --shadow-md: 0 12px 24px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 20px 48px rgba(0, 0, 0, 0.35);
+  --shadow-xl: 0 24px 60px rgba(0, 0, 0, 0.45);
+
+  /* Cyan glows */
+  --shadow-glow-card: 0 2px 8px rgba(0, 217, 255, 0.1);
+  --shadow-glow-card-hover: 0 4px 16px rgba(0, 217, 255, 0.2);
+  --shadow-glow: 0 0 20px rgba(0, 217, 255, 0.3);
+}
+
+/* ===== UTILITY CLASSES FOR COMMON PATTERNS ===== */
+
+/**
+ * Typography Classes
+ * Use these for consistent text styling across components
+ */
+.text-display {
+  font-size: var(--font-display);
+  line-height: var(--line-height-display);
+  font-weight: var(--font-weight-display);
+}
+
+.text-heading {
+  font-size: var(--font-heading);
+  line-height: var(--line-height-heading);
+  font-weight: var(--font-weight-heading);
+}
+
+.text-subheading {
+  font-size: var(--font-subheading);
+  line-height: var(--line-height-subheading);
+  font-weight: var(--font-weight-subheading);
+}
+
+.text-body {
+  font-size: var(--font-body);
+  line-height: var(--line-height-body);
+  font-weight: var(--font-weight-body);
+}
+
+.text-caption {
+  font-size: var(--font-caption);
+  line-height: var(--line-height-caption);
+  font-weight: var(--font-weight-caption);
+}
+
+.text-micro {
+  font-size: var(--font-micro);
+  line-height: var(--line-height-micro);
+  font-weight: var(--font-weight-micro);
+}
+
+/**
+ * Card Styles
+ * Use for consistent card appearance
+ */
+.card-dark {
+  background-color: rgba(10, 14, 32, 0.9);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-glow-card);
+}
+
+.card-dark:hover {
+  box-shadow: var(--shadow-glow-card-hover);
+}
+
+/**
+ * Button Styles
+ */
+.btn-primary {
+  padding: var(--spacing-md) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  background: linear-gradient(135deg, rgba(0, 217, 255, 0.25) 0%, rgba(38, 127, 255, 0.35) 100%);
+  color: white;
+  font-size: var(--font-caption);
+  font-weight: 600;
+  transition: all 0.15s ease-out;
+}
+
+.btn-primary:hover {
+  box-shadow: var(--shadow-glow);
+}
+
+.btn-secondary {
+  padding: var(--spacing-md) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  background-color: rgba(0, 217, 255, 0.22);
+  color: white;
+  font-size: var(--font-caption);
+  font-weight: 600;
+}
+
+.btn-success {
+  padding: var(--spacing-md) var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  background: linear-gradient(135deg, #ffd362 0%, #ff8d4d 100%);
+  color: white;
+  font-size: var(--font-caption);
+  font-weight: 600;
+}
+
+/**
+ * Badge Styles
+ */
+.badge {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: 999px;
+  font-size: var(--font-micro);
+  font-weight: 600;
+  background-color: rgba(10, 14, 32, 0.5);
+  color: white;
+}
+
+/**
+ * Header Styles
+ */
+.header {
+  font-size: var(--font-heading);
+  color: white;
+  font-weight: 600;
+}
+
+.subheader {
+  font-size: var(--font-caption);
+  color: rgba(255, 255, 255, 0.6);
+}

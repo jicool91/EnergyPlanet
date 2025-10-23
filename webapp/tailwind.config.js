@@ -7,13 +7,28 @@ export default {
   theme: {
     extend: {
       colors: {
+        // Brand Colors
         cyan: '#00d9ff',
         gold: '#ffd700',
         lime: '#48ffad',
         orange: '#ff8d4d',
+
+        // Status Colors
         'red-error': '#ff5a5a',
+        'success': '#48ffad',
+        'warning': '#ffc957',
+
+        // Background Colors
         'dark-bg': '#0a0e27',
         'dark-secondary': '#101328',
+        'dark-tertiary': '#1a2540',
+
+        // Component Colors (preset combinations)
+        'card-dark': 'rgba(10, 14, 32, 0.9)',
+        'card-dark-secondary': 'rgba(16, 19, 40, 0.6)',
+        'button-primary': 'linear-gradient(135deg, rgba(0,217,255,0.25) 0%, rgba(38,127,255,0.35) 100%)',
+        'button-secondary': 'rgba(0, 217, 255, 0.22)',
+        'button-success': 'linear-gradient(135deg, #ffd362 0%, #ff8d4d 100%)',
       },
       spacing: {
         'safe-left': 'var(--safe-area-left, 0px)',
@@ -22,6 +37,13 @@ export default {
         'safe-bottom': 'var(--safe-area-bottom, 0px)',
       },
       fontSize: {
+        'display': ['48px', { lineHeight: '56px', fontWeight: '700' }],
+        'heading': ['24px', { lineHeight: '32px', fontWeight: '600' }],
+        'subheading': ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        'body': ['14px', { lineHeight: '20px', fontWeight: '400' }],
+        'caption': ['12px', { lineHeight: '16px', fontWeight: '400' }],
+        'micro': ['11px', { lineHeight: '14px', fontWeight: '600' }],
+        // Legacy sizes for backwards compatibility
         'xs': ['12px', { lineHeight: '16px' }],
         'sm': ['14px', { lineHeight: '20px' }],
         'base': ['16px', { lineHeight: '24px' }],
@@ -30,12 +52,20 @@ export default {
         '2xl': ['24px', { lineHeight: '32px' }],
       },
       borderRadius: {
-        'sm': '4px',
+        'xs': '4px',
+        'sm': '6px',
         'DEFAULT': '8px',
         'md': '12px',
         'lg': '16px',
+        'xl': '24px',
+        '2xl': '32px',
       },
       boxShadow: {
+        'sm': '0 4px 12px rgba(0, 0, 0, 0.15)',
+        'md': '0 12px 24px rgba(0, 0, 0, 0.25)',
+        'lg': '0 20px 48px rgba(0, 0, 0, 0.35)',
+        'xl': '0 24px 60px rgba(0, 0, 0, 0.45)',
+        // Cyan glows
         'card': '0 2px 8px rgba(0, 217, 255, 0.1)',
         'card-hover': '0 4px 16px rgba(0, 217, 255, 0.2)',
         'glow': '0 0 20px rgba(0, 217, 255, 0.3)',
