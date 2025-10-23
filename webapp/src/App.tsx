@@ -158,15 +158,14 @@ function App() {
         levelsGained={offlineSummary?.levels_gained}
         onClose={acknowledgeOfflineSummary}
       />
-      {showLevelUp && overlayLevel !== null && (
-        <LevelUpScreen
-          newLevel={overlayLevel}
-          onDismiss={() => {
-            setShowLevelUp(false);
-            setOverlayLevel(null);
-          }}
-        />
-      )}
+      <LevelUpScreen
+        isOpen={showLevelUp && overlayLevel !== null}
+        newLevel={overlayLevel || 1}
+        onDismiss={() => {
+          setShowLevelUp(false);
+          setOverlayLevel(null);
+        }}
+      />
       <NotificationContainer />
     </div>
   );
