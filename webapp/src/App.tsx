@@ -10,7 +10,7 @@ import { AuthErrorModal } from './components/AuthErrorModal';
 import { OfflineSummaryModal } from './components/OfflineSummaryModal';
 import { LevelUpScreen } from './components/LevelUpScreen';
 import { NotificationContainer } from './components/notifications/NotificationContainer';
-import { TabBar, type TabBarItem } from './components';
+import { TabBar, MainScreenHeader, type TabBarItem } from './components';
 import { withTelegramBackButton } from './services/telegram';
 import { useNotification } from './hooks/useNotification';
 import { logClientEvent } from './services/telemetry';
@@ -41,6 +41,10 @@ function App() {
   const logoutSession = useGameStore(state => state.logoutSession);
   const refreshSession = useGameStore(state => state.refreshSession);
   const currentLevel = useGameStore(state => state.level);
+  const level = useGameStore(state => state.level);
+  const energy = useGameStore(state => state.energy);
+  const xpIntoLevel = useGameStore(state => state.xpIntoLevel);
+  const xpToNextLevel = useGameStore(state => state.xpToNextLevel);
   const previousLevelRef = useRef(1);
   const hasBootstrappedLevelRef = useRef(false);
   const { toast } = useNotification();
@@ -145,6 +149,15 @@ function App() {
 
   return (
     <div className="w-full h-screen flex flex-col bg-gradient-to-b from-dark-bg to-black pl-safe-left pr-safe-right pt-safe-top pb-safe-bottom overflow-hidden">
+      {/* Header with Quick Actions */}
+      <MainScreenHeader
+        level={level}
+        energy={energy}
+        xpProgress={xpIntoLevel + xpToNextLevel > 0 ? Math.min(1, xpIntoLevel / (xpIntoLevel + xpToNextLevel)) : 0}
+        onShopClick={() => setActiveTab('shop')}
+        onSettingsClick={() => setActiveTab('settings')}
+      />
+
       {/* Main Content */}
       <MainScreen activeTab={activeTab} onTabChange={setActiveTab} />
 

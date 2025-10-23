@@ -294,11 +294,11 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   };
 
   return (
-    <div className="flex flex-col w-full h-full relative overflow-hidden">
+    <div className="flex flex-col w-full h-full relative overflow-hidden flex-1">
       <div
         className="flex flex-col overflow-y-auto flex-1 min-h-0"
         style={{
-          paddingTop: 'var(--safe-area-top)',
+          paddingTop: 'calc(56px + var(--safe-area-top))',
           paddingBottom: 'calc(60px + var(--safe-area-bottom))',
         }}
       >

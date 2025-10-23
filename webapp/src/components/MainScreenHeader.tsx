@@ -3,11 +3,12 @@
  * Compact header for all screens with essential info
  *
  * Features:
- * - Level display
- * - Energy counter
- * - XP progress indicator (optional)
- * - Settings/Profile quick access
+ * - Level display with badge
+ * - Energy counter (compact format)
+ * - XP progress indicator with hover tooltip (optional)
+ * - Quick Actions: Shop (Top-up Stars) and Settings buttons
  * - Fixed position, compact height (max 60px)
+ * - Gradient level bar at bottom showing XP progress
  *
  * Usage:
  * ```tsx
@@ -15,6 +16,7 @@
  *   level={15}
  *   energy={50000}
  *   xpProgress={0.65}
+ *   onShopClick={() => setActiveTab('shop')}
  *   onSettingsClick={() => setActiveTab('settings')}
  * />
  * ```
@@ -29,6 +31,7 @@ interface MainScreenHeaderProps {
   energy: number;
   xpProgress?: number; // 0-1
   onSettingsClick?: () => void;
+  onShopClick?: () => void;
 }
 
 export function MainScreenHeader({
@@ -36,6 +39,7 @@ export function MainScreenHeader({
   energy,
   xpProgress,
   onSettingsClick,
+  onShopClick,
 }: MainScreenHeaderProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
 
@@ -67,14 +71,27 @@ export function MainScreenHeader({
           </div>
         </div>
 
-        {/* Right: XP Progress + Settings */}
-        <div className="flex items-center gap-3 flex-shrink-0">
-  
+        {/* Right: Quick Actions */}
+        <div className="flex items-center gap-2 flex-shrink-0">
+          {/* Shop/Top-up Button */}
+          {onShopClick && (
+            <button
+              onClick={onShopClick}
+              className="flex-shrink-0 px-3 py-2 rounded-md bg-gradient-to-r from-gold/20 to-orange/20 hover:from-gold/30 hover:to-orange/30 border border-gold/30 hover:border-gold/50 transition-all duration-200 text-sm font-medium text-gold active:scale-95"
+              title="Top-up Stars"
+              type="button"
+              aria-label="Top-up Stars"
+            >
+              <span className="text-sm">🛍️</span>
+            </button>
+          )}
+
           {/* Settings Button */}
           {onSettingsClick && (
             <button
               onClick={onSettingsClick}
-              className="flex-shrink-0 p-2 rounded-md hover:bg-white/5 transition-colors"
+              className="flex-shrink-0 p-2 rounded-md hover:bg-white/10 transition-colors duration-150 hover:text-cyan"
+              title="Settings"
               aria-label="Settings"
               type="button"
             >
