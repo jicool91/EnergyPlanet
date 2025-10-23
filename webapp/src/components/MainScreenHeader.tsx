@@ -22,6 +22,7 @@
 
 import { useMemo } from 'react';
 import { formatCompactNumber } from '../utils/number';
+import { LevelBar } from './LevelBar';
 
 interface MainScreenHeaderProps {
   level: number;
@@ -68,19 +69,7 @@ export function MainScreenHeader({
 
         {/* Right: XP Progress + Settings */}
         <div className="flex items-center gap-3 flex-shrink-0">
-          {/* XP Progress Bar (optional, compact) */}
-          {xpProgress !== undefined && (
-            <div className="hidden sm:flex flex-col items-center gap-1">
-              <span className="text-xs text-white/60">XP</span>
-              <div className="w-12 h-1.5 rounded-full bg-white/10 overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-cyan to-lime transition-all duration-300"
-                  style={{ width: `${Math.min(100, Math.max(0, xpProgress * 100))}%` }}
-                />
-              </div>
-            </div>
-          )}
-
+  
           {/* Settings Button */}
           {onSettingsClick && (
             <button
@@ -95,14 +84,13 @@ export function MainScreenHeader({
         </div>
       </div>
 
-      {/* Thin XP progress bar at bottom (mobile) */}
+      {/* Level progress bar at bottom */}
       {xpProgress !== undefined && (
-        <div className="sm:hidden h-0.5 bg-white/5 overflow-hidden">
-          <div
-            className="h-full bg-gradient-to-r from-cyan via-lime to-gold transition-all duration-300"
-            style={{ width: `${Math.min(100, Math.max(0, xpProgress * 100))}%` }}
-          />
-        </div>
+        <LevelBar
+          progress={xpProgress}
+          xpCurrent={undefined}
+          xpTotal={undefined}
+        />
       )}
     </header>
   );

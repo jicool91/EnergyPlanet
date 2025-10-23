@@ -18,6 +18,7 @@ export { ScreenTransition } from './ScreenTransition';
 export { TabBar, type TabBarItem } from './TabBar';
 export { MainScreenHeader } from './MainScreenHeader';
 export { TapSection } from './TapSection';
+export { LevelBar } from './LevelBar';
 
 // Panels (Feature-specific)
 export { BuildingCard, type BuildingCardProps } from './BuildingCard';
