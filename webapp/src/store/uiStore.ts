@@ -7,6 +7,9 @@ export interface OfflineSummarySnapshot {
   xp: number;
   duration_sec: number;
   capped: boolean;
+  level_start?: number;
+  level_end?: number;
+  levels_gained?: number;
 }
 
 export interface Notification {

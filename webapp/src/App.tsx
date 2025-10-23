@@ -154,6 +154,9 @@ function App() {
           xp={offlineSummary.xp}
           durationSec={offlineSummary.duration_sec}
           capped={offlineSummary.capped}
+          levelStart={offlineSummary.level_start}
+          levelEnd={offlineSummary.level_end}
+          levelsGained={offlineSummary.levels_gained}
           onClose={acknowledgeOfflineSummary}
         />
       )}

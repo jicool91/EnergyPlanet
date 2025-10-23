@@ -248,6 +248,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       uiStore.dismissAuthError();
       set({ isLoading: true, sessionErrorMessage: null });
 
+      const previousLevel = get().level;
+
       // Authenticate with Telegram
       const initData = getTelegramInitData();
       const authResponse = await postQueue.enqueue(() =>
@@ -289,6 +291,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const tapIncome = progress.tap_income ?? 0;
       const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
+      const levelsGained = Math.max(progress.level - previousLevel, 0);
       const offlineSummary =
         offlineGains && offlineGains.energy > 0
           ? {
@@ -296,8 +299,21 @@ export const useGameStore = create<GameState>((set, get) => ({
               xp: offlineGains.xp ?? 0,
               duration_sec: offlineGains.duration_sec,
               capped: offlineGains.capped,
+              level_start: previousLevel,
+              level_end: progress.level,
+              levels_gained: levelsGained,
             }
-          : null;
+          : levelsGained > 0
+            ? {
+                energy: 0,
+                xp: 0,
+                duration_sec: 0,
+                capped: false,
+                level_start: previousLevel,
+                level_end: progress.level,
+                levels_gained: levelsGained,
+              }
+            : null;
 
       uiStore.setOfflineSummary(offlineSummary);
 
@@ -465,10 +481,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   refreshSession: async () => {
     try {
+      const previousLevel = get().level;
       const response = await apiClient.post('/session');
       const { user, progress, offline_gains: offlineGains, inventory } = response.data;
       const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
+      const levelsGained = Math.max(progress.level - previousLevel, 0);
       const offlineSummary =
         offlineGains && offlineGains.energy > 0
           ? {
@@ -476,8 +494,21 @@ export const useGameStore = create<GameState>((set, get) => ({
               xp: offlineGains.xp ?? 0,
               duration_sec: offlineGains.duration_sec,
               capped: offlineGains.capped,
+              level_start: previousLevel,
+              level_end: progress.level,
+              levels_gained: levelsGained,
             }
-          : null;
+          : levelsGained > 0
+            ? {
+                energy: 0,
+                xp: 0,
+                duration_sec: 0,
+                capped: false,
+                level_start: previousLevel,
+                level_end: progress.level,
+                levels_gained: levelsGained,
+              }
+            : null;
 
       uiStore.setOfflineSummary(offlineSummary);
 
