@@ -270,8 +270,15 @@ export function ShopPanel() {
                 )}
               </div>
 
-              <div className="text-caption text-gold/80 font-semibold">
-                {formatPriceLabel(featuredPack.price_rub, featuredPack.price_usd)}
+              <div className="flex gap-3 items-center">
+                <div className="text-caption text-gold/80 font-semibold flex-1">
+                  {formatPriceLabel(featuredPack.price_rub, featuredPack.price_usd)}
+                </div>
+                {featuredPack.price_rub && (
+                  <div className="text-caption text-gold/70 px-2 py-1 rounded bg-gold/10 border border-gold/20 whitespace-nowrap">
+                    {(featuredPack.price_rub / (featuredPack.stars + (featuredPack.bonus_stars ?? 0))).toFixed(1)} ₽/⭐
+                  </div>
+                )}
               </div>
             </div>
 
@@ -381,12 +388,16 @@ export function ShopPanel() {
                       )}
                     </div>
 
-                    <div className={`text-caption ${isBestValue ? 'text-lime/80 font-semibold' : 'text-white/65'}`}>{priceLabel}</div>
-                    {isBestValue && pack.price_rub && (
-                      <div className="text-caption text-lime font-bold">
-                        {(pack.price_rub / totalStars).toFixed(1)} ₽/⭐
+                    <div className="flex gap-2 items-center">
+                      <div className={`text-caption flex-1 ${isBestValue ? 'text-lime/80 font-semibold' : 'text-white/65'}`}>
+                        {priceLabel}
                       </div>
-                    )}
+                      {pack.price_rub && (
+                        <div className={`text-xs px-2 py-0.5 rounded whitespace-nowrap ${isBestValue ? 'bg-lime/20 border border-lime/30 text-lime font-bold' : 'bg-cyan/10 border border-cyan/20 text-cyan/80'}`}>
+                          {(pack.price_rub / totalStars).toFixed(1)} ₽/⭐
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* Button */}
