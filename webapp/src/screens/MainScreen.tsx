@@ -2,11 +2,13 @@
  * Main Game Screen
  */
 
-import { useEffect, useMemo, Suspense, lazy } from 'react';
+import { useEffect, useMemo, Suspense, lazy, useState } from 'react';
+import { motion } from 'framer-motion';
 import { streakConfig, useGameStore } from '../store/gameStore';
 import { HomePanel } from '../components/HomePanel';
 import { ScreenTransition, ShopSkeleton, BuildingSkeleton, LeaderboardSkeleton, ProfileSkeleton } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
+import { useScrollToTop } from '../hooks/useScrollToTop';
 
 // Lazy load heavy components
 const ShopPanel = lazy(() => import('../components/ShopPanel').then(m => ({ default: m.ShopPanel })));
@@ -80,11 +82,27 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   } = useGameStore();
 
   const { tap: hapticTap } = useHaptic();
+  const { scrollRef, scrollToTop } = useScrollToTop();
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const handleTap = () => {
     tap(1);
     hapticTap();
   };
+
+  // Track scroll position for showing back-to-tap button
+  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
+    const target = e.currentTarget;
+    setIsScrolled(target.scrollTop > 100);
+  };
+
+  // Reset scroll position when switching tabs
+  useEffect(() => {
+    setIsScrolled(false);
+    if (activeTab === 'home' && scrollRef.current) {
+      scrollRef.current.scrollTop = 0;
+    }
+  }, [activeTab, scrollRef]);
 
   const tapIncomeDisplay = useMemo(
     () => Math.max(0, tapIncome).toLocaleString('ru-RU'),
@@ -296,11 +314,12 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   return (
     <div className="flex flex-col w-full h-full relative overflow-hidden flex-1">
       <div
-        className="flex flex-col overflow-y-auto flex-1 min-h-0"
+        ref={scrollRef}
+        className="flex flex-col overflow-y-auto flex-1 min-h-0 relative"
         style={{
-          paddingTop: 'calc(56px + var(--safe-area-top))',
           paddingBottom: 'calc(60px + var(--safe-area-bottom))',
         }}
+        onScroll={handleScroll}
       >
         {activeTab === 'home' ? (
           renderActiveTab()
@@ -312,6 +331,26 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             </div>
             {renderActiveTab()}
           </div>
+        )}
+
+        {/* Back to Tap Button (floating) */}
+        {activeTab !== 'home' && isScrolled && !isLoading && (
+          <motion.button
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.2 }}
+            onClick={() => {
+              onTabChange('home');
+              scrollToTop(true);
+            }}
+            className="fixed bottom-20 right-4 z-40 px-4 py-2 rounded-full bg-gradient-to-r from-cyan/20 to-lime/20 border border-cyan/50 hover:border-cyan hover:from-cyan/30 hover:to-lime/30 transition-all duration-200 text-sm font-medium text-white active:scale-95 shadow-lg"
+            title="Back to Tap"
+            aria-label="Back to Tap"
+            type="button"
+          >
+            <span className="text-base">🌍</span>
+          </motion.button>
         )}
       </div>
     </div>

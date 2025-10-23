@@ -69,8 +69,8 @@ export function HomePanel({
 
   return (
     <div className="flex flex-col h-full">
-      {/* Top: Essential Stats (2-column layout) */}
-      <div className="grid grid-cols-2 gap-3 p-4">
+      {/* Top: Essential Stats (2-column layout, compact) */}
+      <div className="grid grid-cols-2 gap-2 px-4 py-2">
         {/* Essential Stats */}
         <StatCard
           icon="⚡"
@@ -112,7 +112,7 @@ export function HomePanel({
       )}
 
       {/* Center: BIG TAP BUTTON */}
-      <div className="flex-1 flex items-center justify-center p-4">
+      <div className="flex-1 flex items-center justify-center py-3 px-4">
         <motion.button
           onClick={onTap}
           whileTap={{ scale: 0.95 }}
@@ -139,7 +139,7 @@ export function HomePanel({
       </div>
 
       {/* Bottom: XP Progress + Next Goal (scrollable if needed) */}
-      <div className="flex flex-col gap-4 p-4 overflow-y-auto">
+      <div className="flex flex-col gap-2 px-4 py-2 overflow-y-auto">
         {/* XP Progress Card */}
         <XPProgressCard
           level={level}
