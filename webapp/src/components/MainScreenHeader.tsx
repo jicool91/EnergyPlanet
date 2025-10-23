@@ -23,6 +23,7 @@
  */
 
 import { useMemo } from 'react';
+import { motion } from 'framer-motion';
 import { formatCompactNumber } from '../utils/number';
 import { LevelBar } from './LevelBar';
 
@@ -73,13 +74,33 @@ export function MainScreenHeader({
             </div>
           </div>
 
-          {/* Stars */}
-          <div className="flex items-center gap-2 min-w-0">
+          {/* Stars + Quick Top-Up */}
+          <div className="flex items-center gap-1.5 min-w-0">
             <span className="text-lg flex-shrink-0">⭐</span>
             <div className="min-w-0">
               <p className="m-0 text-xs text-gold/70 truncate">Stars</p>
               <p className="m-0 text-sm font-semibold text-gold truncate">{starsCompact}</p>
             </div>
+            {/* Quick Top-Up Button */}
+            {onShopClick && (
+              <motion.button
+                onClick={onShopClick}
+                className="flex-shrink-0 ml-1 w-6 h-6 rounded-full flex items-center justify-center bg-gold/20 hover:bg-gold/30 border border-gold/40 hover:border-gold/60 transition-all duration-200 text-gold cursor-pointer"
+                title="Quick Top-Up Stars"
+                type="button"
+                aria-label="Quick Top-Up Stars"
+                whileHover={{ scale: 1.2, backgroundColor: 'rgba(255, 201, 87, 0.35)' }}
+                whileTap={{ scale: 0.85 }}
+                animate={{
+                  opacity: [0.8, 1, 0.8],
+                }}
+                transition={{
+                  opacity: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+                }}
+              >
+                <span className="text-xs font-bold">+</span>
+              </motion.button>
+            )}
           </div>
         </div>
 
