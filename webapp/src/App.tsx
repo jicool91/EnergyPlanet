@@ -2,7 +2,7 @@
  * Main App Component
  */
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, useRef } from 'react';
 import { useGameStore } from './store/gameStore';
 import { useUIStore } from './store/uiStore';
 import { MainScreen } from './screens/MainScreen';
@@ -11,6 +11,21 @@ import { OfflineSummaryModal } from './components/OfflineSummaryModal';
 import { LevelUpScreen } from './components/LevelUpScreen';
 import { NotificationContainer } from './components/notifications/NotificationContainer';
 import { withTelegramBackButton } from './services/telegram';
+import { useNotification } from './hooks/useNotification';
+import { logClientEvent } from './services/telemetry';
+
+const shouldShowMajorLevel = (level: number): boolean => {
+  if (level < 10) {
+    return true;
+  }
+  if (level < 100) {
+    return level % 5 === 0;
+  }
+  if (level < 1000) {
+    return level % 25 === 0;
+  }
+  return level % 100 === 0;
+};
 
 function App() {
   const initGame = useGameStore(state => state.initGame);
@@ -23,18 +38,47 @@ function App() {
   const logoutSession = useGameStore(state => state.logoutSession);
   const refreshSession = useGameStore(state => state.refreshSession);
   const currentLevel = useGameStore(state => state.level);
+  const previousLevelRef = useRef(1);
+  const { toast } = useNotification();
 
-  // Track level up events
-  const [previousLevel, setPreviousLevel] = useState(1);
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [overlayLevel, setOverlayLevel] = useState<number | null>(null);
 
   // Detect level up
   useEffect(() => {
-    if (isInitialized && currentLevel > previousLevel) {
-      setShowLevelUp(true);
-      setPreviousLevel(currentLevel);
+    if (!isInitialized) {
+      previousLevelRef.current = currentLevel;
+      return;
     }
-  }, [currentLevel, previousLevel, isInitialized]);
+
+    const previousLevel = previousLevelRef.current;
+    if (currentLevel <= previousLevel) {
+      previousLevelRef.current = currentLevel;
+      return;
+    }
+
+    const gainedLevels: number[] = [];
+    for (let lvl = previousLevel + 1; lvl <= currentLevel; lvl += 1) {
+      gainedLevels.push(lvl);
+    }
+
+    const majorLevel = [...gainedLevels].reverse().find(level => shouldShowMajorLevel(level));
+
+    if (majorLevel) {
+      setOverlayLevel(majorLevel);
+      setShowLevelUp(true);
+      void logClientEvent('level_up_overlay', { level: majorLevel });
+    }
+
+    gainedLevels
+      .filter(level => !shouldShowMajorLevel(level))
+      .forEach(level => {
+        toast(`Уровень ${level}! Новые постройки доступны.`, 2600, 'trophy');
+        void logClientEvent('level_up_toast', { level });
+      });
+
+    previousLevelRef.current = currentLevel;
+  }, [currentLevel, isInitialized, toast]);
 
   useEffect(() => {
     // Initialize game on mount
@@ -103,10 +147,13 @@ function App() {
           onClose={acknowledgeOfflineSummary}
         />
       )}
-      {showLevelUp && (
+      {showLevelUp && overlayLevel !== null && (
         <LevelUpScreen
-          newLevel={currentLevel}
-          onDismiss={() => setShowLevelUp(false)}
+          newLevel={overlayLevel}
+          onDismiss={() => {
+            setShowLevelUp(false);
+            setOverlayLevel(null);
+          }}
         />
       )}
       <NotificationContainer />
