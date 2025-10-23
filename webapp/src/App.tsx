@@ -10,9 +10,12 @@ import { AuthErrorModal } from './components/AuthErrorModal';
 import { OfflineSummaryModal } from './components/OfflineSummaryModal';
 import { LevelUpScreen } from './components/LevelUpScreen';
 import { NotificationContainer } from './components/notifications/NotificationContainer';
+import { TabBar, type TabBarItem } from './components';
 import { withTelegramBackButton } from './services/telegram';
 import { useNotification } from './hooks/useNotification';
 import { logClientEvent } from './services/telemetry';
+
+type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 
 const shouldShowMajorLevel = (level: number): boolean => {
   if (level < 10) {
@@ -42,6 +45,8 @@ function App() {
   const hasBootstrappedLevelRef = useRef(false);
   const { toast } = useNotification();
 
+  // Global tab navigation state
+  const [activeTab, setActiveTab] = useState<TabKey>('home');
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [overlayLevel, setOverlayLevel] = useState<number | null>(null);
 
@@ -140,7 +145,25 @@ function App() {
 
   return (
     <div className="w-full h-screen flex flex-col bg-gradient-to-b from-dark-bg to-black pl-safe-left pr-safe-right pt-safe-top pb-safe-bottom overflow-hidden">
-      <MainScreen />
+      {/* Main Content */}
+      <MainScreen activeTab={activeTab} onTabChange={setActiveTab} />
+
+      {/* Global Navigation Footer */}
+      <TabBar
+        tabs={[
+          { id: 'home', icon: '🏠', label: 'Главная', title: 'Home' },
+          { id: 'shop', icon: '🛍️', label: 'Магазин', title: 'Shop' },
+          { id: 'boosts', icon: '🚀', label: 'Boost Hub', title: 'Boosts' },
+          { id: 'builds', icon: '🏗️', label: 'Постройки', title: 'Buildings' },
+          { id: 'leaderboard', icon: '🏆', label: 'Рейтинг', title: 'Leaderboard' },
+          { id: 'profile', icon: '👤', label: 'Профиль', title: 'Profile' },
+          { id: 'settings', icon: '⚙️', label: 'Настройки', title: 'Settings' },
+        ] as TabBarItem[]}
+        active={activeTab}
+        onChange={(tabId) => setActiveTab(tabId as TabKey)}
+      />
+
+      {/* Modals & Notifications */}
       <AuthErrorModal
         isOpen={isAuthModalOpen}
         message={authErrorMessage || ''}

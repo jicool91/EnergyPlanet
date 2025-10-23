@@ -2,7 +2,7 @@
  * Main Game Screen
  */
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo } from 'react';
 import { streakConfig, useGameStore } from '../store/gameStore';
 import { HomePanel } from '../components/HomePanel';
 import { ShopPanel } from '../components/ShopPanel';
@@ -11,11 +11,16 @@ import { BuildingsPanel } from '../components/BuildingsPanel';
 import { LeaderboardPanel } from '../components/LeaderboardPanel';
 import { ProfilePanel } from '../components/ProfilePanel';
 import { SettingsScreen } from '../components/settings';
-import { ScreenTransition, TabBar, type TabBarItem } from '../components';
+import { ScreenTransition } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
 import { formatNumberWithSpaces } from '../utils/number';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
+
+interface MainScreenProps {
+  activeTab: TabKey;
+  onTabChange: (tab: TabKey) => void;
+}
 
 const TAB_META: Record<
   Exclude<TabKey, 'home'>,
@@ -50,7 +55,7 @@ const TAB_META: Record<
   },
 };
 
-export function MainScreen() {
+export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const {
     energy,
     level,
@@ -75,7 +80,6 @@ export function MainScreen() {
   } = useGameStore();
 
   const { tap: hapticTap } = useHaptic();
-  const [activeTab, setActiveTab] = useState<TabKey>('shop');
 
   const handleTap = () => {
     tap(1);
@@ -274,7 +278,7 @@ export function MainScreen() {
       case 'settings':
         return (
           <ScreenTransition key="settings" type="slide" className="flex-1 overflow-auto">
-            <SettingsScreen onClose={() => setActiveTab('home')} />
+            <SettingsScreen onClose={() => onTabChange('home')} />
           </ScreenTransition>
         );
       default:
@@ -303,20 +307,6 @@ export function MainScreen() {
           </div>
         )}
       </div>
-
-      <TabBar
-        tabs={[
-          { id: 'home', icon: '🏠', label: 'Главная', title: 'Home' },
-          { id: 'shop', icon: '🛍️', label: 'Магазин', title: 'Shop' },
-          { id: 'boosts', icon: '🚀', label: 'Boost Hub', title: 'Boosts' },
-          { id: 'builds', icon: '🏗️', label: 'Постройки', title: 'Buildings' },
-          { id: 'leaderboard', icon: '🏆', label: 'Рейтинг', title: 'Leaderboard' },
-          { id: 'profile', icon: '👤', label: 'Профиль', title: 'Profile' },
-          { id: 'settings', icon: '⚙️', label: 'Настройки', title: 'Settings' },
-        ] as TabBarItem[]}
-        active={activeTab}
-        onChange={(tabId) => setActiveTab(tabId as TabKey)}
-      />
     </div>
   );
 }
