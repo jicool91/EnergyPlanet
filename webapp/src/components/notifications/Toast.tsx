@@ -33,11 +33,31 @@ const ICON_LABELS: Record<string, string> = {
   trophy: 'Achievement notification',
 };
 
+const MESSAGE_PREFIX: Record<string, string> = {
+  success: 'Успех',
+  error: 'Ошибка',
+  warning: 'Предупреждение',
+  info: 'Информация',
+  star: 'Награда',
+  trophy: 'Достижение',
+};
+
+const MESSAGE_COLOR: Record<string, string> = {
+  success: 'text-lime-200',
+  error: 'text-red-200',
+  warning: 'text-amber-100',
+  info: 'text-white',
+  star: 'text-yellow-100',
+  trophy: 'text-orange-100',
+};
+
 export function Toast({ notification }: ToastProps) {
   const removeNotification = useUIStore(state => state.removeNotification);
   const icon = notification.icon || 'info';
   const colorClass = ICON_COLORS[icon] || ICON_COLORS.info;
   const symbol = ICON_SYMBOLS[icon] || ICON_SYMBOLS.info;
+  const prefix = MESSAGE_PREFIX[icon] || MESSAGE_PREFIX.info;
+  const messageColor = MESSAGE_COLOR[icon] || MESSAGE_COLOR.info;
 
   return (
     <motion.div
@@ -57,7 +77,10 @@ export function Toast({ notification }: ToastProps) {
       </div>
 
       {/* Message */}
-      <div className="flex-1 text-sm font-medium text-white">{notification.message}</div>
+      <div className={`flex-1 text-sm font-medium ${messageColor}`} role="status">
+        <span className="font-semibold">{prefix}:</span>
+        <span className="ml-1">{notification.message}</span>
+      </div>
 
       {/* Close Button */}
       <button
