@@ -15,6 +15,7 @@ export { StatCard, type StatCardProps } from './StatCard';
 
 // Layout & Navigation
 export { ScreenTransition } from './ScreenTransition';
+export { TabBar, type TabBarItem } from './TabBar';
 
 // Panels (Feature-specific)
 export { BuildingCard, type BuildingCardProps } from './BuildingCard';

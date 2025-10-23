@@ -11,7 +11,7 @@ import { BuildingsPanel } from '../components/BuildingsPanel';
 import { LeaderboardPanel } from '../components/LeaderboardPanel';
 import { ProfilePanel } from '../components/ProfilePanel';
 import { SettingsScreen } from '../components/settings';
-import { ScreenTransition } from '../components/ScreenTransition';
+import { ScreenTransition, TabBar, type TabBarItem } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
 import { formatNumberWithSpaces } from '../utils/number';
 
@@ -304,57 +304,19 @@ export function MainScreen() {
         )}
       </div>
 
-      <footer
-        className="fixed bottom-0 left-0 right-0 flex justify-around p-2.5 bg-black/85 border-t border-white/10 z-[100] w-full backdrop-blur"
-        style={{
-          paddingBottom: 'var(--safe-area-bottom)',
-          paddingLeft: 'var(--safe-area-left)',
-          paddingRight: 'var(--safe-area-right)',
-        }}
-      >
-        {/* Home button - always first */}
-        <button
-          className={`flex-1 flex flex-col gap-1 items-center bg-none border-none text-sm py-2 px-2 cursor-pointer transition-colors ${
-            activeTab === 'home' ? 'text-cyan font-semibold' : 'text-white/60 hover:text-cyan'
-          }`}
-          type="button"
-          onClick={() => setActiveTab('home')}
-        >
-          <span className="text-lg" aria-hidden="true">🏠</span>
-          <span className="text-xs">Главная</span>
-        </button>
-
-        {/* Other tabs from TAB_META */}
-        {Object.entries(TAB_META).map(([key, meta]) => {
-          const tab = key as Exclude<TabKey, 'home'>;
-          const active = activeTab === tab;
-          return (
-            <button
-              key={tab}
-              className={`flex-1 flex flex-col gap-1 items-center bg-none border-none text-sm py-2 px-2 cursor-pointer transition-colors ${
-                active ? 'text-cyan font-semibold' : 'text-white/60 hover:text-cyan'
-              }`}
-              type="button"
-              onClick={() => setActiveTab(tab)}
-            >
-              <span className="text-lg" aria-hidden="true">
-                {tab === 'shop'
-                  ? '🛍️'
-                  : tab === 'boosts'
-                    ? '🚀'
-                    : tab === 'builds'
-                      ? '🏗️'
-                      : tab === 'leaderboard'
-                        ? '🏆'
-                        : tab === 'profile'
-                          ? '👤'
-                          : '⚙️'}
-              </span>
-              <span className="text-xs">{meta.title}</span>
-            </button>
-          );
-        })}
-      </footer>
+      <TabBar
+        tabs={[
+          { id: 'home', icon: '🏠', label: 'Главная', title: 'Home' },
+          { id: 'shop', icon: '🛍️', label: 'Магазин', title: 'Shop' },
+          { id: 'boosts', icon: '🚀', label: 'Boost Hub', title: 'Boosts' },
+          { id: 'builds', icon: '🏗️', label: 'Постройки', title: 'Buildings' },
+          { id: 'leaderboard', icon: '🏆', label: 'Рейтинг', title: 'Leaderboard' },
+          { id: 'profile', icon: '👤', label: 'Профиль', title: 'Profile' },
+          { id: 'settings', icon: '⚙️', label: 'Настройки', title: 'Settings' },
+        ] as TabBarItem[]}
+        active={activeTab}
+        onChange={(tabId) => setActiveTab(tabId as TabKey)}
+      />
     </div>
   );
 }
