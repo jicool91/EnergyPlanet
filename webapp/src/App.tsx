@@ -147,18 +147,17 @@ function App() {
         onRetry={handleRetry}
         onDismiss={dismissAuthError}
       />
-      {offlineSummary && (
-        <OfflineSummaryModal
-          energy={offlineSummary.energy}
-          xp={offlineSummary.xp}
-          durationSec={offlineSummary.duration_sec}
-          capped={offlineSummary.capped}
-          levelStart={offlineSummary.level_start}
-          levelEnd={offlineSummary.level_end}
-          levelsGained={offlineSummary.levels_gained}
-          onClose={acknowledgeOfflineSummary}
-        />
-      )}
+      <OfflineSummaryModal
+        isOpen={!!offlineSummary}
+        energy={offlineSummary?.energy ?? 0}
+        xp={offlineSummary?.xp ?? 0}
+        durationSec={offlineSummary?.duration_sec ?? 0}
+        capped={offlineSummary?.capped ?? false}
+        levelStart={offlineSummary?.level_start}
+        levelEnd={offlineSummary?.level_end}
+        levelsGained={offlineSummary?.levels_gained}
+        onClose={acknowledgeOfflineSummary}
+      />
       {showLevelUp && overlayLevel !== null && (
         <LevelUpScreen
           newLevel={overlayLevel}
