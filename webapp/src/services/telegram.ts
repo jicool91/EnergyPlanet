@@ -100,10 +100,37 @@ declare global {
 }
 
 type ThemeListener = (theme: TelegramThemeParams) => void;
+type SafeAreaListener = (insets: SafeAreaSnapshot) => void;
+type ViewportListener = (metrics: ViewportMetrics) => void;
+
+export type SafeAreaSnapshot = {
+  safe: TelegramSafeArea;
+  content: TelegramSafeArea;
+};
+
+export type ViewportMetrics = {
+  height: number | null;
+  stableHeight: number | null;
+  width: number | null;
+  isExpanded: boolean;
+  isStateStable: boolean;
+};
+
+const ZERO_SAFE_AREA: TelegramSafeArea = { top: 0, right: 0, bottom: 0, left: 0 };
 
 let initialized = false;
 const themeListeners = new Set<ThemeListener>();
+const safeAreaListeners = new Set<SafeAreaListener>();
+const viewportListeners = new Set<ViewportListener>();
 let currentTheme: TelegramThemeParams = { ...DEFAULT_THEME };
+let currentSafeArea: SafeAreaSnapshot = { safe: ZERO_SAFE_AREA, content: ZERO_SAFE_AREA };
+let currentViewport: ViewportMetrics = {
+  height: typeof window !== 'undefined' ? window.innerHeight : null,
+  stableHeight: typeof window !== 'undefined' ? window.innerHeight : null,
+  width: typeof window !== 'undefined' ? window.innerWidth : null,
+  isExpanded: true,
+  isStateStable: true,
+};
 
 function getWebApp(): TelegramWebApp | null {
   if (typeof window === 'undefined') {
@@ -136,6 +163,34 @@ function emitTheme(theme: TelegramThemeParams) {
   });
 }
 
+function emitSafeArea(insets: SafeAreaSnapshot) {
+  safeAreaListeners.forEach(listener => {
+    try {
+      listener(insets);
+    } catch (error) {
+      console.warn('Safe area listener threw an error', error);
+    }
+  });
+}
+
+function emitViewport(metrics: ViewportMetrics) {
+  viewportListeners.forEach(listener => {
+    try {
+      listener(metrics);
+    } catch (error) {
+      console.warn('Viewport listener threw an error', error);
+    }
+  });
+}
+
+function updateViewportMetrics(partial: Partial<ViewportMetrics>) {
+  currentViewport = {
+    ...currentViewport,
+    ...partial,
+  };
+  emitViewport(currentViewport);
+}
+
 function applyThemeFromParams(
   theme: TelegramThemeParams | undefined,
   options: { initialize?: boolean } = {}
@@ -149,7 +204,7 @@ function applyThemeFromParams(
 
 function applySafeArea(options: { safe?: TelegramSafeArea; content?: TelegramSafeArea }) {
   const root = document.documentElement;
-  const safe = options.safe ?? { top: 0, right: 0, bottom: 0, left: 0 };
+  const safe = options.safe ?? ZERO_SAFE_AREA;
   const content = options.content ?? safe;
 
   root.style.setProperty('--tg-safe-area-top', `${safe.top}px`);
@@ -161,21 +216,44 @@ function applySafeArea(options: { safe?: TelegramSafeArea; content?: TelegramSaf
   root.style.setProperty('--tg-content-safe-area-right', `${content.right}px`);
   root.style.setProperty('--tg-content-safe-area-bottom', `${content.bottom}px`);
   root.style.setProperty('--tg-content-safe-area-left', `${content.left}px`);
+
+  currentSafeArea = { safe, content };
+  emitSafeArea(currentSafeArea);
 }
 
-function applyViewportVars(webApp: TelegramWebApp | null) {
+function applyViewportVars(webApp: TelegramWebApp | null, event?: TelegramViewportEvent) {
   const root = document.documentElement;
   if (!webApp) {
     return;
   }
 
-  if (typeof webApp.viewportHeight === 'number') {
-    root.style.setProperty('--tg-viewport-height', `${webApp.viewportHeight}px`);
+  const height = typeof event?.height === 'number' ? event.height : webApp.viewportHeight;
+  const stableHeight = webApp.viewportStableHeight;
+  const width = typeof event?.width === 'number' ? event.width : currentViewport.width;
+  const isExpanded =
+    typeof event?.isExpanded === 'boolean'
+      ? event.isExpanded
+      : typeof webApp.isExpanded === 'boolean'
+        ? webApp.isExpanded
+        : currentViewport.isExpanded;
+  const isStateStable =
+    typeof event?.isStateStable === 'boolean' ? event.isStateStable : currentViewport.isStateStable;
+
+  if (typeof height === 'number') {
+    root.style.setProperty('--tg-viewport-height', `${height}px`);
   }
 
-  if (typeof webApp.viewportStableHeight === 'number') {
-    root.style.setProperty('--tg-viewport-stable-height', `${webApp.viewportStableHeight}px`);
+  if (typeof stableHeight === 'number') {
+    root.style.setProperty('--tg-viewport-stable-height', `${stableHeight}px`);
   }
+
+  updateViewportMetrics({
+    height: typeof height === 'number' ? height : currentViewport.height,
+    stableHeight: typeof stableHeight === 'number' ? stableHeight : currentViewport.stableHeight,
+    width: typeof width === 'number' ? width : currentViewport.width,
+    isExpanded,
+    isStateStable,
+  });
 }
 
 /**
@@ -190,6 +268,13 @@ export function initializeTelegramWebApp(): void {
   const webApp = getWebApp();
   if (!webApp) {
     applyThemeFromParams(undefined, { initialize: true });
+    applySafeArea({});
+    updateViewportMetrics({
+      height: typeof window !== 'undefined' ? window.innerHeight : currentViewport.height,
+      stableHeight:
+        typeof window !== 'undefined' ? window.innerHeight : currentViewport.stableHeight,
+      width: typeof window !== 'undefined' ? window.innerWidth : currentViewport.width,
+    });
     initialized = true;
     return;
   }
@@ -210,7 +295,7 @@ export function initializeTelegramWebApp(): void {
       if (!event.isExpanded) {
         webApp.expand();
       }
-      applyViewportVars(webApp);
+      applyViewportVars(webApp, event);
     };
     const handleSafeAreaChange = () => {
       applySafeArea({
@@ -263,6 +348,32 @@ export function onTelegramThemeChange(listener: ThemeListener): () => void {
   return () => {
     themeListeners.delete(listener);
   };
+}
+
+export function onTelegramSafeAreaChange(listener: SafeAreaListener): () => void {
+  safeAreaListeners.add(listener);
+  listener(currentSafeArea);
+
+  return () => {
+    safeAreaListeners.delete(listener);
+  };
+}
+
+export function getCurrentSafeArea(): SafeAreaSnapshot {
+  return currentSafeArea;
+}
+
+export function onTelegramViewportChange(listener: ViewportListener): () => void {
+  viewportListeners.add(listener);
+  listener(currentViewport);
+
+  return () => {
+    viewportListeners.delete(listener);
+  };
+}
+
+export function getViewportMetrics(): ViewportMetrics {
+  return currentViewport;
 }
 
 export function withTelegramBackButton(handler: () => void): () => void {
