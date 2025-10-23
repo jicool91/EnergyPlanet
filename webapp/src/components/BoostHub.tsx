@@ -1,8 +1,9 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { Button } from './Button';
 import { Card } from './Card';
 import { Badge } from './Badge';
+import { useHaptic } from '../hooks/useHaptic';
 
 function formatSeconds(seconds: number): string {
   if (seconds <= 0) {
@@ -73,6 +74,21 @@ export function BoostHub() {
 
     return () => clearInterval(timer);
   }, [boostHub.length]);
+
+  const { success: hapticSuccess, error: hapticError } = useHaptic();
+
+  const handleClaimBoost = useCallback(
+    async (boostType: string) => {
+      try {
+        await claimBoost(boostType);
+        hapticSuccess();
+      } catch (error) {
+        hapticError();
+        throw error;
+      }
+    },
+    [claimBoost, hapticSuccess, hapticError]
+  );
 
   const items = useMemo(
     () =>
@@ -176,7 +192,7 @@ export function BoostHub() {
                   variant="primary"
                   size="md"
                   loading={isClaimingBoostType === item.boost_type}
-                  onClick={() => claimBoost(item.boost_type)}
+                  onClick={() => handleClaimBoost(item.boost_type)}
                   disabled={buttonDisabled}
                 >
                   {buttonLabel}

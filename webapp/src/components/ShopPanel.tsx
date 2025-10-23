@@ -5,6 +5,7 @@ import { Button } from './Button';
 import { Card } from './Card';
 import { Badge } from './Badge';
 import { OptimizedImage } from './OptimizedImage';
+import { useHaptic } from '../hooks/useHaptic';
 
 type CategoryOption = {
   id: string;
@@ -88,10 +89,14 @@ export function ShopPanel() {
     [cosmetics, activeCategory]
   );
 
+  const { success: hapticSuccess, error: hapticError } = useHaptic();
+
   const handlePurchaseCosmetic = async (cosmeticId: string) => {
     try {
       await purchaseCosmetic(cosmeticId);
+      hapticSuccess();
     } catch (error) {
+      hapticError();
       console.error('Failed to purchase cosmetic', error);
     }
   };
@@ -99,7 +104,9 @@ export function ShopPanel() {
   const handleEquip = async (cosmeticId: string) => {
     try {
       await equipCosmetic(cosmeticId);
+      hapticSuccess();
     } catch (error) {
+      hapticError();
       console.error('Failed to equip cosmetic', error);
     }
   };
@@ -107,7 +114,9 @@ export function ShopPanel() {
   const handlePurchaseStarPack = async (packId: string) => {
     try {
       await purchaseStarPack(packId);
+      hapticSuccess();
     } catch (error) {
+      hapticError();
       console.error('Failed to purchase star pack', error);
     }
   };

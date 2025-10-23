@@ -3,6 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { BuildingCard } from './BuildingCard';
 import type { BuildingCardBuilding } from './BuildingCard';
 import { BuildingSkeleton, ErrorBoundary } from './skeletons';
+import { useHaptic } from '../hooks/useHaptic';
 
 const PURCHASE_OPTIONS = [
   { id: 'x1', label: '×1', value: 1 },
@@ -114,6 +115,35 @@ export function BuildingsPanel() {
   useEffect(() => {
     loadBuildingCatalog();
   }, [loadBuildingCatalog]);
+
+  const { success: hapticSuccess, error: hapticError } = useHaptic();
+
+  // Wrapper functions with haptic feedback
+  const handlePurchase = useCallback(
+    async (buildingId: string, quantity: number) => {
+      try {
+        await purchaseBuilding(buildingId, quantity);
+        hapticSuccess();
+      } catch (error) {
+        hapticError();
+        throw error;
+      }
+    },
+    [purchaseBuilding, hapticSuccess, hapticError]
+  );
+
+  const handleUpgrade = useCallback(
+    async (buildingId: string) => {
+      try {
+        await upgradeBuilding(buildingId);
+        hapticSuccess();
+      } catch (error) {
+        hapticError();
+        throw error;
+      }
+    },
+    [upgradeBuilding, hapticSuccess, hapticError]
+  );
 
   const sortedBuildings = useMemo(() => {
     const merged: CatalogBuilding[] = buildingCatalog.map(def => {
@@ -241,8 +271,8 @@ export function BuildingsPanel() {
                 processing={processing}
                 isBestPayback={isBestPayback}
                 purchasePlan={purchasePlan}
-                onPurchase={(id, quantity) => purchaseBuilding(id, quantity)}
-                onUpgrade={upgradeBuilding}
+                onPurchase={handlePurchase}
+                onUpgrade={handleUpgrade}
               />
             );
           })}
