@@ -11,26 +11,29 @@ import clsx from 'clsx';
 
 const buttonVariants = cva(
   // Base classes: flex, center, text, cursor, transition
-  'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-120 ease-in-out cursor-pointer disabled:opacity-60 disabled:cursor-default focus:outline-none',
+  'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-120 ease-in-out cursor-pointer disabled:opacity-60 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--app-accent)] focus-visible:ring-offset-[var(--app-bg)]',
   {
     variants: {
       variant: {
         // Primary: cyan gradient
         primary:
-          'bg-gradient-to-br from-cyan/25 to-blue-500/35 text-white hover:shadow-glow disabled:shadow-none',
+          'btn-primary text-[var(--tg-theme-button-text-color)] shadow-none hover:shadow-glow disabled:shadow-none',
 
         // Secondary: cyan with less opacity
-        secondary: 'bg-cyan/20 text-white hover:shadow-card-hover disabled:shadow-none',
+        secondary:
+          'bg-[var(--app-card-bg)] text-[var(--color-text-primary)] border border-[var(--color-border-subtle)] hover:brightness-110 hover:shadow-glow-card disabled:shadow-none',
 
         // Success: lime/gold gradient
         success:
-          'bg-gradient-to-br from-lime/50 to-orange/50 text-dark-bg font-bold hover:shadow-lg disabled:shadow-none',
+          'bg-[var(--color-success)] text-[var(--color-surface-primary)] font-bold hover:brightness-110 hover:shadow-lg disabled:shadow-none',
 
         // Danger: red
-        danger: 'bg-red-error/80 text-white hover:shadow-lg disabled:shadow-none',
+        danger:
+          'bg-[var(--color-text-destructive)] text-[var(--tg-theme-button-text-color)] hover:brightness-110 hover:shadow-lg disabled:shadow-none',
 
         // Ghost: text only
-        ghost: 'bg-transparent text-cyan hover:text-cyan/80 disabled:text-white/40',
+        ghost:
+          'bg-transparent text-[var(--color-text-accent)] hover:text-[var(--tg-theme-link-color)] disabled:text-[var(--color-text-secondary)]',
       },
 
       size: {
@@ -140,11 +143,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <motion.button
         ref={ref as any}
         disabled={isDisabled}
-        className={clsx(
-          buttonVariants({ variant: buttonVariant, size, fullWidth }),
-          className,
-          success && 'bg-gradient-to-br from-lime/50 to-green-500/50'
-        )}
+        className={clsx(buttonVariants({ variant: buttonVariant, size, fullWidth }), className)}
         // Micro-interactions: hover and tap animations
         initial={{ scale: 1 }}
         whileHover={!isDisabled ? { scale: 1.05 } : { scale: 1 }}
