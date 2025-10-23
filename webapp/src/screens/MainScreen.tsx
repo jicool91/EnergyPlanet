@@ -7,7 +7,6 @@ import { streakConfig, useGameStore } from '../store/gameStore';
 import { HomePanel } from '../components/HomePanel';
 import { ScreenTransition, ShopSkeleton, BuildingSkeleton, LeaderboardSkeleton, ProfileSkeleton } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
-import { formatNumberWithSpaces } from '../utils/number';
 
 // Lazy load heavy components
 const ShopPanel = lazy(() => import('../components/ShopPanel').then(m => ({ default: m.ShopPanel })));
@@ -61,7 +60,6 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const {
     energy,
     level,
-    xp,
     xpIntoLevel,
     xpToNextLevel,
     tapLevel,
@@ -95,12 +93,6 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const xpTotalForLevel = xpIntoLevel + xpToNextLevel;
   const xpProgress = xpTotalForLevel > 0 ? Math.min(1, xpIntoLevel / xpTotalForLevel) : 0;
   const xpRemaining = xpToNextLevel;
-  const xpProgressLabel =
-    xpTotalForLevel > 0
-      ? `${formatNumberWithSpaces(Math.max(0, xpIntoLevel))}/${formatNumberWithSpaces(
-          Math.max(0, xpTotalForLevel)
-        )} XP`
-      : `${formatNumberWithSpaces(Math.max(0, Math.floor(xp)))} XP`;
   const passiveIncomeLabel =
     passiveIncomePerSec > 0
       ? `${
@@ -233,7 +225,8 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
               energy={energy}
               level={level}
               xpProgress={xpProgress}
-              xpProgressLabel={xpProgressLabel}
+              xpIntoLevel={xpIntoLevel}
+              xpToNextLevel={xpToNextLevel}
               xpRemaining={xpRemaining}
               tapLevel={tapLevel}
               tapIncomeDisplay={tapIncomeDisplay}

@@ -14,6 +14,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from './Card';
 import { StatCard } from './StatCard';
+import { XPProgressCard } from './XPProgressCard';
 import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
 
 export interface HomePanelProps {
@@ -21,7 +22,8 @@ export interface HomePanelProps {
   energy: number;
   level: number;
   xpProgress: number; // 0-1
-  xpProgressLabel: string; // "50/200 XP"
+  xpIntoLevel: number;
+  xpToNextLevel: number;
   xpRemaining: number;
   tapLevel: number;
   tapIncomeDisplay: string;
@@ -50,7 +52,8 @@ export function HomePanel({
   energy,
   level,
   xpProgress,
-  xpProgressLabel,
+  xpIntoLevel,
+  xpToNextLevel,
   xpRemaining,
   tapLevel,
   tapIncomeDisplay,
@@ -137,29 +140,14 @@ export function HomePanel({
 
       {/* Bottom: XP Progress + Next Goal (scrollable if needed) */}
       <div className="flex flex-col gap-4 p-4 overflow-y-auto">
-        {/* XP Progress Bar */}
-        <Card>
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <div>
-              <p className="m-0 text-xs uppercase tracking-[0.6px] text-white/45">
-                Прогресс уровня
-              </p>
-              <h3 className="m-0 text-lg font-semibold text-white">Уровень {level}</h3>
-            </div>
-            <span className="text-sm text-white/60">{xpProgressLabel}</span>
-          </div>
-          <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan via-lime to-gold transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(0, xpProgress * 100))}%` }}
-            />
-          </div>
-          <div className="text-xs text-white/60 mt-2">
-            {xpRemaining > 0
-              ? `Осталось ${formatNumberWithSpaces(Math.max(0, xpRemaining))} XP`
-              : 'Уровень готов к апгрейду — загляните в Постройки или Boost Hub'}
-          </div>
-        </Card>
+        {/* XP Progress Card */}
+        <XPProgressCard
+          level={level}
+          xpProgress={xpProgress}
+          xpCurrent={xpIntoLevel}
+          xpTotal={xpIntoLevel + xpToNextLevel}
+          xpRemaining={xpRemaining}
+        />
 
         {/* Next Goal Card */}
         {purchaseInsight && (
