@@ -63,29 +63,23 @@ export function HomePanel({
   onTap,
 }: HomePanelProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
-  const energyFull = useMemo(() => formatNumberWithSpaces(Math.floor(energy)), [energy]);
 
   return (
     <div className="flex flex-col h-full">
-      {/* Top: Collapsed Stats Panel */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4">
+      {/* Top: Essential Stats (2-column layout) */}
+      <div className="grid grid-cols-2 gap-3 p-4">
+        {/* Essential Stats */}
         <StatCard
           icon="⚡"
           label="Энергия"
           value={`${energyCompact} E`}
-          subLabel={`≈ ${energyFull} E`}
-        />
-        <StatCard
-          icon="🎯"
-          label="Прогресс"
-          value={`${Math.round(xpProgress * 100)}%`}
-          subLabel={xpRemaining > 0 ? `Осталось ${formatNumberWithSpaces(xpRemaining)} XP` : 'Готов'}
+          subLabel="Баланс"
         />
         <StatCard
           icon="🪐"
-          label="Tap lvl"
+          label="Tap Lvl"
           value={`Lv ${tapLevel}`}
-          subLabel={`${tapIncomeDisplay} E/тап`}
+          subLabel={`${tapIncomeDisplay} E`}
         />
         <StatCard
           icon="💤"
@@ -93,11 +87,17 @@ export function HomePanel({
           value={passiveIncomeLabel}
           subLabel={multiplierLabel}
         />
+        <StatCard
+          icon="🎯"
+          label="Уровень"
+          value={`${Math.round(xpProgress * 100)}%`}
+          subLabel={xpRemaining > 0 ? `+${formatNumberWithSpaces(xpRemaining)} XP` : 'Готов'}
+        />
       </div>
 
-      {/* Streak indicator (optional) */}
+      {/* Streak indicator (only if active) */}
       {streakCount > 0 && (
-        <div className="px-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+        <div className="px-4 grid grid-cols-2 gap-3">
           <StatCard
             icon="🔥"
             label="Комбо"
