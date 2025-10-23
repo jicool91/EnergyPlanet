@@ -20,10 +20,22 @@
   --color-warning: #ffc957;
   --color-error: #ff5a5a;
 
-  /* Background Colors */
-  --color-dark-bg: #0a0e27;
-  --color-dark-secondary: #101328;
-  --color-dark-tertiary: #1a2540;
+  /* Theme-aware Surfaces */
+  --color-surface-primary: var(--app-bg);
+  --color-surface-secondary: var(--app-card-bg);
+  --color-surface-tertiary: var(--tg-theme-section-header-bg-color, #1e212c);
+  --color-surface-accent: var(--tg-theme-accent-text-color, #7ab7ff);
+
+  /* Theme-aware Text Colors */
+  --color-text-primary: var(--app-text);
+  --color-text-secondary: var(--app-text-subtle);
+  --color-text-accent: var(--app-accent);
+  --color-text-destructive: var(--app-danger-text);
+  --color-text-link: var(--tg-theme-link-color, #3d9eff);
+
+  /* Theme-aware Borders */
+  --color-border-subtle: var(--app-card-border);
+  --color-border-strong: rgba(0, 0, 0, 0.25);
 
   /* ===== TYPOGRAPHY ===== */
 
@@ -136,8 +148,10 @@
  * Use for consistent card appearance
  */
 .card-dark {
-  background-color: rgba(10, 14, 32, 0.9);
+  background-color: var(--color-surface-secondary, rgba(10, 14, 32, 0.9));
+  color: var(--color-text-primary);
   border-radius: var(--border-radius-lg);
+  border: 1px solid var(--color-border-subtle, rgba(255, 255, 255, 0.08));
   box-shadow: var(--shadow-glow-card);
 }
 
@@ -151,8 +165,8 @@
 .btn-primary {
   padding: var(--spacing-md) var(--spacing-md);
   border-radius: var(--border-radius-md);
-  background: linear-gradient(135deg, rgba(0, 217, 255, 0.25) 0%, rgba(38, 127, 255, 0.35) 100%);
-  color: white;
+  background: var(--tg-theme-button-color, #1f6feb);
+  color: var(--tg-theme-button-text-color, #ffffff);
   font-size: var(--font-caption);
   font-weight: 600;
   transition: all 0.15s ease-out;
