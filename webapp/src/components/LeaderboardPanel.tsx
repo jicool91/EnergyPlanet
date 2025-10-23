@@ -5,10 +5,10 @@ import { LeaderboardSkeleton, ErrorBoundary } from './skeletons';
 import { Card } from './Card';
 
 // Medal emojis for top 3
-const MEDAL_MAP: Record<number, string> = {
-  1: '🥇',
-  2: '🥈',
-  3: '🥉',
+const MEDAL_MAP: Record<number, { icon: string; label: string }> = {
+  1: { icon: '🥇', label: 'First place' },
+  2: { icon: '🥈', label: 'Second place' },
+  3: { icon: '🥉', label: 'Third place' },
 };
 
 export function LeaderboardPanel() {
@@ -36,13 +36,17 @@ export function LeaderboardPanel() {
       rows.map((entry, index) => ({
         ...entry,
         energyDiffToNext:
-          index < rows.length - 1 ? Math.max(0, rows[index + 1].total_energy_produced - entry.total_energy_produced) : 0,
+          index < rows.length - 1
+            ? Math.max(0, rows[index + 1].total_energy_produced - entry.total_energy_produced)
+            : 0,
       })),
     [rows]
   );
 
   // Calculate player progress in leaderboard (what percentage is their rank)
-  const userRankProgress = userLeaderboardEntry ? Math.max(0, 100 - (userLeaderboardEntry.rank / leaderboardTotal) * 100) : 0;
+  const userRankProgress = userLeaderboardEntry
+    ? Math.max(0, 100 - (userLeaderboardEntry.rank / leaderboardTotal) * 100)
+    : 0;
 
   if (!leaderboardLoaded && isLeaderboardLoading) {
     return (
@@ -128,7 +132,7 @@ export function LeaderboardPanel() {
             </tr>
           </thead>
           <tbody>
-            {rowsWithDiff.map((entry) => {
+            {rowsWithDiff.map(entry => {
               const isCurrentUser = entry.user_id === userLeaderboardEntry?.user_id;
               const medal = MEDAL_MAP[entry.rank];
 
@@ -144,7 +148,11 @@ export function LeaderboardPanel() {
                   {/* Rank with Medal */}
                   <td className="px-[14px] py-3 text-center">
                     <div className="flex items-center justify-center gap-1">
-                      {medal && <span className="text-lg">{medal}</span>}
+                      {medal && (
+                        <span className="text-lg" role="img" aria-label={medal.label}>
+                          {medal.icon}
+                        </span>
+                      )}
                       <span className="font-bold text-white">{entry.rank}</span>
                     </div>
                   </td>
@@ -153,11 +161,15 @@ export function LeaderboardPanel() {
                   <td className="px-[14px] py-3 text-left">
                     <div className="flex items-center gap-2">
                       <div className="flex flex-col gap-[2px] flex-1">
-                        <span className={`font-semibold ${isCurrentUser ? 'text-cyan' : 'text-white'}`}>
+                        <span
+                          className={`font-semibold ${isCurrentUser ? 'text-cyan' : 'text-white'}`}
+                        >
                           {entry.username || entry.first_name || 'Игрок'}
                           {isCurrentUser && ' ⭐'}
                         </span>
-                        <span className="text-[11px] text-white/40">#{entry.user_id.slice(0, 6)}</span>
+                        <span className="text-[11px] text-white/40">
+                          #{entry.user_id.slice(0, 6)}
+                        </span>
                       </div>
                     </div>
                   </td>
