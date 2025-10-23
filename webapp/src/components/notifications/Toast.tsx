@@ -24,6 +24,15 @@ const ICON_SYMBOLS: Record<string, string> = {
   trophy: '🏆',
 };
 
+const ICON_LABELS: Record<string, string> = {
+  success: 'Success notification',
+  error: 'Error notification',
+  warning: 'Warning notification',
+  info: 'Information notification',
+  star: 'Star notification',
+  trophy: 'Achievement notification',
+};
+
 export function Toast({ notification }: ToastProps) {
   const removeNotification = useUIStore(state => state.removeNotification);
   const icon = notification.icon || 'info';
@@ -41,6 +50,8 @@ export function Toast({ notification }: ToastProps) {
       {/* Icon Badge */}
       <div
         className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm ${colorClass}`}
+        role="img"
+        aria-label={ICON_LABELS[icon] || ICON_LABELS.info}
       >
         {symbol}
       </div>

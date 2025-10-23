@@ -74,24 +74,14 @@ export function HomePanel({
       {/* Top: Essential Stats (2-column layout, compact) */}
       <div className="grid grid-cols-2 gap-2 px-4 py-2">
         {/* Essential Stats */}
-        <StatCard
-          icon="⚡"
-          label="Энергия"
-          value={`${energyCompact} E`}
-          subLabel="Баланс"
-        />
+        <StatCard icon="⚡" label="Энергия" value={`${energyCompact} E`} subLabel="Баланс" />
         <StatCard
           icon="🪐"
           label="Tap Lvl"
           value={`Lv ${tapLevel}`}
           subLabel={`${tapIncomeDisplay} E`}
         />
-        <StatCard
-          icon="💤"
-          label="Пассив"
-          value={passiveIncomeLabel}
-          subLabel={multiplierLabel}
-        />
+        <StatCard icon="💤" label="Пассив" value={passiveIncomeLabel} subLabel={multiplierLabel} />
         <StatCard
           icon="🎯"
           label="Уровень"
@@ -136,7 +126,9 @@ export function HomePanel({
           />
 
           {/* Tap indicator */}
-          🌍
+          <span role="img" aria-label="Tap planet to generate energy">
+            🌍
+          </span>
         </motion.button>
       </div>
 
@@ -162,7 +154,9 @@ export function HomePanel({
           <Card highlighted={purchaseInsight.affordable}>
             <div className="flex items-center justify-between gap-3 mb-2">
               <div>
-                <p className="m-0 text-xs uppercase tracking-[0.6px] text-white/45">Следующая цель</p>
+                <p className="m-0 text-xs uppercase tracking-[0.6px] text-white/45">
+                  Следующая цель
+                </p>
                 <h3 className="m-0 text-lg text-white font-semibold">{purchaseInsight.name}</h3>
               </div>
               {purchaseInsight.roiRank && (

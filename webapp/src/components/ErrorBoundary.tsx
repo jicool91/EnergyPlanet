@@ -49,7 +49,9 @@ export class ErrorBoundary extends Component<Props, State> {
           animate={{ opacity: 1, scale: 1 }}
           className="flex flex-col items-center justify-center gap-4 p-6 rounded-lg bg-dark-secondary border border-red-error/40 text-center"
         >
-          <div className="text-3xl">⚠️</div>
+          <div className="text-3xl" role="img" aria-label="Warning">
+            ⚠️
+          </div>
           <div className="flex flex-col gap-2">
             <h3 className="text-base font-bold text-white">Что-то пошло не так</h3>
             <p className="text-sm text-gray-400">

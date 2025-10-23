@@ -101,7 +101,9 @@ export function ShopPanel() {
 
     const withRatio = regularPacks.map(pack => ({
       ...pack,
-      pricePerStar: pack.price_rub ? pack.price_rub / (pack.stars + (pack.bonus_stars ?? 0)) : Infinity,
+      pricePerStar: pack.price_rub
+        ? pack.price_rub / (pack.stars + (pack.bonus_stars ?? 0))
+        : Infinity,
     }));
 
     return withRatio.reduce((best, current) =>
@@ -173,7 +175,9 @@ export function ShopPanel() {
           aria-label="Обновить магазин"
           type="button"
         >
-          <span className={`inline-block ${isStarPacksLoading || isCosmeticsLoading ? 'animate-spin' : ''}`}>
+          <span
+            className={`inline-block ${isStarPacksLoading || isCosmeticsLoading ? 'animate-spin' : ''}`}
+          >
             🔄
           </span>
         </button>
@@ -243,7 +247,9 @@ export function ShopPanel() {
               <div className="bg-dark-tertiary/40 rounded-lg p-3 border border-gold/20 flex flex-col gap-2">
                 <div className="flex items-center justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg">⭐</span>
+                    <span className="text-lg" aria-hidden="true">
+                      ⭐
+                    </span>
                     <span className="text-sm text-white/80">Базовых</span>
                   </div>
                   <span className="text-sm font-bold text-gold">{featuredPack.stars}</span>
@@ -252,18 +258,29 @@ export function ShopPanel() {
                   <>
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">✨</span>
+                        <span className="text-lg" aria-hidden="true">
+                          ✨
+                        </span>
                         <span className="text-sm text-white/80">Бонус</span>
                       </div>
-                      <span className="text-sm font-bold text-lime">+{featuredPack.bonus_stars}</span>
+                      <span className="text-sm font-bold text-lime">
+                        +{featuredPack.bonus_stars}
+                      </span>
                     </div>
                     <div className="border-t border-white/10 pt-2 flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
-                        <span className="text-lg">🚀</span>
+                        <span className="text-lg" aria-hidden="true">
+                          🚀
+                        </span>
                         <span className="text-sm text-white/80">Буст</span>
                       </div>
                       <span className="text-sm font-bold text-lime">
-                        +{calculateBonusPercentage(featuredPack.stars, featuredPack.bonus_stars ?? 0)}%
+                        +
+                        {calculateBonusPercentage(
+                          featuredPack.stars,
+                          featuredPack.bonus_stars ?? 0
+                        )}
+                        %
                       </span>
                     </div>
                   </>
@@ -276,7 +293,11 @@ export function ShopPanel() {
                 </div>
                 {featuredPack.price_rub && (
                   <div className="text-caption text-gold/70 px-2 py-1 rounded bg-gold/10 border border-gold/20 whitespace-nowrap">
-                    {(featuredPack.price_rub / (featuredPack.stars + (featuredPack.bonus_stars ?? 0))).toFixed(1)} ₽/⭐
+                    {(
+                      featuredPack.price_rub /
+                      (featuredPack.stars + (featuredPack.bonus_stars ?? 0))
+                    ).toFixed(1)}{' '}
+                    ₽/⭐
                   </div>
                 )}
               </div>
@@ -325,95 +346,113 @@ export function ShopPanel() {
               <ShopSkeleton count={3} />
             </ErrorBoundary>
           ) : (
-            starPacks.filter(pack => !pack.featured).map(pack => {
-              const processing = isProcessingStarPackId === pack.id;
-              const totalStars = pack.stars + (pack.bonus_stars ?? 0);
-              const bonus = pack.bonus_stars ?? 0;
-              const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
-              const isBestValue = !!(bestValuePack && pack.id === bestValuePack.id);
+            starPacks
+              .filter(pack => !pack.featured)
+              .map(pack => {
+                const processing = isProcessingStarPackId === pack.id;
+                const totalStars = pack.stars + (pack.bonus_stars ?? 0);
+                const bonus = pack.bonus_stars ?? 0;
+                const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
+                const isBestValue = !!(bestValuePack && pack.id === bestValuePack.id);
 
-              return (
-                <Card
-                  key={pack.id}
-                  highlighted={isBestValue}
-                  highlightBadge={isBestValue ? '💰 BEST VALUE' : undefined}
-                  className={`flex gap-4 ${isBestValue ? 'bg-gradient-to-br from-dark-secondary/60 to-dark-tertiary/60 border-lime/30' : ''}`}
-                >
-                  {/* Icon */}
-                  <div className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isBestValue ? 'border-2 border-lime/40' : 'border border-cyan/10'}`}>
-                    {pack.icon_url ? (
-                      <OptimizedImage
-                        src={pack.icon_url}
-                        alt={pack.title}
-                        width={72}
-                        height={72}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-[28px]" aria-hidden="true">
-                        ⭐
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Content */}
-                  <div className="flex-1 flex flex-col gap-2">
-                    <div className="flex justify-between items-center gap-2">
-                      <h3 className={`m-0 text-body font-semibold ${isBestValue ? 'text-lime' : 'text-white'}`}>{pack.title}</h3>
-                      <Badge variant={isBestValue ? 'success' : 'primary'} size="sm">
-                        {totalStars} ⭐
-                      </Badge>
-                    </div>
-                    <p className="m-0 text-caption text-white/70">
-                      {pack.description ?? `Получите ${totalStars} Stars`}
-                    </p>
-
-                    {/* Bundle Breakdown */}
-                    <div className={`text-xs space-y-1 rounded px-2 py-1.5 ${isBestValue ? 'bg-lime/10 border border-lime/20' : 'bg-white/5 border border-white/10'}`}>
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-white/70">⭐ Базовых:</span>
-                        <span className={`font-bold ${isBestValue ? 'text-lime' : 'text-gold'}`}>{pack.stars}</span>
-                      </div>
-                      {bonus > 0 && (
-                        <>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-white/70">✨ Бонус:</span>
-                            <span className="font-bold text-lime">+{bonus}</span>
-                          </div>
-                          <div className="flex items-center justify-between gap-2 border-t border-white/10 pt-1">
-                            <span className="text-white/70">🚀 Буст:</span>
-                            <span className="font-bold text-lime">+{calculateBonusPercentage(pack.stars, bonus)}%</span>
-                          </div>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex gap-2 items-center">
-                      <div className={`text-caption flex-1 ${isBestValue ? 'text-lime/80 font-semibold' : 'text-white/65'}`}>
-                        {priceLabel}
-                      </div>
-                      {pack.price_rub && (
-                        <div className={`text-xs px-2 py-0.5 rounded whitespace-nowrap ${isBestValue ? 'bg-lime/20 border border-lime/30 text-lime font-bold' : 'bg-cyan/10 border border-cyan/20 text-cyan/80'}`}>
-                          {(pack.price_rub / totalStars).toFixed(1)} ₽/⭐
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Button */}
-                  <div className="flex items-center flex-shrink-0">
-                    <Button
-                      variant="success"
-                      size="md"
-                      loading={processing}
-                      onClick={() => handlePurchaseStarPack(pack.id)}
+                return (
+                  <Card
+                    key={pack.id}
+                    highlighted={isBestValue}
+                    highlightBadge={isBestValue ? '💰 BEST VALUE' : undefined}
+                    className={`flex gap-4 ${isBestValue ? 'bg-gradient-to-br from-dark-secondary/60 to-dark-tertiary/60 border-lime/30' : ''}`}
+                  >
+                    {/* Icon */}
+                    <div
+                      className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isBestValue ? 'border-2 border-lime/40' : 'border border-cyan/10'}`}
                     >
-                      Купить Stars
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })
+                      {pack.icon_url ? (
+                        <OptimizedImage
+                          src={pack.icon_url}
+                          alt={pack.title}
+                          width={72}
+                          height={72}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-[28px]" aria-hidden="true">
+                          ⭐
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Content */}
+                    <div className="flex-1 flex flex-col gap-2">
+                      <div className="flex justify-between items-center gap-2">
+                        <h3
+                          className={`m-0 text-body font-semibold ${isBestValue ? 'text-lime' : 'text-white'}`}
+                        >
+                          {pack.title}
+                        </h3>
+                        <Badge variant={isBestValue ? 'success' : 'primary'} size="sm">
+                          {totalStars} ⭐
+                        </Badge>
+                      </div>
+                      <p className="m-0 text-caption text-white/70">
+                        {pack.description ?? `Получите ${totalStars} Stars`}
+                      </p>
+
+                      {/* Bundle Breakdown */}
+                      <div
+                        className={`text-xs space-y-1 rounded px-2 py-1.5 ${isBestValue ? 'bg-lime/10 border border-lime/20' : 'bg-white/5 border border-white/10'}`}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-white/70">⭐ Базовых:</span>
+                          <span className={`font-bold ${isBestValue ? 'text-lime' : 'text-gold'}`}>
+                            {pack.stars}
+                          </span>
+                        </div>
+                        {bonus > 0 && (
+                          <>
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="text-white/70">✨ Бонус:</span>
+                              <span className="font-bold text-lime">+{bonus}</span>
+                            </div>
+                            <div className="flex items-center justify-between gap-2 border-t border-white/10 pt-1">
+                              <span className="text-white/70">🚀 Буст:</span>
+                              <span className="font-bold text-lime">
+                                +{calculateBonusPercentage(pack.stars, bonus)}%
+                              </span>
+                            </div>
+                          </>
+                        )}
+                      </div>
+
+                      <div className="flex gap-2 items-center">
+                        <div
+                          className={`text-caption flex-1 ${isBestValue ? 'text-lime/80 font-semibold' : 'text-white/65'}`}
+                        >
+                          {priceLabel}
+                        </div>
+                        {pack.price_rub && (
+                          <div
+                            className={`text-xs px-2 py-0.5 rounded whitespace-nowrap ${isBestValue ? 'bg-lime/20 border border-lime/30 text-lime font-bold' : 'bg-cyan/10 border border-cyan/20 text-cyan/80'}`}
+                          >
+                            {(pack.price_rub / totalStars).toFixed(1)} ₽/⭐
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Button */}
+                    <div className="flex items-center flex-shrink-0">
+                      <Button
+                        variant="success"
+                        size="md"
+                        loading={processing}
+                        onClick={() => handlePurchaseStarPack(pack.id)}
+                      >
+                        Купить Stars
+                      </Button>
+                    </div>
+                  </Card>
+                );
+              })
           )
         ) : isCosmeticsLoading && filteredCosmetics.length === 0 ? (
           <ErrorBoundary>
@@ -496,7 +535,9 @@ export function ShopPanel() {
                 className={`flex gap-4 ${isMostPopular ? 'bg-gradient-to-br from-dark-secondary/60 to-dark-tertiary/60 border-cyan/30' : ''}`}
               >
                 {/* Icon */}
-                <div className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isMostPopular ? 'border-2 border-cyan/40' : 'border border-cyan/10'}`}>
+                <div
+                  className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isMostPopular ? 'border-2 border-cyan/40' : 'border border-cyan/10'}`}
+                >
                   {cosmetic.preview_url ? (
                     <OptimizedImage
                       src={cosmetic.preview_url}
@@ -515,9 +556,13 @@ export function ShopPanel() {
                 {/* Content */}
                 <div className="flex-1 flex flex-col gap-2">
                   <div className="flex justify-between items-center gap-2">
-                    <h3 className={`m-0 text-body font-semibold ${isMostPopular ? 'text-cyan' : 'text-white'}`}>{cosmetic.name}</h3>
+                    <h3
+                      className={`m-0 text-body font-semibold ${isMostPopular ? 'text-cyan' : 'text-white'}`}
+                    >
+                      {cosmetic.name}
+                    </h3>
                     <Badge
-                      variant={isMostPopular ? 'primary' : (rarityMap[cosmetic.rarity] || 'default')}
+                      variant={isMostPopular ? 'primary' : rarityMap[cosmetic.rarity] || 'default'}
                       size="sm"
                     >
                       {isMostPopular ? '⭐ Popular' : cosmetic.rarity}

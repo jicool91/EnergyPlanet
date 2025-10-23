@@ -44,7 +44,9 @@ export function Achievement({ notification }: AchievementProps) {
           }}
           transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
         >
-          🏆
+          <span role="img" aria-label="Achievement trophy">
+            🏆
+          </span>
         </motion.div>
 
         {/* Title */}
@@ -73,6 +75,7 @@ export function Achievement({ notification }: AchievementProps) {
             <motion.span
               key={i}
               className="text-2xl"
+              aria-hidden="true"
               animate={{
                 y: [-20, 0, -20],
                 opacity: [0, 1, 0],

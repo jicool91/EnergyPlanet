@@ -25,7 +25,9 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
       const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
       const seconds = Math.floor((diffMs % (1000 * 60)) / 1000);
 
-      setTimeLeft(`${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+      setTimeLeft(
+        `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+      );
     }, 1000);
 
     return () => clearInterval(timer);
@@ -53,7 +55,9 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
       {/* Content */}
       <div className="relative flex items-center justify-between gap-4 z-10">
         <div className="flex items-center gap-3">
-          <span className="text-4xl animate-bounce">🎁</span>
+          <span className="text-4xl animate-bounce" role="img" aria-label="Daily reward gift">
+            🎁
+          </span>
           <div>
             <p className="m-0 text-sm font-bold text-gold">Ежедневное вознаграждение</p>
             <p className="m-0 text-xs text-gold/80">Приходит через {timeLeft}</p>

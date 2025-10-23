@@ -9,25 +9,29 @@ interface AlertProps {
 // Type-to-icon and color mapping
 const ALERT_CONFIGS: Record<
   string,
-  { icon: string; headerBg: string; accentColor: string }
+  { icon: string; label: string; headerBg: string; accentColor: string }
 > = {
   success: {
     icon: '✓',
+    label: 'Success',
     headerBg: 'from-lime-500/20 to-lime-500/10',
     accentColor: 'bg-lime-500 hover:bg-lime-600',
   },
   error: {
     icon: '✕',
+    label: 'Error',
     headerBg: 'from-red-500/20 to-red-500/10',
     accentColor: 'bg-red-500 hover:bg-red-600',
   },
   warning: {
     icon: '⚠',
+    label: 'Warning',
     headerBg: 'from-amber-500/20 to-amber-500/10',
     accentColor: 'bg-amber-500 hover:bg-amber-600',
   },
   info: {
     icon: 'ⓘ',
+    label: 'Information',
     headerBg: 'from-blue-500/20 to-blue-500/10',
     accentColor: 'bg-blue-500 hover:bg-blue-600',
   },
@@ -61,8 +65,12 @@ export function Alert({ notification }: AlertProps) {
         className="bg-gradient-to-b from-dark-card to-dark-bg border border-dark-border rounded-2xl shadow-2xl max-w-sm mx-4 overflow-hidden"
       >
         {/* Header with Icon */}
-        <div className={`bg-gradient-to-r ${config.headerBg} border-b border-dark-border px-6 py-4 flex items-center gap-4`}>
-          <div className="text-4xl">{config.icon}</div>
+        <div
+          className={`bg-gradient-to-r ${config.headerBg} border-b border-dark-border px-6 py-4 flex items-center gap-4`}
+        >
+          <div className="text-4xl" role="img" aria-label={config.label}>
+            {config.icon}
+          </div>
           <h2 className="text-xl font-bold text-white">{notification.title || 'Alert'}</h2>
         </div>
 
