@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { Card } from './Card';
 import { StatCard } from './StatCard';
 import { XPProgressCard } from './XPProgressCard';
+import { SocialProofCard } from './SocialProofCard';
 import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
 
 export interface HomePanelProps {
@@ -138,7 +139,7 @@ export function HomePanel({
         </motion.button>
       </div>
 
-      {/* Bottom: XP Progress + Next Goal (scrollable if needed) */}
+      {/* Bottom: XP Progress + Next Goal + Social Proof (scrollable if needed) */}
       <div className="flex flex-col gap-2 px-4 py-2 overflow-y-auto">
         {/* XP Progress Card */}
         <XPProgressCard
@@ -148,6 +149,9 @@ export function HomePanel({
           xpTotal={xpIntoLevel + xpToNextLevel}
           xpRemaining={xpRemaining}
         />
+
+        {/* Social Proof (Friends Playing) */}
+        <SocialProofCard friendsCount={Math.floor(Math.random() * 50) + 5} />
 
         {/* Next Goal Card */}
         {purchaseInsight && (
