@@ -54,7 +54,7 @@ export function StatCard({
     return (
       <button
         type="button"
-        className={`${base} ${toneClass} text-left focus:outline-none hover:-translate-y-0.5`}
+        className={`${base} ${toneClass} text-left hover:-translate-y-0.5 focus-ring`}
         onClick={onClick}
       >
         {content}

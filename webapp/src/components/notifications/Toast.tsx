@@ -62,7 +62,7 @@ export function Toast({ notification }: ToastProps) {
       {/* Close Button */}
       <button
         onClick={() => removeNotification(notification.id)}
-        className="flex-shrink-0 text-gray-400 hover:text-white transition-colors p-1"
+        className="flex-shrink-0 text-gray-400 hover:text-white transition-colors p-1 focus-ring"
         aria-label="Close notification"
       >
         <span className="text-lg leading-none">✕</span>

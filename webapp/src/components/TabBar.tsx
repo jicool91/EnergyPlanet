@@ -73,7 +73,7 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
           scrollbarWidth: 'none',
         }}
       >
-        {tabs.map((tab) => {
+        {tabs.map(tab => {
           const isActive = active === tab.id;
           return (
             <button
@@ -83,7 +83,7 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
                 isActive
                   ? 'text-cyan font-semibold'
                   : 'text-white/60 hover:text-white hover:bg-white/5'
-              }`}
+              } focus-ring`}
               type="button"
               onClick={() => onChange(tab.id)}
               title={tab.title || tab.label}

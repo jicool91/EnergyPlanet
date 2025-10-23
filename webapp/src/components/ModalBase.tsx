@@ -146,7 +146,7 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
               {showClose && (
                 <button
                   onClick={onClose}
-                  className="text-white/60 hover:text-white transition-colors"
+                  className="text-white/60 hover:text-white transition-colors focus-ring"
                   aria-label="Close modal"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

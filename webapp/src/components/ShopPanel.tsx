@@ -170,7 +170,7 @@ export function ShopPanel() {
             loadCosmetics(true);
           }}
           disabled={isStarPacksLoading || isCosmeticsLoading}
-          className="flex-shrink-0 p-2.5 rounded-lg hover:bg-white/10 active:bg-white/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xl"
+          className="flex-shrink-0 p-2.5 rounded-lg hover:bg-white/10 active:bg-white/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xl focus-ring"
           title="Обновить"
           aria-label="Обновить магазин"
           type="button"

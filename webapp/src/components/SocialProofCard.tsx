@@ -30,7 +30,7 @@ export const SocialProofCard: React.FC<SocialProofCardProps> = ({
       {/* Action Button */}
       <button
         onClick={onViewLeaderboard}
-        className="flex-shrink-0 px-4 py-2 rounded-lg bg-gradient-to-br from-cyan/40 to-lime/40 hover:from-cyan/60 hover:to-lime/60 text-white font-medium text-caption transition-all duration-200 active:scale-95"
+        className="flex-shrink-0 px-4 py-2 rounded-lg bg-gradient-to-br from-cyan/40 to-lime/40 hover:from-cyan/60 hover:to-lime/60 text-white font-medium text-caption transition-all duration-200 active:scale-95 focus-ring"
         type="button"
         aria-label="View leaderboard"
       >

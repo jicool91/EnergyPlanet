@@ -68,7 +68,7 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
           onClick={onClaim}
-          className="flex-shrink-0 px-4 py-2 rounded-lg bg-gradient-to-r from-gold to-orange hover:from-gold/90 hover:to-orange/90 text-dark-bg font-bold text-sm transition-all duration-200 shadow-md"
+          className="flex-shrink-0 px-4 py-2 rounded-lg bg-gradient-to-r from-gold to-orange hover:from-gold/90 hover:to-orange/90 text-dark-bg font-bold text-sm transition-all duration-200 shadow-md focus-ring"
           type="button"
         >
           Получить

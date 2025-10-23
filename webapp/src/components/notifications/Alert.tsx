@@ -85,7 +85,7 @@ export function Alert({ notification }: AlertProps) {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={handleDismiss}
-            className={`px-6 py-2 rounded-lg ${config.accentColor} text-white font-medium transition-colors`}
+            className={`px-6 py-2 rounded-lg ${config.accentColor} text-white font-medium transition-colors focus-ring`}
           >
             OK
           </motion.button>
