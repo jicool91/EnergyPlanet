@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
+import { Button } from './Button';
+import { Card } from './Card';
+import { Badge } from './Badge';
 
 function formatSeconds(seconds: number): string {
   if (seconds <= 0) {
@@ -94,23 +97,31 @@ export function BoostHub() {
 
   return (
     <div className="flex flex-col gap-4 p-0">
+      {/* Header */}
       <div className="relative flex flex-col gap-1">
-        <h2 className="m-0 text-xl text-[#f8fbff]">Boost Hub</h2>
-        <p className="m-0 text-[13px] text-white/60">Активируйте бусты, чтобы ускорить прогресс</p>
-        <button
-          type="button"
-          className="absolute top-0 right-0 px-[14px] py-2 rounded-md border-0 bg-cyan/[0.18] text-[#f8fbff] text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out hover:enabled:-translate-y-px hover:enabled:shadow-[0_8px_18px_rgba(0,217,255,0.25)] disabled:opacity-60 disabled:cursor-default"
-          onClick={() => loadBoostHub(true)}
-          disabled={isBoostHubLoading}
-        >
-          {isBoostHubLoading ? 'Обновление…' : 'Обновить'}
-        </button>
+        <div className="flex justify-between items-start gap-3">
+          <div>
+            <h2 className="m-0 text-heading text-white font-semibold">Boost Hub</h2>
+            <p className="m-0 text-caption text-white/60">
+              Активируйте бусты, чтобы ускорить прогресс
+            </p>
+          </div>
+          <Button
+            variant="secondary"
+            size="md"
+            loading={isBoostHubLoading}
+            onClick={() => loadBoostHub(true)}
+          >
+            Обновить
+          </Button>
+        </div>
       </div>
 
+      {/* Error State */}
       {boostHubError && (
-        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">
+        <Card className="bg-red-error/15 border-red-error/40 text-red-error text-caption">
           {boostHubError}
-        </div>
+        </Card>
       )}
 
       <div className="flex flex-col gap-4">
@@ -142,32 +153,35 @@ export function BoostHub() {
                       : 'Активировать';
 
             return (
-              <div
-                key={item.boost_type}
-                className="flex flex-col gap-[14px] p-[18px] rounded-lg bg-[rgba(10,14,32,0.92)] border border-cyan/[0.14] shadow-[0_18px_40px_rgba(7,12,35,0.35)]"
-              >
-                <div>
-                  <div className="flex justify-between items-center gap-3">
-                    <h3 className="m-0 text-base text-[#f8fbff]">{label}</h3>
-                    <span className="px-[10px] py-1 rounded-full bg-[rgba(255,193,77,0.25)] text-[#ffd27d] font-semibold text-[13px]">
-                      x{item.multiplier}
-                    </span>
+              <Card key={item.boost_type} className="flex flex-col gap-4">
+                {/* Title + Multiplier */}
+                <div className="flex justify-between items-start gap-3">
+                  <div>
+                    <h3 className="m-0 text-body font-semibold text-white">{label}</h3>
+                    <p className="m-0 text-caption text-white/70">{description}</p>
                   </div>
-                  <p className="m-0 text-[13px] text-white/70">{description}</p>
+                  <Badge variant="warning" size="sm">
+                    x{item.multiplier}
+                  </Badge>
                 </div>
-                <div className="flex gap-4 text-xs text-white/60">
+
+                {/* Duration + Cooldown */}
+                <div className="flex gap-4 text-caption text-white/60">
                   <span>Длительность: {formatDuration(item.duration_minutes)}</span>
                   <span>Кулдаун: {formatDuration(item.cooldown_minutes)}</span>
                 </div>
-                <button
-                  type="button"
-                  className="self-start px-[18px] py-[10px] rounded-md border-0 bg-gradient-to-br from-cyan/25 to-[rgba(38,127,255,0.35)] text-[#f8fbff] text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out hover:enabled:-translate-y-px hover:enabled:shadow-[0_10px_26px_rgba(0,217,255,0.3)] disabled:opacity-60 disabled:cursor-default disabled:shadow-none"
+
+                {/* Action Button */}
+                <Button
+                  variant="primary"
+                  size="md"
+                  loading={isClaimingBoostType === item.boost_type}
                   onClick={() => claimBoost(item.boost_type)}
                   disabled={buttonDisabled}
                 >
                   {buttonLabel}
-                </button>
-              </div>
+                </Button>
+              </Card>
             );
           })
         )}
