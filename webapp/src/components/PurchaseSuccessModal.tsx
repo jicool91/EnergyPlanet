@@ -90,6 +90,8 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
                 duration: 0.5,
               }}
               onClick={e => e.stopPropagation()}
+              role="status"
+              aria-live="polite"
             >
               {/* Checkmark */}
               <div className="mb-6">
@@ -98,11 +100,14 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
 
               {/* Success Text */}
               <motion.h2
-                className="m-0 mb-2 text-heading font-bold text-lime"
+                className="m-0 mb-2 text-heading font-bold text-lime flex items-center justify-center gap-2"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.3 }}
               >
+                <span role="img" aria-label="Success" className="text-2xl">
+                  ✅
+                </span>
                 Успешно!
               </motion.h2>
 
