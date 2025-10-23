@@ -28,7 +28,8 @@
 
   /* Theme-aware Text Colors */
   --color-text-primary: var(--app-text);
-  --color-text-secondary: var(--app-text-subtle);
+  --color-text-secondary-fallback: var(--tg-theme-subtitle-text-color, #c4cad8);
+  --color-text-secondary: var(--color-text-secondary-fallback);
   --color-text-accent: var(--app-accent);
   --color-text-destructive: var(--app-danger-text);
   --color-text-link: var(--tg-theme-link-color, #3d9eff);
@@ -71,12 +72,12 @@
 
   /* ===== SPACING (8px base) ===== */
 
-  --spacing-xs: 4px;      /* 0.5 × 8px */
-  --spacing-sm: 8px;      /* 1 × 8px */
-  --spacing-md: 16px;     /* 2 × 8px */
-  --spacing-lg: 24px;     /* 3 × 8px */
-  --spacing-xl: 32px;     /* 4 × 8px */
-  --spacing-2xl: 40px;    /* 5 × 8px */
+  --spacing-xs: 4px; /* 0.5 × 8px */
+  --spacing-sm: 8px; /* 1 × 8px */
+  --spacing-md: 16px; /* 2 × 8px */
+  --spacing-lg: 24px; /* 3 × 8px */
+  --spacing-xl: 32px; /* 4 × 8px */
+  --spacing-2xl: 40px; /* 5 × 8px */
 
   /* ===== BORDER RADIUS ===== */
 
@@ -99,6 +100,12 @@
   --shadow-glow-card: 0 2px 8px rgba(0, 217, 255, 0.1);
   --shadow-glow-card-hover: 0 4px 16px rgba(0, 217, 255, 0.2);
   --shadow-glow: 0 0 20px rgba(0, 217, 255, 0.3);
+}
+
+@supports (color: color-mix(in srgb, black 50%, white 50%)) {
+  :root {
+    --color-text-secondary: color-mix(in srgb, var(--app-text) 72%, var(--app-bg));
+  }
 }
 
 /* ===== UTILITY CLASSES FOR COMMON PATTERNS ===== */
