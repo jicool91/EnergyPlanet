@@ -1,6 +1,8 @@
 import { useMemo } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { ProfileSkeleton, ErrorBoundary } from './skeletons';
+import { Card } from './Card';
+import { Badge } from './Badge';
 
 export function ProfilePanel() {
   const { isProfileLoading, profileError, profile, profileBoosts } = useGameStore(state => ({
@@ -23,10 +25,10 @@ export function ProfilePanel() {
   if (profileError) {
     return (
       <div className="p-0 flex flex-col gap-4">
-        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">
-          <p className="m-0 mb-2">Не удалось получить профиль.</p>
+        <Card className="bg-red-error/15 border-red-error/40 text-red-error">
+          <p className="m-0 mb-2 font-semibold">Не удалось получить профиль.</p>
           <small className="text-white/60">{profileError}</small>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -54,44 +56,53 @@ export function ProfilePanel() {
         </div>
       </header>
 
+      {/* Stats Grid */}
       <section className="grid grid-cols-2 gap-3">
-        <div className="bg-dark-secondary/60 border border-cyan/[0.12] p-3 rounded-md flex flex-col gap-[6px]">
-          <span className="text-[11px] uppercase text-white/45">Уровень</span>
-          <strong>{profile.progress.level}</strong>
-        </div>
-        <div className="bg-dark-secondary/60 border border-cyan/[0.12] p-3 rounded-md flex flex-col gap-[6px]">
-          <span className="text-[11px] uppercase text-white/45">Энергия</span>
-          <strong>{Math.floor(profile.progress.energy).toLocaleString()}</strong>
-        </div>
-        <div className="bg-dark-secondary/60 border border-cyan/[0.12] p-3 rounded-md flex flex-col gap-[6px]">
-          <span className="text-[11px] uppercase text-white/45">Всего энергии</span>
-          <strong>{Math.floor(profile.progress.total_energy_produced).toLocaleString()}</strong>
-        </div>
-        <div className="bg-dark-secondary/60 border border-cyan/[0.12] p-3 rounded-md flex flex-col gap-[6px]">
-          <span className="text-[11px] uppercase text-white/45">Тап lvl</span>
-          <strong>{profile.progress.tap_level}</strong>
-        </div>
+        <Card className="flex flex-col gap-2">
+          <span className="text-micro uppercase text-white/45">Уровень</span>
+          <strong className="text-heading">{profile.progress.level}</strong>
+        </Card>
+        <Card className="flex flex-col gap-2">
+          <span className="text-micro uppercase text-white/45">Энергия</span>
+          <strong className="text-heading">
+            {Math.floor(profile.progress.energy).toLocaleString()}
+          </strong>
+        </Card>
+        <Card className="flex flex-col gap-2">
+          <span className="text-micro uppercase text-white/45">Всего энергии</span>
+          <strong className="text-heading">
+            {Math.floor(profile.progress.total_energy_produced).toLocaleString()}
+          </strong>
+        </Card>
+        <Card className="flex flex-col gap-2">
+          <span className="text-micro uppercase text-white/45">Тап lvl</span>
+          <strong className="text-heading">{profile.progress.tap_level}</strong>
+        </Card>
       </section>
 
+      {/* Bio Section */}
       {profile.profile.bio && (
-        <section className="bg-dark-secondary/60 border border-cyan/[0.12] rounded-md p-4">
-          <h4 className="mb-2 text-sm uppercase tracking-[0.6px]">О себе</h4>
-          <p>{profile.profile.bio}</p>
-        </section>
+        <Card>
+          <h4 className="mb-2 text-body uppercase font-semibold">О себе</h4>
+          <p className="m-0 text-caption text-white/80">{profile.profile.bio}</p>
+        </Card>
       )}
 
+      {/* Active Boosts Section */}
       {boosts.length > 0 && (
-        <section className="bg-dark-secondary/60 border border-cyan/[0.12] rounded-md p-4">
-          <h4 className="mb-2 text-sm uppercase tracking-[0.6px]">Активные бусты</h4>
+        <Card>
+          <h4 className="mb-3 text-body uppercase font-semibold">Активные бусты</h4>
           <ul className="list-none flex flex-col gap-2 m-0 p-0">
             {boosts.map(boost => (
-              <li key={boost.id} className="flex justify-between text-[13px]">
-                <span>{boost.boost_type}</span>
-                <span>x{boost.multiplier}</span>
+              <li key={boost.id} className="flex justify-between items-center text-caption">
+                <span className="text-white/80">{boost.boost_type}</span>
+                <Badge variant="success" size="sm">
+                  x{boost.multiplier}
+                </Badge>
               </li>
             ))}
           </ul>
-        </section>
+        </Card>
       )}
     </div>
   );
