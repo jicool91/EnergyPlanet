@@ -191,7 +191,12 @@ export function ShopPanel() {
               const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
 
               return (
-                <Card key={pack.id} highlighted={pack.featured} className="flex gap-4">
+                <Card
+                  key={pack.id}
+                  highlighted={pack.featured}
+                  highlightBadge={pack.featured ? 'Лучший выбор' : undefined}
+                  className="flex gap-4"
+                >
                   {/* Icon */}
                   <div className="w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden border border-cyan/10 flex-shrink-0">
                     {pack.icon_url ? (

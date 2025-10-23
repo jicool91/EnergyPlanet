@@ -15,6 +15,11 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
   highlighted?: boolean;
 
   /**
+   * Badge text for highlighted cards (default: "Featured")
+   */
+  highlightBadge?: string;
+
+  /**
    * Card variant/style
    */
   variant?: 'default' | 'elevated' | 'outlined';
@@ -41,7 +46,7 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
  * </Card>
  */
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, highlighted = false, variant = 'default', children, ...props }, ref) => {
+  ({ className, highlighted = false, highlightBadge = 'Featured', variant = 'default', children, ...props }, ref) => {
     const variantStyles = {
       default: 'bg-dark-secondary/60 border-cyan/[0.14] shadow-card',
       elevated: 'bg-dark-secondary/70 border-cyan/[0.14] shadow-lg',
@@ -51,7 +56,7 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     const baseStyles = 'rounded-lg border p-4 transition-all duration-150 ease-out';
 
     const highlightStyles = highlighted
-      ? 'border-lime/60 shadow-lg relative bg-dark-secondary/80 after:content-["Featured"] after:absolute after:-top-2 after:right-4 after:bg-gradient-to-br after:from-lime/90 after:to-cyan/90 after:text-dark-bg after:text-micro after:font-bold after:px-2.5 after:py-1 after:rounded-full'
+      ? `border-lime/60 shadow-lg relative bg-dark-secondary/80 before:content-["${highlightBadge}"] before:absolute before:-top-2 before:right-4 before:bg-gradient-to-br before:from-gold/100 before:to-orange/100 before:text-dark-bg before:text-micro before:font-bold before:px-3 before:py-1.5 before:rounded-full before:shadow-md`
       : '';
 
     return (
