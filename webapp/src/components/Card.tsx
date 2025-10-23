@@ -46,18 +46,29 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
  * </Card>
  */
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
-  ({ className, highlighted = false, highlightBadge = 'Featured', variant = 'default', children, ...props }, ref) => {
+  (
+    {
+      className,
+      highlighted = false,
+      highlightBadge = 'Featured',
+      variant = 'default',
+      children,
+      ...props
+    },
+    ref
+  ) => {
+    const baseStyles =
+      'relative rounded-lg p-4 transition-all duration-150 ease-out text-[var(--color-text-primary)]';
+
     const variantStyles = {
-      default: 'bg-dark-secondary/60 border-cyan/[0.14] shadow-card',
-      elevated: 'bg-dark-secondary/70 border-cyan/[0.14] shadow-lg',
-      outlined: 'bg-transparent border-cyan/[0.22] shadow-none',
+      default:
+        'bg-[var(--color-surface-secondary)] border border-[var(--color-border-subtle)] shadow-card',
+      elevated:
+        'bg-[var(--color-surface-secondary)] border border-[var(--color-border-subtle)] shadow-lg',
+      outlined: 'bg-transparent border border-[var(--color-border-strong)] shadow-none',
     };
 
-    const baseStyles = 'rounded-lg border p-4 transition-all duration-150 ease-out';
-
-    const highlightStyles = highlighted
-      ? `border-lime/60 shadow-lg relative bg-dark-secondary/80 before:content-["${highlightBadge}"] before:absolute before:-top-2 before:right-4 before:bg-gradient-to-br before:from-gold/100 before:to-orange/100 before:text-dark-bg before:text-micro before:font-bold before:px-3 before:py-1.5 before:rounded-full before:shadow-md`
-      : '';
+    const highlightStyles = highlighted ? 'ring-2 ring-[var(--color-success)] shadow-lg' : '';
 
     return (
       <div
@@ -65,6 +76,11 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
         className={clsx(baseStyles, variantStyles[variant], highlightStyles, className)}
         {...props}
       >
+        {highlighted && (
+          <span className="absolute -top-2 right-4 rounded-full bg-[var(--color-success)] px-3 py-1.5 text-[var(--color-surface-primary)] text-micro font-bold shadow-md">
+            {highlightBadge}
+          </span>
+        )}
         {children}
       </div>
     );
