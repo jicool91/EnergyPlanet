@@ -80,7 +80,7 @@ export function LeaderboardPanel() {
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <h3 className="m-0 text-heading font-semibold text-white">Топ игроков</h3>
-        <span className="text-caption text-white/55">
+        <span className="text-caption text-[var(--color-text-secondary)]">
           Всего: {leaderboardTotal.toLocaleString()}
         </span>
       </div>
@@ -167,7 +167,7 @@ export function LeaderboardPanel() {
                           {entry.username || entry.first_name || 'Игрок'}
                           {isCurrentUser && ' ⭐'}
                         </span>
-                        <span className="text-[11px] text-white/40">
+                        <span className="text-[11px] text-[var(--color-text-secondary)]">
                           #{entry.user_id.slice(0, 6)}
                         </span>
                       </div>
@@ -184,7 +184,7 @@ export function LeaderboardPanel() {
                         {Math.floor(entry.total_energy_produced).toLocaleString()}
                       </span>
                       {entry.energyDiffToNext > 0 && (
-                        <span className="text-[11px] text-white/50">
+                        <span className="text-[11px] text-[var(--color-text-secondary)]">
                           -{Math.floor(entry.energyDiffToNext).toLocaleString()}
                         </span>
                       )}

@@ -199,7 +199,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       <div className="flex justify-between items-center">
         <h3 className="m-0 text-subheading font-semibold text-white">{building.name}</h3>
         <motion.span
-          className="text-caption text-white/70 font-semibold"
+          className="text-caption text-[var(--color-text-secondary)] font-semibold"
           animate={showUnlockAnim ? { scale: [1, 1.2, 1] } : { scale: 1 }}
           transition={{ duration: 0.6 }}
         >
@@ -208,7 +208,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       </div>
 
       {/* Stats: Level, Income, Payback, ROI */}
-      <div className="flex gap-4 text-caption text-white/65 flex-wrap">
+      <div className="flex gap-4 text-caption text-[var(--color-text-secondary)] flex-wrap">
         <span>Уровень: {building.level}</span>
         <span>Доход: {building.incomePerSec.toLocaleString()} /с</span>
         <span>Окупаемость: {payback}</span>
@@ -221,7 +221,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       )}
 
       {/* Purchase info: Quantity, Cost, Income gain */}
-      <div className="flex flex-wrap gap-3 text-micro text-white/55">
+      <div className="flex flex-wrap gap-3 text-micro text-[var(--color-text-secondary)]">
         <span>Пакет: {purchaseQuantityLabel}</span>
         <span>Стоимость: {purchaseCostLabel}</span>
         {purchasePlan.incomeGain > 0 && (

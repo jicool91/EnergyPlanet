@@ -42,9 +42,15 @@ export function XPProgressCard({
   xpRemaining,
 }: XPProgressCardProps) {
   const percentage = useMemo(() => Math.min(100, Math.max(0, xpProgress * 100)), [xpProgress]);
-  const xpCurrentFormatted = useMemo(() => formatNumberWithSpaces(Math.max(0, xpCurrent)), [xpCurrent]);
+  const xpCurrentFormatted = useMemo(
+    () => formatNumberWithSpaces(Math.max(0, xpCurrent)),
+    [xpCurrent]
+  );
   const xpTotalFormatted = useMemo(() => formatNumberWithSpaces(Math.max(0, xpTotal)), [xpTotal]);
-  const xpRemainingFormatted = useMemo(() => formatNumberWithSpaces(Math.max(0, xpRemaining)), [xpRemaining]);
+  const xpRemainingFormatted = useMemo(
+    () => formatNumberWithSpaces(Math.max(0, xpRemaining)),
+    [xpRemaining]
+  );
 
   const helperText = useMemo(() => {
     if (xpRemaining <= 0) {
@@ -60,7 +66,7 @@ export function XPProgressCard({
     <Card>
       <div className="flex items-center justify-between gap-3 mb-4">
         <div>
-          <p className="m-0 text-xs uppercase tracking-[0.6px] text-white/45">
+          <p className="m-0 text-xs uppercase tracking-[0.6px] text-[var(--color-text-secondary)]">
             Прогресс уровня
           </p>
           <h3 className="m-0 text-lg font-semibold text-white">Уровень {level}</h3>
@@ -103,9 +109,7 @@ export function XPProgressCard({
       </div>
 
       {/* Helper text */}
-      <div className="text-xs text-white/50 leading-relaxed">
-        {helperText}
-      </div>
+      <div className="text-xs text-[var(--color-text-secondary)] leading-relaxed">{helperText}</div>
     </Card>
   );
 }

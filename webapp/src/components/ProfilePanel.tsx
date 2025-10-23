@@ -52,30 +52,34 @@ export function ProfilePanel() {
         </div>
         <div>
           <h3 className="m-0">{profile.user.username || profile.user.first_name || 'Игрок'}</h3>
-          <span className="text-xs text-white/50">ID: {profile.user.id.slice(0, 8)}</span>
+          <span className="text-xs text-[var(--color-text-secondary)]">
+            ID: {profile.user.id.slice(0, 8)}
+          </span>
         </div>
       </header>
 
       {/* Stats Grid */}
       <section className="grid grid-cols-2 gap-3">
         <Card className="flex flex-col gap-2">
-          <span className="text-micro uppercase text-white/45">Уровень</span>
+          <span className="text-micro uppercase text-[var(--color-text-secondary)]">Уровень</span>
           <strong className="text-heading">{profile.progress.level}</strong>
         </Card>
         <Card className="flex flex-col gap-2">
-          <span className="text-micro uppercase text-white/45">Энергия</span>
+          <span className="text-micro uppercase text-[var(--color-text-secondary)]">Энергия</span>
           <strong className="text-heading">
             {Math.floor(profile.progress.energy).toLocaleString()}
           </strong>
         </Card>
         <Card className="flex flex-col gap-2">
-          <span className="text-micro uppercase text-white/45">Всего энергии</span>
+          <span className="text-micro uppercase text-[var(--color-text-secondary)]">
+            Всего энергии
+          </span>
           <strong className="text-heading">
             {Math.floor(profile.progress.total_energy_produced).toLocaleString()}
           </strong>
         </Card>
         <Card className="flex flex-col gap-2">
-          <span className="text-micro uppercase text-white/45">Тап lvl</span>
+          <span className="text-micro uppercase text-[var(--color-text-secondary)]">Тап lvl</span>
           <strong className="text-heading">{profile.progress.tap_level}</strong>
         </Card>
       </section>

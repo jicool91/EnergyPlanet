@@ -252,12 +252,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       </Card>
 
       {/* Logout Section */}
-      <Card className={`flex flex-col gap-2 ${confirmLogout ? 'border-red-error/40' : 'border-red-error/20'}`}>
+      <Card
+        className={`flex flex-col gap-2 ${confirmLogout ? 'border-red-error/40' : 'border-red-error/20'}`}
+      >
         {confirmLogout ? (
           <>
-            <p className="m-0 text-sm text-red-error">
-              Вы уверены? Это действие нельзя отменить.
-            </p>
+            <p className="m-0 text-sm text-red-error">Вы уверены? Это действие нельзя отменить.</p>
             <div className="flex gap-2">
               <Button
                 variant="secondary"
@@ -302,7 +302,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       <SettingsSection title="О приложении" icon="ℹ️">
         <div className="flex flex-col gap-2 text-xs text-white/60">
           <div>Energy Planet v1.0.0</div>
-          <div className="text-white/40">© 2025 Energy Planet. Все права защищены.</div>
+          <div className="text-[var(--color-text-secondary)]">
+            © 2025 Energy Planet. Все права защищены.
+          </div>
           <div className="flex gap-2 mt-2">
             <a href="#privacy" className="text-cyan hover:text-cyan/80 transition-colors underline">
               Политика приватности

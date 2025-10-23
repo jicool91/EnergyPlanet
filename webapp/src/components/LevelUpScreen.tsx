@@ -126,15 +126,17 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                     repeat: Infinity,
                     ease: 'linear',
                   }}
-                  style={{
-                    background:
-                      'conic-gradient(from 0deg, rgba(0,217,255,0.8), rgba(72,255,173,0.8), rgba(255,201,87,0.8), transparent)',
-                    width: '280px',
-                    height: '280px',
-                    opacity: 0.3,
-                    filter: 'blur(2px)',
-                    pointerEvents: 'none',
-                  } as any}
+                  style={
+                    {
+                      background:
+                        'conic-gradient(from 0deg, rgba(0,217,255,0.8), rgba(72,255,173,0.8), rgba(255,201,87,0.8), transparent)',
+                      width: '280px',
+                      height: '280px',
+                      opacity: 0.3,
+                      filter: 'blur(2px)',
+                      pointerEvents: 'none',
+                    } as any
+                  }
                 />
 
                 {/* Level number */}
@@ -222,7 +224,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
 
               {/* Click to continue hint */}
               <motion.p
-                className="m-0 text-caption text-white/50 mt-8"
+                className="m-0 text-caption text-[var(--color-text-secondary)] mt-8"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: [0.3, 0.8, 0.3] }}
                 transition={{ duration: 1.5, repeat: Infinity }}

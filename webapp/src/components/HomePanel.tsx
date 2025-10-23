@@ -154,7 +154,7 @@ export function HomePanel({
           <Card highlighted={purchaseInsight.affordable}>
             <div className="flex items-center justify-between gap-3 mb-2">
               <div>
-                <p className="m-0 text-xs uppercase tracking-[0.6px] text-white/45">
+                <p className="m-0 text-xs uppercase tracking-[0.6px] text-[var(--color-text-secondary)]">
                   Следующая цель
                 </p>
                 <h3 className="m-0 text-lg text-white font-semibold">{purchaseInsight.name}</h3>
@@ -175,7 +175,7 @@ export function HomePanel({
             )}
             {purchaseInsight.paybackSeconds !== undefined &&
               purchaseInsight.paybackSeconds !== null && (
-                <div className="text-xs text-white/50 mt-1">
+                <div className="text-xs text-[var(--color-text-secondary)] mt-1">
                   Окупаемость: {(purchaseInsight.paybackSeconds / 3600).toFixed(1)} часов
                 </div>
               )}
