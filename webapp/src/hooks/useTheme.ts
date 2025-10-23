@@ -1,9 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  DEFAULT_THEME,
-  onTelegramThemeChange,
-  TelegramThemeParams,
-} from '../services/telegram';
+import { onTelegramThemeChange } from '../services/telegram';
+import { getResolvedTelegramTheme, type TelegramThemeParams } from '../utils/telegramTheme';
 
 type ColorScheme = 'light' | 'dark';
 
@@ -29,12 +26,7 @@ function getBrowserColorSchemeFallback(): ColorScheme {
 }
 
 function getInitialTheme(): TelegramThemeParams {
-  if (typeof window === 'undefined') {
-    return DEFAULT_THEME;
-  }
-
-  const themeParams = window.Telegram?.WebApp?.themeParams;
-  return { ...DEFAULT_THEME, ...(themeParams ?? {}) };
+  return getResolvedTelegramTheme();
 }
 
 export function useTheme() {

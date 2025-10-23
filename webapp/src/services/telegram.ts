@@ -1,21 +1,17 @@
+import {
+  DEFAULT_THEME,
+  initializeTelegramTheme,
+  updateThemeVariables,
+  type TelegramThemeParams,
+} from '../utils/telegramTheme';
+
+export { DEFAULT_THEME } from '../utils/telegramTheme';
+export type { TelegramThemeParams } from '../utils/telegramTheme';
+
 /**
  * Telegram WebApp integration helpers.
  * Encapsulates initialization, theme management, haptics and back button helpers.
  */
-
-type ThemeColorKey =
-  | 'bg_color'
-  | 'text_color'
-  | 'hint_color'
-  | 'link_color'
-  | 'button_color'
-  | 'button_text_color'
-  | 'secondary_bg_color';
-
-export type TelegramThemeParams = Partial<Record<ThemeColorKey, string>> & {
-  header_color?: string;
-  bottom_bar_color?: string;
-};
 
 type TelegramSafeArea = {
   top: number;
@@ -105,28 +101,9 @@ declare global {
 
 type ThemeListener = (theme: TelegramThemeParams) => void;
 
-const THEME_VARIABLE_MAP: Record<ThemeColorKey, string> = {
-  bg_color: '--tg-theme-bg-color',
-  text_color: '--tg-theme-text-color',
-  hint_color: '--tg-theme-hint-color',
-  link_color: '--tg-theme-link-color',
-  button_color: '--tg-theme-button-color',
-  button_text_color: '--tg-theme-button-text-color',
-  secondary_bg_color: '--tg-theme-secondary-bg-color',
-};
-
-export const DEFAULT_THEME: TelegramThemeParams = {
-  bg_color: '#0f0f0f',
-  text_color: '#ffffff',
-  hint_color: '#a0a0a0',
-  link_color: '#64b5f6',
-  button_color: '#1f6feb',
-  button_text_color: '#ffffff',
-  secondary_bg_color: '#181818',
-};
-
 let initialized = false;
 const themeListeners = new Set<ThemeListener>();
+let currentTheme: TelegramThemeParams = { ...DEFAULT_THEME };
 
 function getWebApp(): TelegramWebApp | null {
   if (typeof window === 'undefined') {
@@ -135,56 +112,39 @@ function getWebApp(): TelegramWebApp | null {
   return window.Telegram?.WebApp ?? null;
 }
 
-function applyTheme(theme: TelegramThemeParams | undefined) {
-  const params = { ...DEFAULT_THEME, ...(theme ?? {}) };
-  const root = document.documentElement;
-
-  (Object.entries(THEME_VARIABLE_MAP) as Array<[ThemeColorKey, string]>).forEach(
-    ([paramKey, cssVar]) => {
-      const value = params[paramKey];
-      if (value) {
-        root.style.setProperty(cssVar, value);
-        if (paramKey === 'bg_color') {
-          document.body.style.backgroundColor = value;
-        }
-        if (paramKey === 'text_color') {
-          document.body.style.color = value;
-        }
-      }
-    }
-  );
-
-  if (params.header_color && typeof getWebApp()?.setHeaderColor === 'function') {
-    getWebApp()?.setHeaderColor?.(params.header_color);
-  }
-  if (params.bottom_bar_color && typeof getWebApp()?.setBottomBarColor === 'function') {
-    getWebApp()?.setBottomBarColor?.(params.bottom_bar_color);
+function updateTelegramChrome(theme: TelegramThemeParams) {
+  const webApp = getWebApp();
+  if (!webApp) {
+    return;
   }
 
-  const colorScheme =
-    getWebApp()?.colorScheme ??
-    (window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  root.dataset.colorScheme = colorScheme;
+  if (theme.header_color && typeof webApp.setHeaderColor === 'function') {
+    webApp.setHeaderColor(theme.header_color);
+  }
+  if (theme.bottom_bar_color && typeof webApp.setBottomBarColor === 'function') {
+    webApp.setBottomBarColor(theme.bottom_bar_color);
+  }
+}
 
-  // Update theme-color meta for mobile status bar
-  const themeMeta =
-    document.querySelector<HTMLMetaElement>('meta[name="theme-color"]') ??
-    (() => {
-      const meta = document.createElement('meta');
-      meta.setAttribute('name', 'theme-color');
-      document.head.appendChild(meta);
-      return meta;
-    })();
-
-  themeMeta.content = params.bg_color ?? DEFAULT_THEME.bg_color!;
-
+function emitTheme(theme: TelegramThemeParams) {
   themeListeners.forEach(listener => {
     try {
-      listener(params);
+      listener(theme);
     } catch (error) {
       console.warn('Theme listener threw an error', error);
     }
   });
+}
+
+function applyThemeFromParams(
+  theme: TelegramThemeParams | undefined,
+  options: { initialize?: boolean } = {}
+) {
+  const resolver = options.initialize ? initializeTelegramTheme : updateThemeVariables;
+  const resolved = resolver(theme);
+  currentTheme = resolved;
+  updateTelegramChrome(resolved);
+  emitTheme(resolved);
 }
 
 function applySafeArea(options: { safe?: TelegramSafeArea; content?: TelegramSafeArea }) {
@@ -229,7 +189,7 @@ export function initializeTelegramWebApp(): void {
 
   const webApp = getWebApp();
   if (!webApp) {
-    applyTheme(DEFAULT_THEME);
+    applyThemeFromParams(undefined, { initialize: true });
     initialized = true;
     return;
   }
@@ -238,14 +198,14 @@ export function initializeTelegramWebApp(): void {
     webApp.ready();
     webApp.expand();
     webApp.disableVerticalSwipes();
-    applyTheme(webApp.themeParams);
+    applyThemeFromParams(webApp.themeParams, { initialize: true });
     applySafeArea({
       safe: webApp.safeAreaInset,
       content: webApp.contentSafeAreaInset,
     });
     applyViewportVars(webApp);
 
-    const handleThemeChange = () => applyTheme(webApp.themeParams);
+    const handleThemeChange = () => applyThemeFromParams(webApp.themeParams);
     const handleViewportChange = (event: TelegramViewportEvent) => {
       if (!event.isExpanded) {
         webApp.expand();
@@ -266,7 +226,7 @@ export function initializeTelegramWebApp(): void {
     initialized = true;
   } catch (error) {
     console.warn('Telegram WebApp initialization failed', error);
-    applyTheme(DEFAULT_THEME);
+    applyThemeFromParams(undefined);
     initialized = true;
   }
 }
@@ -298,12 +258,7 @@ export function triggerHapticNotification(type: TelegramHapticNotification): voi
 
 export function onTelegramThemeChange(listener: ThemeListener): () => void {
   themeListeners.add(listener);
-  const webApp = getWebApp();
-  if (webApp) {
-    listener({ ...DEFAULT_THEME, ...webApp.themeParams });
-  } else {
-    listener(DEFAULT_THEME);
-  }
+  listener(currentTheme);
 
   return () => {
     themeListeners.delete(listener);
