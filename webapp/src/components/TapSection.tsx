@@ -45,7 +45,9 @@ export function TapSection({ onTap }: TapSectionProps) {
         />
 
         {/* Tap indicator */}
-        🌍
+        <span role="img" aria-label="Tap planet to generate energy">
+          🌍
+        </span>
       </motion.button>
     </div>
   );
