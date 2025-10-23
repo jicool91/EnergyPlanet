@@ -13,7 +13,12 @@ interface SettingsScreenProps {
 }
 
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
-  const { user, logoutSession } = useGameStore();
+  const { profile, userId, username, logoutSession } = useGameStore(state => ({
+    profile: state.profile,
+    userId: state.userId,
+    username: state.username,
+    logoutSession: state.logoutSession,
+  }));
   const { success, warning } = useNotification();
   const { light } = useHaptic();
   const [confirmLogout, setConfirmLogout] = useState(false);
@@ -60,16 +65,31 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
     >
       {/* Account Section */}
       <SettingsSection title="Аккаунт" icon="👤">
-        {user && (
+        {profile ? (
           <div className="flex flex-col gap-2 text-sm">
             <div className="flex justify-between">
               <span className="text-white/60">Имя:</span>
-              <span className="text-white font-medium">{user.first_name || 'Игрок'}</span>
+              <span className="text-white font-medium">
+                {profile.user.username || profile.user.first_name || 'Игрок'}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-white/60">ID:</span>
-              <span className="text-white/80 font-mono text-xs">{user.id.slice(0, 8)}...</span>
+              <span className="text-white/80 font-mono text-xs">{profile.user.id.slice(0, 8)}...</span>
             </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-white/60">Имя:</span>
+              <span className="text-white font-medium">{username || 'Игрок'}</span>
+            </div>
+            {userId && (
+              <div className="flex justify-between">
+                <span className="text-white/60">ID:</span>
+                <span className="text-white/80 font-mono text-xs">{userId.slice(0, 8)}...</span>
+              </div>
+            )}
           </div>
         )}
       </SettingsSection>
