@@ -4,31 +4,26 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { streakConfig, useGameStore } from '../store/gameStore';
+import { HomePanel } from '../components/HomePanel';
 import { ShopPanel } from '../components/ShopPanel';
 import { BoostHub } from '../components/BoostHub';
 import { BuildingsPanel } from '../components/BuildingsPanel';
 import { LeaderboardPanel } from '../components/LeaderboardPanel';
 import { ProfilePanel } from '../components/ProfilePanel';
 import { SettingsScreen } from '../components/settings';
-import { TapParticles } from '../components/animations';
 import { ScreenTransition } from '../components/ScreenTransition';
 import { useHaptic } from '../hooks/useHaptic';
-import { StatCard } from '../components/StatCard';
-import { formatCompactNumber, formatNumberWithSpaces } from '../utils/number';
+import { formatNumberWithSpaces } from '../utils/number';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 
 const TAB_META: Record<
-  TabKey,
+  Exclude<TabKey, 'home'>,
   {
     title: string;
     description: string;
   }
 > = {
-  home: {
-    title: 'Главная',
-    description: 'Генерируйте энергию, отслеживайте прогресс и выбирайте следующую цель.',
-  },
   shop: {
     title: 'Магазин',
     description: 'Покупайте пакеты Stars и косметику для персонализации планеты.',
@@ -80,15 +75,13 @@ export function MainScreen() {
   } = useGameStore();
 
   const { tap: hapticTap } = useHaptic();
-  const [activeTab, setActiveTab] = useState<TabKey>('home');
+  const [activeTab, setActiveTab] = useState<TabKey>('shop');
 
   const handleTap = () => {
     tap(1);
     hapticTap();
   };
 
-  const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
-  const energyFull = useMemo(() => formatNumberWithSpaces(Math.floor(energy)), [energy]);
   const tapIncomeDisplay = useMemo(
     () => Math.max(0, tapIncome).toLocaleString('ru-RU'),
     [tapIncome]
@@ -225,79 +218,27 @@ export function MainScreen() {
     );
   }
 
-  const renderNextGoal = () => {
-    if (!purchaseInsight) {
-      return null;
-    }
-
-    return (
-      <div className="rounded-3xl bg-dark-secondary/60 border border-white/10 p-4 flex flex-col gap-2">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="m-0 text-xs uppercase tracking-[0.6px] text-white/45">Следующая цель</p>
-            <h3 className="m-0 text-lg text-white font-semibold">{purchaseInsight.name}</h3>
-          </div>
-          {purchaseInsight.roiRank && (
-            <span className="text-xs text-lime/80 font-semibold">
-              ROI #{purchaseInsight.roiRank}
-            </span>
-          )}
-        </div>
-        <div className="text-sm text-white/70">
-          Стоимость: {formatNumberWithSpaces(Math.floor(purchaseInsight.cost))} E
-        </div>
-        <div className="text-sm text-white/60">
-          {purchaseInsight.affordable
-            ? 'Доступно прямо сейчас — подсказка в разделе Постройки.'
-            : `Осталось накопить ${formatNumberWithSpaces(Math.floor(purchaseInsight.remaining))} E`}
-        </div>
-        {purchaseInsight.paybackSeconds && (
-          <div className="text-xs text-white/45">
-            Окупаемость ≈ {Math.round(purchaseInsight.paybackSeconds)} секунд
-          </div>
-        )}
-      </div>
-    );
-  };
-
   const renderActiveTab = () => {
     switch (activeTab) {
       case 'home':
         return (
-          <ScreenTransition key="home" type="fade" className="flex flex-col gap-4">
-            <div className="rounded-3xl bg-gradient-to-br from-[#0c1433] via-[#0b1a42] to-[#0b1429] border border-white/10 shadow-[0_24px_60px_rgba(8,12,36,0.45)] overflow-hidden">
-              <div className="px-5 pt-5 pb-2 flex items-center justify-between gap-4">
-                <div>
-                  <p className="m-0 text-xs uppercase tracking-[0.6px] text-white/45">
-                    Главный источник
-                  </p>
-                  <h3 className="m-0 text-xl font-semibold text-white">Генерируйте энергию</h3>
-                  <p className="mt-1 text-sm text-white/60">
-                    Каждый тап усиливает планету и открывает доступ к новым постройкам.
-                  </p>
-                </div>
-                <div className="hidden sm:block text-4xl" aria-hidden>
-                  ✨
-                </div>
-              </div>
-              <div className="p-6 pt-0">
-                <TapParticles onTap={handleTap}>
-                  <div className="flex flex-col items-center">
-                    <div
-                      className={`text-[120px] transition-transform duration-150 user-select-none active:scale-95 ${
-                        isCriticalStreak ? 'animate-pulse' : ''
-                      }`}
-                    >
-                      🌍
-                    </div>
-                    <p className="mt-5 text-base text-white/70">
-                      Тапните, чтобы произвести энергию
-                    </p>
-                  </div>
-                </TapParticles>
-              </div>
-            </div>
-            {renderNextGoal()}
+          <ScreenTransition key="home" type="fade">
+            <HomePanel
+              energy={energy}
+              level={level}
+              xpProgress={xpProgress}
+              xpProgressLabel={xpProgressLabel}
+              xpRemaining={xpRemaining}
+              tapLevel={tapLevel}
+              tapIncomeDisplay={tapIncomeDisplay}
+              passiveIncomeLabel={passiveIncomeLabel}
+              multiplierLabel={multiplierLabel}
+              streakCount={streakCount}
+              bestStreak={bestStreak}
+              isCriticalStreak={isCriticalStreak}
+              purchaseInsight={purchaseInsight || undefined}
+              onTap={handleTap}
+            />
           </ScreenTransition>
         );
       case 'shop':
@@ -344,85 +285,23 @@ export function MainScreen() {
   return (
     <div className="flex flex-col w-full h-full relative overflow-hidden">
       <div
-        className="flex flex-col gap-5 overflow-y-auto flex-1 min-h-0 px-5"
+        className="flex flex-col overflow-y-auto flex-1 min-h-0"
         style={{
           paddingTop: 'var(--safe-area-top)',
           paddingBottom: 'calc(60px + var(--safe-area-bottom))',
         }}
       >
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard
-            icon="⚡"
-            label="Энергия"
-            value={`${energyCompact} E`}
-            subLabel={`≈ ${energyFull} E`}
-          />
-          <StatCard
-            icon="🎯"
-            label="Прогресс уровня"
-            value={`${Math.round(xpProgress * 100)}%`}
-            subLabel={
-              xpRemaining > 0
-                ? `Осталось ${formatNumberWithSpaces(Math.max(0, xpRemaining))} XP`
-                : 'Уровень готов к апгрейду'
-            }
-          />
-          <StatCard
-            icon="🪐"
-            label="Tap lvl"
-            value={`Lv ${tapLevel}`}
-            subLabel={`${tapIncomeDisplay} E/тап`}
-          />
-          <StatCard
-            icon="💤"
-            label="Пассивный доход"
-            value={passiveIncomeLabel}
-            subLabel={multiplierLabel}
-          />
-        </div>
-
-        {streakCount > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <StatCard
-              icon="🔥"
-              label="Комбо"
-              value={`×${streakCount}`}
-              subLabel={`Лучшее: ${bestStreak}`}
-              tone={isCriticalStreak ? 'positive' : 'default'}
-            />
+        {activeTab === 'home' ? (
+          renderActiveTab()
+        ) : (
+          <div className="flex flex-col gap-3 p-4">
+            <div>
+              <h2 className="m-0 text-xl font-semibold text-white">{TAB_META[activeTab].title}</h2>
+              <p className="m-0 text-sm text-white/60">{TAB_META[activeTab].description}</p>
+            </div>
+            {renderActiveTab()}
           </div>
         )}
-
-        <div className="rounded-3xl bg-dark-secondary/60 border border-white/10 p-5 flex flex-col gap-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="m-0 text-xs uppercase tracking-[0.6px] text-white/45">
-                Прогресс уровня
-              </p>
-              <h3 className="m-0 text-lg font-semibold text-white">Уровень {level}</h3>
-            </div>
-            <span className="text-sm text-white/60">{xpProgressLabel}</span>
-          </div>
-          <div className="h-2 rounded-full bg-white/10 overflow-hidden">
-            <div
-              className="h-full rounded-full bg-gradient-to-r from-cyan via-lime to-gold transition-all duration-500"
-              style={{ width: `${Math.min(100, Math.max(0, xpProgress * 100))}%` }}
-            />
-          </div>
-          <div className="text-xs text-white/60">
-            {xpRemaining > 0
-              ? `Осталось ${formatNumberWithSpaces(Math.max(0, xpRemaining))} XP`
-              : 'Уровень готов к апгрейду — загляните в Постройки или Boost Hub'}
-          </div>
-        </div>
-
-        <div className="flex flex-col gap-3">
-          <div>
-            <h2 className="m-0 text-xl font-semibold text-white">{TAB_META[activeTab].title}</h2>
-            <p className="m-0 text-sm text-white/60">{TAB_META[activeTab].description}</p>
-          </div>
-          {renderActiveTab()}
-        </div>
       </div>
 
       <footer
@@ -433,8 +312,21 @@ export function MainScreen() {
           paddingRight: 'var(--safe-area-right)',
         }}
       >
+        {/* Home button - always first */}
+        <button
+          className={`flex-1 flex flex-col gap-1 items-center bg-none border-none text-sm py-2 px-2 cursor-pointer transition-colors ${
+            activeTab === 'home' ? 'text-cyan font-semibold' : 'text-white/60 hover:text-cyan'
+          }`}
+          type="button"
+          onClick={() => setActiveTab('home')}
+        >
+          <span className="text-lg" aria-hidden="true">🏠</span>
+          <span className="text-xs">Главная</span>
+        </button>
+
+        {/* Other tabs from TAB_META */}
         {Object.entries(TAB_META).map(([key, meta]) => {
-          const tab = key as TabKey;
+          const tab = key as Exclude<TabKey, 'home'>;
           const active = activeTab === tab;
           return (
             <button
@@ -446,19 +338,17 @@ export function MainScreen() {
               onClick={() => setActiveTab(tab)}
             >
               <span className="text-lg" aria-hidden="true">
-                {tab === 'home'
-                  ? '🏠'
-                  : tab === 'shop'
-                    ? '🛍️'
-                    : tab === 'boosts'
-                      ? '🚀'
-                      : tab === 'builds'
-                        ? '🏗️'
-                        : tab === 'leaderboard'
-                          ? '🏆'
-                          : tab === 'profile'
-                            ? '👤'
-                            : '⚙️'}
+                {tab === 'shop'
+                  ? '🛍️'
+                  : tab === 'boosts'
+                    ? '🚀'
+                    : tab === 'builds'
+                      ? '🏗️'
+                      : tab === 'leaderboard'
+                        ? '🏆'
+                        : tab === 'profile'
+                          ? '👤'
+                          : '⚙️'}
               </span>
               <span className="text-xs">{meta.title}</span>
             </button>
