@@ -141,13 +141,12 @@ function App() {
   return (
     <div className="w-full h-screen flex flex-col bg-gradient-to-b from-dark-bg to-black pl-safe-left pr-safe-right pt-safe-top pb-safe-bottom overflow-hidden">
       <MainScreen />
-      {isAuthModalOpen && authErrorMessage && (
-        <AuthErrorModal
-          message={authErrorMessage}
-          onRetry={handleRetry}
-          onDismiss={dismissAuthError}
-        />
-      )}
+      <AuthErrorModal
+        isOpen={isAuthModalOpen}
+        message={authErrorMessage || ''}
+        onRetry={handleRetry}
+        onDismiss={dismissAuthError}
+      />
       {offlineSummary && (
         <OfflineSummaryModal
           energy={offlineSummary.energy}

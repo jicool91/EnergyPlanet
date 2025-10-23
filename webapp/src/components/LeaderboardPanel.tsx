@@ -101,7 +101,7 @@ export function LeaderboardPanel() {
             ))}
           </tbody>
         </table>
-      </div>
+      </Card>
       {/* User Rank (if not in top 100) */}
       {userLeaderboardEntry &&
         !rows.some(entry => entry.user_id === userLeaderboardEntry.user_id) && (
