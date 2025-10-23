@@ -43,6 +43,11 @@ function formatPriceLabel(priceRub?: number, priceUsd?: number): string {
   return 'Через Telegram';
 }
 
+function calculateBonusPercentage(baseStars: number, bonusStars: number): number {
+  if (baseStars === 0) return 0;
+  return Math.round((bonusStars / baseStars) * 100);
+}
+
 export function ShopPanel() {
   const {
     cosmetics,
@@ -223,22 +228,48 @@ export function ShopPanel() {
             </div>
 
             {/* Content */}
-            <div className="flex-1 flex flex-col gap-2">
+            <div className="flex-1 flex flex-col gap-3">
               <div className="flex justify-between items-center gap-2">
                 <h3 className="m-0 text-body font-bold text-gold">{featuredPack.title}</h3>
                 <Badge variant="warning" size="sm">
-                  {featuredPack.stars + (featuredPack.bonus_stars ?? 0)} ⭐
+                  {featuredPack.stars + (featuredPack.bonus_stars ?? 0)} ⭐ всего
                 </Badge>
               </div>
               <p className="m-0 text-caption text-white/80">
-                {featuredPack.description ?? `Получите ${featuredPack.stars + (featuredPack.bonus_stars ?? 0)} Stars с бонусом`}
+                {featuredPack.description ?? `Получите максимум Stars`}
               </p>
-              <div className="flex gap-3 text-sm">
-                <span className="font-semibold text-gold">{featuredPack.stars} ⭐ базовых</span>
+
+              {/* Bundle Breakdown */}
+              <div className="bg-dark-tertiary/40 rounded-lg p-3 border border-gold/20 flex flex-col gap-2">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-lg">⭐</span>
+                    <span className="text-sm text-white/80">Базовых</span>
+                  </div>
+                  <span className="text-sm font-bold text-gold">{featuredPack.stars}</span>
+                </div>
                 {(featuredPack.bonus_stars ?? 0) > 0 && (
-                  <span className="text-lime font-semibold">+{featuredPack.bonus_stars} ✨ бонус</span>
+                  <>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">✨</span>
+                        <span className="text-sm text-white/80">Бонус</span>
+                      </div>
+                      <span className="text-sm font-bold text-lime">+{featuredPack.bonus_stars}</span>
+                    </div>
+                    <div className="border-t border-white/10 pt-2 flex items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">🚀</span>
+                        <span className="text-sm text-white/80">Буст</span>
+                      </div>
+                      <span className="text-sm font-bold text-lime">
+                        +{calculateBonusPercentage(featuredPack.stars, featuredPack.bonus_stars ?? 0)}%
+                      </span>
+                    </div>
+                  </>
                 )}
               </div>
+
               <div className="text-caption text-gold/80 font-semibold">
                 {formatPriceLabel(featuredPack.price_rub, featuredPack.price_usd)}
               </div>
@@ -329,16 +360,33 @@ export function ShopPanel() {
                     <p className="m-0 text-caption text-white/70">
                       {pack.description ?? `Получите ${totalStars} Stars`}
                     </p>
-                    <div className={`text-caption ${isBestValue ? 'text-lime/80 font-semibold' : 'text-white/65'}`}>{priceLabel}</div>
-                    <div className="flex gap-3 text-caption text-white/70">
-                      <span className="font-semibold">{totalStars} ⭐ всего</span>
-                      {bonus > 0 && <span className="text-gold font-semibold">+{bonus} бонус</span>}
-                      {isBestValue && pack.price_rub && (
-                        <span className="text-lime font-bold">
-                          {(pack.price_rub / totalStars).toFixed(1)} ₽/⭐
-                        </span>
+
+                    {/* Bundle Breakdown */}
+                    <div className={`text-xs space-y-1 rounded px-2 py-1.5 ${isBestValue ? 'bg-lime/10 border border-lime/20' : 'bg-white/5 border border-white/10'}`}>
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-white/70">⭐ Базовых:</span>
+                        <span className={`font-bold ${isBestValue ? 'text-lime' : 'text-gold'}`}>{pack.stars}</span>
+                      </div>
+                      {bonus > 0 && (
+                        <>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-white/70">✨ Бонус:</span>
+                            <span className="font-bold text-lime">+{bonus}</span>
+                          </div>
+                          <div className="flex items-center justify-between gap-2 border-t border-white/10 pt-1">
+                            <span className="text-white/70">🚀 Буст:</span>
+                            <span className="font-bold text-lime">+{calculateBonusPercentage(pack.stars, bonus)}%</span>
+                          </div>
+                        </>
                       )}
                     </div>
+
+                    <div className={`text-caption ${isBestValue ? 'text-lime/80 font-semibold' : 'text-white/65'}`}>{priceLabel}</div>
+                    {isBestValue && pack.price_rub && (
+                      <div className="text-caption text-lime font-bold">
+                        {(pack.price_rub / totalStars).toFixed(1)} ₽/⭐
+                      </div>
+                    )}
                   </div>
 
                   {/* Button */}
