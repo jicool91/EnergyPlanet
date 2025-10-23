@@ -2,18 +2,20 @@
  * Main Game Screen
  */
 
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, Suspense, lazy } from 'react';
 import { streakConfig, useGameStore } from '../store/gameStore';
 import { HomePanel } from '../components/HomePanel';
-import { ShopPanel } from '../components/ShopPanel';
-import { BoostHub } from '../components/BoostHub';
-import { BuildingsPanel } from '../components/BuildingsPanel';
-import { LeaderboardPanel } from '../components/LeaderboardPanel';
-import { ProfilePanel } from '../components/ProfilePanel';
-import { SettingsScreen } from '../components/settings';
-import { ScreenTransition } from '../components';
+import { ScreenTransition, ShopSkeleton, BuildingSkeleton, LeaderboardSkeleton, ProfileSkeleton } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
 import { formatNumberWithSpaces } from '../utils/number';
+
+// Lazy load heavy components
+const ShopPanel = lazy(() => import('../components/ShopPanel').then(m => ({ default: m.ShopPanel })));
+const BoostHub = lazy(() => import('../components/BoostHub').then(m => ({ default: m.BoostHub })));
+const BuildingsPanel = lazy(() => import('../components/BuildingsPanel').then(m => ({ default: m.BuildingsPanel })));
+const LeaderboardPanel = lazy(() => import('../components/LeaderboardPanel').then(m => ({ default: m.LeaderboardPanel })));
+const ProfilePanel = lazy(() => import('../components/ProfilePanel').then(m => ({ default: m.ProfilePanel })));
+const SettingsScreen = lazy(() => import('../components/settings').then(m => ({ default: m.SettingsScreen })));
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 
@@ -248,37 +250,49 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
       case 'shop':
         return (
           <ScreenTransition key="shop" type="slide" className="flex-1 overflow-auto">
-            <ShopPanel />
+            <Suspense fallback={<ShopSkeleton />}>
+              <ShopPanel />
+            </Suspense>
           </ScreenTransition>
         );
       case 'boosts':
         return (
           <ScreenTransition key="boosts" type="slide" className="flex-1 overflow-auto">
-            <BoostHub />
+            <Suspense fallback={<ShopSkeleton />}>
+              <BoostHub />
+            </Suspense>
           </ScreenTransition>
         );
       case 'builds':
         return (
           <ScreenTransition key="builds" type="slide" className="flex-1 overflow-auto">
-            <BuildingsPanel />
+            <Suspense fallback={<BuildingSkeleton />}>
+              <BuildingsPanel />
+            </Suspense>
           </ScreenTransition>
         );
       case 'leaderboard':
         return (
           <ScreenTransition key="leaderboard" type="slide" className="flex-1 overflow-auto">
-            <LeaderboardPanel />
+            <Suspense fallback={<LeaderboardSkeleton />}>
+              <LeaderboardPanel />
+            </Suspense>
           </ScreenTransition>
         );
       case 'profile':
         return (
           <ScreenTransition key="profile" type="slide" className="flex-1 overflow-auto">
-            <ProfilePanel />
+            <Suspense fallback={<ProfileSkeleton />}>
+              <ProfilePanel />
+            </Suspense>
           </ScreenTransition>
         );
       case 'settings':
         return (
           <ScreenTransition key="settings" type="slide" className="flex-1 overflow-auto">
-            <SettingsScreen onClose={() => onTabChange('home')} />
+            <Suspense fallback={<div className="p-4">Загрузка...</div>}>
+              <SettingsScreen onClose={() => onTabChange('home')} />
+            </Suspense>
           </ScreenTransition>
         );
       default:
