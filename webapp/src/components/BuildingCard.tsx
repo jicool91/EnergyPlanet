@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { Button } from './Button';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
 import { useNotification } from '@/hooks/useNotification';
 import { useHaptic } from '@/hooks/useHaptic';
@@ -210,28 +211,38 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       {/* Action buttons: Purchase + Upgrade */}
       <div className="flex gap-3 flex-wrap">
         {/* Purchase button */}
-        <motion.button
-          type="button"
-          className="px-4 py-2 rounded-md border-0 text-caption font-semibold cursor-pointer transition-all duration-120 ease-in-out bg-gradient-to-br from-cyan/25 to-blue-500/35 text-white disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-glow"
-          onClick={handlePurchase}
-          disabled={purchaseDisabled}
-          whileTap={{ scale: 0.95 }}
+        <motion.div
+          whileTap={!purchaseDisabled ? { scale: 0.95 } : {}}
           whileHover={!purchaseDisabled ? { scale: 1.05 } : {}}
         >
-          {processing ? 'Ожидание…' : isLocked ? 'Недоступно' : `Купить ${purchaseQuantityLabel}`}
-        </motion.button>
+          <Button
+            variant="primary"
+            size="md"
+            loading={processing}
+            loadingText="Ожидание…"
+            disabled={purchaseDisabled}
+            onClick={handlePurchase}
+          >
+            {isLocked ? 'Недоступно' : `Купить ${purchaseQuantityLabel}`}
+          </Button>
+        </motion.div>
 
         {/* Upgrade button */}
-        <motion.button
-          type="button"
-          className="px-4 py-2 rounded-md border-0 text-caption font-semibold cursor-pointer transition-all duration-120 ease-in-out bg-cyan/20 text-white disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-card-hover"
-          onClick={handleUpgrade}
-          disabled={processing || !canUpgrade}
-          whileTap={{ scale: 0.95 }}
+        <motion.div
+          whileTap={!processing && canUpgrade ? { scale: 0.95 } : {}}
           whileHover={!processing && canUpgrade ? { scale: 1.05 } : {}}
         >
-          {processing ? 'Ожидание…' : `Апгрейд`}
-        </motion.button>
+          <Button
+            variant="secondary"
+            size="md"
+            loading={processing}
+            loadingText="Ожидание…"
+            disabled={processing || !canUpgrade}
+            onClick={handleUpgrade}
+          >
+            Апгрейд
+          </Button>
+        </motion.div>
       </div>
     </motion.div>
   );
