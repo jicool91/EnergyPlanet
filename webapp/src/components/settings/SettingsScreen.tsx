@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
 import { usePreferencesStore, type ThemeMode, type Language } from '../../store/preferencesStore';
 import { useNotification } from '../../hooks/useNotification';
 import { useHaptic } from '../../hooks/useHaptic';
+import { Button } from '../Button';
+import { Card } from '../Card';
 import { Toggle } from './Toggle';
 import { SliderControl } from './SliderControl';
 import { SettingsSection } from './SettingsSection';
@@ -12,6 +14,10 @@ interface SettingsScreenProps {
   onClose?: () => void;
 }
 
+/**
+ * SettingsScreen Component
+ * Displays game settings, preferences, and account information
+ */
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
   const { profile, userId, username, logoutSession } = useGameStore(state => ({
     profile: state.profile,
@@ -55,6 +61,28 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       warning('Ошибка при выходе из аккаунта');
     }
   };
+
+  const SelectButton = ({
+    label,
+    selected,
+    onClick,
+  }: {
+    label: string;
+    selected: boolean;
+    onClick: () => void;
+  }) => (
+    <motion.button
+      onClick={onClick}
+      whileTap={{ scale: 0.95 }}
+      className={`py-2 rounded-lg font-medium transition-all ${
+        selected
+          ? 'bg-lime text-black shadow-lg'
+          : 'bg-dark-tertiary border border-cyan/[0.14] text-white/70 hover:bg-dark-secondary'
+      }`}
+    >
+      {label}
+    </motion.button>
+  );
 
   return (
     <motion.div
@@ -124,25 +152,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
             <label className="text-sm font-medium text-white/80">Интенсивность</label>
             <div className="grid grid-cols-3 gap-2">
               {(['light', 'medium', 'strong'] as const).map(intensity => (
-                <motion.button
+                <SelectButton
                   key={intensity}
+                  label={
+                    intensity === 'light'
+                      ? '🪶 Слабая'
+                      : intensity === 'medium'
+                        ? '👊 Средняя'
+                        : '💥 Сильная'
+                  }
+                  selected={hapticIntensity === intensity}
                   onClick={() => {
                     light();
                     setHapticIntensity(intensity);
                   }}
-                  whileTap={{ scale: 0.95 }}
-                  className={`py-2 rounded-lg font-medium transition-all ${
-                    hapticIntensity === intensity
-                      ? 'bg-lime-500 text-black shadow-lg'
-                      : 'bg-dark-card border border-cyan/[0.14] text-white/70'
-                  }`}
-                >
-                  {intensity === 'light'
-                    ? '🪶 Слабая'
-                    : intensity === 'medium'
-                      ? '👊 Средняя'
-                      : '💥 Сильная'}
-                </motion.button>
+                />
               ))}
             </div>
           </div>
@@ -172,21 +196,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
           <label className="text-sm font-medium text-white/80">Тема оформления</label>
           <div className="grid grid-cols-3 gap-2">
             {(['light', 'dark', 'auto'] as ThemeMode[]).map(t => (
-              <motion.button
+              <SelectButton
                 key={t}
+                label={t === 'light' ? '☀️ Светлая' : t === 'dark' ? '🌙 Тёмная' : '🤖 Авто'}
+                selected={theme === t}
                 onClick={() => {
                   light();
                   setTheme(t);
                 }}
-                whileTap={{ scale: 0.95 }}
-                className={`py-2 rounded-lg font-medium transition-all ${
-                  theme === t
-                    ? 'bg-lime-500 text-black shadow-lg'
-                    : 'bg-dark-card border border-cyan/[0.14] text-white/70'
-                }`}
-              >
-                {t === 'light' ? '☀️ Светлая' : t === 'dark' ? '🌙 Тёмная' : '🤖 Авто'}
-              </motion.button>
+              />
             ))}
           </div>
         </div>
@@ -195,21 +213,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
           <label className="text-sm font-medium text-white/80">Язык</label>
           <div className="grid grid-cols-2 gap-2">
             {(['ru', 'en'] as Language[]).map(lang => (
-              <motion.button
+              <SelectButton
                 key={lang}
+                label={lang === 'ru' ? '🇷🇺 Русский' : '🇬🇧 English'}
+                selected={language === lang}
                 onClick={() => {
                   light();
                   setLanguage(lang);
                 }}
-                whileTap={{ scale: 0.95 }}
-                className={`py-2 rounded-lg font-medium transition-all ${
-                  language === lang
-                    ? 'bg-lime-500 text-black shadow-lg'
-                    : 'bg-dark-card border border-cyan/[0.14] text-white/70'
-                }`}
-              >
-                {lang === 'ru' ? '🇷🇺 Русский' : '🇬🇧 English'}
-              </motion.button>
+              />
             ))}
           </div>
         </div>
@@ -224,63 +236,67 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       </SettingsSection>
 
       {/* Actions Section */}
-      <div className="flex flex-col gap-2 p-4 rounded-lg bg-dark-secondary border border-cyan/[0.14]">
-        <motion.button
+      <Card className="flex flex-col gap-3">
+        <Button
+          variant="secondary"
+          size="md"
+          fullWidth
           onClick={() => {
             light();
             resetToDefaults();
             success('Настройки сброшены на значения по умолчанию');
           }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          className="w-full py-2 rounded-lg bg-dark-card hover:bg-dark-card/80 text-white/80 font-medium transition-colors border border-white/10"
         >
           ↺ Сбросить настройки
-        </motion.button>
-      </div>
+        </Button>
+      </Card>
 
       {/* Logout Section */}
-      <div className="flex flex-col gap-2 p-4 rounded-lg bg-dark-secondary border border-red-error/30">
+      <Card className={`flex flex-col gap-2 ${confirmLogout ? 'border-red-error/40' : 'border-red-error/20'}`}>
         {confirmLogout ? (
           <>
-            <p className="m-0 text-sm text-red-error">Вы уверены? Это действие нельзя отменить.</p>
+            <p className="m-0 text-sm text-red-error">
+              Вы уверены? Это действие нельзя отменить.
+            </p>
             <div className="flex gap-2">
-              <motion.button
+              <Button
+                variant="secondary"
+                size="md"
                 onClick={() => {
                   light();
                   setConfirmLogout(false);
                 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex-1 py-2 rounded-lg bg-gray-700 hover:bg-gray-600 text-white font-medium transition-colors"
+                fullWidth
               >
                 Отмена
-              </motion.button>
-              <motion.button
+              </Button>
+              <Button
+                variant="danger"
+                size="md"
                 onClick={() => {
                   light();
                   handleLogout();
                 }}
-                whileTap={{ scale: 0.95 }}
-                className="flex-1 py-2 rounded-lg bg-red-error hover:bg-red-error/90 text-white font-medium transition-colors"
+                fullWidth
               >
                 Выйти
-              </motion.button>
+              </Button>
             </div>
           </>
         ) : (
-          <motion.button
+          <Button
+            variant="danger"
+            size="md"
+            fullWidth
             onClick={() => {
               light();
               setConfirmLogout(true);
             }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            className="w-full py-3 rounded-lg bg-red-error/20 hover:bg-red-error/30 text-red-error font-medium transition-colors border border-red-error/40"
           >
             🚪 Выйти из аккаунта
-          </motion.button>
+          </Button>
         )}
-      </div>
+      </Card>
 
       {/* About Section */}
       <SettingsSection title="О приложении" icon="ℹ️">
