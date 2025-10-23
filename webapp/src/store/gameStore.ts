@@ -46,6 +46,10 @@ interface GameState {
   username: string | null;
   level: number;
   xp: number;
+  xpIntoLevel: number;
+  xpToNextLevel: number;
+  tapLevel: number;
+  tapIncome: number;
   energy: number;
   passiveIncomePerSec: number;
   passiveIncomeMultiplier: number;
@@ -107,7 +111,7 @@ interface GameState {
   purchaseStarPack: (packId: string) => Promise<void>;
   loadBoostHub: (force?: boolean) => Promise<void>;
   claimBoost: (boostType: string) => Promise<void>;
-  purchaseBuilding: (buildingId: string) => Promise<void>;
+  purchaseBuilding: (buildingId: string, quantity?: number) => Promise<void>;
   upgradeBuilding: (buildingId: string) => Promise<void>;
   flushPassiveIncome: (options?: { keepAlive?: boolean }) => Promise<void>;
   logoutSession: (useKeepAlive?: boolean) => Promise<void>;
@@ -150,10 +154,14 @@ function mapBuilding(entry: any): BuildingState {
 
 export const useGameStore = create<GameState>((set, get) => ({
   // Initial state
- userId: null,
+  userId: null,
   username: null,
   level: 1,
   xp: 0,
+  xpIntoLevel: 0,
+  xpToNextLevel: 100,
+  tapLevel: 1,
+  tapIncome: 0,
   energy: 0,
   passiveIncomePerSec: 0,
   passiveIncomeMultiplier: 1,
@@ -238,6 +246,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       const { user, progress, offline_gains: offlineGains, inventory } = sessionResponse.data;
       const passivePerSec = progress.passive_income_per_sec ?? 0;
       const passiveMultiplier = progress.passive_income_multiplier ?? 1;
+      const xpIntoLevel = progress.xp_into_level ?? 0;
+      const xpToNextLevel = progress.xp_to_next_level ?? 0;
+      const tapLevel = progress.tap_level ?? 1;
+      const tapIncome = progress.tap_income ?? 0;
       const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
       const offlineSummary =
@@ -257,6 +269,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         username: user.username,
         level: progress.level,
         xp: progress.xp,
+        xpIntoLevel,
+        xpToNextLevel,
+        tapLevel,
+        tapIncome,
         energy: progress.energy,
         passiveIncomePerSec: passivePerSec,
         passiveIncomeMultiplier: passiveMultiplier,
@@ -314,9 +330,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       const {
         energy: serverEnergy,
         energy_gained: energyGained = 0,
-        xp_gained,
+        xp_gained = 0,
         level,
         level_up,
+        xp_into_level,
+        xp_to_next_level,
+        boost_multiplier,
       } = response.data;
 
       const previousStreak = get().streakCount;
@@ -332,10 +351,13 @@ export const useGameStore = create<GameState>((set, get) => ({
         ),
         level,
         xp: state.xp + xp_gained,
+        xpIntoLevel: xp_into_level ?? Math.max(0, state.xpIntoLevel + xp_gained),
+        xpToNextLevel: xp_to_next_level ?? Math.max(0, state.xpToNextLevel - xp_gained),
         streakCount: newStreak,
         bestStreak: Math.max(state.bestStreak, newStreak),
         isCriticalStreak: isCritical,
         lastTapAt: Date.now(),
+        passiveIncomeMultiplier: boost_multiplier ?? state.passiveIncomeMultiplier,
       }));
 
       if (level_up) {
@@ -424,11 +446,21 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       uiStore.setOfflineSummary(offlineSummary);
 
+      const currentState = get();
+      const xpIntoLevel = progress.xp_into_level ?? currentState.xpIntoLevel;
+      const xpToNextLevel = progress.xp_to_next_level ?? currentState.xpToNextLevel;
+      const tapLevel = progress.tap_level ?? currentState.tapLevel;
+      const tapIncome = progress.tap_income ?? currentState.tapIncome;
+
       set({
         userId: user.id,
         username: user.username,
         level: progress.level,
         xp: progress.xp,
+        xpIntoLevel,
+        xpToNextLevel,
+        tapLevel,
+        tapIncome,
         energy: progress.energy,
         lastTapAt: Date.now(),
         buildings,
@@ -750,6 +782,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         energy: payload.energy,
         level: payload.level,
         xp: state.xp + (payload.xp_gained ?? 0),
+        xpIntoLevel: payload.xp_into_level ?? Math.max(0, state.xpIntoLevel + (payload.xp_gained ?? 0)),
+        xpToNextLevel: payload.xp_to_next_level ?? state.xpToNextLevel,
         pendingPassiveEnergy: 0,
         pendingPassiveSeconds: 0,
         passiveIncomePerSec: passivePerSec,
@@ -763,26 +797,67 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  purchaseBuilding: async (buildingId: string) => {
-    if (!buildingId) {
+  purchaseBuilding: async (buildingId: string, quantity = 1) => {
+    if (!buildingId || quantity <= 0) {
       return;
     }
 
     set({ isProcessingBuildingId: buildingId, buildingsError: null });
 
+    let successfulPurchases = 0;
+    let lastResponse: any = null;
+
     try {
       await get().flushPassiveIncome();
-      await logClientEvent('building_purchase_request', { building_id: buildingId }, 'info');
+      await logClientEvent(
+        'building_purchase_request',
+        { building_id: buildingId, quantity },
+        'info'
+      );
 
-      const response = await apiClient.post('/upgrade', {
-        building_id: buildingId,
-        action: 'purchase',
-      });
+      for (let index = 0; index < quantity; index += 1) {
+        try {
+          const response = await apiClient.post('/upgrade', {
+            building_id: buildingId,
+            action: 'purchase',
+          });
+          successfulPurchases += 1;
+          lastResponse = response;
 
-      await logClientEvent('building_purchase_success', {
-        building_id: buildingId,
-        cost: response.data?.building?.next_cost ?? null,
-      });
+          set(state => ({
+            xp: state.xp + (response.data?.xp_gained ?? 0),
+            xpIntoLevel:
+              response.data?.xp_into_level ?? Math.max(0, state.xpIntoLevel + (response.data?.xp_gained ?? 0)),
+            xpToNextLevel: response.data?.xp_to_next_level ?? state.xpToNextLevel,
+            energy: response.data?.energy ?? state.energy,
+            level: response.data?.level ?? state.level,
+          }));
+        } catch (iterationError) {
+          if (successfulPurchases > 0) {
+            await logClientEvent(
+              'building_purchase_partial',
+              {
+                building_id: buildingId,
+                requested: quantity,
+                completed: successfulPurchases,
+              },
+              'warn'
+            );
+            await get().refreshSession();
+          }
+          throw iterationError;
+        }
+      }
+
+      await logClientEvent(
+        'building_purchase_success',
+        {
+          building_id: buildingId,
+          quantity: successfulPurchases,
+          next_cost: lastResponse?.data?.building?.next_cost ?? null,
+        },
+        'info'
+      );
 
       await get().refreshSession();
     } catch (error) {
@@ -791,6 +866,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         'building_purchase_error',
         {
           building_id: buildingId,
+          requested: quantity,
+          completed: typeof successfulPurchases !== 'undefined' ? successfulPurchases : 0,
           status,
           message,
         },
@@ -814,12 +891,28 @@ export const useGameStore = create<GameState>((set, get) => ({
       await get().flushPassiveIncome();
       await logClientEvent('building_upgrade_request', { building_id: buildingId }, 'info');
 
-      await apiClient.post('/upgrade', {
+      const response = await apiClient.post('/upgrade', {
         building_id: buildingId,
         action: 'upgrade',
       });
 
-      await logClientEvent('building_upgrade_success', { building_id: buildingId }, 'info');
+      set(state => ({
+        energy: response.data?.energy ?? state.energy,
+        level: response.data?.level ?? state.level,
+        xp: state.xp + (response.data?.xp_gained ?? 0),
+        xpIntoLevel:
+          response.data?.xp_into_level ?? Math.max(0, state.xpIntoLevel + (response.data?.xp_gained ?? 0)),
+        xpToNextLevel: response.data?.xp_to_next_level ?? state.xpToNextLevel,
+      }));
+
+      await logClientEvent(
+        'building_upgrade_success',
+        {
+          building_id: buildingId,
+          new_level: response.data?.building?.level ?? null,
+        },
+        'info'
+      );
 
       await get().refreshSession();
     } catch (error) {

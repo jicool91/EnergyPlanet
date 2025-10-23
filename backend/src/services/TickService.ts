@@ -78,6 +78,7 @@ export class TickService {
       xp_gained: result.xpGained,
       level: result.updatedProgress.level,
       level_up: result.leveledUp,
+      xp_into_level: result.levelInfo.xpIntoLevel,
       xp_to_next_level: result.levelInfo.xpToNextLevel,
       passive_income_per_sec: Math.floor(result.passiveIncome.effectiveIncome),
       duration_sec: cappedSeconds,

@@ -9,6 +9,7 @@ import { motion } from 'framer-motion';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
 import { useNotification } from '@/hooks/useNotification';
 import { useHaptic } from '@/hooks/useHaptic';
+import { formatNumberWithSpaces } from '@/utils/number';
 
 interface Building {
   id: string;
@@ -33,7 +34,17 @@ interface BuildingCardProps {
   canUpgrade: boolean;
   processing: boolean;
   isBestPayback: boolean;
-  onPurchase: (buildingId: string) => void;
+  purchasePlan: {
+    quantity: number;
+    requestedLabel: string;
+    requestedValue: number;
+    totalCost: number;
+    incomeGain: number;
+    partial: boolean;
+    limitedByCap: boolean;
+    insufficientEnergy: boolean;
+  };
+  onPurchase: (buildingId: string, quantity: number) => void;
   onUpgrade: (buildingId: string) => void;
 }
 
@@ -48,6 +59,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
   canUpgrade,
   processing,
   isBestPayback,
+  purchasePlan,
   onPurchase,
   onUpgrade,
 }) => {
@@ -78,10 +90,16 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
 
   // Handle purchase with notification
   const handlePurchase = async () => {
+    if (purchasePlan.quantity <= 0) {
+      hapticError();
+      error('Недостаточно энергии для выбранного пакета');
+      return;
+    }
+
     try {
-      await onPurchase(building.id);
+      await onPurchase(building.id, purchasePlan.quantity);
       hapticSuccess();
-      success(`${building.name} куплена!`);
+      success(`${building.name} ×${purchasePlan.quantity} куплено!`);
     } catch (err) {
       hapticError();
       error(`Ошибка при покупке ${building.name}`);
@@ -104,6 +122,16 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
     ? `${Math.round(building.payback_seconds)} сек`
     : '—';
   const roiRank = building.roiRank;
+  const purchaseQuantityLabel =
+    purchasePlan.requestedLabel === 'MAX'
+      ? `MAX (${purchasePlan.quantity || 0})`
+      : purchasePlan.partial
+        ? `${purchasePlan.requestedLabel} → ×${purchasePlan.quantity}`
+        : `${purchasePlan.requestedLabel}`;
+  const purchaseCostLabel = purchasePlan.totalCost > 0
+    ? `${formatNumberWithSpaces(purchasePlan.totalCost)} E`
+    : `${formatNumberWithSpaces(building.nextCost ?? 0)} E`;
+  const purchaseDisabled = processing || !canPurchase || purchasePlan.quantity <= 0 || isLocked;
 
   return (
     <motion.div
@@ -149,20 +177,39 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
         <div className="text-xs text-[#ffc957]">Требуется уровень {building.unlock_level}</div>
       )}
 
+      <div className="flex flex-wrap gap-3 text-[11px] text-white/55">
+        <span>Пакет: {purchaseQuantityLabel}</span>
+        <span>Стоимость: {purchaseCostLabel}</span>
+        {purchasePlan.incomeGain > 0 && (
+          <span>+{formatNumberWithSpaces(purchasePlan.incomeGain)} E/с</span>
+        )}
+      </div>
+      {purchasePlan.partial && !isLocked && (
+        <div className="text-[11px] text-[#ffd27d]">
+          Энергии хватит на ×{purchasePlan.quantity} из {purchasePlan.requestedValue}
+        </div>
+      )}
+      {purchasePlan.limitedByCap && !isLocked && (
+        <div className="text-[11px] text-[#ffd27d]">Достигнут лимит построек для уровня</div>
+      )}
+      {purchasePlan.insufficientEnergy && !isLocked && (
+        <div className="text-[11px] text-[#ffb8b8]">Недостаточно энергии для выбранного пакета</div>
+      )}
+
       <div className="flex gap-3 flex-wrap">
         <motion.button
           type="button"
           className="px-[18px] py-[10px] rounded-md border-0 text-[13px] font-semibold cursor-pointer transition-all duration-[120ms] ease-in-out bg-gradient-to-br from-cyan/25 to-[rgba(38,127,255,0.35)] text-[#f8fbff] disabled:opacity-60 disabled:cursor-default disabled:shadow-none hover:enabled:-translate-y-px hover:enabled:shadow-[0_10px_26px_rgba(0,217,255,0.3)]"
           onClick={handlePurchase}
-          disabled={processing || !canPurchase}
+          disabled={purchaseDisabled}
           whileTap={{ scale: 0.95 }}
-          whileHover={!processing && canPurchase ? { scale: 1.05 } : {}}
+          whileHover={!purchaseDisabled ? { scale: 1.05 } : {}}
         >
           {processing
             ? 'Ожидание…'
             : isLocked
               ? 'Недоступно'
-              : `Купить (${building.nextCost.toLocaleString()} E)`}
+              : `Купить ${purchaseQuantityLabel} (${purchaseCostLabel})`}
         </motion.button>
 
         <motion.button

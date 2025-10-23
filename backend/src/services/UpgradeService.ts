@@ -123,7 +123,8 @@ export class UpgradeService {
           xp_gained: xpGained,
           level: updatedProgress.level,
           level_up: leveledUp,
-          xp_to_next_level: calculateLevelProgress(updatedProgress.xp).xpToNextLevel,
+          xp_into_level: levelInfo.xpIntoLevel,
+          xp_to_next_level: levelInfo.xpToNextLevel,
         };
       }
 
@@ -183,7 +184,8 @@ export class UpgradeService {
         xp_gained: xpGained,
         level: updatedProgress.level,
         level_up: leveledUp,
-        xp_to_next_level: calculateLevelProgress(updatedProgress.xp).xpToNextLevel,
+        xp_into_level: levelInfo.xpIntoLevel,
+        xp_to_next_level: levelInfo.xpToNextLevel,
       };
     });
 
