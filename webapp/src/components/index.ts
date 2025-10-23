@@ -19,6 +19,7 @@ export { ScreenTransition } from './ScreenTransition';
 // Panels (Feature-specific)
 export { BuildingCard, type BuildingCardProps } from './BuildingCard';
 export { BuildingsPanel } from './BuildingsPanel';
+export { HomePanel, type HomePanelProps } from './HomePanel';
 export { ShopPanel } from './ShopPanel';
 export { ProfilePanel } from './ProfilePanel';
 export { BoostHub } from './BoostHub';
