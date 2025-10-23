@@ -50,7 +50,7 @@
 
 ---
 
-### Фаза 4: Performance, Polish & Marketing UX 🟡 **67% COMPLETE** (8 из 12 микротасков)
+### Фаза 4: Performance, Polish & Marketing UX 🟡 **75% COMPLETE** (9 из 12 микротасков)
 
 #### ✅ Завершено:
 - ✅ **Task 4.1** – Loading states для асинхронных операций (BuildingCard, ShopPanel spinner)
@@ -62,13 +62,14 @@
 - ✅ **Task 4.7** – Leaderboard улучшения (медали 🥇🥈🥉, позиция с progress bar, разница энергии, highlight текущего игрока)
 - ✅ **Task 4.8** – Level up анимации (rotating star ring, 8x sparkles, enhanced glow, text shadow animations)
 
+- ✅ **Task 4.9** – Micro-interactions для кнопок (hover scale 1.05x, tap press 0.95x, success animation, error shake)
+
 #### ⏳ TODO:
-- [ ] Task 4.9 – Micro-interactions для кнопок (hover/tap scale эффекты)
 - [ ] Task 4.10 – Image loading оптимизация (lazy loading, WebP)
 - [ ] Task 4.11 – Progress indicators (animated progress bars с градиентами)
 - [ ] Task 4.12 – Haptic feedback для всех действий (success/error patterns)
 
-**Результат:** Polish UI, marketing элементы, better UX | **Коммиты:** 8
+**Результат:** Polish UI, marketing элементы, better UX | **Коммиты:** 9
 
 ---
 
@@ -91,9 +92,9 @@
 | 1 | ✅ DONE | 12/12 | 2 | Oct 19 |
 | 2 | ✅ DONE | 14/14 | 10 | Oct 23 |
 | 3 | ✅ DONE | 13/13 | 11 | Oct 24 |
-| 4 | 🟡 67% | 8/12 | 8 | Oct 24 |
+| 4 | 🟡 75% | 9/12 | 9 | Oct 24 |
 | 5 | ⏳ NEXT | 0/6 | 0 | Oct 26+ |
-| **TOTAL** | **🟢 75%** | **47/63** | **31** | **In Progress** |
+| **TOTAL** | **🟢 76%** | **48/63** | **32** | **In Progress** |
 
 ---
 
