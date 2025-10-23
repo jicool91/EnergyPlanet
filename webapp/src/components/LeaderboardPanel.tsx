@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { LeaderboardSkeleton, ErrorBoundary } from './skeletons';
+import { Card } from './Card';
 
 export function LeaderboardPanel() {
   const {
@@ -32,10 +33,10 @@ export function LeaderboardPanel() {
   if (leaderboardError) {
     return (
       <div className="p-0 flex flex-col gap-4">
-        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px]">
-          <p className="m-0 mb-2">Не удалось получить рейтинг.</p>
+        <Card className="bg-red-error/15 border-red-error/40 text-red-error">
+          <p className="m-0 mb-2 font-semibold">Не удалось получить рейтинг.</p>
           <small className="text-white/60">{leaderboardError}</small>
-        </div>
+        </Card>
       </div>
     );
   }
@@ -50,13 +51,16 @@ export function LeaderboardPanel() {
 
   return (
     <div className="p-0 flex flex-col gap-4">
+      {/* Header */}
       <div className="flex items-center justify-between gap-3">
-        <h3 className="m-0 text-lg">Топ игроков</h3>
-        <span className="text-xs text-white/55">
-          Всего игроков: {leaderboardTotal.toLocaleString()}
+        <h3 className="m-0 text-heading font-semibold text-white">Топ игроков</h3>
+        <span className="text-caption text-white/55">
+          Всего: {leaderboardTotal.toLocaleString()}
         </span>
       </div>
-      <div className="rounded-lg overflow-hidden bg-dark-secondary/60 border border-cyan/[0.12] backdrop-blur-[6px]">
+
+      {/* Table Container */}
+      <Card className="overflow-hidden p-0">
         <table className="w-full border-collapse text-[13px]">
           <thead>
             <tr>
@@ -98,13 +102,14 @@ export function LeaderboardPanel() {
           </tbody>
         </table>
       </div>
+      {/* User Rank (if not in top 100) */}
       {userLeaderboardEntry &&
         !rows.some(entry => entry.user_id === userLeaderboardEntry.user_id) && (
-          <div className="px-4 py-3 bg-cyan/[0.12] rounded-md flex gap-3 items-center justify-center">
-            <span>Место</span>
-            <strong>{userLeaderboardEntry.rank}</strong>
-            <span>{userLeaderboardEntry.username || 'Вы'}</span>
-          </div>
+          <Card className="bg-cyan/15 flex gap-3 items-center justify-center py-3">
+            <span className="text-caption">Место</span>
+            <strong className="text-heading">{userLeaderboardEntry.rank}</strong>
+            <span className="text-caption">{userLeaderboardEntry.username || 'Вы'}</span>
+          </Card>
         )}
     </div>
   );
