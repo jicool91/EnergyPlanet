@@ -31,7 +31,9 @@ function getInitialTheme(): TelegramThemeParams {
 
 export function useTheme() {
   const [theme, setTheme] = useState<TelegramThemeParams>(() => getInitialTheme());
-  const [colorScheme, setColorScheme] = useState<ColorScheme>(() => getBrowserColorSchemeFallback());
+  const [colorScheme, setColorScheme] = useState<ColorScheme>(() =>
+    getBrowserColorSchemeFallback()
+  );
 
   useEffect(() => {
     const unsubscribe = onTelegramThemeChange(nextTheme => {
