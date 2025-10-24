@@ -119,87 +119,138 @@ export function LeaderboardPanel() {
 
       {/* Table Container */}
       <Card className="overflow-hidden p-0">
-        <table className="w-full border-collapse text-[13px]">
-          <thead>
-            <tr>
-              <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
-                #
-              </th>
-              <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
-                Игрок
-              </th>
-              <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
-                Уровень
-              </th>
-              <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
-                Энергия
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {rowsWithDiff.map(entry => {
-              const isCurrentUser = entry.user_id === userLeaderboardEntry?.user_id;
-              const medal = MEDAL_MAP[entry.rank];
+        <div className="hidden sm:block">
+          <table className="w-full border-collapse text-[13px]">
+            <thead>
+              <tr>
+                <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
+                  #
+                </th>
+                <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
+                  Игрок
+                </th>
+                <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
+                  Уровень
+                </th>
+                <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
+                  Энергия
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {rowsWithDiff.map(entry => {
+                const isCurrentUser = entry.user_id === userLeaderboardEntry?.user_id;
+                const medal = MEDAL_MAP[entry.rank];
 
-              return (
-                <motion.tr
-                  key={entry.user_id}
-                  initial={false}
-                  animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
-                  className={`border-b border-white/[0.04] hover:bg-cyan/[0.08] transition-colors ${
-                    isCurrentUser ? 'bg-cyan/[0.15] font-semibold' : ''
-                  }`}
-                >
-                  {/* Rank with Medal */}
-                  <td className="px-[14px] py-3 text-center">
-                    <div className="flex items-center justify-center gap-1">
-                      {medal && (
-                        <span className="text-lg" role="img" aria-label={medal.label}>
-                          {medal.icon}
-                        </span>
-                      )}
-                      <span className="font-bold text-white">{entry.rank}</span>
-                    </div>
-                  </td>
-
-                  {/* Player Name */}
-                  <td className="px-[14px] py-3 text-left">
-                    <div className="flex items-center gap-2">
-                      <div className="flex flex-col gap-[2px] flex-1">
-                        <span
-                          className={`font-semibold ${isCurrentUser ? 'text-cyan' : 'text-white'}`}
-                        >
-                          {entry.username || entry.first_name || 'Игрок'}
-                          {isCurrentUser && ' ⭐'}
-                        </span>
-                        <span className="text-[11px] text-[var(--color-text-secondary)]">
-                          #{entry.user_id.slice(0, 6)}
-                        </span>
+                return (
+                  <motion.tr
+                    key={entry.user_id}
+                    initial={false}
+                    animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
+                    className={`border-b border-white/[0.04] hover:bg-cyan/[0.08] transition-colors ${
+                      isCurrentUser ? 'bg-cyan/[0.15] font-semibold' : ''
+                    }`}
+                  >
+                    {/* Rank with Medal */}
+                    <td className="px-[14px] py-3 text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        {medal && (
+                          <span className="text-lg" role="img" aria-label={medal.label}>
+                            {medal.icon}
+                          </span>
+                        )}
+                        <span className="font-bold text-white">{entry.rank}</span>
                       </div>
-                    </div>
-                  </td>
+                    </td>
 
-                  {/* Level */}
-                  <td className="px-[14px] py-3 text-left font-semibold">{entry.level}</td>
+                    {/* Player Name */}
+                    <td className="px-[14px] py-3 text-left">
+                      <div className="flex items-center gap-2">
+                        <div className="flex flex-col gap-[2px] flex-1">
+                          <span
+                            className={`font-semibold ${isCurrentUser ? 'text-cyan' : 'text-white'}`}
+                          >
+                            {entry.username || entry.first_name || 'Игрок'}
+                            {isCurrentUser && ' ⭐'}
+                          </span>
+                          <span className="text-[11px] text-[var(--color-text-secondary)]">
+                            #{entry.user_id.slice(0, 6)}
+                          </span>
+                        </div>
+                      </div>
+                    </td>
 
-                  {/* Energy + Diff */}
-                  <td className="px-[14px] py-3 text-left">
-                    <div className="flex flex-col gap-[2px]">
-                      <span className="font-semibold text-white">
-                        {Math.floor(entry.total_energy_produced).toLocaleString()}
-                      </span>
-                      {entry.energyDiffToNext > 0 && (
-                        <span className="text-[11px] text-[var(--color-text-secondary)]">
-                          -{Math.floor(entry.energyDiffToNext).toLocaleString()}
+                    {/* Level */}
+                    <td className="px-[14px] py-3 text-left font-semibold">{entry.level}</td>
+
+                    {/* Energy + Diff */}
+                    <td className="px-[14px] py-3 text-left">
+                      <div className="flex flex-col gap-[2px]">
+                        <span className="font-semibold text-white">
+                          {Math.floor(entry.total_energy_produced).toLocaleString()}
                         </span>
-                      )}
+                        {entry.energyDiffToNext > 0 && (
+                          <span className="text-[11px] text-[var(--color-text-secondary)]">
+                            -{Math.floor(entry.energyDiffToNext).toLocaleString()}
+                          </span>
+                        )}
+                      </div>
+                    </td>
+                  </motion.tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <div className="sm:hidden flex flex-col gap-2 p-3">
+          {rowsWithDiff.map(entry => {
+            const isCurrentUser = entry.user_id === userLeaderboardEntry?.user_id;
+            const medal = MEDAL_MAP[entry.rank];
+
+            return (
+              <motion.div
+                key={entry.user_id}
+                initial={false}
+                animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
+                className={`rounded-lg border border-white/[0.08] bg-white/5/0 backdrop-blur-sm px-4 py-3 flex flex-col gap-2 transition-colors ${
+                  isCurrentUser
+                    ? 'bg-cyan/15 border-cyan/40'
+                    : 'bg-[var(--color-surface-secondary)]'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    {medal && (
+                      <span className="text-lg" role="img" aria-label={medal.label}>
+                        {medal.icon}
+                      </span>
+                    )}
+                    <div className="flex flex-col leading-tight">
+                      <span
+                        className={`font-semibold ${isCurrentUser ? 'text-cyan' : 'text-white'}`}
+                      >
+                        #{entry.rank} {entry.username || entry.first_name || 'Игрок'}
+                      </span>
+                      <span className="text-[11px] text-[var(--color-text-secondary)]">
+                        ID {entry.user_id.slice(0, 6)}
+                      </span>
                     </div>
-                  </td>
-                </motion.tr>
-              );
-            })}
-          </tbody>
-        </table>
+                  </div>
+                  <span className="text-heading font-semibold text-white">{entry.level}</span>
+                </div>
+                <div className="flex items-center justify-between text-sm text-white/80">
+                  <span>Энергия</span>
+                  <span>{Math.floor(entry.total_energy_produced).toLocaleString()}</span>
+                </div>
+                {entry.energyDiffToNext > 0 && (
+                  <div className="text-xs text-[var(--color-text-secondary)]">
+                    До следующего: -{Math.floor(entry.energyDiffToNext).toLocaleString()}
+                  </div>
+                )}
+              </motion.div>
+            );
+          })}
+        </div>
       </Card>
       {/* User Rank (if not in top 100) */}
       {userLeaderboardEntry &&
