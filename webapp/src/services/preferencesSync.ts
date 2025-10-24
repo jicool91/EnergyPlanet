@@ -29,7 +29,7 @@ function applyPreferencesPatch(serialized: string | null | undefined) {
 
   try {
     const parsed = JSON.parse(serialized) as Partial<PreferencesState>;
-    usePreferencesStore.setState(parsed, false, 'cloud/preferences/hydrate');
+    usePreferencesStore.setState(parsed);
   } catch (error) {
     console.warn('Failed to parse preferences from CloudStorage', error);
   }
