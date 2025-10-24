@@ -187,7 +187,12 @@ export function BuildingsPanel() {
   }, [sortedBuildings]);
 
   return (
-    <div className="flex flex-col gap-4 p-0">
+    <div
+      className="flex flex-col gap-4 p-0"
+      style={{
+        paddingBottom: 'calc(var(--tg-content-safe-area-bottom, 0px) + 16px)',
+      }}
+    >
       <div className="flex justify-between items-start gap-3">
         <div>
           <h2 className="m-0 text-xl text-[#f8fbff]">Постройки</h2>

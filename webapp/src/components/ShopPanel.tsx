@@ -151,7 +151,12 @@ export function ShopPanel() {
   const featuredPack = starPacks.find(pack => pack.featured);
 
   return (
-    <div className="flex flex-col gap-4 p-0">
+    <div
+      className="flex flex-col gap-4 p-0"
+      style={{
+        paddingBottom: 'calc(var(--tg-content-safe-area-bottom, 0px) + 16px)',
+      }}
+    >
       {/* Header with Power Up title */}
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1">
