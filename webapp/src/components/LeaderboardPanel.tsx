@@ -119,8 +119,8 @@ export function LeaderboardPanel() {
 
       {/* Table Container */}
       <Card className="overflow-hidden p-0">
-        <div className="hidden sm:block">
-          <table className="w-full border-collapse text-caption">
+        <div className="hidden sm:block overflow-x-auto">
+          <table className="w-full min-w-[540px] border-collapse text-caption">
             <thead>
               <tr>
                 <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
@@ -212,14 +212,14 @@ export function LeaderboardPanel() {
                 key={entry.user_id}
                 initial={false}
                 animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
-                className={`rounded-lg border border-white/[0.08] bg-white/5/0 backdrop-blur-sm px-4 py-3 flex flex-col gap-2 transition-colors ${
+                className={`rounded-lg border border-white/[0.08] bg-white/5/0 backdrop-blur-sm px-4 py-3 flex flex-col gap-2 transition-colors max-[360px]:px-3 max-[320px]:px-2 ${
                   isCurrentUser
                     ? 'bg-cyan/15 border-cyan/40'
                     : 'bg-[var(--color-surface-secondary)]'
                 }`}
               >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2 max-[360px]:gap-1">
                     {medal && (
                       <span className="text-lg" role="img" aria-label={medal.label}>
                         {medal.icon}
@@ -227,7 +227,9 @@ export function LeaderboardPanel() {
                     )}
                     <div className="flex flex-col leading-tight">
                       <span
-                        className={`font-semibold ${isCurrentUser ? 'text-cyan' : 'text-white'}`}
+                        className={`font-semibold ${
+                          isCurrentUser ? 'text-cyan' : 'text-white'
+                        } max-[360px]:text-sm max-[320px]:text-xs`}
                       >
                         #{entry.rank} {entry.username || entry.first_name || 'Игрок'}
                       </span>
@@ -236,14 +238,18 @@ export function LeaderboardPanel() {
                       </span>
                     </div>
                   </div>
-                  <span className="text-heading font-semibold text-white">{entry.level}</span>
+                  <span className="text-heading font-semibold text-white max-[360px]:text-base">
+                    {entry.level}
+                  </span>
                 </div>
-                <div className="flex items-center justify-between text-sm text-white/80">
-                  <span>Энергия</span>
-                  <span>{Math.floor(entry.total_energy_produced).toLocaleString()}</span>
+                <div className="flex flex-wrap items-center justify-between gap-1 text-sm text-white/80 max-[360px]:text-xs">
+                  <span className="text-white/60">Энергия</span>
+                  <span className="font-medium">
+                    {Math.floor(entry.total_energy_produced).toLocaleString()}
+                  </span>
                 </div>
                 {entry.energyDiffToNext > 0 && (
-                  <div className="text-caption text-[var(--color-text-secondary)]">
+                  <div className="text-caption text-[var(--color-text-secondary)] max-[360px]:text-[10px]">
                     До следующего: -{Math.floor(entry.energyDiffToNext).toLocaleString()}
                   </div>
                 )}
