@@ -70,70 +70,84 @@ export function HomePanel({
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
 
   return (
-    <div className="flex flex-col h-full">
-      {/* Top: Essential Stats (2-column layout, compact) */}
-      <div className="grid grid-cols-2 gap-2 px-4 py-2">
-        {/* Essential Stats */}
-        <StatCard icon="⚡" label="Энергия" value={`${energyCompact} E`} subLabel="Баланс" />
-        <StatCard
-          icon="🪐"
-          label="Tap Lvl"
-          value={`Lv ${tapLevel}`}
-          subLabel={`${tapIncomeDisplay} E`}
-        />
-        <StatCard icon="💤" label="Пассив" value={passiveIncomeLabel} subLabel={multiplierLabel} />
-        <StatCard
-          icon="🎯"
-          label="Уровень"
-          value={`${Math.round(xpProgress * 100)}%`}
-          subLabel={xpRemaining > 0 ? `+${formatNumberWithSpaces(xpRemaining)} XP` : 'Готов'}
-        />
-      </div>
-
-      {/* Streak indicator (only if active) */}
-      {streakCount > 0 && (
-        <div className="px-4 grid grid-cols-2 gap-3">
+    <div
+      className="flex flex-col h-full lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-6 lg:px-6 lg:py-4"
+      style={{
+        paddingTop: 'calc(var(--tg-content-safe-area-top, 0px) + 12px)',
+        paddingBottom: 'calc(var(--tg-content-safe-area-bottom, 0px) + 16px)',
+      }}
+    >
+      {/* Left column: stats + tap CTA */}
+      <div className="flex flex-col h-full">
+        {/* Top: Essential Stats (responsive grid) */}
+        <div className="grid grid-cols-2 gap-2 px-4 py-2 lg:px-0 lg:grid-cols-2 xl:grid-cols-4">
+          {/* Essential Stats */}
+          <StatCard icon="⚡" label="Энергия" value={`${energyCompact} E`} subLabel="Баланс" />
           <StatCard
-            icon="🔥"
-            label="Комбо"
-            value={`×${streakCount}`}
-            subLabel={`Лучшее: ${bestStreak}`}
-            tone={isCriticalStreak ? 'positive' : 'default'}
+            icon="🪐"
+            label="Tap Lvl"
+            value={`Lv ${tapLevel}`}
+            subLabel={`${tapIncomeDisplay} E`}
+          />
+          <StatCard
+            icon="💤"
+            label="Пассив"
+            value={passiveIncomeLabel}
+            subLabel={multiplierLabel}
+          />
+          <StatCard
+            icon="🎯"
+            label="Уровень"
+            value={`${Math.round(xpProgress * 100)}%`}
+            subLabel={xpRemaining > 0 ? `+${formatNumberWithSpaces(xpRemaining)} XP` : 'Готов'}
           />
         </div>
-      )}
 
-      {/* Center: BIG TAP BUTTON */}
-      <div className="flex-1 flex items-center justify-center py-3 px-4">
-        <motion.button
-          onClick={onTap}
-          whileTap={{ scale: 0.95 }}
-          whileHover={{ scale: 1.05 }}
-          className="relative w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-cyan via-lime to-gold text-black font-bold text-4xl md:text-5xl shadow-2xl border-2 border-cyan/50 hover:border-cyan transition-all duration-300 active:scale-95 focus-ring"
-          aria-label="Tap to generate energy"
-        >
-          {/* Glow effect */}
-          <motion.div
-            className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-20 blur-xl -z-10"
-            animate={{
-              scale: [1, 1.2, 1],
-              opacity: [0.2, 0.3, 0.2],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-            }}
-          />
+        {/* Streak indicator (only if active) */}
+        {streakCount > 0 && (
+          <div className="px-4 grid grid-cols-2 gap-3 lg:px-0 lg:grid-cols-1">
+            <StatCard
+              icon="🔥"
+              label="Комбо"
+              value={`×${streakCount}`}
+              subLabel={`Лучшее: ${bestStreak}`}
+              tone={isCriticalStreak ? 'positive' : 'default'}
+            />
+          </div>
+        )}
 
-          {/* Tap indicator */}
-          <span role="img" aria-label="Tap planet to generate energy">
-            🌍
-          </span>
-        </motion.button>
+        {/* Center: BIG TAP BUTTON */}
+        <div className="flex-1 flex items-center justify-center py-3 px-4 lg:px-0">
+          <motion.button
+            onClick={onTap}
+            whileTap={{ scale: 0.95 }}
+            whileHover={{ scale: 1.05 }}
+            className="relative w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-cyan via-lime to-gold text-black font-bold text-4xl md:text-5xl shadow-2xl border-2 border-cyan/50 hover:border-cyan transition-all duration-300 active:scale-95 focus-ring"
+            aria-label="Tap to generate energy"
+          >
+            {/* Glow effect */}
+            <motion.div
+              className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-20 blur-xl -z-10"
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.2, 0.3, 0.2],
+              }}
+              transition={{
+                duration: 2,
+                repeat: Infinity,
+              }}
+            />
+
+            {/* Tap indicator */}
+            <span role="img" aria-label="Tap planet to generate energy">
+              🌍
+            </span>
+          </motion.button>
+        </div>
       </div>
 
-      {/* Bottom: XP Progress + Next Goal + Social Proof (scrollable if needed) */}
-      <div className="flex flex-col gap-2 px-4 py-2 overflow-y-auto">
+      {/* Right column: Progress & social blocks */}
+      <div className="flex flex-col gap-2 px-4 py-2 overflow-y-auto lg:px-0 lg:py-0 lg:overflow-visible">
         {/* Daily Reward Banner */}
         <DailyRewardBanner />
 
