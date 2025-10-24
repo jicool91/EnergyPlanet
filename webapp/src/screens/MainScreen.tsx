@@ -2,7 +2,7 @@
  * Main Game Screen
  */
 
-import { useEffect, useMemo, Suspense, lazy, useState } from 'react';
+import { useEffect, useMemo, Suspense, lazy, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { streakConfig, useGameStore } from '../store/gameStore';
 import { HomePanel } from '../components/HomePanel';
@@ -15,6 +15,7 @@ import {
 } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
+import { useNotification } from '../hooks/useNotification';
 import { useSafeArea } from '../hooks';
 
 const TAB_BAR_RESERVE_PX = 88;
@@ -103,12 +104,14 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const { tap: hapticTap } = useHaptic();
   const { scrollRef, scrollToTop } = useScrollToTop();
   const [isScrolled, setIsScrolled] = useState(false);
+  const { toast } = useNotification();
   const { safeArea } = useSafeArea();
   const { bottom: safeBottom } = safeArea.safe;
   const scrollPaddingBottom = useMemo(
     () => TAB_BAR_RESERVE_PX + Math.max(0, safeBottom),
     [safeBottom]
   );
+  const previousStreakRef = useRef(streakCount);
 
   const handleTap = () => {
     tap(1);
@@ -250,6 +253,13 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
 
     return () => clearInterval(timer);
   }, [streakCount, lastTapAt, resetStreak]);
+
+  useEffect(() => {
+    if (previousStreakRef.current > 0 && streakCount === 0 && activeTab === 'home') {
+      toast('Комбо прервано — удерживай темп!', 2400, 'warning');
+    }
+    previousStreakRef.current = streakCount;
+  }, [streakCount, toast, activeTab]);
 
   if (isLoading) {
     return (
