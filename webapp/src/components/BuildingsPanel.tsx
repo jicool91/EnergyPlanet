@@ -5,6 +5,7 @@ import type { BuildingCardBuilding } from './BuildingCard';
 import { BuildingSkeleton, ErrorBoundary } from './skeletons';
 import { useHaptic } from '../hooks/useHaptic';
 import { useSafeArea } from '../hooks';
+import { formatCompactNumber } from '../utils/number';
 
 const PURCHASE_OPTIONS = [
   { id: 'x1', label: '×1', value: 1 },
@@ -60,6 +61,7 @@ export function BuildingsPanel() {
       paddingBottom: `${Math.max(0, contentBottom) + 16}px`,
     };
   }, [contentBottom]);
+  const energyDisplay = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
 
   const selectedOption = useMemo(
     () => PURCHASE_OPTIONS.find(option => option.id === selectedPurchaseId) ?? PURCHASE_OPTIONS[0],
@@ -203,9 +205,7 @@ export function BuildingsPanel() {
             Развивайте инфраструктуру и увеличивайте пассивный доход
           </p>
         </div>
-        <div className="text-body text-white/75 font-semibold">
-          Энергия: {Math.floor(energy).toLocaleString()}
-        </div>
+        <div className="text-body text-white/75 font-semibold">Энергия: {energyDisplay}</div>
       </div>
 
       <div className="flex flex-wrap gap-2">

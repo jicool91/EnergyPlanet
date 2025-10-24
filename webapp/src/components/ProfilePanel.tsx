@@ -3,6 +3,7 @@ import { useGameStore } from '../store/gameStore';
 import { ProfileSkeleton, ErrorBoundary } from './skeletons';
 import { Card } from './Card';
 import { Badge } from './Badge';
+import { formatCompactNumber } from '../utils/number';
 
 export function ProfilePanel() {
   const { isProfileLoading, profileError, profile, profileBoosts } = useGameStore(state => ({
@@ -13,6 +14,13 @@ export function ProfilePanel() {
   }));
 
   const boosts = useMemo(() => profileBoosts, [profileBoosts]);
+  const energyValue = profile?.progress.energy ?? 0;
+  const totalEnergyValue = profile?.progress.total_energy_produced ?? 0;
+  const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energyValue)), [energyValue]);
+  const totalEnergyCompact = useMemo(
+    () => formatCompactNumber(Math.floor(totalEnergyValue)),
+    [totalEnergyValue]
+  );
 
   if (isProfileLoading && !profile) {
     return (
@@ -66,17 +74,13 @@ export function ProfilePanel() {
         </Card>
         <Card className="flex flex-col gap-2">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">Энергия</span>
-          <strong className="text-heading">
-            {Math.floor(profile.progress.energy).toLocaleString()}
-          </strong>
+          <strong className="text-heading">{energyCompact}</strong>
         </Card>
         <Card className="flex flex-col gap-2">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">
             Всего энергии
           </span>
-          <strong className="text-heading">
-            {Math.floor(profile.progress.total_energy_produced).toLocaleString()}
-          </strong>
+          <strong className="text-heading">{totalEnergyCompact}</strong>
         </Card>
         <Card className="flex flex-col gap-2">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">Тап lvl</span>

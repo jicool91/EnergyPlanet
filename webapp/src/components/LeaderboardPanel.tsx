@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { LeaderboardSkeleton, ErrorBoundary } from './skeletons';
 import { Card } from './Card';
+import { formatCompactNumber } from '../utils/number';
 
 // Medal emojis for top 3
 const MEDAL_MAP: Record<number, { icon: string; label: string }> = {
@@ -33,13 +34,20 @@ export function LeaderboardPanel() {
   // Calculate energy difference to next player
   const rowsWithDiff = useMemo(
     () =>
-      rows.map((entry, index) => ({
-        ...entry,
-        energyDiffToNext:
+      rows.map((entry, index) => {
+        const totalEnergy = Math.max(0, Math.floor(entry.total_energy_produced));
+        const diff =
           index < rows.length - 1
             ? Math.max(0, rows[index + 1].total_energy_produced - entry.total_energy_produced)
-            : 0,
-      })),
+            : 0;
+
+        return {
+          ...entry,
+          energyDiffToNext: diff,
+          energyDisplay: formatCompactNumber(totalEnergy),
+          energyDiffDisplay: diff > 0 ? formatCompactNumber(Math.floor(diff)) : null,
+        };
+      }),
     [rows]
   );
 
@@ -186,12 +194,10 @@ export function LeaderboardPanel() {
                     {/* Energy + Diff */}
                     <td className="px-[14px] py-3 text-left">
                       <div className="flex flex-col gap-[2px]">
-                        <span className="font-semibold text-white">
-                          {Math.floor(entry.total_energy_produced).toLocaleString()}
-                        </span>
-                        {entry.energyDiffToNext > 0 && (
+                        <span className="font-semibold text-white">{entry.energyDisplay}</span>
+                        {entry.energyDiffDisplay && (
                           <span className="text-micro text-[var(--color-text-secondary)]">
-                            -{Math.floor(entry.energyDiffToNext).toLocaleString()}
+                            -{entry.energyDiffDisplay}
                           </span>
                         )}
                       </div>
@@ -244,13 +250,11 @@ export function LeaderboardPanel() {
                 </div>
                 <div className="flex flex-wrap items-center justify-between gap-1 text-sm text-white/80 max-[360px]:text-xs">
                   <span className="text-white/60">Энергия</span>
-                  <span className="font-medium">
-                    {Math.floor(entry.total_energy_produced).toLocaleString()}
-                  </span>
+                  <span className="font-medium">{entry.energyDisplay}</span>
                 </div>
-                {entry.energyDiffToNext > 0 && (
+                {entry.energyDiffDisplay && (
                   <div className="text-caption text-[var(--color-text-secondary)] max-[360px]:text-[10px]">
-                    До следующего: -{Math.floor(entry.energyDiffToNext).toLocaleString()}
+                    До следующего: -{entry.energyDiffDisplay}
                   </div>
                 )}
               </motion.div>
