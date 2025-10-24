@@ -196,7 +196,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       )}
 
       {/* Header: Building name + count */}
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
         <h3 className="m-0 text-subheading font-semibold text-white">{building.name}</h3>
         <motion.span
           className="text-caption text-[var(--color-text-secondary)] font-semibold"
@@ -208,7 +208,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       </div>
 
       {/* Stats: Level, Income, Payback, ROI */}
-      <div className="flex gap-4 text-caption text-[var(--color-text-secondary)] flex-wrap">
+      <div className="grid gap-2 text-caption text-[var(--color-text-secondary)] sm:flex sm:flex-wrap sm:gap-4">
         <span>Уровень: {building.level}</span>
         <span>Доход: {building.incomePerSec.toLocaleString()} /с</span>
         <span>Окупаемость: {payback}</span>
@@ -221,7 +221,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       )}
 
       {/* Purchase info: Quantity, Cost, Income gain */}
-      <div className="flex flex-wrap gap-3 text-micro text-[var(--color-text-secondary)]">
+      <div className="flex flex-col gap-2 text-micro text-[var(--color-text-secondary)] sm:flex-row sm:flex-wrap sm:gap-3">
         <span>Пакет: {purchaseQuantityLabel}</span>
         <span>Стоимость: {purchaseCostLabel}</span>
         {purchasePlan.incomeGain > 0 && (
@@ -245,7 +245,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       )}
 
       {/* Action buttons: Purchase + Upgrade */}
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
         {/* Purchase button with micro-interactions */}
         <Button
           variant="primary"
