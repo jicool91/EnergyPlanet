@@ -11,8 +11,8 @@ import { OfflineSummaryModal } from './components/OfflineSummaryModal';
 import { LevelUpScreen } from './components/LevelUpScreen';
 import { NotificationContainer } from './components/notifications/NotificationContainer';
 import { TabBar, MainScreenHeader, type TabBarItem } from './components';
-import { withTelegramBackButton } from './services/telegram';
 import { useNotification } from './hooks/useNotification';
+import { useTelegramBackButton } from './hooks/useTelegramBackButton';
 import { logClientEvent } from './services/telemetry';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
@@ -132,21 +132,20 @@ function App() {
     };
   }, [isInitialized, logoutSession, refreshSession]);
 
-  useEffect(() => {
-    if (!isAuthModalOpen && !offlineSummary) {
+  const modalBackHandler = useCallback(() => {
+    if (isAuthModalOpen) {
+      dismissAuthError();
       return;
     }
 
-    const backHandler = () => {
-      if (isAuthModalOpen) {
-        dismissAuthError();
-      } else if (offlineSummary) {
-        acknowledgeOfflineSummary();
-      }
-    };
-
-    return withTelegramBackButton(backHandler);
+    if (offlineSummary) {
+      acknowledgeOfflineSummary();
+    }
   }, [isAuthModalOpen, offlineSummary, dismissAuthError, acknowledgeOfflineSummary]);
+
+  useTelegramBackButton(modalBackHandler, {
+    enabled: isAuthModalOpen || Boolean(offlineSummary),
+  });
 
   return (
     <div className="w-full h-screen flex flex-col bg-gradient-to-b from-dark-bg to-black pl-safe-left pr-safe-right pt-safe-top pb-safe-bottom overflow-hidden">
@@ -155,7 +154,11 @@ function App() {
         level={level}
         energy={energy}
         stars={stars}
-        xpProgress={xpIntoLevel + xpToNextLevel > 0 ? Math.min(1, xpIntoLevel / (xpIntoLevel + xpToNextLevel)) : 0}
+        xpProgress={
+          xpIntoLevel + xpToNextLevel > 0
+            ? Math.min(1, xpIntoLevel / (xpIntoLevel + xpToNextLevel))
+            : 0
+        }
         onShopClick={() => setActiveTab('shop')}
         onSettingsClick={() => setActiveTab('settings')}
       />
@@ -165,17 +168,19 @@ function App() {
 
       {/* Global Navigation Footer */}
       <TabBar
-        tabs={[
-          { id: 'home', icon: '🏠', label: 'Главная', title: 'Home' },
-          { id: 'shop', icon: '🛍️', label: 'Магазин', title: 'Shop' },
-          { id: 'boosts', icon: '🚀', label: 'Boost Hub', title: 'Boosts' },
-          { id: 'builds', icon: '🏗️', label: 'Постройки', title: 'Buildings' },
-          { id: 'leaderboard', icon: '🏆', label: 'Рейтинг', title: 'Leaderboard' },
-          { id: 'profile', icon: '👤', label: 'Профиль', title: 'Profile' },
-          { id: 'settings', icon: '⚙️', label: 'Настройки', title: 'Settings' },
-        ] as TabBarItem[]}
+        tabs={
+          [
+            { id: 'home', icon: '🏠', label: 'Главная', title: 'Home' },
+            { id: 'shop', icon: '🛍️', label: 'Магазин', title: 'Shop' },
+            { id: 'boosts', icon: '🚀', label: 'Boost Hub', title: 'Boosts' },
+            { id: 'builds', icon: '🏗️', label: 'Постройки', title: 'Buildings' },
+            { id: 'leaderboard', icon: '🏆', label: 'Рейтинг', title: 'Leaderboard' },
+            { id: 'profile', icon: '👤', label: 'Профиль', title: 'Profile' },
+            { id: 'settings', icon: '⚙️', label: 'Настройки', title: 'Settings' },
+          ] as TabBarItem[]
+        }
         active={activeTab}
-        onChange={(tabId) => setActiveTab(tabId as TabKey)}
+        onChange={tabId => setActiveTab(tabId as TabKey)}
       />
 
       {/* Modals & Notifications */}
