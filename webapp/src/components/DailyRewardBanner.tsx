@@ -5,6 +5,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useDevicePerformance } from '../hooks';
 
 interface DailyRewardBannerProps {
   onClaim?: () => void;
@@ -12,6 +13,9 @@ interface DailyRewardBannerProps {
 
 export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim }) => {
   const [timeLeft, setTimeLeft] = useState('23:59:59');
+  const performance = useDevicePerformance();
+  const isLowPerformance = performance === 'low';
+  const isMediumPerformance = performance === 'medium';
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -42,20 +46,32 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
       {/* Animated background glow */}
       <motion.div
         className="absolute inset-0 bg-gradient-to-r from-gold/20 to-transparent opacity-50"
-        animate={{
-          x: ['-100%', '100%'],
-        }}
-        transition={{
-          duration: 3,
-          repeat: Infinity,
-          repeatType: 'loop',
-        }}
+        animate={
+          isLowPerformance
+            ? undefined
+            : {
+                x: ['-100%', '100%'],
+              }
+        }
+        transition={
+          isLowPerformance
+            ? undefined
+            : {
+                duration: isMediumPerformance ? 3.6 : 3,
+                repeat: Infinity,
+                repeatType: 'loop',
+              }
+        }
       />
 
       {/* Content */}
       <div className="relative flex items-center justify-between gap-4 z-10">
         <div className="flex items-center gap-3">
-          <span className="text-4xl animate-bounce" role="img" aria-label="Daily reward gift">
+          <span
+            className={`text-4xl ${isLowPerformance ? '' : 'animate-bounce'}`}
+            role="img"
+            aria-label="Daily reward gift"
+          >
             🎁
           </span>
           <div>

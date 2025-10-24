@@ -16,7 +16,7 @@
 
 import { motion } from 'framer-motion';
 import { useMemo } from 'react';
-import { useSafeArea } from '../hooks';
+import { useSafeArea, useDevicePerformance } from '../hooks';
 
 interface TapSectionProps {
   onTap: () => void;
@@ -24,6 +24,9 @@ interface TapSectionProps {
 
 export function TapSection({ onTap }: TapSectionProps) {
   const { safeArea, viewport } = useSafeArea();
+  const performance = useDevicePerformance();
+  const isLowPerformance = performance === 'low';
+  const isMediumPerformance = performance === 'medium';
 
   const isLandscape = useMemo(() => {
     if (viewport.width !== null && viewport.height !== null) {
@@ -46,6 +49,11 @@ export function TapSection({ onTap }: TapSectionProps) {
   }, [viewport.stableHeight, viewport.height, safeArea.content.bottom, safeArea.content.top]);
 
   const buttonSizeClass = isLandscape ? 'w-28 h-28 md:w-32 md:h-32' : 'w-32 h-32 md:w-40 md:h-40';
+  const hoverAnimation = isLowPerformance ? undefined : { scale: 1.05 };
+  const tapAnimation = isLowPerformance ? { scale: 0.98 } : { scale: 0.95 };
+  const glowClassName = isLowPerformance
+    ? 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-12 -z-10'
+    : 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-20 blur-xl -z-10';
 
   return (
     <div
@@ -58,23 +66,31 @@ export function TapSection({ onTap }: TapSectionProps) {
     >
       <motion.button
         onClick={onTap}
-        whileTap={{ scale: 0.95 }}
-        whileHover={{ scale: 1.05 }}
+        whileTap={tapAnimation}
+        whileHover={hoverAnimation}
         className={`relative ${buttonSizeClass} rounded-full bg-gradient-to-br from-cyan via-lime to-gold text-black font-bold text-4xl md:text-5xl shadow-2xl border-2 border-cyan/50 hover:border-cyan transition-all duration-300 active:scale-95 focus-ring`}
         aria-label="Tap to generate energy"
         type="button"
       >
         {/* Glow effect */}
         <motion.div
-          className="absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-20 blur-xl -z-10"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.2, 0.3, 0.2],
-          }}
-          transition={{
-            duration: 2,
-            repeat: Infinity,
-          }}
+          className={glowClassName}
+          animate={
+            isLowPerformance
+              ? undefined
+              : {
+                  scale: [1, isMediumPerformance ? 1.1 : 1.2, 1],
+                  opacity: [0.15, 0.28, 0.15],
+                }
+          }
+          transition={
+            isLowPerformance
+              ? undefined
+              : {
+                  duration: isMediumPerformance ? 2.4 : 2,
+                  repeat: Infinity,
+                }
+          }
         />
 
         {/* Tap indicator */}

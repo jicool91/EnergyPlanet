@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import type { Notification } from '../../store/uiStore';
 import { useUIStore } from '../../store/uiStore';
+import { useDevicePerformance } from '../../hooks';
 
 interface AchievementProps {
   notification: Notification;
@@ -8,6 +9,18 @@ interface AchievementProps {
 
 export function Achievement({ notification }: AchievementProps) {
   const removeNotification = useUIStore(state => state.removeNotification);
+  const performance = useDevicePerformance();
+  const isLowPerformance = performance === 'low';
+  const isMediumPerformance = performance === 'medium';
+  const trophyAnimation = isLowPerformance
+    ? undefined
+    : {
+        rotate: [0, 4, -4, 0],
+        scale: [1, isMediumPerformance ? 1.05 : 1.1, 1],
+      };
+  const trophyTransition = isLowPerformance
+    ? undefined
+    : { duration: isMediumPerformance ? 1.8 : 1.5, repeat: Infinity, delay: 0.2 };
 
   return (
     <motion.div
@@ -28,11 +41,11 @@ export function Achievement({ notification }: AchievementProps) {
     >
       {/* Glow effect */}
       <motion.div
-        className="absolute -inset-4 bg-gradient-to-r from-yellow-500/20 via-amber-500/20 to-orange-500/20 rounded-2xl blur-2xl"
-        animate={{
-          opacity: [0.5, 1, 0.5],
-        }}
-        transition={{ duration: 2, repeat: Infinity }}
+        className={`absolute -inset-4 bg-gradient-to-r from-yellow-500/20 via-amber-500/20 to-orange-500/20 rounded-2xl ${
+          isLowPerformance ? 'blur-md opacity-40' : 'blur-2xl'
+        }`}
+        animate={isLowPerformance ? undefined : { opacity: [0.5, 1, 0.5] }}
+        transition={isLowPerformance ? undefined : { duration: 2.2, repeat: Infinity }}
         style={{ zIndex: -1 }}
       />
 
@@ -46,11 +59,8 @@ export function Achievement({ notification }: AchievementProps) {
         {/* Trophy Icon */}
         <motion.div
           className="text-5xl mb-3 text-center"
-          animate={{
-            rotate: [0, 5, -5, 0],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{ duration: 1.5, repeat: Infinity, delay: 0.2 }}
+          animate={trophyAnimation}
+          transition={trophyTransition}
         >
           <span role="img" aria-label="Achievement trophy">
             🏆
@@ -84,15 +94,23 @@ export function Achievement({ notification }: AchievementProps) {
               key={i}
               className="text-2xl"
               aria-hidden="true"
-              animate={{
-                y: [-20, 0, -20],
-                opacity: [0, 1, 0],
-              }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-                delay: i * 0.15,
-              }}
+              animate={
+                isLowPerformance
+                  ? undefined
+                  : {
+                      y: [-20, 0, -20],
+                      opacity: [0, 1, 0],
+                    }
+              }
+              transition={
+                isLowPerformance
+                  ? undefined
+                  : {
+                      duration: isMediumPerformance ? 1.2 : 1,
+                      repeat: Infinity,
+                      delay: i * 0.2,
+                    }
+              }
             >
               ⭐
             </motion.span>
