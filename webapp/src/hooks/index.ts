@@ -6,3 +6,4 @@ export { useScrollToTop } from './useScrollToTop';
 export { useTheme } from './useTheme';
 export { useSafeArea } from './useSafeArea';
 export { useDevicePerformance } from './useDevicePerformance';
+export { useTelegramBackButton } from './useTelegramBackButton';
