@@ -69,11 +69,21 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     };
 
     const highlightStyles = highlighted ? 'ring-2 ring-[var(--color-success)] shadow-lg' : '';
+    const isInteractive =
+      typeof props.onClick === 'function' ||
+      props.role === 'button' ||
+      props.tabIndex !== undefined;
 
     return (
       <div
         ref={ref}
-        className={clsx(baseStyles, variantStyles[variant], highlightStyles, className)}
+        className={clsx(
+          baseStyles,
+          variantStyles[variant],
+          highlightStyles,
+          isInteractive && 'card-interactive',
+          className
+        )}
         {...props}
       >
         {highlighted && (
