@@ -1,4 +1,4 @@
-import { calculateLevelProgress } from '../level';
+import { calculateLevelProgress, xpThresholdForLevel } from '../level';
 
 describe('calculateLevelProgress', () => {
   it('returns base level data for new players', () => {
@@ -28,6 +28,20 @@ describe('calculateLevelProgress', () => {
   it('handles large xp totals without overflow', () => {
     const lateGame = calculateLevelProgress(150_000);
     expect(lateGame.level).toBeGreaterThan(10);
-    expect(lateGame.xpForNextLevel).toBe(Math.round(100 * Math.pow(lateGame.level, 1.5)));
+    expect(lateGame.xpForNextLevel).toBe(xpThresholdForLevel(lateGame.level));
+  });
+
+  it('applies soft caps for higher levels', () => {
+    const xpAt100 = xpThresholdForLevel(100);
+    expect(xpAt100).toBe(100_000);
+
+    const xpAt150 = xpThresholdForLevel(150);
+    expect(xpAt150).toBe(xpAt100 + 10_000 * 50);
+
+    const xpAt1000 = xpThresholdForLevel(1000);
+    expect(xpAt1000).toBe(xpAt100 + 10_000 * 900);
+
+    const xpAt1500 = xpThresholdForLevel(1500);
+    expect(xpAt1500).toBe(xpAt1000 + 50_000 * 500);
   });
 });

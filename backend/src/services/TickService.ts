@@ -1,15 +1,13 @@
 import { transaction } from '../db/connection';
 import { config } from '../config';
 import { loadPlayerContext } from './playerContext';
-import {
-  buildBuildingDetails,
-  computePassiveIncome,
-} from './passiveIncome';
+import { buildBuildingDetails, computePassiveIncome } from './passiveIncome';
 import { xpFromEnergy } from '../utils/tap';
 import { calculateLevelProgress } from '../utils/level';
 import { updateProgress } from '../repositories/ProgressRepository';
 import { logEvent } from '../repositories/EventRepository';
 import { AppError } from '../middleware/errorHandler';
+import { logger } from '../utils/logger';
 
 const MAX_SECONDS_FALLBACK = 3600; // 1 hour safety cap
 
@@ -69,7 +67,22 @@ export class TickService {
         xpGained,
         leveledUp,
         levelInfo,
+        totalXp,
+        previousLevel: progress.level,
       };
+    });
+
+    logger.debug('tick_applied', {
+      userId,
+      duration_sec: cappedSeconds,
+      passive_income_per_sec: Math.round(result.passiveIncome.effectiveIncome),
+      energy_gained: result.energyGained,
+      xp_gained: result.xpGained,
+      level_before: result.previousLevel,
+      level_after: result.updatedProgress.level,
+      total_xp: result.totalXp,
+      xp_into_level: result.levelInfo.xpIntoLevel,
+      xp_to_next_level: result.levelInfo.xpToNextLevel,
     });
 
     return {
