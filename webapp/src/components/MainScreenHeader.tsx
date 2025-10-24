@@ -26,6 +26,7 @@ import { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { formatCompactNumber } from '../utils/number';
 import { LevelBar } from './LevelBar';
+import { useSafeArea } from '../hooks';
 
 interface MainScreenHeaderProps {
   level: number;
@@ -46,14 +47,22 @@ export function MainScreenHeader({
 }: MainScreenHeaderProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
   const starsCompact = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
+  const { safeArea } = useSafeArea();
+  const { top: safeTop, left: safeLeft, right: safeRight } = safeArea.safe;
+
+  const headerPadding = useMemo(() => {
+    return {
+      paddingTop: `${Math.max(0, safeTop) + 8}px`,
+      paddingLeft: `${Math.max(0, safeLeft) + 8}px`,
+      paddingRight: `${Math.max(0, safeRight) + 8}px`,
+    };
+  }, [safeLeft, safeRight, safeTop]);
 
   return (
     <header
       className="fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-sm transition-colors duration-200"
       style={{
-        paddingTop: 'var(--safe-area-top)',
-        paddingLeft: 'var(--safe-area-left)',
-        paddingRight: 'var(--safe-area-right)',
+        ...headerPadding,
         background: 'linear-gradient(180deg, var(--app-header-bg) 0%, var(--app-bg) 85%)',
         borderBottom: '1px solid var(--color-border-subtle)',
       }}

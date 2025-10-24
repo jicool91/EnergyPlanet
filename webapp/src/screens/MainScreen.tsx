@@ -15,6 +15,7 @@ import {
 } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
+import { useSafeArea } from '../hooks';
 
 // Lazy load heavy components
 const ShopPanel = lazy(() =>
@@ -100,6 +101,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const { tap: hapticTap } = useHaptic();
   const { scrollRef, scrollToTop } = useScrollToTop();
   const [isScrolled, setIsScrolled] = useState(false);
+  const { safeArea } = useSafeArea();
+  const { bottom: safeBottom } = safeArea.safe;
+  const scrollPaddingBottom = useMemo(() => 60 + Math.max(0, safeBottom), [safeBottom]);
 
   const handleTap = () => {
     tap(1);
@@ -333,7 +337,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         ref={scrollRef}
         className="flex flex-col overflow-y-auto flex-1 min-h-0 relative"
         style={{
-          paddingBottom: 'calc(60px + var(--safe-area-bottom))',
+          paddingBottom: `${scrollPaddingBottom}px`,
         }}
         onScroll={handleScroll}
       >

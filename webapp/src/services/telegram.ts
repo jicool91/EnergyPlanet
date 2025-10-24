@@ -258,11 +258,19 @@ function applySafeArea(options: { safe?: TelegramSafeArea; content?: TelegramSaf
   const safe = options.safe ?? ZERO_SAFE_AREA;
   const content = options.content ?? safe;
 
+  root.style.setProperty('--tg-safe-area-inset-top', `${safe.top}px`);
+  root.style.setProperty('--tg-safe-area-inset-right', `${safe.right}px`);
+  root.style.setProperty('--tg-safe-area-inset-bottom', `${safe.bottom}px`);
+  root.style.setProperty('--tg-safe-area-inset-left', `${safe.left}px`);
   root.style.setProperty('--tg-safe-area-top', `${safe.top}px`);
   root.style.setProperty('--tg-safe-area-right', `${safe.right}px`);
   root.style.setProperty('--tg-safe-area-bottom', `${safe.bottom}px`);
   root.style.setProperty('--tg-safe-area-left', `${safe.left}px`);
 
+  root.style.setProperty('--tg-content-safe-area-inset-top', `${content.top}px`);
+  root.style.setProperty('--tg-content-safe-area-inset-right', `${content.right}px`);
+  root.style.setProperty('--tg-content-safe-area-inset-bottom', `${content.bottom}px`);
+  root.style.setProperty('--tg-content-safe-area-inset-left', `${content.left}px`);
   root.style.setProperty('--tg-content-safe-area-top', `${content.top}px`);
   root.style.setProperty('--tg-content-safe-area-right', `${content.right}px`);
   root.style.setProperty('--tg-content-safe-area-bottom', `${content.bottom}px`);

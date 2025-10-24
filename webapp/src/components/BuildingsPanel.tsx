@@ -4,6 +4,7 @@ import { BuildingCard } from './BuildingCard';
 import type { BuildingCardBuilding } from './BuildingCard';
 import { BuildingSkeleton, ErrorBoundary } from './skeletons';
 import { useHaptic } from '../hooks/useHaptic';
+import { useSafeArea } from '../hooks';
 
 const PURCHASE_OPTIONS = [
   { id: 'x1', label: '×1', value: 1 },
@@ -52,6 +53,13 @@ export function BuildingsPanel() {
   } = useGameStore();
   const playerLevel = useGameStore(state => state.level);
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<PurchaseOptionId>('x1');
+  const { safeArea } = useSafeArea();
+  const { bottom: contentBottom } = safeArea.content;
+  const panelPadding = useMemo(() => {
+    return {
+      paddingBottom: `${Math.max(0, contentBottom) + 16}px`,
+    };
+  }, [contentBottom]);
 
   const selectedOption = useMemo(
     () => PURCHASE_OPTIONS.find(option => option.id === selectedPurchaseId) ?? PURCHASE_OPTIONS[0],
@@ -187,12 +195,7 @@ export function BuildingsPanel() {
   }, [sortedBuildings]);
 
   return (
-    <div
-      className="flex flex-col gap-4 p-0"
-      style={{
-        paddingBottom: 'calc(var(--tg-content-safe-area-bottom, 0px) + 16px)',
-      }}
-    >
+    <div className="flex flex-col gap-4 p-0" style={panelPadding}>
       <div className="flex justify-between items-start gap-3">
         <div>
           <h2 className="m-0 text-heading text-[#f8fbff]">Постройки</h2>

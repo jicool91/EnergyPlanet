@@ -17,7 +17,7 @@ import { StatCard } from './StatCard';
 import { XPProgressCard } from './XPProgressCard';
 import { SocialProofCard } from './SocialProofCard';
 import { DailyRewardBanner } from './DailyRewardBanner';
-import { useDevicePerformance } from '../hooks';
+import { useDevicePerformance, useSafeArea } from '../hooks';
 import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
 
 export interface HomePanelProps {
@@ -72,6 +72,14 @@ export function HomePanel({
   const performance = useDevicePerformance();
   const isLowPerformance = performance === 'low';
   const isMediumPerformance = performance === 'medium';
+  const { safeArea } = useSafeArea();
+  const { top: contentTop, bottom: contentBottom } = safeArea.content;
+  const panelPadding = useMemo(() => {
+    return {
+      paddingTop: `${Math.max(0, contentTop) + 12}px`,
+      paddingBottom: `${Math.max(0, contentBottom) + 16}px`,
+    };
+  }, [contentBottom, contentTop]);
   const hoverAnimation = isLowPerformance ? undefined : { scale: 1.05 };
   const tapAnimation = isLowPerformance ? { scale: 0.98 } : { scale: 0.95 };
   const glowClassName = isLowPerformance
@@ -81,10 +89,7 @@ export function HomePanel({
   return (
     <div
       className="flex flex-col h-full lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-6 lg:px-6 lg:py-4"
-      style={{
-        paddingTop: 'calc(var(--tg-content-safe-area-top, 0px) + 12px)',
-        paddingBottom: 'calc(var(--tg-content-safe-area-bottom, 0px) + 16px)',
-      }}
+      style={panelPadding}
     >
       {/* Left column: stats + tap CTA */}
       <div className="flex flex-col h-full">

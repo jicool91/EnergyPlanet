@@ -20,7 +20,8 @@
  * ```
  */
 
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useMemo } from 'react';
+import { useSafeArea } from '../hooks';
 
 export interface TabBarItem {
   id: string;
@@ -38,6 +39,16 @@ interface TabBarProps {
 export function TabBar({ tabs, active, onChange }: TabBarProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const activeTabRef = useRef<HTMLButtonElement>(null);
+  const { safeArea } = useSafeArea();
+  const { right: safeRight, bottom: safeBottom, left: safeLeft } = safeArea.safe;
+
+  const footerPadding = useMemo(() => {
+    return {
+      paddingBottom: `${Math.max(0, safeBottom) + 8}px`,
+      paddingLeft: `${Math.max(0, safeLeft) + 12}px`,
+      paddingRight: `${Math.max(0, safeRight) + 12}px`,
+    };
+  }, [safeBottom, safeLeft, safeRight]);
 
   // Auto-scroll active tab into view
   useEffect(() => {
@@ -57,11 +68,7 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
   return (
     <footer
       className="fixed bottom-0 left-0 right-0 bg-black/85 border-t border-white/10 z-[100] w-full backdrop-blur"
-      style={{
-        paddingBottom: 'var(--safe-area-bottom)',
-        paddingLeft: 'var(--safe-area-left)',
-        paddingRight: 'var(--safe-area-right)',
-      }}
+      style={footerPadding}
     >
       <div
         ref={scrollContainerRef}

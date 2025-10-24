@@ -41,10 +41,18 @@
   --app-danger-text: var(--tg-theme-destructive-text-color, #ff5a5a);
 
   /* Telegram Safe Area Variables */
+  --tg-safe-area-inset-top: 0px;
+  --tg-safe-area-inset-right: 0px;
+  --tg-safe-area-inset-bottom: 0px;
+  --tg-safe-area-inset-left: 0px;
   --tg-safe-area-top: 0px;
   --tg-safe-area-right: 0px;
   --tg-safe-area-bottom: 0px;
   --tg-safe-area-left: 0px;
+  --tg-content-safe-area-inset-top: 0px;
+  --tg-content-safe-area-inset-right: 0px;
+  --tg-content-safe-area-inset-bottom: 0px;
+  --tg-content-safe-area-inset-left: 0px;
   --tg-content-safe-area-top: 0px;
   --tg-content-safe-area-right: 0px;
   --tg-content-safe-area-bottom: 0px;
@@ -53,10 +61,26 @@
   --tg-viewport-stable-height: 100vh;
 
   /* Computed safe area with padding */
-  --safe-area-top: max(12px, env(safe-area-inset-top), var(--tg-safe-area-top, 0px));
-  --safe-area-bottom: max(10px, env(safe-area-inset-bottom), var(--tg-safe-area-bottom, 0px));
-  --safe-area-left: max(0px, env(safe-area-inset-left), var(--tg-safe-area-left, 0px));
-  --safe-area-right: max(0px, env(safe-area-inset-right), var(--tg-safe-area-right, 0px));
+  --safe-area-top: max(
+    env(safe-area-inset-top, 0px),
+    var(--tg-safe-area-inset-top, 0px),
+    var(--tg-safe-area-top, 0px)
+  );
+  --safe-area-bottom: max(
+    env(safe-area-inset-bottom, 0px),
+    var(--tg-safe-area-inset-bottom, 0px),
+    var(--tg-safe-area-bottom, 0px)
+  );
+  --safe-area-left: max(
+    env(safe-area-inset-left, 0px),
+    var(--tg-safe-area-inset-left, 0px),
+    var(--tg-safe-area-left, 0px)
+  );
+  --safe-area-right: max(
+    env(safe-area-inset-right, 0px),
+    var(--tg-safe-area-inset-right, 0px),
+    var(--tg-safe-area-right, 0px)
+  );
 }
 
 @media (prefers-color-scheme: light) {

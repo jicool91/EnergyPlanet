@@ -27,6 +27,7 @@ export function TapSection({ onTap }: TapSectionProps) {
   const performance = useDevicePerformance();
   const isLowPerformance = performance === 'low';
   const isMediumPerformance = performance === 'medium';
+  const { top: contentTop, bottom: contentBottom } = safeArea.content;
 
   const isLandscape = useMemo(() => {
     if (viewport.width !== null && viewport.height !== null) {
@@ -48,6 +49,12 @@ export function TapSection({ onTap }: TapSectionProps) {
     return usable > 0 ? `${usable}px` : undefined;
   }, [viewport.stableHeight, viewport.height, safeArea.content.bottom, safeArea.content.top]);
 
+  const contentPadding = useMemo(() => {
+    return {
+      paddingTop: `${Math.max(0, contentTop) + 16}px`,
+      paddingBottom: `${Math.max(0, contentBottom) + 16}px`,
+    };
+  }, [contentBottom, contentTop]);
   const buttonSizeClass = isLandscape ? 'w-28 h-28 md:w-32 md:h-32' : 'w-32 h-32 md:w-40 md:h-40';
   const hoverAnimation = isLowPerformance ? undefined : { scale: 1.05 };
   const tapAnimation = isLowPerformance ? { scale: 0.98 } : { scale: 0.95 };
@@ -60,8 +67,7 @@ export function TapSection({ onTap }: TapSectionProps) {
       className="flex flex-col flex-1 items-center justify-center p-4 w-full"
       style={{
         minHeight,
-        paddingTop: 'calc(var(--tg-content-safe-area-top, 0px) + 16px)',
-        paddingBottom: 'calc(var(--tg-content-safe-area-bottom, 0px) + 16px)',
+        ...contentPadding,
       }}
     >
       <motion.button

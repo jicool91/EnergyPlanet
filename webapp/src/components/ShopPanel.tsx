@@ -6,6 +6,7 @@ import { Card } from './Card';
 import { Badge } from './Badge';
 import { OptimizedImage } from './OptimizedImage';
 import { useHaptic } from '../hooks/useHaptic';
+import { useSafeArea } from '../hooks';
 
 type CategoryOption = {
   id: string;
@@ -117,6 +118,13 @@ export function ShopPanel() {
   }, [filteredCosmetics]);
 
   const { success: hapticSuccess, error: hapticError } = useHaptic();
+  const { safeArea } = useSafeArea();
+  const { bottom: contentBottom } = safeArea.content;
+  const panelPadding = useMemo(() => {
+    return {
+      paddingBottom: `${Math.max(0, contentBottom) + 16}px`,
+    };
+  }, [contentBottom]);
 
   const handlePurchaseCosmetic = async (cosmeticId: string) => {
     try {
@@ -151,12 +159,7 @@ export function ShopPanel() {
   const featuredPack = starPacks.find(pack => pack.featured);
 
   return (
-    <div
-      className="flex flex-col gap-4 p-0"
-      style={{
-        paddingBottom: 'calc(var(--tg-content-safe-area-bottom, 0px) + 16px)',
-      }}
-    >
+    <div className="flex flex-col gap-4 p-0" style={panelPadding}>
       {/* Header with Power Up title */}
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1">

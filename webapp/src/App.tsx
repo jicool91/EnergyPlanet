@@ -1,8 +1,4 @@
-/**
- * Main App Component
- */
-
-import { useEffect, useCallback, useState, useRef } from 'react';
+import { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import { useGameStore } from './store/gameStore';
 import { useUIStore } from './store/uiStore';
 import { MainScreen } from './screens/MainScreen';
@@ -15,6 +11,7 @@ import { useNotification } from './hooks/useNotification';
 import { useTelegramBackButton } from './hooks/useTelegramBackButton';
 import { logClientEvent } from './services/telemetry';
 import { initializePreferenceCloudSync } from './services/preferencesSync';
+import { useSafeArea } from './hooks';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 
@@ -61,6 +58,17 @@ function App() {
   const [activeTab, setActiveTab] = useState<TabKey>('home');
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [overlayLevel, setOverlayLevel] = useState<number | null>(null);
+  const { safeArea } = useSafeArea();
+  const { top: safeTop, right: safeRight, bottom: safeBottom, left: safeLeft } = safeArea.safe;
+
+  const appPaddingStyle = useMemo(() => {
+    return {
+      paddingTop: `${Math.max(0, safeTop) + 12}px`,
+      paddingRight: `${Math.max(0, safeRight)}px`,
+      paddingBottom: `${Math.max(0, safeBottom) + 16}px`,
+      paddingLeft: `${Math.max(0, safeLeft)}px`,
+    };
+  }, [safeBottom, safeLeft, safeRight, safeTop]);
 
   // Detect level up
   useEffect(() => {
@@ -155,7 +163,10 @@ function App() {
   });
 
   return (
-    <div className="w-full h-screen flex flex-col bg-gradient-to-b from-dark-bg to-black pl-safe-left pr-safe-right pt-safe-top pb-safe-bottom overflow-hidden">
+    <div
+      className="w-full h-screen flex flex-col bg-gradient-to-b from-dark-bg to-black overflow-hidden"
+      style={appPaddingStyle}
+    >
       {/* Header with Quick Actions */}
       <MainScreenHeader
         level={level}
