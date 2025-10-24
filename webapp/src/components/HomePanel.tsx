@@ -20,6 +20,8 @@ import { DailyRewardBanner } from './DailyRewardBanner';
 import { useDevicePerformance, useSafeArea } from '../hooks';
 import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
 
+const TAB_BAR_RESERVE_PX = 88;
+
 export interface HomePanelProps {
   // Game state
   energy: number;
@@ -77,7 +79,7 @@ export function HomePanel({
   const panelPadding = useMemo(() => {
     return {
       paddingTop: `${Math.max(0, contentTop) + 12}px`,
-      paddingBottom: `${Math.max(0, contentBottom) + 16}px`,
+      paddingBottom: `${Math.max(0, contentBottom) + TAB_BAR_RESERVE_PX}px`,
     };
   }, [contentBottom, contentTop]);
   const hoverAnimation = isLowPerformance ? undefined : { scale: 1.05 };

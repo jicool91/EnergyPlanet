@@ -17,6 +17,8 @@ import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
 import { useSafeArea } from '../hooks';
 
+const TAB_BAR_RESERVE_PX = 88;
+
 // Lazy load heavy components
 const ShopPanel = lazy(() =>
   import('../components/ShopPanel').then(m => ({ default: m.ShopPanel }))
@@ -103,7 +105,10 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const [isScrolled, setIsScrolled] = useState(false);
   const { safeArea } = useSafeArea();
   const { bottom: safeBottom } = safeArea.safe;
-  const scrollPaddingBottom = useMemo(() => 60 + Math.max(0, safeBottom), [safeBottom]);
+  const scrollPaddingBottom = useMemo(
+    () => TAB_BAR_RESERVE_PX + Math.max(0, safeBottom),
+    [safeBottom]
+  );
 
   const handleTap = () => {
     tap(1);
