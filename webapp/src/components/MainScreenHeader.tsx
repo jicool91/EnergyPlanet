@@ -63,18 +63,20 @@ export function MainScreenHeader({
         <div className="flex items-center gap-4 min-w-0">
           {/* Level Badge */}
           <div className="flex-shrink-0 flex flex-col items-center">
-            <span className="text-xs text-[var(--color-text-secondary)]">LV</span>
-            <span className="text-sm font-bold text-[var(--color-text-accent)]">{level}</span>
+            <span className="text-caption text-[var(--color-text-secondary)]">LV</span>
+            <span className="text-subheading font-bold text-[var(--color-text-accent)]">
+              {level}
+            </span>
           </div>
 
           {/* Energy */}
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-lg flex-shrink-0" role="img" aria-label="Energy">
+            <span className="text-subheading flex-shrink-0" role="img" aria-label="Energy">
               ⚡
             </span>
             <div className="min-w-0">
-              <p className="m-0 text-xs text-[var(--color-text-secondary)] truncate">Energy</p>
-              <p className="m-0 text-sm font-semibold text-[var(--color-text-primary)] truncate">
+              <p className="m-0 text-caption text-[var(--color-text-secondary)] truncate">Energy</p>
+              <p className="m-0 text-body font-semibold text-[var(--color-text-primary)] truncate">
                 {energyCompact}
               </p>
             </div>
@@ -82,12 +84,12 @@ export function MainScreenHeader({
 
           {/* Stars + Quick Top-Up */}
           <div className="flex items-center gap-1.5 min-w-0">
-            <span className="text-lg flex-shrink-0" role="img" aria-label="Stars">
+            <span className="text-subheading flex-shrink-0" role="img" aria-label="Stars">
               ⭐
             </span>
             <div className="min-w-0">
-              <p className="m-0 text-xs text-[var(--color-text-secondary)] truncate">Stars</p>
-              <p className="m-0 text-sm font-semibold text-[var(--color-text-accent)] truncate">
+              <p className="m-0 text-caption text-[var(--color-text-secondary)] truncate">Stars</p>
+              <p className="m-0 text-body font-semibold text-[var(--color-text-accent)] truncate">
                 {starsCompact}
               </p>
             </div>
@@ -108,7 +110,7 @@ export function MainScreenHeader({
                   opacity: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
                 }}
               >
-                <span className="text-xs font-bold" aria-hidden="true">
+                <span className="text-caption font-bold" aria-hidden="true">
                   +
                 </span>
               </motion.button>
@@ -122,12 +124,12 @@ export function MainScreenHeader({
           {onShopClick && (
             <button
               onClick={onShopClick}
-              className="flex-shrink-0 px-3 py-2 rounded-md border border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)] text-sm font-medium text-[var(--color-text-accent)] hover:shadow-glow-card transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
+              className="flex-shrink-0 px-3 py-2 rounded-md border border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)] text-body font-medium text-[var(--color-text-accent)] hover:shadow-glow-card transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
               title="Top-up Stars"
               type="button"
               aria-label="Top-up Stars"
             >
-              <span className="text-sm" aria-hidden="true">
+              <span className="text-subheading" aria-hidden="true">
                 🛍️
               </span>
             </button>
@@ -142,7 +144,7 @@ export function MainScreenHeader({
               aria-label="Settings"
               type="button"
             >
-              <span className="text-lg" aria-hidden="true">
+              <span className="text-subheading" aria-hidden="true">
                 ⚙️
               </span>
             </button>
