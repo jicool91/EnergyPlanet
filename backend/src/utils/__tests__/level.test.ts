@@ -1,18 +1,33 @@
 import { calculateLevelProgress } from '../level';
 
 describe('calculateLevelProgress', () => {
-  test('level 1 baseline', () => {
-    const result = calculateLevelProgress(0);
-    expect(result.level).toBe(1);
-    expect(result.xpIntoLevel).toBe(0);
-    expect(result.xpForNextLevel).toBe(100);
-    expect(result.xpToNextLevel).toBe(100);
+  it('returns base level data for new players', () => {
+    const progress = calculateLevelProgress(0);
+    expect(progress).toEqual({
+      level: 1,
+      xpIntoLevel: 0,
+      xpForNextLevel: 100,
+      xpToNextLevel: 100,
+    });
   });
 
-  test('levels up correctly', () => {
-    const result = calculateLevelProgress(350);
-    expect(result.level).toBe(3);
-    expect(result.xpIntoLevel).toBe(50);
-    expect(result.xpToNextLevel).toBe(250);
+  it('tracks level ups using exponential thresholds', () => {
+    const afterFirstLevel = calculateLevelProgress(100);
+    expect(afterFirstLevel.level).toBe(2);
+    expect(afterFirstLevel.xpIntoLevel).toBe(0);
+    expect(afterFirstLevel.xpForNextLevel).toBe(283);
+    expect(afterFirstLevel.xpToNextLevel).toBe(283);
+
+    const midGame = calculateLevelProgress(2000);
+    expect(midGame.level).toBe(5);
+    expect(midGame.xpIntoLevel).toBeGreaterThan(0);
+    expect(midGame.xpForNextLevel).toBe(1118);
+    expect(midGame.xpIntoLevel + midGame.xpToNextLevel).toBe(midGame.xpForNextLevel);
+  });
+
+  it('handles large xp totals without overflow', () => {
+    const lateGame = calculateLevelProgress(150_000);
+    expect(lateGame.level).toBeGreaterThan(10);
+    expect(lateGame.xpForNextLevel).toBe(Math.round(100 * Math.pow(lateGame.level, 1.5)));
   });
 });
