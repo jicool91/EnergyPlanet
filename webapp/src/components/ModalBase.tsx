@@ -107,10 +107,10 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
   showClose = true,
   size = 'md',
 }) => {
-  const sizeStyles = {
-    sm: 'max-w-sm',
-    md: 'max-w-md',
-    lg: 'max-w-lg',
+  const sizeStyles: Record<Required<ModalBaseProps>['size'], string> = {
+    sm: 'w-[min(92vw,420px)]',
+    md: 'w-[min(92vw,560px)]',
+    lg: 'w-[min(92vw,720px)]',
   };
 
   return (
@@ -134,13 +134,13 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
             transition={{ duration: 0.2 }}
             className={clsx(
               'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50',
-              'bg-dark-bg rounded-lg border border-cyan/[0.14] shadow-xl',
-              'p-6 w-[90vw]',
+              'bg-dark-bg rounded-xl border border-cyan/[0.14] shadow-xl backdrop-blur-md',
+              'max-h-[85vh] flex flex-col gap-5 p-5 sm:gap-6 sm:p-6',
               sizeStyles[size]
             )}
           >
             {/* Header */}
-            <div className="flex items-center justify-between gap-4 mb-4">
+            <div className="flex items-center justify-between gap-4">
               <h2 className="text-heading font-semibold text-white flex-1">{title}</h2>
 
               {showClose && (
@@ -162,11 +162,11 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
             </div>
 
             {/* Content */}
-            <div className="text-body text-white/80 mb-6">{children}</div>
+            <div className="flex-1 overflow-y-auto pr-1 text-body text-white/80">{children}</div>
 
             {/* Actions */}
             {actions.length > 0 && (
-              <div className="flex gap-3 justify-end">
+              <div className="flex gap-3 justify-end flex-wrap">
                 {actions.map((action, index) => (
                   <Button
                     key={index}
