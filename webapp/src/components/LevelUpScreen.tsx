@@ -141,7 +141,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
 
                 {/* Level number */}
                 <motion.div
-                  className="relative text-[180px] font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan via-lime to-gold drop-shadow-[0_0_30px_rgba(0,217,255,0.8)]"
+                  className="relative text-hero-display font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan via-lime to-gold drop-shadow-[0_0_30px_rgba(0,217,255,0.8)]"
                   animate={{
                     scale: [1, 1.1, 1],
                     textShadow: [

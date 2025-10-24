@@ -230,7 +230,7 @@ export function ShopPanel() {
                   className="w-full h-full object-cover"
                 />
               ) : (
-                <span className="text-[32px]" aria-hidden="true">
+                <span className="text-icon-lg" aria-hidden="true">
                   ⭐
                 </span>
               )}
@@ -380,7 +380,7 @@ export function ShopPanel() {
                           className="w-full h-full object-cover"
                         />
                       ) : (
-                        <span className="text-[28px]" aria-hidden="true">
+                        <span className="text-icon-md" aria-hidden="true">
                           ⭐
                         </span>
                       )}
@@ -552,7 +552,7 @@ export function ShopPanel() {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <span className="text-[28px]" aria-hidden="true">
+                    <span className="text-icon-md" aria-hidden="true">
                       ✦
                     </span>
                   )}

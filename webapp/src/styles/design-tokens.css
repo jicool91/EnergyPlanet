@@ -150,6 +150,24 @@
   font-weight: var(--font-weight-micro);
 }
 
+.text-icon-md {
+  font-size: 28px;
+  line-height: 1;
+  font-weight: var(--font-weight-heading);
+}
+
+.text-icon-lg {
+  font-size: 32px;
+  line-height: 1;
+  font-weight: var(--font-weight-heading);
+}
+
+.text-hero-display {
+  font-size: 180px;
+  line-height: 1;
+  font-weight: var(--font-weight-display);
+}
+
 /**
  * Card Styles
  * Use for consistent card appearance

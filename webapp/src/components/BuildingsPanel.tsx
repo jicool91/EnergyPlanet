@@ -195,12 +195,12 @@ export function BuildingsPanel() {
     >
       <div className="flex justify-between items-start gap-3">
         <div>
-          <h2 className="m-0 text-xl text-[#f8fbff]">Постройки</h2>
-          <p className="m-0 text-[13px] text-white/60">
+          <h2 className="m-0 text-heading text-[#f8fbff]">Постройки</h2>
+          <p className="m-0 text-caption text-white/60">
             Развивайте инфраструктуру и увеличивайте пассивный доход
           </p>
         </div>
-        <div className="text-[13px] text-white/75 font-semibold">
+        <div className="text-body text-white/75 font-semibold">
           Энергия: {Math.floor(energy).toLocaleString()}
         </div>
       </div>
@@ -212,7 +212,7 @@ export function BuildingsPanel() {
             <button
               key={option.id}
               type="button"
-              className={`px-3 py-1.5 rounded-full border text-[12px] font-semibold transition-all duration-150 ${
+              className={`px-3 py-1.5 rounded-full border text-caption font-semibold transition-all duration-150 ${
                 isActive
                   ? 'border-cyan/60 bg-cyan/20 text-[#f8fbff]'
                   : 'border-cyan/15 bg-dark-secondary/40 text-white/60 hover:text-[#f8fbff]'
@@ -231,7 +231,7 @@ export function BuildingsPanel() {
       </div>
 
       {buildingsError && (
-        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-[13px] flex items-center justify-between">
+        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-body flex items-center justify-between">
           <span>{buildingsError}</span>
           <button
             onClick={() => loadBuildingCatalog()}

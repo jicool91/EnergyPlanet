@@ -45,7 +45,7 @@ export function ProfilePanel() {
     <div className="p-0 flex flex-col gap-4">
       <header className="flex items-center gap-3">
         <div
-          className="w-14 h-14 rounded-lg bg-cyan/[0.15] flex items-center justify-center text-[30px]"
+          className="w-14 h-14 rounded-lg bg-cyan/[0.15] flex items-center justify-center text-heading"
           aria-hidden
         >
           {profile.profile.equipped_avatar_frame ? '🛡️' : '🙂'}
