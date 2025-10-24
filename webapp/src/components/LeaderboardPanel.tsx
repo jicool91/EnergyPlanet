@@ -120,7 +120,7 @@ export function LeaderboardPanel() {
       {/* Table Container */}
       <Card className="overflow-hidden p-0">
         <div className="hidden sm:block">
-          <table className="w-full border-collapse text-[13px]">
+          <table className="w-full border-collapse text-caption">
             <thead>
               <tr>
                 <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
@@ -173,7 +173,7 @@ export function LeaderboardPanel() {
                             {entry.username || entry.first_name || 'Игрок'}
                             {isCurrentUser && ' ⭐'}
                           </span>
-                          <span className="text-[11px] text-[var(--color-text-secondary)]">
+                          <span className="text-micro text-[var(--color-text-secondary)]">
                             #{entry.user_id.slice(0, 6)}
                           </span>
                         </div>
@@ -190,7 +190,7 @@ export function LeaderboardPanel() {
                           {Math.floor(entry.total_energy_produced).toLocaleString()}
                         </span>
                         {entry.energyDiffToNext > 0 && (
-                          <span className="text-[11px] text-[var(--color-text-secondary)]">
+                          <span className="text-micro text-[var(--color-text-secondary)]">
                             -{Math.floor(entry.energyDiffToNext).toLocaleString()}
                           </span>
                         )}
@@ -231,7 +231,7 @@ export function LeaderboardPanel() {
                       >
                         #{entry.rank} {entry.username || entry.first_name || 'Игрок'}
                       </span>
-                      <span className="text-[11px] text-[var(--color-text-secondary)]">
+                      <span className="text-micro text-[var(--color-text-secondary)]">
                         ID {entry.user_id.slice(0, 6)}
                       </span>
                     </div>
@@ -243,7 +243,7 @@ export function LeaderboardPanel() {
                   <span>{Math.floor(entry.total_energy_produced).toLocaleString()}</span>
                 </div>
                 {entry.energyDiffToNext > 0 && (
-                  <div className="text-xs text-[var(--color-text-secondary)]">
+                  <div className="text-caption text-[var(--color-text-secondary)]">
                     До следующего: -{Math.floor(entry.energyDiffToNext).toLocaleString()}
                   </div>
                 )}
