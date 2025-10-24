@@ -1,4 +1,5 @@
 import { ModalBase } from './ModalBase';
+import { formatCompactNumber } from '../utils/number';
 
 /**
  * OfflineSummaryModal Component
@@ -47,6 +48,12 @@ export function OfflineSummaryModal({
   const endLevel = levelEnd ?? null;
   const gainedLevels =
     levelsGained ?? (levelStart != null && levelEnd != null ? levelEnd - levelStart : null);
+  const energyLabel = formatCompactNumber(Math.floor(energy));
+  const xpLabel = xp > 0 ? formatCompactNumber(Math.floor(xp)) : null;
+  const passivePerSecondLabel =
+    energy > 0 && durationSec > 0
+      ? formatCompactNumber(Math.floor(energy / Math.max(durationSec, 1)))
+      : null;
 
   return (
     <ModalBase
@@ -56,45 +63,48 @@ export function OfflineSummaryModal({
       size="sm"
       actions={[{ label: 'Продолжить', variant: 'primary', onClick: onClose }]}
     >
-      <div className="max-h-[80vh] overflow-y-auto pr-1 space-y-4">
-        <div className="text-body text-white/80">
+      <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden pr-1 space-y-4">
+        <p className="text-body text-white/80 leading-relaxed break-words">
           {durationSec > 0 || energy > 0 || xp > 0 ? (
             <>
-              За {formatDuration(durationSec)} вы накопили{' '}
-              <strong>{Math.floor(energy).toLocaleString()} энергии</strong>
-              {xp > 0 ? ` и ${Math.floor(xp).toLocaleString()} XP` : ''}.
+              {`За ${formatDuration(durationSec)} вы накопили `}
+              <strong>{energyLabel} энергии</strong>
+              {xpLabel ? ` и ${xpLabel} XP` : ''}.
             </>
           ) : (
             <>Пока вы были офлайн, прогресс продолжал считаться.</>
           )}
           {gainedLevels && gainedLevels > 0 && (
-            <>
-              {' '}
+            <span className="block mt-2">
               Уровень вырос с {startLevel ?? '-'} до {endLevel ?? '-'} ({gainedLevels} новых
               уровней).
-            </>
+            </span>
           )}
-        </div>
+        </p>
 
         <div className="grid gap-3 text-sm text-white/75">
-          {(energy > 0 || durationSec > 0) && (
-            <div className="flex justify-between items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-              <span className="text-white/60">Пассивный доход</span>
-              <span className="font-semibold">
-                {Math.floor(energy / Math.max(durationSec, 1)).toLocaleString()} E/с
+          {(energy > 0 || durationSec > 0) && passivePerSecondLabel && (
+            <div className="grid grid-cols-[1fr_auto] gap-3 items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+              <span className="text-white/60 break-words">Пассивный доход</span>
+              <span className="font-semibold text-right whitespace-nowrap">
+                {passivePerSecondLabel} E/с
               </span>
             </div>
           )}
           {gainedLevels != null && (
-            <div className="flex justify-between items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-              <span className="text-white/60">Новые уровни</span>
-              <span className="font-semibold">{gainedLevels > 0 ? `+${gainedLevels}` : '—'}</span>
+            <div className="grid grid-cols-[1fr_auto] gap-3 items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
+              <span className="text-white/60 break-words">Новые уровни</span>
+              <span className="font-semibold text-right">
+                {gainedLevels > 0 ? `+${gainedLevels}` : '—'}
+              </span>
             </div>
           )}
           {capped && (
-            <div className="flex justify-between items-center bg-orange/15 border border-orange/40 text-orange/90 rounded-lg px-3 py-2">
-              <span>Лимит офлайна достигнут</span>
-              <span className="text-xs uppercase tracking-wide">подключайтесь чаще</span>
+            <div className="grid gap-1 bg-orange/15 border border-orange/40 text-orange/90 rounded-lg px-3 py-2">
+              <span className="font-semibold">Лимит офлайна достигнут</span>
+              <span className="text-xs uppercase tracking-wide text-orange/80">
+                подключайтесь чаще
+              </span>
             </div>
           )}
         </div>
