@@ -171,7 +171,8 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
   const purchaseDisabled = processing || !canPurchase || purchasePlan.quantity <= 0 || isLocked;
 
   // Design System: Base card styles using tokens
-  const baseCardClass = 'flex flex-col gap-3 p-4 rounded-lg border shadow-lg';
+  const baseCardClass =
+    'flex flex-col gap-3 p-4 max-[420px]:p-3 max-[360px]:p-2 rounded-lg border shadow-lg';
   const cardVariant = isBestPayback
     ? 'border-lime/60 bg-dark-secondary/70 shadow-lg relative'
     : 'border-cyan/[0.14] bg-dark-secondary/60';
@@ -196,8 +197,10 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       )}
 
       {/* Header: Building name + count */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <h3 className="m-0 text-subheading font-semibold text-white">{building.name}</h3>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between max-[420px]:gap-1">
+        <h3 className="m-0 text-subheading font-semibold text-white text-base sm:text-subheading max-[360px]:text-sm">
+          {building.name}
+        </h3>
         <motion.span
           className="text-caption text-[var(--color-text-secondary)] font-semibold"
           animate={showUnlockAnim ? { scale: [1, 1.2, 1] } : { scale: 1 }}
@@ -208,9 +211,11 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       </div>
 
       {/* Stats: Level, Income, Payback, ROI */}
-      <div className="grid gap-2 text-caption text-[var(--color-text-secondary)] sm:flex sm:flex-wrap sm:gap-4">
-        <span>Уровень: {building.level}</span>
-        <span>Доход: {building.incomePerSec.toLocaleString()} /с</span>
+      <div className="grid gap-2 text-caption text-[var(--color-text-secondary)] sm:flex sm:flex-wrap sm:gap-4 max-[420px]:text-xs max-[360px]:grid-cols-2">
+        <span className="font-medium text-white/80">Уровень: {building.level}</span>
+        <span className="font-medium text-white/80">
+          Доход: {building.incomePerSec.toLocaleString()} /с
+        </span>
         <span>Окупаемость: {payback}</span>
         {roiRank && <span className="text-lime/85 font-semibold">ROI #{roiRank}</span>}
       </div>
@@ -221,7 +226,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
       )}
 
       {/* Purchase info: Quantity, Cost, Income gain */}
-      <div className="flex flex-col gap-2 text-micro text-[var(--color-text-secondary)] sm:flex-row sm:flex-wrap sm:gap-3">
+      <div className="flex flex-col gap-2 text-micro text-[var(--color-text-secondary)] sm:flex-row sm:flex-wrap sm:gap-3 max-[420px]:text-[11px]">
         <span>Пакет: {purchaseQuantityLabel}</span>
         <span>Стоимость: {purchaseCostLabel}</span>
         {purchasePlan.incomeGain > 0 && (
