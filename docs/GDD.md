@@ -25,6 +25,7 @@ tap_income = base_tap * tap_multiplier * (1 + boost_percentage)
 
 где:
 - base_tap = 1 (начальное значение)
+- tap_upgrade_level начинается с 0 для базового состояния (даёт множитель 1.0)
 - tap_multiplier = 1 + (tap_upgrade_level * 0.15)
 - boost_percentage = сумма всех активных бустов (0.0 - 5.0)
 ```
@@ -76,7 +77,7 @@ building_upgrade_cost(base_cost, level) = (base_cost * 5) * (1.25 ^ level)
 ### 3.4 Прогрессионные пороги
 
 ```
-next_level_exp(current_level) = 100 * (current_level ^ 1.5)
+next_level_exp(current_level) = round(100 * (current_level ^ 1.5))
 
 Примеры:
 - Level 1→2: 100 XP
