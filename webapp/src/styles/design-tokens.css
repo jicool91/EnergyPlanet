@@ -171,12 +171,24 @@
 /* Icon/hero sizes documented separately to avoid inline values */
 
 /**
+ * Stat display helper for numeric highlights
+ */
+.stat-display {
+  font-size: var(--font-heading);
+  line-height: var(--line-height-heading);
+  font-weight: var(--font-weight-heading);
+}
+
+/**
  * Interactive Card Utility
  * Apply to cards that respond to pointer/tap interactions
  */
 .card-interactive {
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  transition:
+    transform 160ms ease,
+    box-shadow 160ms ease,
+    border-color 160ms ease;
 }
 
 .card-interactive:hover {

@@ -43,7 +43,7 @@ export function StatCard({
       </div>
 
       {/* Value: large, bold, white */}
-      <div className="text-heading font-semibold text-white">{value}</div>
+      <div className="stat-display text-white">{value}</div>
 
       {/* Optional subLabel: small, muted */}
       {subLabel && <div className="text-caption text-white/60">{subLabel}</div>}
