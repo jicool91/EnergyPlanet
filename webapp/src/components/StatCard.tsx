@@ -29,7 +29,7 @@ export function StatCard({
 }: StatCardProps) {
   // Base: flex + gap + rounded + border + padding + transition
   const base =
-    'flex flex-col gap-2 rounded-md border px-4 py-3 transition-transform duration-150 ease-out';
+    'flex flex-col gap-2 rounded-md border px-4 py-3 transition-transform duration-150 ease-out min-w-0';
   const toneClass = toneStyles[tone];
 
   const content = (

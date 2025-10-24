@@ -65,7 +65,7 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
       />
 
       {/* Content */}
-      <div className="relative flex items-center justify-between gap-4 z-10">
+      <div className="relative flex flex-wrap items-center justify-between gap-4 z-10">
         <div className="flex items-center gap-3">
           <span
             className={`text-4xl ${isLowPerformance ? '' : 'animate-bounce'}`}
