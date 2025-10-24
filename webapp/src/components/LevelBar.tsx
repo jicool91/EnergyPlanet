@@ -83,9 +83,7 @@ export function LevelBar({ progress, xpCurrent, xpTotal, showLabel = false }: Le
 
       {/* Optional label */}
       {showLabel && (
-        <div className="text-xs text-white/60 mt-1">
-          {Math.round(percentage)}% to next level
-        </div>
+        <div className="text-xs text-white/60 mt-1">{Math.round(percentage)}% to next level</div>
       )}
     </div>
   );

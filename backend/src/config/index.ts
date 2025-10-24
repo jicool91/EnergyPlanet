@@ -178,7 +178,10 @@ export const config = {
   },
 
   rateLimit: {
-    enabled: process.env.RATE_LIMIT_ENABLED !== 'false',
+    enabled:
+      process.env.NODE_ENV === 'test'
+        ? false
+        : process.env.RATE_LIMIT_ENABLED !== 'false',
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
   },

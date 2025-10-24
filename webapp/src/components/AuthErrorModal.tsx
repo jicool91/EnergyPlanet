@@ -13,12 +13,7 @@ interface AuthErrorModalProps {
   onDismiss: () => void;
 }
 
-export function AuthErrorModal({
-  isOpen,
-  message,
-  onRetry,
-  onDismiss,
-}: AuthErrorModalProps) {
+export function AuthErrorModal({ isOpen, message, onRetry, onDismiss }: AuthErrorModalProps) {
   return (
     <ModalBase
       isOpen={isOpen}

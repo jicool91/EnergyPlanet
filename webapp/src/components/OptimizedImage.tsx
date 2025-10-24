@@ -47,16 +47,7 @@ export interface OptimizedImageProps extends ImgHTMLAttributes<HTMLImageElement>
  */
 export const OptimizedImage = React.forwardRef<HTMLImageElement, OptimizedImageProps>(
   (
-    {
-      src,
-      alt,
-      width = 72,
-      height = 72,
-      className = '',
-      useWebP = true,
-      placeholder,
-      ...props
-    },
+    { src, alt, width = 72, height = 72, className = '', useWebP = true, placeholder, ...props },
     ref
   ) => {
     // Convert URL to WebP if useWebP is enabled

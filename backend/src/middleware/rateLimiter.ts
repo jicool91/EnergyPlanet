@@ -18,6 +18,8 @@ const userKey = (req: Request): string => {
   return `ip:${req.ip ?? 'anonymous'}`;
 };
 
+const shouldSkip = () => !config.rateLimit.enabled || process.env.NODE_ENV === 'test';
+
 export const rateLimiter = rateLimit({
   windowMs: config.rateLimit.windowMs,
   max: config.rateLimit.maxRequests,
@@ -28,6 +30,7 @@ export const rateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: userKey,
+  skip: shouldSkip,
 });
 
 export const tapRateLimiter = rateLimit({
@@ -40,6 +43,7 @@ export const tapRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: userKey,
+  skip: shouldSkip,
 });
 
 export const upgradeRateLimiter = rateLimit({
@@ -51,6 +55,7 @@ export const upgradeRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: userKey,
+  skip: shouldSkip,
 });
 
 export const purchaseRateLimiter = rateLimit({
@@ -62,4 +67,5 @@ export const purchaseRateLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: userKey,
+  skip: shouldSkip,
 });

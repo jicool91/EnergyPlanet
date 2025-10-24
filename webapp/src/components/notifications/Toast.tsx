@@ -17,42 +17,48 @@ const TOAST_THEME: Record<
   }
 > = {
   success: {
-    container: 'border border-lime/35 bg-gradient-to-r from-lime/15 via-dark-card to-dark-card shadow-lg',
+    container:
+      'border border-lime/35 bg-gradient-to-r from-lime/15 via-dark-card to-dark-card shadow-lg',
     iconBg: 'bg-lime/80 text-gray-900',
     text: 'text-lime-100',
     accent: 'bg-lime/60',
     close: 'text-lime-100/70 hover:text-lime-100',
   },
   error: {
-    container: 'border border-red-error/50 bg-gradient-to-r from-red-error/20 via-dark-card to-dark-card shadow-lg',
+    container:
+      'border border-red-error/50 bg-gradient-to-r from-red-error/20 via-dark-card to-dark-card shadow-lg',
     iconBg: 'bg-red-error text-white',
     text: 'text-red-100',
     accent: 'bg-red-error/70',
     close: 'text-red-100/70 hover:text-red-100',
   },
   warning: {
-    container: 'border border-amber-400/50 bg-gradient-to-r from-amber-400/20 via-dark-card to-dark-card shadow-lg',
+    container:
+      'border border-amber-400/50 bg-gradient-to-r from-amber-400/20 via-dark-card to-dark-card shadow-lg',
     iconBg: 'bg-amber-400 text-gray-900',
     text: 'text-amber-100',
     accent: 'bg-amber-400/70',
     close: 'text-amber-100/70 hover:text-amber-100',
   },
   star: {
-    container: 'border border-yellow-300/40 bg-gradient-to-r from-yellow-300/15 via-dark-card to-dark-card shadow-lg',
+    container:
+      'border border-yellow-300/40 bg-gradient-to-r from-yellow-300/15 via-dark-card to-dark-card shadow-lg',
     iconBg: 'bg-yellow-300 text-gray-900',
     text: 'text-yellow-100',
     accent: 'bg-yellow-300/70',
     close: 'text-yellow-100/70 hover:text-yellow-100',
   },
   trophy: {
-    container: 'border border-orange-400/60 bg-gradient-to-r from-orange-400/20 via-dark-card to-dark-card shadow-lg',
+    container:
+      'border border-orange-400/60 bg-gradient-to-r from-orange-400/20 via-dark-card to-dark-card shadow-lg',
     iconBg: 'bg-orange-400 text-gray-900',
     text: 'text-orange-100',
     accent: 'bg-orange-400/70',
     close: 'text-orange-100/70 hover:text-orange-100',
   },
   info: {
-    container: 'border border-cyan/40 bg-gradient-to-r from-cyan/20 via-dark-card to-dark-card shadow-lg',
+    container:
+      'border border-cyan/40 bg-gradient-to-r from-cyan/20 via-dark-card to-dark-card shadow-lg',
     iconBg: 'bg-cyan/80 text-gray-900',
     text: 'text-white',
     accent: 'bg-cyan/70',
@@ -105,7 +111,10 @@ export function Toast({ notification }: ToastProps) {
       aria-live="polite"
       className={`relative flex items-center gap-3 rounded-xl px-4 py-3 sm:px-5 sm:py-4 backdrop-blur-md min-w-[280px] shadow-lg ${theme.container}`}
     >
-      <span className={`absolute left-2 top-2 bottom-2 w-1 rounded-full ${theme.accent}`} aria-hidden />
+      <span
+        className={`absolute left-2 top-2 bottom-2 w-1 rounded-full ${theme.accent}`}
+        aria-hidden
+      />
 
       {/* Icon Badge */}
       <div

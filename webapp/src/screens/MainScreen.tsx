@@ -6,17 +6,33 @@ import { useEffect, useMemo, Suspense, lazy, useState } from 'react';
 import { motion } from 'framer-motion';
 import { streakConfig, useGameStore } from '../store/gameStore';
 import { HomePanel } from '../components/HomePanel';
-import { ScreenTransition, ShopSkeleton, BuildingSkeleton, LeaderboardSkeleton, ProfileSkeleton } from '../components';
+import {
+  ScreenTransition,
+  ShopSkeleton,
+  BuildingSkeleton,
+  LeaderboardSkeleton,
+  ProfileSkeleton,
+} from '../components';
 import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
 
 // Lazy load heavy components
-const ShopPanel = lazy(() => import('../components/ShopPanel').then(m => ({ default: m.ShopPanel })));
+const ShopPanel = lazy(() =>
+  import('../components/ShopPanel').then(m => ({ default: m.ShopPanel }))
+);
 const BoostHub = lazy(() => import('../components/BoostHub').then(m => ({ default: m.BoostHub })));
-const BuildingsPanel = lazy(() => import('../components/BuildingsPanel').then(m => ({ default: m.BuildingsPanel })));
-const LeaderboardPanel = lazy(() => import('../components/LeaderboardPanel').then(m => ({ default: m.LeaderboardPanel })));
-const ProfilePanel = lazy(() => import('../components/ProfilePanel').then(m => ({ default: m.ProfilePanel })));
-const SettingsScreen = lazy(() => import('../components/settings').then(m => ({ default: m.SettingsScreen })));
+const BuildingsPanel = lazy(() =>
+  import('../components/BuildingsPanel').then(m => ({ default: m.BuildingsPanel }))
+);
+const LeaderboardPanel = lazy(() =>
+  import('../components/LeaderboardPanel').then(m => ({ default: m.LeaderboardPanel }))
+);
+const ProfilePanel = lazy(() =>
+  import('../components/ProfilePanel').then(m => ({ default: m.ProfilePanel }))
+);
+const SettingsScreen = lazy(() =>
+  import('../components/settings').then(m => ({ default: m.SettingsScreen }))
+);
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 

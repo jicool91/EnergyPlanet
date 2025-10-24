@@ -80,7 +80,8 @@ export function OfflineSummaryModal({
           {gainedLevels && gainedLevels > 0 && (
             <>
               {' '}
-              Уровень вырос с {startLevel ?? '-'} до {endLevel ?? '-'} ({gainedLevels} новых уровней).
+              Уровень вырос с {startLevel ?? '-'} до {endLevel ?? '-'} ({gainedLevels} новых
+              уровней).
             </>
           )}
         </div>
