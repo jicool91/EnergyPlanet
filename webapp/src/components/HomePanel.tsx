@@ -119,21 +119,27 @@ export function HomePanel({
           />
         </div>
 
-        {/* Streak indicator (only if active) */}
-        {streakCount > 0 && (
-          <div className="px-4 grid grid-cols-2 gap-3 lg:px-0 lg:grid-cols-1">
-            <StatCard
-              icon="🔥"
-              label="Комбо"
-              value={`×${streakCount}`}
-              subLabel={`Лучшее: ${bestStreak}`}
-              tone={isCriticalStreak ? 'positive' : 'default'}
-            />
-          </div>
-        )}
-
         {/* Center: BIG TAP BUTTON */}
-        <div className="flex-1 flex items-center justify-center py-3 px-4 lg:px-0">
+        <div className="relative flex-1 flex items-center justify-center py-3 px-4 lg:px-0">
+          {streakCount > 0 && (
+            <motion.div
+              className={`pointer-events-none absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full px-3 py-1.5 border shadow-lg backdrop-blur bg-gradient-to-r ${
+                isCriticalStreak
+                  ? 'from-red-500/85 to-orange-400/85 border-red-400/70'
+                  : 'from-cyan/80 to-lime/70 border-cyan/60'
+              }`}
+              animate={{ opacity: [0.8, 1, 0.8], scale: [1, 1.05, 1] }}
+              transition={{ duration: isCriticalStreak ? 1.2 : 1.8, repeat: Infinity }}
+            >
+              <span className="text-lg" aria-hidden="true">
+                🔥
+              </span>
+              <span className="text-sm font-semibold text-black drop-shadow">×{streakCount}</span>
+              <span className="text-[11px] font-medium text-black/80 drop-shadow">
+                Лучшее {bestStreak}
+              </span>
+            </motion.div>
+          )}
           <motion.button
             onClick={onTap}
             whileTap={tapAnimation}
