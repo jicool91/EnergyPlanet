@@ -1,5 +1,4 @@
 import { ModalBase } from './ModalBase';
-import { useTelegramMainButton } from '../hooks';
 
 /**
  * OfflineSummaryModal Component
@@ -48,23 +47,14 @@ export function OfflineSummaryModal({
   const endLevel = levelEnd ?? null;
   const gainedLevels =
     levelsGained ?? (levelStart != null && levelEnd != null ? levelEnd - levelStart : null);
-  const supportsMainButton =
-    typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp?.MainButton);
-
-  useTelegramMainButton({
-    text: 'Продолжить',
-    onClick: onClose,
-    enabled: isOpen && supportsMainButton,
-  });
 
   return (
     <ModalBase
       isOpen={isOpen}
       title="Возврат офлайн"
       onClose={onClose}
-      showClose={false}
       size="sm"
-      actions={supportsMainButton ? [] : [{ label: 'Понял', variant: 'primary', onClick: onClose }]}
+      actions={[{ label: 'Продолжить', variant: 'primary', onClick: onClose }]}
     >
       <div className="max-h-[80vh] overflow-y-auto pr-1 space-y-4">
         <div className="text-body text-white/80">
