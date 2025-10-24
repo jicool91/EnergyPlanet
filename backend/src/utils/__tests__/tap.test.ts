@@ -2,9 +2,10 @@ import { tapEnergyForLevel, xpFromEnergy } from '../tap';
 
 describe('tap utils', () => {
   test('tap energy grows with level', () => {
-    expect(tapEnergyForLevel(1)).toBe(1);
-    expect(tapEnergyForLevel(2)).toBeCloseTo(1.25);
-    expect(tapEnergyForLevel(5)).toBeCloseTo(2);
+    expect(tapEnergyForLevel(0)).toBe(1);
+    expect(tapEnergyForLevel(1)).toBeCloseTo(1.15);
+    expect(tapEnergyForLevel(5)).toBeCloseTo(1.75);
+    expect(tapEnergyForLevel(10)).toBeCloseTo(2.5);
   });
 
   test('xp from energy scales down', () => {
