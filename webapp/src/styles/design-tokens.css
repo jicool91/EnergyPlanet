@@ -168,6 +168,8 @@
   font-weight: var(--font-weight-display);
 }
 
+/* Icon/hero sizes documented separately to avoid inline values */
+
 /**
  * Card Styles
  * Use for consistent card appearance
