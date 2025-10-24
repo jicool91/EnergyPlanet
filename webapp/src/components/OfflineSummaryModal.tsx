@@ -1,4 +1,5 @@
 import { ModalBase } from './ModalBase';
+import { useTelegramMainButton } from '../hooks';
 
 /**
  * OfflineSummaryModal Component
@@ -47,6 +48,14 @@ export function OfflineSummaryModal({
   const endLevel = levelEnd ?? null;
   const gainedLevels =
     levelsGained ?? (levelStart != null && levelEnd != null ? levelEnd - levelStart : null);
+  const supportsMainButton =
+    typeof window !== 'undefined' && Boolean(window.Telegram?.WebApp?.MainButton);
+
+  useTelegramMainButton({
+    text: 'Продолжить',
+    onClick: onClose,
+    enabled: isOpen && supportsMainButton,
+  });
 
   return (
     <ModalBase
@@ -55,13 +64,7 @@ export function OfflineSummaryModal({
       onClose={onClose}
       showClose={false}
       size="sm"
-      actions={[
-        {
-          label: 'Понял',
-          variant: 'primary',
-          onClick: onClose,
-        },
-      ]}
+      actions={supportsMainButton ? [] : [{ label: 'Понял', variant: 'primary', onClick: onClose }]}
     >
       <div className="text-body text-white/80">
         {durationSec > 0 || energy > 0 || xp > 0 ? (
@@ -76,8 +79,7 @@ export function OfflineSummaryModal({
         {gainedLevels && gainedLevels > 0 && (
           <>
             {' '}
-            Уровень вырос с {startLevel ?? '-'} до {endLevel ?? '-'} ({gainedLevels} новых
-            уровней).
+            Уровень вырос с {startLevel ?? '-'} до {endLevel ?? '-'} ({gainedLevels} новых уровней).
           </>
         )}
       </div>

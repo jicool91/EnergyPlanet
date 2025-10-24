@@ -7,3 +7,4 @@ export { useTheme } from './useTheme';
 export { useSafeArea } from './useSafeArea';
 export { useDevicePerformance } from './useDevicePerformance';
 export { useTelegramBackButton } from './useTelegramBackButton';
+export { useTelegramMainButton } from './useTelegramMainButton';

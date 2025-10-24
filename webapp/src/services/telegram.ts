@@ -37,6 +37,30 @@ interface TelegramBackButton {
   offClick: (cb: () => void) => void;
 }
 
+interface TelegramMainButton {
+  isVisible: boolean;
+  text?: string;
+  setText: (text: string) => void;
+  show: () => void;
+  hide: () => void;
+  onClick: (cb: () => void) => void;
+  offClick: (cb: () => void) => void;
+  showProgress: (leaveActive?: boolean) => void;
+  hideProgress: () => void;
+  enable: () => void;
+  disable: () => void;
+  setColor?: (color: string) => void;
+  setTextColor?: (color: string) => void;
+}
+
+interface TelegramCloudStorage {
+  setItem: (key: string, value: string) => Promise<void>;
+  getItem: (key: string) => Promise<string | null>;
+  removeItem: (key: string) => Promise<void>;
+  getKeys?: () => Promise<string[]>;
+  getItems?: (keys: string[]) => Promise<Record<string, string>>;
+}
+
 interface TelegramHapticFeedback {
   impactOccurred: (style: TelegramHapticStyle) => void;
   notificationOccurred: (type: TelegramHapticNotification) => void;
@@ -87,6 +111,8 @@ interface TelegramWebApp {
   ): void;
   BackButton?: TelegramBackButton;
   HapticFeedback?: TelegramHapticFeedback;
+  MainButton?: TelegramMainButton;
+  CloudStorage?: TelegramCloudStorage;
   setHeaderColor?: (color: string) => void;
   setBottomBarColor?: (color: string) => void;
 }
@@ -102,6 +128,7 @@ declare global {
 type ThemeListener = (theme: TelegramThemeParams) => void;
 type SafeAreaListener = (insets: SafeAreaSnapshot) => void;
 type ViewportListener = (metrics: ViewportMetrics) => void;
+type MainButtonHandler = () => void;
 
 export type SafeAreaSnapshot = {
   safe: TelegramSafeArea;
@@ -122,6 +149,7 @@ let initialized = false;
 const themeListeners = new Set<ThemeListener>();
 const safeAreaListeners = new Set<SafeAreaListener>();
 const viewportListeners = new Set<ViewportListener>();
+const mainButtonHandlers = new Set<MainButtonHandler>();
 let currentTheme: TelegramThemeParams = { ...DEFAULT_THEME };
 let currentSafeArea: SafeAreaSnapshot = { safe: ZERO_SAFE_AREA, content: ZERO_SAFE_AREA };
 let currentViewport: ViewportMetrics = {
@@ -137,6 +165,10 @@ function getWebApp(): TelegramWebApp | null {
     return null;
   }
   return window.Telegram?.WebApp ?? null;
+}
+
+function getMainButton(): TelegramMainButton | null {
+  return getWebApp()?.MainButton ?? null;
 }
 
 function updateTelegramChrome(theme: TelegramThemeParams) {
@@ -189,6 +221,25 @@ function updateViewportMetrics(partial: Partial<ViewportMetrics>) {
     ...partial,
   };
   emitViewport(currentViewport);
+}
+
+function applyMainButtonConfig(
+  button: TelegramMainButton,
+  config: { text: string; color?: string; textColor?: string; disabled?: boolean }
+) {
+  button.setText(config.text);
+  if (config.color && typeof button.setColor === 'function') {
+    button.setColor(config.color);
+  }
+  if (config.textColor && typeof button.setTextColor === 'function') {
+    button.setTextColor(config.textColor);
+  }
+
+  if (config.disabled) {
+    button.disable();
+  } else {
+    button.enable();
+  }
 }
 
 function applyThemeFromParams(
@@ -374,6 +425,96 @@ export function onTelegramViewportChange(listener: ViewportListener): () => void
 
 export function getViewportMetrics(): ViewportMetrics {
   return currentViewport;
+}
+
+type TelegramMainButtonOptions = {
+  text: string;
+  onClick: () => void;
+  color?: string;
+  textColor?: string;
+  disabled?: boolean;
+  showProgress?: boolean;
+  keepVisibleOnUnmount?: boolean;
+};
+
+export function withTelegramMainButton(options: TelegramMainButtonOptions): () => void {
+  const button = getMainButton();
+  if (!button) {
+    return () => undefined;
+  }
+
+  applyMainButtonConfig(button, options);
+
+  const handler = () => {
+    if (options.showProgress) {
+      button.showProgress();
+    }
+    try {
+      options.onClick();
+    } finally {
+      if (options.showProgress) {
+        button.hideProgress();
+      }
+    }
+  };
+
+  button.onClick(handler);
+  mainButtonHandlers.add(handler);
+  if (!button.isVisible) {
+    button.show();
+  }
+
+  return () => {
+    button.offClick(handler);
+    mainButtonHandlers.delete(handler);
+    if (!options.keepVisibleOnUnmount && mainButtonHandlers.size === 0) {
+      button.hideProgress();
+      button.hide();
+    }
+  };
+}
+
+export function hideTelegramMainButton() {
+  const button = getMainButton();
+  if (!button) {
+    return;
+  }
+
+  button.hideProgress();
+  button.hide();
+  mainButtonHandlers.clear();
+}
+
+function getCloudStorage(): TelegramCloudStorage | null {
+  return getWebApp()?.CloudStorage ?? null;
+}
+
+export function isCloudStorageAvailable(): boolean {
+  return Boolean(getCloudStorage());
+}
+
+export async function cloudStorageSetItem(key: string, value: string): Promise<void> {
+  const storage = getCloudStorage();
+  if (!storage) {
+    return;
+  }
+  await storage.setItem(key, value);
+}
+
+export async function cloudStorageGetItem(key: string): Promise<string | null> {
+  const storage = getCloudStorage();
+  if (!storage) {
+    return null;
+  }
+  return storage.getItem(key);
+}
+
+export async function cloudStorageRemoveItem(key: string): Promise<void> {
+  const storage = getCloudStorage();
+  if (!storage) {
+    return;
+  }
+  await storage.removeItem(key);
 }
 
 export function withTelegramBackButton(handler: () => void): () => void {

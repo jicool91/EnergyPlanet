@@ -14,6 +14,7 @@ import { TabBar, MainScreenHeader, type TabBarItem } from './components';
 import { useNotification } from './hooks/useNotification';
 import { useTelegramBackButton } from './hooks/useTelegramBackButton';
 import { logClientEvent } from './services/telemetry';
+import { initializePreferenceCloudSync } from './services/preferencesSync';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 
@@ -49,6 +50,12 @@ function App() {
   const previousLevelRef = useRef(1);
   const hasBootstrappedLevelRef = useRef(false);
   const { toast } = useNotification();
+
+  useEffect(() => {
+    initializePreferenceCloudSync().catch(error => {
+      console.warn('Preference cloud sync failed to initialize', error);
+    });
+  }, []);
 
   // Global tab navigation state
   const [activeTab, setActiveTab] = useState<TabKey>('home');
