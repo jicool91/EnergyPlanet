@@ -1,4 +1,4 @@
-import { useMemo, useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { BuildingCard } from './BuildingCard';
 import type { BuildingCardBuilding } from './BuildingCard';
@@ -44,6 +44,61 @@ type CatalogBuilding = BuildingCardBuilding & {
   payback_seconds?: number | null;
 };
 
+const calculateBulkPlan = (
+  building: CatalogBuilding,
+  option: (typeof PURCHASE_OPTIONS)[number],
+  availableEnergy: number
+): BulkPlan => {
+  const desired = option.value;
+  const baseCost = building.base_cost ?? building.nextCost ?? 0;
+  const costMultiplier = building.cost_multiplier ?? 1;
+  const maxCount = building.max_count ?? null;
+  const baseIncome = building.base_income ?? 0;
+
+  let quantity = 0;
+  let totalCost = 0;
+  let currentCount = building.count ?? 0;
+  let remainingEnergy = availableEnergy;
+  let limitedByCap = false;
+  const isMax = !Number.isFinite(desired);
+  const iterationLimit = Number.isFinite(desired) ? Number(desired) : MAX_BULK_ITERATIONS;
+
+  for (let iteration = 0; iteration < iterationLimit; iteration += 1) {
+    if (maxCount && currentCount >= maxCount) {
+      limitedByCap = true;
+      break;
+    }
+
+    const cost = Math.ceil(baseCost * Math.pow(costMultiplier || 1, currentCount));
+    if (!Number.isFinite(cost) || cost <= 0 || remainingEnergy < cost) {
+      break;
+    }
+
+    totalCost += cost;
+    remainingEnergy -= cost;
+    currentCount += 1;
+    quantity += 1;
+
+    if (isMax && iteration >= MAX_BULK_ITERATIONS - 1) {
+      break;
+    }
+  }
+
+  const incomeGain = baseIncome > 0 ? baseIncome * quantity : 0;
+  const partial = Number.isFinite(desired) ? quantity < desired : false;
+
+  return {
+    quantity,
+    requestedLabel: option.label,
+    requestedValue: Number.isFinite(desired) ? Number(desired) : quantity,
+    totalCost,
+    incomeGain,
+    partial,
+    limitedByCap,
+    insufficientEnergy: quantity === 0,
+  };
+};
+
 export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
   const {
     buildings,
@@ -70,60 +125,6 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
   const selectedOption = useMemo(
     () => PURCHASE_OPTIONS.find(option => option.id === selectedPurchaseId) ?? PURCHASE_OPTIONS[0],
     [selectedPurchaseId]
-  );
-
-  const estimatePlan = useCallback(
-    (building: CatalogBuilding, option = selectedOption): BulkPlan => {
-      const desired = option.value;
-      const baseCost = building.base_cost ?? building.nextCost ?? 0;
-      const costMultiplier = building.cost_multiplier ?? 1;
-      const maxCount = building.max_count ?? null;
-      const baseIncome = building.base_income ?? 0;
-
-      let quantity = 0;
-      let totalCost = 0;
-      let currentCount = building.count ?? 0;
-      let remainingEnergy = energy;
-      let limitedByCap = false;
-      const isMax = !Number.isFinite(desired);
-      const iterationLimit = Number.isFinite(desired) ? Number(desired) : MAX_BULK_ITERATIONS;
-
-      for (let iteration = 0; iteration < iterationLimit; iteration += 1) {
-        if (maxCount && currentCount >= maxCount) {
-          limitedByCap = true;
-          break;
-        }
-
-        const cost = Math.ceil(baseCost * Math.pow(costMultiplier || 1, currentCount));
-        if (!Number.isFinite(cost) || cost <= 0 || remainingEnergy < cost) {
-          break;
-        }
-
-        totalCost += cost;
-        remainingEnergy -= cost;
-        currentCount += 1;
-        quantity += 1;
-
-        if (isMax && iteration >= MAX_BULK_ITERATIONS - 1) {
-          break;
-        }
-      }
-
-      const incomeGain = baseIncome > 0 ? baseIncome * quantity : 0;
-      const partial = Number.isFinite(desired) ? quantity < desired : false;
-
-      return {
-        quantity,
-        requestedLabel: option.label,
-        requestedValue: Number.isFinite(desired) ? Number(desired) : quantity,
-        totalCost,
-        incomeGain,
-        partial,
-        limitedByCap,
-        insufficientEnergy: quantity === 0,
-      };
-    },
-    [energy, selectedOption]
   );
 
   useEffect(() => {
@@ -183,6 +184,14 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
       return (a.unlock_level ?? 0) - (b.unlock_level ?? 0);
     });
   }, [buildings, buildingCatalog]);
+
+  const purchasePlans = useMemo(() => {
+    const plans = new Map<string, BulkPlan>();
+    for (const building of sortedBuildings) {
+      plans.set(building.id, calculateBulkPlan(building, selectedOption, energy));
+    }
+    return plans;
+  }, [energy, selectedOption, sortedBuildings]);
 
   const bestPaybackId = useMemo(() => {
     let bestId: string | null = null;
@@ -270,7 +279,8 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
               building.unlock_level !== null && building.unlock_level !== undefined
                 ? playerLevel < building.unlock_level
                 : false;
-            const purchasePlan = estimatePlan(building);
+            const purchasePlan =
+              purchasePlans.get(building.id) ?? calculateBulkPlan(building, selectedOption, energy);
             const canPurchase = !isLocked && purchasePlan.quantity > 0;
             const canUpgrade =
               building.count > 0 &&
