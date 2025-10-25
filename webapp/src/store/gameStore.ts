@@ -3,6 +3,7 @@
  */
 
 import { create } from 'zustand';
+import type { SetState } from 'zustand';
 import { isAxiosError } from 'axios';
 import { apiClient, API_BASE_URL } from '../services/apiClient';
 import { postQueue } from '../services/requestQueue';
@@ -65,6 +66,47 @@ const STREAK_CRIT_THRESHOLD = 25;
 let passiveTicker: ReturnType<typeof setInterval> | null = null;
 let passiveFlushTimer: ReturnType<typeof setInterval> | null = null;
 let passiveFlushInFlight = false;
+const PASSIVE_TICK_INTERVAL_MS = 250;
+const PASSIVE_COMMIT_INTERVAL_MS = 350;
+let passiveEnergyUiBuffer = 0;
+let passiveSecondsUiBuffer = 0;
+let lastPassiveUiCommit = 0;
+
+const commitPassiveBuffers = (set: SetState<GameState>) => {
+  if (passiveEnergyUiBuffer === 0 && passiveSecondsUiBuffer === 0) {
+    return;
+  }
+
+  set(state => ({
+    energy: state.energy + passiveEnergyUiBuffer,
+    pendingPassiveEnergy: state.pendingPassiveEnergy + passiveEnergyUiBuffer,
+    pendingPassiveSeconds: state.pendingPassiveSeconds + passiveSecondsUiBuffer,
+  }));
+
+  passiveEnergyUiBuffer = 0;
+  passiveSecondsUiBuffer = 0;
+  lastPassiveUiCommit = Date.now();
+};
+
+const queuePassiveUpdate = (
+  set: SetState<GameState>,
+  energyDelta: number,
+  secondsDelta: number
+) => {
+  passiveEnergyUiBuffer += energyDelta;
+  passiveSecondsUiBuffer += secondsDelta;
+
+  const now = Date.now();
+  if (now - lastPassiveUiCommit >= PASSIVE_COMMIT_INTERVAL_MS) {
+    commitPassiveBuffers(set);
+  }
+};
+
+const resetPassiveBuffers = () => {
+  passiveEnergyUiBuffer = 0;
+  passiveSecondsUiBuffer = 0;
+  lastPassiveUiCommit = Date.now();
+};
 
 interface GameState {
   // User data
@@ -248,6 +290,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       uiStore.setOfflineSummary(offlineSummary);
 
+      commitPassiveBuffers(set);
       set({
         userId: user.id,
         username: user.username,
@@ -329,6 +372,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       triggerHapticImpact(isCritical ? 'heavy' : 'light');
 
+      commitPassiveBuffers(set);
       set(state => ({
         energy: Math.max(serverEnergy + state.pendingPassiveEnergy, state.energy + energyGained),
         level,
@@ -359,6 +403,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         item_id: itemId,
       });
 
+      commitPassiveBuffers(set);
       set({
         energy: response.data.energy,
         level: response.data.level,
@@ -393,16 +438,19 @@ export const useGameStore = create<GameState>((set, get) => ({
       passiveFlushTimer = null;
     }
 
+    commitPassiveBuffers(set);
+    resetPassiveBuffers();
+
     if (perSec > 0) {
+      const tickSeconds = PASSIVE_TICK_INTERVAL_MS / 1000;
+
       passiveTicker = setInterval(() => {
-        set(state => ({
-          energy: state.energy + perSec,
-          pendingPassiveEnergy: state.pendingPassiveEnergy + perSec,
-          pendingPassiveSeconds: state.pendingPassiveSeconds + 1,
-        }));
-      }, 1000);
+        const delta = perSec * tickSeconds;
+        queuePassiveUpdate(set, delta, tickSeconds);
+      }, PASSIVE_TICK_INTERVAL_MS);
 
       passiveFlushTimer = setInterval(() => {
+        commitPassiveBuffers(set);
         flushPassiveIncome().catch(error => {
           console.warn('Failed to flush passive income', error);
         });
@@ -449,6 +497,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const tapLevel = progress.tap_level ?? currentState.tapLevel;
       const tapIncome = progress.tap_income ?? currentState.tapIncome;
 
+      commitPassiveBuffers(set);
       set({
         userId: user.id,
         username: user.username,
@@ -490,6 +539,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   flushPassiveIncome: async ({ keepAlive = false }: { keepAlive?: boolean } = {}) => {
+    commitPassiveBuffers(set);
     const pendingSeconds = get().pendingPassiveSeconds;
     if (!pendingSeconds || pendingSeconds <= 0 || passiveFlushInFlight) {
       return;
@@ -557,6 +607,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         { building_id: buildingId, quantity },
         'info'
       );
+
+      commitPassiveBuffers(set);
 
       for (let index = 0; index < quantity; index += 1) {
         try {
@@ -641,6 +693,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       });
       const payload = response.data ?? {};
 
+      commitPassiveBuffers(set);
       set(state => ({
         energy: payload.energy ?? state.energy,
         level: payload.level ?? state.level,
