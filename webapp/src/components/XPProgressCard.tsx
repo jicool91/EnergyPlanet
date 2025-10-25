@@ -21,8 +21,8 @@
  * ```
  */
 
-import { useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Card } from './Card';
 import { formatNumberWithSpaces } from '../utils/number';
 
@@ -41,6 +41,9 @@ export function XPProgressCard({
   xpTotal,
   xpRemaining,
 }: XPProgressCardProps) {
+  const [isVisible, setIsVisible] = useState(true);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const prefersReducedMotion = useReducedMotion();
   const percentage = useMemo(() => Math.min(100, Math.max(0, xpProgress * 100)), [xpProgress]);
   const xpCurrentFormatted = useMemo(
     () => formatNumberWithSpaces(Math.max(0, xpCurrent)),
@@ -62,8 +65,37 @@ export function XPProgressCard({
     return `Осталось ${xpRemainingFormatted} XP для следующего уровня`;
   }, [xpRemaining, xpRemainingFormatted]);
 
+  const shouldAnimate = !prefersReducedMotion && isVisible;
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      return;
+    }
+
+    const node = containerRef.current;
+    if (!node) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.target === node) {
+            setIsVisible(entry.isIntersecting);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(node);
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
   return (
-    <Card>
+    <Card ref={containerRef}>
       <div className="flex items-center justify-between gap-3 mb-4">
         <div>
           <p className="m-0 text-xs uppercase tracking-[0.6px] text-[var(--color-text-secondary)]">
@@ -88,21 +120,33 @@ export function XPProgressCard({
             className="h-full rounded-full bg-gradient-to-r from-cyan via-lime to-gold"
             initial={{ width: 0 }}
             animate={{ width: `${percentage}%` }}
-            transition={{ type: 'spring', stiffness: 100, damping: 25, duration: 0.6 }}
+            transition={
+              shouldAnimate
+                ? { type: 'spring', stiffness: 100, damping: 25, duration: 0.6 }
+                : { duration: 0 }
+            }
           />
 
           {/* Shimmer effect overlay */}
           <motion.div
             className="absolute inset-0 h-full rounded-full bg-gradient-to-r from-transparent via-white to-transparent opacity-30"
-            animate={{
-              x: ['0%', '200%'],
-              opacity: [0, 0.3, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              delay: 0.5,
-            }}
+            animate={
+              shouldAnimate
+                ? {
+                    x: ['0%', '200%'],
+                    opacity: [0, 0.3, 0],
+                  }
+                : { opacity: 0 }
+            }
+            transition={
+              shouldAnimate
+                ? {
+                    duration: 2,
+                    repeat: Infinity,
+                    delay: 0.5,
+                  }
+                : { duration: 0 }
+            }
             style={{ width: '100%' }}
           />
         </div>

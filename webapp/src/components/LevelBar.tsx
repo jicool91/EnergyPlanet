@@ -19,8 +19,8 @@
  * ```
  */
 
-import { memo, useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { formatNumberWithSpaces } from '../utils/number';
 
 interface LevelBarProps {
@@ -32,6 +32,9 @@ interface LevelBarProps {
 
 function LevelBarComponent({ progress, xpCurrent, xpTotal, showLabel = false }: LevelBarProps) {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+  const prefersReducedMotion = useReducedMotion();
 
   const tooltip = useMemo(() => {
     if (!xpCurrent || !xpTotal) return null;
@@ -39,9 +42,39 @@ function LevelBarComponent({ progress, xpCurrent, xpTotal, showLabel = false }: 
   }, [xpCurrent, xpTotal]);
 
   const percentage = Math.min(100, Math.max(0, progress * 100));
+  const shouldAnimate = !prefersReducedMotion && isVisible;
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
+      return;
+    }
+
+    const node = containerRef.current;
+    if (!node) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      entries => {
+        entries.forEach(entry => {
+          if (entry.target === node) {
+            setIsVisible(entry.isIntersecting);
+          }
+        });
+      },
+      { threshold: 0.2 }
+    );
+
+    observer.observe(node);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
 
   return (
     <div
+      ref={containerRef}
       className="relative w-full group"
       onMouseEnter={() => setShowTooltip(true)}
       onMouseLeave={() => setShowTooltip(false)}
@@ -57,21 +90,33 @@ function LevelBarComponent({ progress, xpCurrent, xpTotal, showLabel = false }: 
           className="h-full bg-gradient-to-r from-cyan via-lime to-gold"
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
-          transition={{ type: 'spring', stiffness: 80, damping: 20, duration: 0.8 }}
+          transition={
+            shouldAnimate
+              ? { type: 'spring', stiffness: 80, damping: 20, duration: 0.8 }
+              : { duration: 0 }
+          }
         />
 
         {/* Shimmer effect for thin bar */}
         <motion.div
           className="absolute inset-0 h-full bg-gradient-to-r from-transparent via-white to-transparent opacity-40"
-          animate={{
-            x: ['-100%', '100%'],
-            opacity: [0, 0.4, 0],
-          }}
-          transition={{
-            duration: 1.5,
-            repeat: Infinity,
-            delay: 0.3,
-          }}
+          animate={
+            shouldAnimate
+              ? {
+                  x: ['-100%', '100%'],
+                  opacity: [0, 0.4, 0],
+                }
+              : { opacity: 0 }
+          }
+          transition={
+            shouldAnimate
+              ? {
+                  duration: 1.5,
+                  repeat: Infinity,
+                  delay: 0.3,
+                }
+              : { duration: 0 }
+          }
         />
       </div>
 
