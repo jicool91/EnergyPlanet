@@ -22,7 +22,7 @@
  * ```
  */
 
-import { useMemo } from 'react';
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { formatCompactNumber } from '../utils/number';
 import { LevelBar } from './LevelBar';
@@ -37,7 +37,7 @@ interface MainScreenHeaderProps {
   onShopClick?: () => void;
 }
 
-export function MainScreenHeader({
+function MainScreenHeaderComponent({
   level,
   energy,
   stars = 0,
@@ -168,3 +168,7 @@ export function MainScreenHeader({
     </header>
   );
 }
+
+export const MainScreenHeader = memo(MainScreenHeaderComponent);
+
+MainScreenHeader.displayName = 'MainScreenHeader';

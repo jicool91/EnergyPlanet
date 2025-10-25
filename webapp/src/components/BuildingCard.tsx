@@ -4,7 +4,7 @@
  * Animates when building is newly unlocked
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { memo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './Button';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
@@ -61,7 +61,7 @@ export interface BuildingCardProps {
  * Design System: Uses standardized colors, spacing, and typography
  * Shows fade-in + scale-up when building is newly unlocked
  */
-export const BuildingCard: React.FC<BuildingCardProps> = ({
+const BuildingCardComponent: React.FC<BuildingCardProps> = ({
   building,
   isLocked,
   canPurchase,
@@ -284,3 +284,55 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
     </motion.div>
   );
 };
+
+const areBuildingsEqual = (prev: BuildingCardBuilding, next: BuildingCardBuilding) => {
+  return (
+    prev.id === next.id &&
+    prev.name === next.name &&
+    prev.count === next.count &&
+    prev.level === next.level &&
+    prev.incomePerSec === next.incomePerSec &&
+    prev.nextCost === next.nextCost &&
+    prev.nextUpgradeCost === next.nextUpgradeCost &&
+    prev.roiRank === next.roiRank &&
+    prev.unlock_level === next.unlock_level &&
+    prev.payback_seconds === next.payback_seconds &&
+    prev.base_cost === next.base_cost &&
+    prev.base_income === next.base_income &&
+    prev.roi_rank === next.roi_rank
+  );
+};
+
+const arePurchasePlansEqual = (
+  prev: BuildingCardProps['purchasePlan'],
+  next: BuildingCardProps['purchasePlan']
+) => {
+  return (
+    prev.quantity === next.quantity &&
+    prev.requestedLabel === next.requestedLabel &&
+    prev.requestedValue === next.requestedValue &&
+    prev.totalCost === next.totalCost &&
+    prev.incomeGain === next.incomeGain &&
+    prev.partial === next.partial &&
+    prev.limitedByCap === next.limitedByCap &&
+    prev.insufficientEnergy === next.insufficientEnergy
+  );
+};
+
+const arePropsEqual = (prev: BuildingCardProps, next: BuildingCardProps) => {
+  return (
+    areBuildingsEqual(prev.building, next.building) &&
+    prev.isLocked === next.isLocked &&
+    prev.canPurchase === next.canPurchase &&
+    prev.canUpgrade === next.canUpgrade &&
+    prev.processing === next.processing &&
+    prev.isBestPayback === next.isBestPayback &&
+    arePurchasePlansEqual(prev.purchasePlan, next.purchasePlan) &&
+    prev.onPurchase === next.onPurchase &&
+    prev.onUpgrade === next.onUpgrade
+  );
+};
+
+export const BuildingCard = memo(BuildingCardComponent, arePropsEqual);
+
+BuildingCard.displayName = 'BuildingCard';

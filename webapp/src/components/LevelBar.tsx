@@ -19,7 +19,7 @@
  * ```
  */
 
-import { useState, useMemo } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { formatNumberWithSpaces } from '../utils/number';
 
@@ -30,7 +30,7 @@ interface LevelBarProps {
   showLabel?: boolean;
 }
 
-export function LevelBar({ progress, xpCurrent, xpTotal, showLabel = false }: LevelBarProps) {
+function LevelBarComponent({ progress, xpCurrent, xpTotal, showLabel = false }: LevelBarProps) {
   const [showTooltip, setShowTooltip] = useState(false);
 
   const tooltip = useMemo(() => {
@@ -102,3 +102,7 @@ export function LevelBar({ progress, xpCurrent, xpTotal, showLabel = false }: Le
     </div>
   );
 }
+
+export const LevelBar = memo(LevelBarComponent);
+
+LevelBar.displayName = 'LevelBar';

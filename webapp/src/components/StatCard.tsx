@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import type { ReactNode } from 'react';
 
 export interface StatCardProps {
@@ -20,7 +21,7 @@ const toneStyles: Record<NonNullable<StatCardProps['tone']>, string> = {
   warning: 'bg-orange/10 border-[rgba(255,201,87,0.4)] text-[var(--color-warning)]',
 };
 
-export function StatCard({
+function StatCardComponent({
   icon,
   label,
   value,
@@ -67,3 +68,7 @@ export function StatCard({
 
   return <div className={`${base} ${toneClass}`}>{content}</div>;
 }
+
+export const StatCard = memo(StatCardComponent);
+
+StatCard.displayName = 'StatCard';
