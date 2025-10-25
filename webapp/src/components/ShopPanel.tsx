@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 import { useCatalogStore } from '../store/catalogStore';
+import { buildShopViewModel } from '@/viewModels/shopViewModel';
 import { ShopSkeleton, ErrorBoundary } from './skeletons';
 import { Button } from './Button';
 import { Card } from './Card';
@@ -13,31 +14,12 @@ interface ShopPanelProps {
   showHeader?: boolean;
 }
 
-type CategoryOption = {
-  id: string;
-  label: string;
-};
-
 type ShopSection = 'star_packs' | 'cosmetics';
 
 const SECTION_TABS: { id: ShopSection; label: string }[] = [
   { id: 'star_packs', label: 'Паки Stars' },
   { id: 'cosmetics', label: 'Косметика' },
 ];
-
-const CATEGORY_LABELS: Record<string, string> = {
-  avatar_frame: 'Рамки аватара',
-  planet_skin: 'Планеты',
-  tap_effect: 'Эффекты тапа',
-  background: 'Фоны',
-};
-
-function resolveCategoryOptions(categories: string[]): CategoryOption[] {
-  return categories.map(category => ({
-    id: category,
-    label: CATEGORY_LABELS[category] ?? category,
-  }));
-}
 
 function formatPriceLabel(priceRub?: number, priceUsd?: number): string {
   if (priceRub) {
@@ -102,10 +84,15 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
     loadStarPacks();
   }, [loadCosmetics, loadStarPacks]);
 
-  const categories = useMemo(() => {
-    const unique = Array.from(new Set(cosmetics.map(item => item.category)));
-    return resolveCategoryOptions(unique);
-  }, [cosmetics]);
+  const { categories, filteredCosmetics, bestValuePack, mostPopularCosmeticId } = useMemo(
+    () =>
+      buildShopViewModel({
+        cosmetics,
+        starPacks,
+        activeCategory,
+      }),
+    [cosmetics, starPacks, activeCategory]
+  );
 
   useEffect(() => {
     if (categories.length === 0) {
@@ -117,33 +104,6 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
       setActiveCategory(nextCategory);
     }
   }, [categories, activeCategory]);
-
-  const filteredCosmetics = useMemo(
-    () => cosmetics.filter(item => item.category === activeCategory),
-    [cosmetics, activeCategory]
-  );
-
-  // Calculate best value pack (lowest price per star)
-  const bestValuePack = useMemo(() => {
-    const regularPacks = starPacks.filter(pack => !pack.featured);
-    if (regularPacks.length === 0) return null;
-
-    const withRatio = regularPacks.map(pack => ({
-      ...pack,
-      pricePerStar: pack.price_rub
-        ? pack.price_rub / (pack.stars + (pack.bonus_stars ?? 0))
-        : Infinity,
-    }));
-
-    return withRatio.reduce((best, current) =>
-      current.pricePerStar < best.pricePerStar ? current : best
-    );
-  }, [starPacks]);
-
-  // Determine "Most Popular" cosmetic (first in category, or could be random/configurable)
-  const mostPopularCosmeticId = useMemo(() => {
-    return filteredCosmetics.length > 0 ? filteredCosmetics[0]?.id : null;
-  }, [filteredCosmetics]);
 
   const { success: hapticSuccess, error: hapticError } = useHaptic();
   const { safeArea } = useSafeArea();
