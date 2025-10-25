@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 import { useGameStore } from '../store/gameStore';
 import { useCatalogStore } from '../store/catalogStore';
+import { Virtuoso } from 'react-virtuoso';
 import { BuildingCard } from './BuildingCard';
 import type { BuildingCardBuilding } from './BuildingCard';
 import { BuildingSkeleton, ErrorBoundary } from './skeletons';
@@ -202,14 +203,6 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
     });
   }, [buildings, buildingCatalog]);
 
-  const purchasePlans = useMemo(() => {
-    const plans = new Map<string, BulkPlan>();
-    for (const building of sortedBuildings) {
-      plans.set(building.id, calculateBulkPlan(building, selectedOption, energy));
-    }
-    return plans;
-  }, [energy, selectedOption, sortedBuildings]);
-
   const bestPaybackId = useMemo(() => {
     let bestId: string | null = null;
     let bestValue = Number.POSITIVE_INFINITY;
@@ -225,6 +218,57 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
 
     return bestId;
   }, [sortedBuildings]);
+
+  const purchasePlans = useMemo(() => {
+    const plans = new Map<string, BulkPlan>();
+    for (const building of sortedBuildings) {
+      plans.set(building.id, calculateBulkPlan(building, selectedOption, energy));
+    }
+    return plans;
+  }, [energy, selectedOption, sortedBuildings]);
+
+  const renderBuildingRow = useCallback(
+    (_index: number, building: CatalogBuilding) => {
+      const isLocked =
+        building.unlock_level !== null && building.unlock_level !== undefined
+          ? playerLevel < building.unlock_level
+          : false;
+      const purchasePlan =
+        purchasePlans.get(building.id) ?? calculateBulkPlan(building, selectedOption, energy);
+      const canPurchase = !isLocked && purchasePlan.quantity > 0;
+      const canUpgrade =
+        building.count > 0 && building.nextUpgradeCost > 0 && energy >= building.nextUpgradeCost;
+      const processing = isProcessingBuildingId === building.id;
+      const isBestPayback = bestPaybackId === building.id;
+
+      return (
+        <div className="pb-4" key={building.id}>
+          <BuildingCard
+            building={building}
+            isLocked={isLocked}
+            canPurchase={canPurchase}
+            canUpgrade={canUpgrade}
+            processing={processing}
+            isBestPayback={isBestPayback}
+            purchasePlan={purchasePlan}
+            onPurchase={handlePurchase}
+            onUpgrade={handleUpgrade}
+          />
+        </div>
+      );
+    },
+    [
+      bestPaybackId,
+      energy,
+      handlePurchase,
+      handleUpgrade,
+      isProcessingBuildingId,
+      bestPaybackId,
+      playerLevel,
+      purchasePlans,
+      selectedOption,
+    ]
+  );
 
   return (
     <div className="flex flex-col gap-4 p-0" style={panelPadding}>
@@ -290,38 +334,15 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
           Постройки пока недоступны. Продвигайтесь по уровням, чтобы разблокировать их.
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
-          {sortedBuildings.map(building => {
-            const isLocked =
-              building.unlock_level !== null && building.unlock_level !== undefined
-                ? playerLevel < building.unlock_level
-                : false;
-            const purchasePlan =
-              purchasePlans.get(building.id) ?? calculateBulkPlan(building, selectedOption, energy);
-            const canPurchase = !isLocked && purchasePlan.quantity > 0;
-            const canUpgrade =
-              building.count > 0 &&
-              building.nextUpgradeCost > 0 &&
-              energy >= building.nextUpgradeCost;
-            const processing = isProcessingBuildingId === building.id;
-            const isBestPayback = bestPaybackId === building.id;
-
-            return (
-              <BuildingCard
-                key={building.id}
-                building={building}
-                isLocked={isLocked}
-                canPurchase={canPurchase}
-                canUpgrade={canUpgrade}
-                processing={processing}
-                isBestPayback={isBestPayback}
-                purchasePlan={purchasePlan}
-                onPurchase={handlePurchase}
-                onUpgrade={handleUpgrade}
-              />
-            );
-          })}
-        </div>
+        <Virtuoso
+          className="flex-1"
+          useWindowScroll
+          data={sortedBuildings}
+          itemContent={renderBuildingRow}
+          components={{
+            Footer: () => <div style={{ height: Math.max(16, Math.max(0, contentBottom) + 24) }} />,
+          }}
+        />
       )}
     </div>
   );
