@@ -2,7 +2,7 @@
  * Main Game Screen
  */
 
-import { useEffect, useMemo, Suspense, lazy, useState, useRef } from 'react';
+import { useEffect, useMemo, Suspense, lazy, useState, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { streakConfig, useGameStore } from '../store/gameStore';
 import { HomePanel } from '../components/HomePanel';
@@ -155,6 +155,15 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const { scrollRef, scrollToTop } = useScrollToTop();
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(null);
+  const handleScrollContainerRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (scrollRef.current !== node) {
+        scrollRef.current = node;
+        setScrollContainer(node);
+      }
+    },
+    [scrollRef, setScrollContainer]
+  );
   const { toast } = useNotification();
   const { safeArea } = useSafeArea();
   const { bottom: safeBottom } = safeArea.safe;
@@ -464,12 +473,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     <ScrollContainerContext.Provider value={scrollContainer}>
       <div className="flex flex-col w-full h-full relative overflow-hidden flex-1">
         <div
-          ref={node => {
-            if (scrollRef.current !== node) {
-              scrollRef.current = node;
-              setScrollContainer(node);
-            }
-          }}
+          ref={handleScrollContainerRef}
           className="flex flex-col overflow-y-auto flex-1 min-h-0 relative"
           style={{
             paddingBottom: `${scrollPaddingBottom}px`,

@@ -3,10 +3,10 @@
  * Provides ref and scroll function for scrollable containers
  */
 
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, type MutableRefObject } from 'react';
 
 interface UseScrollToTopReturn {
-  scrollRef: React.RefObject<HTMLDivElement>;
+  scrollRef: MutableRefObject<HTMLDivElement | null>;
   scrollToTop: (smooth?: boolean) => void;
 }
 
