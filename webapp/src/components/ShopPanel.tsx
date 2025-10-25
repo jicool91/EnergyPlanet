@@ -8,6 +8,10 @@ import { OptimizedImage } from './OptimizedImage';
 import { useHaptic } from '../hooks/useHaptic';
 import { useSafeArea } from '../hooks';
 
+interface ShopPanelProps {
+  showHeader?: boolean;
+}
+
 type CategoryOption = {
   id: string;
   label: string;
@@ -49,7 +53,7 @@ function calculateBonusPercentage(baseStars: number, bonusStars: number): number
   return Math.round((bonusStars / baseStars) * 100);
 }
 
-export function ShopPanel() {
+export function ShopPanel({ showHeader = true }: ShopPanelProps) {
   const {
     cosmetics,
     isCosmeticsLoading,
@@ -167,38 +171,45 @@ export function ShopPanel() {
 
   const featuredPack = starPacks.find(pack => pack.featured);
 
+  const refreshButton = (
+    <button
+      onClick={() => {
+        loadStarPacks(true);
+        loadCosmetics(true);
+      }}
+      disabled={isStarPacksLoading || isCosmeticsLoading}
+      className="flex-shrink-0 p-2.5 rounded-lg hover:bg-token-surface transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xl focus-ring"
+      title="Обновить"
+      aria-label="Обновить магазин"
+      type="button"
+    >
+      <span
+        className={`inline-block ${isStarPacksLoading || isCosmeticsLoading ? 'animate-spin' : ''}`}
+      >
+        🔄
+      </span>
+    </button>
+  );
+
   return (
     <div className="flex flex-col gap-4 p-0" style={panelPadding}>
-      {/* Header with Power Up title */}
-      <div className="flex justify-between items-start gap-3">
-        <div className="flex-1">
-          <h2 className="m-0 mb-1 text-heading font-bold bg-gradient-to-r from-gold to-orange bg-clip-text text-transparent">
-            🚀 Power Up
-          </h2>
-          <p className="m-0 text-caption text-token-secondary">
-            {activeSection === 'star_packs'
-              ? 'Получите Stars и разблокируйте новые возможности'
-              : 'Кастомизируйте вашу планету эксклюзивной косметикой'}
-          </p>
+      {showHeader ? (
+        <div className="flex justify-between items-start gap-3">
+          <div className="flex-1">
+            <h2 className="m-0 mb-1 text-heading font-bold bg-gradient-to-r from-gold to-orange bg-clip-text text-transparent">
+              🚀 Power Up
+            </h2>
+            <p className="m-0 text-caption text-token-secondary">
+              {activeSection === 'star_packs'
+                ? 'Получите Stars и разблокируйте новые возможности'
+                : 'Кастомизируйте вашу планету эксклюзивной косметикой'}
+            </p>
+          </div>
+          {refreshButton}
         </div>
-        <button
-          onClick={() => {
-            loadStarPacks(true);
-            loadCosmetics(true);
-          }}
-          disabled={isStarPacksLoading || isCosmeticsLoading}
-          className="flex-shrink-0 p-2.5 rounded-lg hover:bg-token-surface transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xl focus-ring"
-          title="Обновить"
-          aria-label="Обновить магазин"
-          type="button"
-        >
-          <span
-            className={`inline-block ${isStarPacksLoading || isCosmeticsLoading ? 'animate-spin' : ''}`}
-          >
-            🔄
-          </span>
-        </button>
-      </div>
+      ) : (
+        <div className="flex justify-end">{refreshButton}</div>
+      )}
 
       {/* Section Tabs */}
       <div className="flex gap-2 p-0">

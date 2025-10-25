@@ -311,7 +311,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             aria-labelledby="tab-shop"
           >
             <Suspense fallback={<ShopSkeleton />}>
-              <ShopPanel />
+              <ShopPanel showHeader={false} />
             </Suspense>
           </ScreenTransition>
         );
@@ -326,7 +326,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             aria-labelledby="tab-boosts"
           >
             <Suspense fallback={<ShopSkeleton />}>
-              <BoostHub />
+              <BoostHub showHeader={false} />
             </Suspense>
           </ScreenTransition>
         );
@@ -341,7 +341,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             aria-labelledby="tab-builds"
           >
             <Suspense fallback={<BuildingSkeleton />}>
-              <BuildingsPanel />
+              <BuildingsPanel showHeader={false} />
             </Suspense>
           </ScreenTransition>
         );

@@ -7,6 +7,10 @@ import { useHaptic } from '../hooks/useHaptic';
 import { useSafeArea } from '../hooks';
 import { formatCompactNumber } from '../utils/number';
 
+interface BuildingsPanelProps {
+  showHeader?: boolean;
+}
+
 const PURCHASE_OPTIONS = [
   { id: 'x1', label: '×1', value: 1 },
   { id: 'x10', label: '×10', value: 10 },
@@ -40,7 +44,7 @@ type CatalogBuilding = BuildingCardBuilding & {
   payback_seconds?: number | null;
 };
 
-export function BuildingsPanel() {
+export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
   const {
     buildings,
     energy,
@@ -198,15 +202,21 @@ export function BuildingsPanel() {
 
   return (
     <div className="flex flex-col gap-4 p-0" style={panelPadding}>
-      <div className="flex justify-between items-start gap-3">
-        <div>
-          <h2 className="m-0 text-heading text-[#f8fbff]">Постройки</h2>
-          <p className="m-0 text-caption text-token-secondary">
-            Развивайте инфраструктуру и увеличивайте пассивный доход
-          </p>
+      {showHeader ? (
+        <div className="flex justify-between items-start gap-3">
+          <div>
+            <h2 className="m-0 text-heading text-token-primary">Постройки</h2>
+            <p className="m-0 text-caption text-token-secondary">
+              Развивайте инфраструктуру и увеличивайте пассивный доход
+            </p>
+          </div>
+          <div className="text-body text-token-primary font-semibold">Энергия: {energyDisplay}</div>
         </div>
-        <div className="text-body text-token-primary font-semibold">Энергия: {energyDisplay}</div>
-      </div>
+      ) : (
+        <div className="flex justify-end">
+          <div className="text-body text-token-primary font-semibold">Энергия: {energyDisplay}</div>
+        </div>
+      )}
 
       <div className="flex flex-wrap gap-2">
         {PURCHASE_OPTIONS.map(option => {

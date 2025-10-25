@@ -5,6 +5,10 @@ import { Card } from './Card';
 import { Badge } from './Badge';
 import { useHaptic } from '../hooks/useHaptic';
 
+interface BoostHubProps {
+  showHeader?: boolean;
+}
+
 function formatSeconds(seconds: number): string {
   if (seconds <= 0) {
     return 'Доступно';
@@ -47,7 +51,7 @@ function resolveBoostLabel(type: string): string {
   }
 }
 
-export function BoostHub() {
+export function BoostHub({ showHeader = true }: BoostHubProps) {
   const {
     boostHub,
     isBoostHubLoading,
@@ -113,15 +117,27 @@ export function BoostHub() {
 
   return (
     <div className="flex flex-col gap-4 p-0 text-token-primary">
-      {/* Header */}
-      <div className="relative flex flex-col gap-1">
-        <div className="flex justify-between items-start gap-3">
-          <div>
-            <h2 className="m-0 text-heading font-semibold">Boost Hub</h2>
-            <p className="m-0 text-caption text-token-secondary">
-              Активируйте бусты, чтобы ускорить прогресс
-            </p>
+      {showHeader ? (
+        <div className="relative flex flex-col gap-1">
+          <div className="flex justify-between items-start gap-3">
+            <div>
+              <h2 className="m-0 text-heading font-semibold">Boost Hub</h2>
+              <p className="m-0 text-caption text-token-secondary">
+                Активируйте бусты, чтобы ускорить прогресс
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              size="md"
+              loading={isBoostHubLoading}
+              onClick={() => loadBoostHub(true)}
+            >
+              Обновить
+            </Button>
           </div>
+        </div>
+      ) : (
+        <div className="flex justify-end">
           <Button
             variant="secondary"
             size="md"
@@ -131,7 +147,7 @@ export function BoostHub() {
             Обновить
           </Button>
         </div>
-      </div>
+      )}
 
       {/* Error State */}
       {boostHubError && (
