@@ -102,6 +102,7 @@ reports/2025-10-26-profile-modal.md
 
 - 2025-10-25 — [Главный экран: оффлайн-награды](reports/visual/2025-10-25-main-screen-offline-rewards.md)
 - 2025-10-25 — [Вкладки Shop / Boosts / Builds: единый заголовок](reports/visual/2025-10-25-tab-headers-alignment.md)
+- 2025-10-26 — [Tap Loop FPS Benchmark](reports/performance/2025-10-26-tap-loop-benchmark.md)
 
 ---
 

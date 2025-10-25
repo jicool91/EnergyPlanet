@@ -238,6 +238,7 @@ Constraints & expectations:
 - **Friends Leaderboard:** social graph integration.
 - **Push Notifications:** Telegram bot messages for boosts, clan events.
 - **LiveOps Toolkit:** event scheduler, dynamic multipliers.
+- **[performance] CI Benchmarks:** автоматизировать прогон `npm run test:perf`, хранить HTML-отчёт и метрики (FPS, CPU, heap), блокировать регрессы >10%.
 
 ## 5. Measurement & Review Cadence
 - **Weekly:** roadmap review, RICE updates, KPI check.
