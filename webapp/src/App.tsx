@@ -29,6 +29,12 @@ const shouldShowMajorLevel = (level: number): boolean => {
 };
 
 function App() {
+  if (typeof window !== 'undefined') {
+    const metrics = window.__renderMetrics ?? { app: 0 };
+    metrics.app += 1;
+    window.__renderMetrics = metrics;
+  }
+
   const initGame = useGameStore(state => state.initGame);
   const authErrorMessage = useUIStore(state => state.authErrorMessage);
   const isAuthModalOpen = useUIStore(state => state.isAuthModalOpen);
