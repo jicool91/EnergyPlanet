@@ -54,6 +54,7 @@ interface UpgradeResponsePayload {
   xp_gained?: number;
   xp_into_level?: number;
   xp_to_next_level?: number;
+  purchased?: number;
   building?: {
     building_id: string;
     count: number;
@@ -678,66 +679,50 @@ export const useGameStore = create<GameState>((set, get) => ({
   },
 
   purchaseBuilding: async (buildingId: string, quantity = 1) => {
-    if (!buildingId || quantity <= 0) {
+    if (!Number.isFinite(quantity)) {
+      return;
+    }
+    const normalizedQuantity = Math.floor(quantity);
+    if (!buildingId || normalizedQuantity <= 0) {
       return;
     }
 
     set({ isProcessingBuildingId: buildingId, buildingsError: null });
 
-    let successfulPurchases = 0;
-    let lastResponse: UpgradeResponsePayload | null = null;
-
     try {
       await get().flushPassiveIncome();
       await logClientEvent(
         'building_purchase_request',
-        { building_id: buildingId, quantity },
+        { building_id: buildingId, quantity: normalizedQuantity },
         'info'
       );
 
       commitPassiveBuffers(set);
 
-      for (let index = 0; index < quantity; index += 1) {
-        try {
-          const response = await apiClient.post<UpgradeResponsePayload>('/upgrade', {
-            building_id: buildingId,
-            action: 'purchase',
-          });
-          successfulPurchases += 1;
-          const payload = response.data ?? {};
-          lastResponse = payload;
+      const response = await apiClient.post<UpgradeResponsePayload>('/upgrade', {
+        building_id: buildingId,
+        action: 'purchase',
+        quantity: normalizedQuantity,
+      });
+      const payload = response.data ?? {};
+      const completed = payload.purchased ?? normalizedQuantity;
 
-          set(state => ({
-            xp: state.xp + (payload.xp_gained ?? 0),
-            xpIntoLevel:
-              payload.xp_into_level ?? Math.max(0, state.xpIntoLevel + (payload.xp_gained ?? 0)),
-            xpToNextLevel: payload.xp_to_next_level ?? state.xpToNextLevel,
-            energy: payload.energy ?? state.energy,
-            level: payload.level ?? state.level,
-          }));
-        } catch (iterationError) {
-          if (successfulPurchases > 0) {
-            await logClientEvent(
-              'building_purchase_partial',
-              {
-                building_id: buildingId,
-                requested: quantity,
-                completed: successfulPurchases,
-              },
-              'warn'
-            );
-            await get().refreshSession();
-          }
-          throw iterationError;
-        }
-      }
+      set(state => ({
+        xp: state.xp + (payload.xp_gained ?? 0),
+        xpIntoLevel:
+          payload.xp_into_level ?? Math.max(0, state.xpIntoLevel + (payload.xp_gained ?? 0)),
+        xpToNextLevel: payload.xp_to_next_level ?? state.xpToNextLevel,
+        energy: payload.energy ?? state.energy,
+        level: payload.level ?? state.level,
+      }));
 
       await logClientEvent(
         'building_purchase_success',
         {
           building_id: buildingId,
-          quantity: successfulPurchases,
-          next_cost: lastResponse?.building?.next_cost ?? null,
+          requested: normalizedQuantity,
+          quantity: completed,
+          next_cost: payload.building?.next_cost ?? null,
         },
         'info'
       );
@@ -749,8 +734,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         'building_purchase_error',
         {
           building_id: buildingId,
-          requested: quantity,
-          completed: typeof successfulPurchases !== 'undefined' ? successfulPurchases : 0,
+          requested: normalizedQuantity,
           status,
           message,
         },

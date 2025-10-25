@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { shallow } from 'zustand/shallow';
 import { useGameStore } from '../store/gameStore';
 import { useCatalogStore } from '../store/catalogStore';
@@ -15,6 +15,7 @@ import {
   type PurchaseOption,
   type OwnedBuilding,
 } from '@/viewModels/buildingsViewModel';
+import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
 
 interface BuildingsPanelProps {
   showHeader?: boolean;
@@ -171,6 +172,8 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
     ]
   );
 
+  const scrollParent = useContext(ScrollContainerContext);
+
   return (
     <div className="flex flex-col gap-4 p-0" style={panelPadding}>
       {showHeader ? (
@@ -237,9 +240,9 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
       ) : (
         <Virtuoso
           className="flex-1"
-          useWindowScroll
           data={sortedBuildings}
           itemContent={renderBuildingRow}
+          customScrollParent={scrollParent ?? undefined}
           components={{
             Footer: () => <div style={{ height: Math.max(16, Math.max(0, contentBottom) + 24) }} />,
           }}

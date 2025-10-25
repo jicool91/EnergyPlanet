@@ -19,6 +19,7 @@ import { useNotification } from '../hooks/useNotification';
 import { useSafeArea } from '../hooks';
 import { shallow } from 'zustand/shallow';
 import { useCatalogStore } from '../store/catalogStore';
+import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
 
 const TAB_BAR_RESERVE_PX = 88;
 
@@ -153,6 +154,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const { tap: hapticTap } = useHaptic();
   const { scrollRef, scrollToTop } = useScrollToTop();
   const [isScrolled, setIsScrolled] = useState(false);
+  const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(null);
   const { toast } = useNotification();
   const { safeArea } = useSafeArea();
   const { bottom: safeBottom } = safeArea.safe;
@@ -459,54 +461,61 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   };
 
   return (
-    <div className="flex flex-col w-full h-full relative overflow-hidden flex-1">
-      <div
-        ref={scrollRef}
-        className="flex flex-col overflow-y-auto flex-1 min-h-0 relative"
-        style={{
-          paddingBottom: `${scrollPaddingBottom}px`,
-        }}
-        onScroll={handleScroll}
-      >
-        {activeTab === 'home' ? (
-          renderActiveTab()
-        ) : (
-          <div className="flex flex-col gap-3 p-4">
-            <div>
-              <h2 className="m-0 text-xl font-semibold text-[var(--color-text-primary)]">
-                {TAB_META[activeTab].title}
-              </h2>
-              <p className="m-0 text-sm text-[var(--color-text-secondary)]">
-                {TAB_META[activeTab].description}
-              </p>
+    <ScrollContainerContext.Provider value={scrollContainer}>
+      <div className="flex flex-col w-full h-full relative overflow-hidden flex-1">
+        <div
+          ref={node => {
+            if (scrollRef.current !== node) {
+              scrollRef.current = node;
+              setScrollContainer(node);
+            }
+          }}
+          className="flex flex-col overflow-y-auto flex-1 min-h-0 relative"
+          style={{
+            paddingBottom: `${scrollPaddingBottom}px`,
+          }}
+          onScroll={handleScroll}
+        >
+          {activeTab === 'home' ? (
+            renderActiveTab()
+          ) : (
+            <div className="flex flex-col gap-3 p-4">
+              <div>
+                <h2 className="m-0 text-xl font-semibold text-[var(--color-text-primary)]">
+                  {TAB_META[activeTab].title}
+                </h2>
+                <p className="m-0 text-sm text-[var(--color-text-secondary)]">
+                  {TAB_META[activeTab].description}
+                </p>
+              </div>
+              {renderActiveTab()}
             </div>
-            {renderActiveTab()}
-          </div>
-        )}
+          )}
 
-        {/* Back to Tap Button (floating) */}
-        {activeTab !== 'home' && isScrolled && !isLoading && (
-          <motion.button
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            transition={{ duration: 0.2 }}
-            onClick={() => {
-              onTabChange('home');
-              scrollToTop(true);
-            }}
-            className="fixed right-4 z-40 px-4 py-2 rounded-full bg-gradient-to-r from-cyan/20 to-lime/20 border border-cyan/50 hover:border-cyan hover:from-cyan/30 hover:to-lime/30 transition-all duration-200 text-sm font-medium text-[var(--color-text-primary)] active:scale-95 shadow-glow"
-            style={{
-              bottom: `${floatingButtonOffset}px`,
-            }}
-            title="Back to Tap"
-            aria-label="Back to Tap"
-            type="button"
-          >
-            <span className="text-base">🌍</span>
-          </motion.button>
-        )}
+          {/* Back to Tap Button (floating) */}
+          {activeTab !== 'home' && isScrolled && !isLoading && (
+            <motion.button
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              transition={{ duration: 0.2 }}
+              onClick={() => {
+                onTabChange('home');
+                scrollToTop(true);
+              }}
+              className="fixed right-4 z-40 px-4 py-2 rounded-full bg-gradient-to-r from-cyan/20 to-lime/20 border border-cyan/50 hover:border-cyan hover:from-cyan/30 hover:to-lime/30 transition-all duration-200 text-sm font-medium text-[var(--color-text-primary)] active:scale-95 shadow-glow"
+              style={{
+                bottom: `${floatingButtonOffset}px`,
+              }}
+              title="Back to Tap"
+              aria-label="Back to Tap"
+              type="button"
+            >
+              <span className="text-base">🌍</span>
+            </motion.button>
+          )}
+        </div>
       </div>
-    </div>
+    </ScrollContainerContext.Provider>
   );
 }

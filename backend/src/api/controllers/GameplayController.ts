@@ -46,10 +46,15 @@ export class GameplayController {
 
       const buildingId = (req.body.building_id ?? req.body.buildingId) as string;
       const action = (req.body.action ?? 'purchase') as 'purchase' | 'upgrade';
+      const quantityInput =
+        action === 'purchase'
+          ? Number(req.body.quantity ?? req.body.count ?? 1)
+          : 1;
 
       const result = await this.upgradeService.processUpgrade(req.user.id, {
         buildingId,
         action,
+        quantity: quantityInput,
       });
 
       res.status(200).json(result);

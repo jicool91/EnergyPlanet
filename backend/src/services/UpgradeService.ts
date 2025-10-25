@@ -14,6 +14,7 @@ import { invalidateProfileCache } from '../cache/invalidation';
 interface UpgradeRequest {
   buildingId: string;
   action: 'purchase' | 'upgrade';
+  quantity?: number;
 }
 
 interface UpgradeResponse {
@@ -31,7 +32,9 @@ interface UpgradeResponse {
   xp_gained: number;
   level: number;
   level_up: boolean;
+  xp_into_level: number;
   xp_to_next_level: number;
+  purchased?: number;
 }
 
 export class UpgradeService {
@@ -60,35 +63,82 @@ export class UpgradeService {
       }
 
       const existing = await getInventoryItem(userId, request.buildingId, client);
-      const playerMax = contentService.getMaxBuildingCount(progress.level);
 
       if (request.action === 'purchase') {
-        const currentCount = existing?.count ?? 0;
-        if (building.max_count && currentCount >= building.max_count) {
-          throw new AppError(400, 'building_count_cap_reached');
+        const rawQuantity = Number(request.quantity ?? 1);
+        if (!Number.isFinite(rawQuantity) || rawQuantity <= 0) {
+          throw new AppError(400, 'invalid_purchase_quantity');
         }
-        if (currentCount >= playerMax) {
-          throw new AppError(400, 'player_building_cap_reached');
-        }
-
-        const cost = contentService.getBuildingCost(building, currentCount);
-        if (progress.energy < cost) {
-          throw new AppError(400, 'not_enough_energy');
+        const MAX_BULK_PURCHASE = 5000;
+        const quantity = Math.min(Math.floor(rawQuantity), MAX_BULK_PURCHASE);
+        if (quantity <= 0) {
+          throw new AppError(400, 'invalid_purchase_quantity');
         }
 
-        const updatedInventory = await upsertInventoryItem(userId, request.buildingId, 1, 0, client);
-        const purchaseXp = calculatePurchaseXp(cost, progress.level);
-        const totalXp = progress.xp + purchaseXp.appliedXp;
-        const levelInfo = calculateLevelProgress(totalXp);
-        const leveledUp = levelInfo.level !== progress.level;
-        const newEnergy = progress.energy - cost;
+        let currentCount = existing?.count ?? 0;
+        let currentEnergy = progress.energy;
+        let currentXp = progress.xp;
+        let currentPlayerLevel = progress.level;
+
+        let purchased = 0;
+        let totalCost = 0;
+        let totalRawXp = 0;
+        let totalDiminishedXp = 0;
+        let totalAppliedXp = 0;
+        let lastCap = 0;
+        let leveledUp = false;
+        let levelInfo = calculateLevelProgress(currentXp);
+
+        while (purchased < quantity) {
+          if (building.max_count && currentCount >= building.max_count) {
+            throw new AppError(400, 'building_count_cap_reached');
+          }
+
+          const playerMaxForLevel = contentService.getMaxBuildingCount(currentPlayerLevel);
+          if (currentCount >= playerMaxForLevel) {
+            throw new AppError(400, 'player_building_cap_reached');
+          }
+
+          const cost = contentService.getBuildingCost(building, currentCount);
+          if (currentEnergy < cost) {
+            throw new AppError(400, 'not_enough_energy');
+          }
+
+          const purchaseXp = calculatePurchaseXp(cost, currentPlayerLevel);
+          const nextXpTotal = currentXp + purchaseXp.appliedXp;
+          levelInfo = calculateLevelProgress(nextXpTotal);
+
+          if (levelInfo.level !== currentPlayerLevel) {
+            leveledUp = true;
+          }
+
+          currentEnergy -= cost;
+          currentCount += 1;
+          currentXp = nextXpTotal;
+          currentPlayerLevel = levelInfo.level;
+
+          purchased += 1;
+          totalCost += cost;
+          totalRawXp += purchaseXp.rawXp;
+          totalDiminishedXp += purchaseXp.diminishedXp;
+          totalAppliedXp += purchaseXp.appliedXp;
+          lastCap = purchaseXp.cap;
+        }
+
+        const updatedInventory = await upsertInventoryItem(
+          userId,
+          request.buildingId,
+          purchased,
+          0,
+          client
+        );
 
         const updatedProgress = await updateProgress(
           userId,
           {
-            energy: newEnergy,
-            xp: totalXp,
-            level: levelInfo.level,
+            energy: currentEnergy,
+            xp: currentXp,
+            level: currentPlayerLevel,
           },
           client
         );
@@ -98,19 +148,28 @@ export class UpgradeService {
           'building_purchase',
           {
             building_id: request.buildingId,
-            cost,
+            quantity: purchased,
+            cost: totalCost,
+            total_cost: totalCost,
             new_count: updatedInventory.count,
-            xp_raw: purchaseXp.rawXp,
-            xp_diminished: purchaseXp.diminishedXp,
-            xp_applied: purchaseXp.appliedXp,
-            xp_cap: purchaseXp.cap,
+            xp_raw: totalRawXp,
+            xp_diminished: totalDiminishedXp,
+            xp_applied: totalAppliedXp,
+            xp_cap: lastCap,
           },
           { client }
         );
 
-        const income = contentService.getBuildingIncome(building, updatedInventory.count, updatedInventory.level);
+        const income = contentService.getBuildingIncome(
+          building,
+          updatedInventory.count,
+          updatedInventory.level
+        );
         const nextCost = contentService.getBuildingCost(building, updatedInventory.count);
-        const nextUpgradeCost = contentService.getBuildingUpgradeCost(building, updatedInventory.level);
+        const nextUpgradeCost = contentService.getBuildingUpgradeCost(
+          building,
+          updatedInventory.level
+        );
 
         return {
           success: true,
@@ -124,11 +183,12 @@ export class UpgradeService {
             next_upgrade_cost: nextUpgradeCost,
           },
           energy: updatedProgress.energy,
-          xp_gained: purchaseXp.appliedXp,
+          xp_gained: totalAppliedXp,
           level: updatedProgress.level,
           level_up: leveledUp,
           xp_into_level: levelInfo.xpIntoLevel,
           xp_to_next_level: levelInfo.xpToNextLevel,
+          purchased,
         };
       }
 
