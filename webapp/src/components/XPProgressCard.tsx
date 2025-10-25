@@ -69,17 +69,20 @@ export function XPProgressCard({
           <p className="m-0 text-xs uppercase tracking-[0.6px] text-[var(--color-text-secondary)]">
             Прогресс уровня
           </p>
-          <h3 className="m-0 text-lg font-semibold text-white">Уровень {level}</h3>
+          <h3 className="m-0 text-lg font-semibold text-token-primary">Уровень {level}</h3>
         </div>
         <div className="text-right">
-          <p className="m-0 text-xs text-white/60">Прогресс</p>
+          <p className="m-0 text-xs text-token-secondary">Прогресс</p>
           <p className="m-0 text-sm font-semibold text-cyan">{Math.round(percentage)}%</p>
         </div>
       </div>
 
       {/* Progress bar with animation */}
       <div className="mb-3">
-        <div className="h-3 rounded-full bg-white/10 overflow-hidden mb-2 relative">
+        <div
+          className="h-3 rounded-full overflow-hidden mb-2 relative"
+          style={{ background: 'color-mix(in srgb, var(--color-border-subtle) 35%, transparent)' }}
+        >
           {/* Animated fill */}
           <motion.div
             className="h-full rounded-full bg-gradient-to-r from-cyan via-lime to-gold"
@@ -103,7 +106,7 @@ export function XPProgressCard({
             style={{ width: '100%' }}
           />
         </div>
-        <div className="text-xs text-white/60">
+        <div className="text-xs text-token-secondary">
           {xpCurrentFormatted} / {xpTotalFormatted} XP
         </div>
       </div>

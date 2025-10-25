@@ -47,17 +47,17 @@ export class ErrorBoundary extends Component<Props, State> {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          className="flex flex-col items-center justify-center gap-4 p-6 rounded-lg bg-dark-secondary border border-red-error/40 text-center"
+          className="flex flex-col items-center justify-center gap-4 p-6 rounded-lg bg-[var(--color-surface-secondary)] border border-[var(--color-text-destructive)]/40 text-center"
           role="alert"
         >
           <div className="text-3xl" role="img" aria-label="Warning">
             ⚠️
           </div>
           <div className="flex flex-col gap-2">
-            <h3 className="text-base font-bold text-white flex items-center justify-center gap-2">
+            <h3 className="text-base font-bold text-token-primary flex items-center justify-center gap-2">
               <span aria-hidden="true">❌</span> Ошибка
             </h3>
-            <p className="text-sm text-red-200">
+            <p className="text-sm text-[var(--color-text-destructive)]/80">
               {this.state.error?.message || 'Неизвестная ошибка'}
             </p>
           </div>
@@ -65,7 +65,7 @@ export class ErrorBoundary extends Component<Props, State> {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={this.handleRetry}
-            className="px-4 py-2 rounded-lg bg-lime-500 hover:bg-lime-600 text-white text-sm font-medium transition-colors focus-ring"
+            className="px-4 py-2 rounded-lg bg-[var(--color-success)] hover:brightness-105 text-[var(--color-surface-primary)] text-sm font-medium transition-colors focus-ring"
           >
             Попробовать снова
           </motion.button>

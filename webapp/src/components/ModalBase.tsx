@@ -123,7 +123,10 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40"
+            className="fixed inset-0 backdrop-blur-sm z-40"
+            style={{
+              background: 'color-mix(in srgb, var(--app-bg) 60%, transparent)',
+            }}
           />
 
           {/* Modal */}
@@ -134,19 +137,19 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
             transition={{ duration: 0.2 }}
             className={clsx(
               'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50',
-              'bg-dark-bg rounded-xl border border-cyan/[0.14] shadow-xl backdrop-blur-md',
+              'bg-[var(--app-bg)] rounded-xl border border-[var(--color-border-subtle)] shadow-xl backdrop-blur-md',
               'max-h-[85vh] flex flex-col gap-5 p-5 sm:gap-6 sm:p-6',
               sizeStyles[size]
             )}
           >
             {/* Header */}
             <div className="flex items-center justify-between gap-4">
-              <h2 className="text-heading font-semibold text-white flex-1">{title}</h2>
+              <h2 className="text-heading font-semibold text-token-primary flex-1">{title}</h2>
 
               {showClose && (
                 <button
                   onClick={onClose}
-                  className="text-white/60 hover:text-white transition-colors focus-ring"
+                  className="text-token-secondary hover:text-token-primary transition-colors focus-ring"
                   aria-label="Close modal"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -162,7 +165,9 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
             </div>
 
             {/* Content */}
-            <div className="flex-1 overflow-y-auto pr-1 text-body text-white/80">{children}</div>
+            <div className="flex-1 overflow-y-auto pr-1 text-body text-token-secondary">
+              {children}
+            </div>
 
             {/* Actions */}
             {actions.length > 0 && (

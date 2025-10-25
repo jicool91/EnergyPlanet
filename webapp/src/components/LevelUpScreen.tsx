@@ -215,7 +215,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
 
                 {/* Bonus text */}
                 <motion.p
-                  className="m-0 mt-4 text-body font-semibold text-white/80"
+                  className="m-0 mt-4 text-body font-semibold text-token-secondary"
                   variants={textVariants.item}
                 >
                   Доступны новые постройки

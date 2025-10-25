@@ -64,7 +64,7 @@ export function OfflineSummaryModal({
       actions={[{ label: 'Продолжить', variant: 'primary', onClick: onClose }]}
     >
       <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden pr-1 space-y-4">
-        <p className="text-body text-white/80 leading-relaxed break-words">
+        <p className="text-body text-token-secondary leading-relaxed break-words">
           {durationSec > 0 || energy > 0 || xp > 0 ? (
             <>
               {`За ${formatDuration(durationSec)} вы накопили `}
@@ -82,26 +82,38 @@ export function OfflineSummaryModal({
           )}
         </p>
 
-        <div className="grid gap-3 text-sm text-white/75">
+        <div className="grid gap-3 text-sm text-token-secondary">
           {(energy > 0 || durationSec > 0) && passivePerSecondLabel && (
-            <div className="grid grid-cols-[1fr_auto] gap-3 items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-              <span className="text-white/60 break-words">Пассивный доход</span>
-              <span className="font-semibold text-right whitespace-nowrap">
+            <div
+              className="grid grid-cols-[1fr_auto] gap-3 items-center rounded-lg px-3 py-2"
+              style={{
+                background: 'color-mix(in srgb, var(--color-border-subtle) 20%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-border-subtle) 60%, transparent)',
+              }}
+            >
+              <span className="text-token-secondary break-words">Пассивный доход</span>
+              <span className="font-semibold text-right whitespace-nowrap text-token-primary">
                 {passivePerSecondLabel} E/с
               </span>
             </div>
           )}
           {gainedLevels != null && (
-            <div className="grid grid-cols-[1fr_auto] gap-3 items-center bg-white/5 border border-white/10 rounded-lg px-3 py-2">
-              <span className="text-white/60 break-words">Новые уровни</span>
-              <span className="font-semibold text-right">
+            <div
+              className="grid grid-cols-[1fr_auto] gap-3 items-center rounded-lg px-3 py-2"
+              style={{
+                background: 'color-mix(in srgb, var(--color-border-subtle) 20%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-border-subtle) 60%, transparent)',
+              }}
+            >
+              <span className="text-token-secondary break-words">Новые уровни</span>
+              <span className="font-semibold text-right text-token-primary">
                 {gainedLevels > 0 ? `+${gainedLevels}` : '—'}
               </span>
             </div>
           )}
           {capped && (
             <div className="grid gap-1 bg-orange/15 border border-orange/40 text-orange/90 rounded-lg px-3 py-2">
-              <span className="font-semibold">Лимит офлайна достигнут</span>
+              <span className="font-semibold text-token-primary">Лимит офлайна достигнут</span>
               <span className="text-xs uppercase tracking-wide text-orange/80">
                 подключайтесь чаще
               </span>

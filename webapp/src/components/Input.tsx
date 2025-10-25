@@ -65,22 +65,26 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     };
 
     const baseStyles =
-      'w-full bg-dark-tertiary border rounded-md text-white placeholder-white/40 transition-colors duration-150 focus:outline-none focus:border-cyan focus:bg-dark-secondary disabled:opacity-50 disabled:cursor-not-allowed';
+      'w-full border rounded-md text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]/80 transition-colors duration-150 focus:outline-none focus:border-[var(--color-text-accent)] focus:bg-[var(--color-surface-tertiary)] bg-[var(--color-surface-secondary)] disabled:opacity-50 disabled:cursor-not-allowed';
 
     const borderStyles = error
-      ? 'border-red-error/60 focus:border-red-error'
-      : 'border-cyan/[0.12] focus:border-cyan/60';
+      ? 'border-[var(--color-text-destructive)]/60 focus:border-[var(--color-text-destructive)]'
+      : 'border-[var(--color-border-subtle)] focus:border-[var(--color-text-accent)]';
 
     return (
       <div className="flex flex-col gap-1">
-        {label && <label className="text-caption font-semibold text-white/80">{label}</label>}
+        {label && (
+          <label className="text-caption font-semibold text-token-secondary">{label}</label>
+        )}
         <input
           ref={ref}
           disabled={disabled}
           className={clsx(baseStyles, borderStyles, sizeStyles[inputSize], className)}
           {...props}
         />
-        {error && errorMessage && <p className="text-micro text-red-error">{errorMessage}</p>}
+        {error && errorMessage && (
+          <p className="text-micro text-[var(--color-text-destructive)]">{errorMessage}</p>
+        )}
       </div>
     );
   }

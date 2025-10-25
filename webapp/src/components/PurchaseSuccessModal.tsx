@@ -113,12 +113,12 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
 
               {/* Item Info */}
               <motion.div
-                className="mb-6 text-body text-white/75"
+                className="mb-6 text-body text-token-secondary"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.3 }}
               >
-                <p className="m-0 text-heading font-semibold text-white mb-1">{itemName}</p>
+                <p className="m-0 text-heading font-semibold text-token-primary mb-1">{itemName}</p>
                 {quantity > 1 && (
                   <p className="m-0 text-sm">
                     Количество: <span className="text-cyan font-semibold">×{quantity}</span>
