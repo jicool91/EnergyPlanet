@@ -18,6 +18,7 @@ import { useScrollToTop } from '../hooks/useScrollToTop';
 import { useNotification } from '../hooks/useNotification';
 import { useSafeArea } from '../hooks';
 import { shallow } from 'zustand/shallow';
+import { useCatalogStore } from '../store/catalogStore';
 
 const TAB_BAR_RESERVE_PX = 88;
 
@@ -94,6 +95,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     isCriticalStreak,
     lastTapAt,
     isLoading,
+    buildings,
   } = useGameStore(
     state => ({
       energy: state.energy,
@@ -109,6 +111,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
       isCriticalStreak: state.isCriticalStreak,
       lastTapAt: state.lastTapAt,
       isLoading: state.isLoading,
+      buildings: state.buildings,
     }),
     shallow
   );
@@ -121,10 +124,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     }),
     shallow
   );
-  const { buildingCatalog, buildings } = useGameStore(
+  const { buildingCatalog } = useCatalogStore(
     state => ({
       buildingCatalog: state.buildingCatalog,
-      buildings: state.buildings,
     }),
     shallow
   );

@@ -1,5 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { shallow } from 'zustand/shallow';
 import { useGameStore } from '../store/gameStore';
+import { useCatalogStore } from '../store/catalogStore';
 import { BuildingCard } from './BuildingCard';
 import type { BuildingCardBuilding } from './BuildingCard';
 import { BuildingSkeleton, ErrorBoundary } from './skeletons';
@@ -107,10 +109,25 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
     isProcessingBuildingId,
     purchaseBuilding,
     upgradeBuilding,
-    buildingCatalog,
-    loadBuildingCatalog,
-    isBuildingCatalogLoading,
-  } = useGameStore();
+  } = useGameStore(
+    state => ({
+      buildings: state.buildings,
+      energy: state.energy,
+      buildingsError: state.buildingsError,
+      isProcessingBuildingId: state.isProcessingBuildingId,
+      purchaseBuilding: state.purchaseBuilding,
+      upgradeBuilding: state.upgradeBuilding,
+    }),
+    shallow
+  );
+  const { buildingCatalog, loadBuildingCatalog, isBuildingCatalogLoading } = useCatalogStore(
+    state => ({
+      buildingCatalog: state.buildingCatalog,
+      loadBuildingCatalog: state.loadBuildingCatalog,
+      isBuildingCatalogLoading: state.isBuildingCatalogLoading,
+    }),
+    shallow
+  );
   const playerLevel = useGameStore(state => state.level);
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<PurchaseOptionId>('x1');
   const { safeArea } = useSafeArea();

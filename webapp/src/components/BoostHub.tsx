@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { useGameStore } from '../store/gameStore';
+import { shallow } from 'zustand/shallow';
+import { useCatalogStore } from '../store/catalogStore';
 import { Button } from './Button';
 import { Card } from './Card';
 import { Badge } from './Badge';
@@ -59,7 +60,17 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
     isClaimingBoostType,
     loadBoostHub,
     claimBoost,
-  } = useGameStore();
+  } = useCatalogStore(
+    state => ({
+      boostHub: state.boostHub,
+      isBoostHubLoading: state.isBoostHubLoading,
+      boostHubError: state.boostHubError,
+      isClaimingBoostType: state.isClaimingBoostType,
+      loadBoostHub: state.loadBoostHub,
+      claimBoost: state.claimBoost,
+    }),
+    shallow
+  );
 
   const [now, setNow] = useState(Date.now());
 

@@ -7,19 +7,10 @@ import { isAxiosError } from 'axios';
 import { apiClient, API_BASE_URL } from '../services/apiClient';
 import { postQueue } from '../services/requestQueue';
 import { logClientEvent } from '../services/telemetry';
-import {
-  equipCosmetic as equipCosmeticApi,
-  completeCosmeticPurchase,
-  fetchCosmetics,
-  unlockCosmetic,
-  CosmeticItem,
-} from '../services/cosmetics';
-import { fetchStarPacks, StarPack } from '../services/starPacks';
-import { fetchBoostHub, BoostHubItem, claimBoost as claimBoostApi } from '../services/boosts';
-import { fetchBuildingCatalog, BuildingDefinition } from '../services/buildings';
 import { getTelegramInitData, triggerHapticImpact } from '../services/telegram';
 import { fetchLeaderboard, LeaderboardUserEntry } from '../services/leaderboard';
 import { fetchProfile, ProfileResponse } from '../services/profile';
+import { describeError } from './storeUtils';
 import { authStore } from './authStore';
 import { uiStore } from './uiStore';
 
@@ -98,24 +89,6 @@ interface GameState {
   buildings: BuildingState[];
   buildingsError: string | null;
   isProcessingBuildingId: string | null;
-  buildingCatalog: BuildingDefinition[];
-  buildingCatalogLoaded: boolean;
-  isBuildingCatalogLoading: boolean;
-  cosmetics: CosmeticItem[];
-  cosmeticsLoaded: boolean;
-  isCosmeticsLoading: boolean;
-  cosmeticsError: string | null;
-  isProcessingCosmeticId: string | null;
-  starPacks: StarPack[];
-  starPacksLoaded: boolean;
-  isStarPacksLoading: boolean;
-  starPacksError: string | null;
-  isProcessingStarPackId: string | null;
-  boostHub: BoostHubItem[];
-  boostHubLoaded: boolean;
-  isBoostHubLoading: boolean;
-  boostHubError: string | null;
-  isClaimingBoostType: string | null;
   sessionLastSyncedAt: number | null;
   sessionErrorMessage: string | null;
   leaderboardEntries: LeaderboardUserEntry[];
@@ -140,41 +113,15 @@ interface GameState {
   resetStreak: () => void;
   configurePassiveIncome: (perSec: number, multiplier: number) => void;
   refreshSession: () => Promise<void>;
-  loadCosmetics: (force?: boolean) => Promise<void>;
-  purchaseCosmetic: (cosmeticId: string) => Promise<void>;
-  equipCosmetic: (cosmeticId: string) => Promise<void>;
-  loadStarPacks: (force?: boolean) => Promise<void>;
-  purchaseStarPack: (packId: string) => Promise<void>;
-  loadBoostHub: (force?: boolean) => Promise<void>;
-  claimBoost: (boostType: string) => Promise<void>;
   purchaseBuilding: (buildingId: string, quantity?: number) => Promise<void>;
   upgradeBuilding: (buildingId: string) => Promise<void>;
   flushPassiveIncome: (options?: { keepAlive?: boolean }) => Promise<void>;
   logoutSession: (useKeepAlive?: boolean) => Promise<void>;
-  loadBuildingCatalog: (force?: boolean) => Promise<void>;
   loadLeaderboard: (force?: boolean) => Promise<void>;
   loadProfile: (force?: boolean) => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
-
-function describeError(error: unknown): { status: number | null; message: string } {
-  if (isAxiosError(error)) {
-    const status = error.response?.status ?? null;
-    const upstreamMessage =
-      (error.response?.data as { message?: string })?.message || error.message;
-    return {
-      status,
-      message: upstreamMessage,
-    };
-  }
-
-  if (error instanceof Error) {
-    return { status: null, message: error.message };
-  }
-
-  return { status: null, message: fallbackSessionError };
-}
 
 function mapBuilding(entry: InventoryBuildingPayload): BuildingState {
   return {
@@ -211,24 +158,6 @@ export const useGameStore = create<GameState>((set, get) => ({
   buildings: [],
   buildingsError: null,
   isProcessingBuildingId: null,
-  buildingCatalog: [],
-  buildingCatalogLoaded: false,
-  isBuildingCatalogLoading: false,
-  cosmetics: [],
-  cosmeticsLoaded: false,
-  isCosmeticsLoading: false,
-  cosmeticsError: null,
-  isProcessingCosmeticId: null,
-  starPacks: [],
-  starPacksLoaded: false,
-  isStarPacksLoading: false,
-  starPacksError: null,
-  isProcessingStarPackId: null,
-  boostHub: [],
-  boostHubLoaded: false,
-  isBoostHubLoading: false,
-  boostHubError: null,
-  isClaimingBoostType: null,
   sessionLastSyncedAt: null,
   sessionErrorMessage: null,
   leaderboardEntries: [],
@@ -269,7 +198,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       try {
         sessionResponse = await postQueue.enqueue(() => apiClient.post('/session'));
       } catch (sessionError) {
-        const { status, message } = describeError(sessionError);
+        const { status, message } = describeError(sessionError, fallbackSessionError);
         set({ sessionErrorMessage: message || fallbackSessionError });
 
         await logClientEvent(
@@ -545,7 +474,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (error) {
       console.error('Failed to refresh session snapshot', error);
 
-      const { status, message } = describeError(error);
+      const { status, message } = describeError(error, fallbackSessionError);
       set({ sessionErrorMessage: message || fallbackSessionError });
 
       await logClientEvent(
@@ -557,261 +486,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         },
         status && status >= 500 ? 'error' : 'warn'
       );
-    }
-  },
-
-  loadCosmetics: async (force = false) => {
-    const { cosmeticsLoaded, isCosmeticsLoading } = get();
-    if (!force && (cosmeticsLoaded || isCosmeticsLoading)) {
-      return;
-    }
-
-    set({ isCosmeticsLoading: true, cosmeticsError: null });
-
-    try {
-      const cosmetics = await fetchCosmetics();
-      set({ cosmetics, cosmeticsLoaded: true, isCosmeticsLoading: false, cosmeticsError: null });
-    } catch (error) {
-      const { message } = describeError(error);
-      set({ cosmeticsError: message || 'Не удалось загрузить магазин', isCosmeticsLoading: false });
-      await logClientEvent('cosmetics_load_failed', { message, source: 'loadCosmetics' }, 'warn');
-    }
-  },
-
-  purchaseCosmetic: async (cosmeticId: string) => {
-    const state = get();
-    const target = state.cosmetics.find(item => item.id === cosmeticId);
-    if (!target) {
-      throw new Error('Cosmetic not found');
-    }
-
-    if (state.isProcessingCosmeticId === cosmeticId) {
-      return;
-    }
-
-    set({ isProcessingCosmeticId: cosmeticId });
-
-    try {
-      if (target.status === 'purchase_required' && target.price_stars) {
-        await completeCosmeticPurchase(target, {
-          metadata: { source: 'shop_screen' },
-        });
-      }
-
-      await unlockCosmetic(cosmeticId);
-      await get().loadCosmetics(true);
-      await logClientEvent('cosmetic_unlocked', { cosmetic_id: cosmeticId }, 'info');
-    } catch (error) {
-      const { status, message } = describeError(error);
-      await logClientEvent(
-        'cosmetic_purchase_error',
-        {
-          cosmetic_id: cosmeticId,
-          status,
-          message,
-        },
-        'warn'
-      );
-      set({ cosmeticsError: message || 'Не удалось купить косметику' });
-      throw error;
-    } finally {
-      set({ isProcessingCosmeticId: null });
-    }
-  },
-
-  equipCosmetic: async (cosmeticId: string) => {
-    const { cosmetics } = get();
-    const target = cosmetics.find(item => item.id === cosmeticId);
-    if (!target) {
-      throw new Error('Cosmetic not found');
-    }
-
-    set({ isProcessingCosmeticId: cosmeticId });
-
-    try {
-      await equipCosmeticApi(cosmeticId);
-
-      set(state => ({
-        cosmetics: state.cosmetics.map(item => {
-          if (item.category !== target.category) {
-            return item;
-          }
-
-          return {
-            ...item,
-            equipped: item.id === cosmeticId,
-            owned: item.owned || item.id === cosmeticId,
-            status: item.id === cosmeticId ? 'owned' : item.status,
-          };
-        }),
-      }));
-
-      await logClientEvent(
-        'cosmetic_equipped',
-        { cosmetic_id: cosmeticId, category: target.category },
-        'info'
-      );
-    } catch (error) {
-      const { status, message } = describeError(error);
-      await logClientEvent(
-        'cosmetic_equip_error',
-        {
-          cosmetic_id: cosmeticId,
-          status,
-          message,
-        },
-        'warn'
-      );
-      set({ cosmeticsError: message || 'Не удалось экипировать косметику' });
-      throw error;
-    } finally {
-      set({ isProcessingCosmeticId: null });
-    }
-  },
-
-  loadStarPacks: async (force = false) => {
-    const { starPacksLoaded, isStarPacksLoading } = get();
-    if (!force && (starPacksLoaded || isStarPacksLoading)) {
-      return;
-    }
-
-    set({ isStarPacksLoading: true, starPacksError: null });
-
-    try {
-      const packs = await fetchStarPacks();
-      set({
-        starPacks: packs,
-        starPacksLoaded: true,
-        isStarPacksLoading: false,
-        starPacksError: null,
-      });
-    } catch (error) {
-      const { message } = describeError(error);
-      set({
-        starPacksError: message || 'Не удалось загрузить паки Stars',
-        isStarPacksLoading: false,
-      });
-      await logClientEvent('star_packs_load_failed', { message, source: 'loadStarPacks' }, 'warn');
-    }
-  },
-
-  purchaseStarPack: async (packId: string) => {
-    const state = get();
-    const pack = state.starPacks.find(item => item.id === packId);
-    if (!pack) {
-      throw new Error('Star pack not found');
-    }
-
-    if (state.isProcessingStarPackId === packId) {
-      return;
-    }
-
-    const totalStars = pack.stars + (pack.bonus_stars ?? 0);
-    const metadata = {
-      pack_title: pack.title,
-      stars: pack.stars,
-      bonus_stars: pack.bonus_stars ?? 0,
-      price_usd: pack.price_usd ?? null,
-      price_rub: pack.price_rub ?? null,
-    };
-
-    set({ isProcessingStarPackId: packId, starPacksError: null });
-
-    const purchaseId = `stars_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-    const payload = {
-      purchase_id: purchaseId,
-      item_id: pack.id,
-      price_stars: totalStars,
-      purchase_type: 'stars_pack' as const,
-      metadata,
-    };
-
-    try {
-      await apiClient.post('/purchase/invoice', payload);
-      await apiClient.post('/purchase', payload);
-
-      await logClientEvent(
-        'star_pack_purchase_mock',
-        {
-          pack_id: pack.id,
-          total_stars: totalStars,
-          purchase_id: purchaseId,
-        },
-        'info'
-      );
-
-      await get().refreshSession();
-    } catch (error) {
-      const { status, message } = describeError(error);
-      await logClientEvent(
-        'star_pack_purchase_error',
-        {
-          pack_id: pack.id,
-          status,
-          message,
-          purchase_id: purchaseId,
-        },
-        'error'
-      );
-      set({ starPacksError: message || 'Не удалось завершить покупку Stars' });
-      throw error;
-    } finally {
-      set({ isProcessingStarPackId: null });
-    }
-  },
-
-  loadBoostHub: async (force = false) => {
-    const { boostHubLoaded, isBoostHubLoading } = get();
-    if (!force && (boostHubLoaded || isBoostHubLoading)) {
-      return;
-    }
-
-    set({ isBoostHubLoading: true, boostHubError: null });
-
-    try {
-      const response = await fetchBoostHub();
-      set({
-        boostHub: response.boosts,
-        boostHubLoaded: true,
-        isBoostHubLoading: false,
-        boostHubError: null,
-      });
-    } catch (error) {
-      const { message } = describeError(error);
-      set({ boostHubError: message || 'Не удалось загрузить бусты', isBoostHubLoading: false });
-      await logClientEvent('boost_hub_load_failed', { message }, 'warn');
-    }
-  },
-
-  claimBoost: async (boostType: string) => {
-    const { isClaimingBoostType } = get();
-    if (isClaimingBoostType === boostType) {
-      return;
-    }
-
-    set({ isClaimingBoostType: boostType, boostHubError: null });
-
-    try {
-      await logClientEvent('boost_claim_request', { boost_type: boostType }, 'info');
-      await claimBoostApi(boostType);
-      await logClientEvent('boost_claim_success', { boost_type: boostType }, 'info');
-      await get().loadBoostHub(true);
-      await get().refreshSession();
-    } catch (error) {
-      const { status, message } = describeError(error);
-      await logClientEvent(
-        'boost_claim_error',
-        {
-          boost_type: boostType,
-          status,
-          message,
-        },
-        'warn'
-      );
-      set({ boostHubError: message || 'Не удалось активировать буст' });
-      throw error;
-    } finally {
-      set({ isClaimingBoostType: null });
     }
   },
 
@@ -931,7 +605,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       await get().refreshSession();
     } catch (error) {
-      const { status, message } = describeError(error);
+      const { status, message } = describeError(error, fallbackSessionError);
       await logClientEvent(
         'building_purchase_error',
         {
@@ -987,7 +661,7 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       await get().refreshSession();
     } catch (error) {
-      const { status, message } = describeError(error);
+      const { status, message } = describeError(error, fallbackSessionError);
       await logClientEvent(
         'building_upgrade_error',
         {
@@ -1024,27 +698,6 @@ export const useGameStore = create<GameState>((set, get) => ({
     }
   },
 
-  loadBuildingCatalog: async (force = false) => {
-    const { buildingCatalogLoaded, isBuildingCatalogLoading } = get();
-    if (!force && (buildingCatalogLoaded || isBuildingCatalogLoading)) {
-      return;
-    }
-
-    set({ isBuildingCatalogLoading: true });
-
-    try {
-      const catalog = await fetchBuildingCatalog();
-      set({
-        buildingCatalog: catalog,
-        buildingCatalogLoaded: true,
-        isBuildingCatalogLoading: false,
-      });
-    } catch (error) {
-      console.error('Failed to load building catalog', error);
-      set({ isBuildingCatalogLoading: false });
-    }
-  },
-
   loadLeaderboard: async (force = false) => {
     const { leaderboardLoaded, isLeaderboardLoading } = get();
     if (!force && (leaderboardLoaded || isLeaderboardLoading)) {
@@ -1063,7 +716,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         isLeaderboardLoading: false,
       });
     } catch (error) {
-      const { message } = describeError(error);
+      const { message } = describeError(error, fallbackSessionError);
       set({
         leaderboardError: message,
         isLeaderboardLoading: false,
@@ -1089,7 +742,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         isProfileLoading: false,
       });
     } catch (error) {
-      const { message } = describeError(error);
+      const { message } = describeError(error, fallbackSessionError);
       set({
         profileError: message,
         isProfileLoading: false,

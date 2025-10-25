@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { shallow } from 'zustand/shallow';
-import { useGameStore } from '../store/gameStore';
+import { useCatalogStore } from '../store/catalogStore';
 import { ShopSkeleton, ErrorBoundary } from './skeletons';
 import { Button } from './Button';
 import { Card } from './Card';
@@ -63,7 +63,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
     loadCosmetics,
     purchaseCosmetic,
     equipCosmetic,
-  } = useGameStore(
+  } = useCatalogStore(
     state => ({
       cosmetics: state.cosmetics,
       isCosmeticsLoading: state.isCosmeticsLoading,
@@ -82,7 +82,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
     isProcessingStarPackId,
     loadStarPacks,
     purchaseStarPack,
-  } = useGameStore(
+  } = useCatalogStore(
     state => ({
       starPacks: state.starPacks,
       isStarPacksLoading: state.isStarPacksLoading,
