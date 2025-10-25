@@ -67,12 +67,12 @@ export function LeaderboardPanel() {
   if (leaderboardError) {
     return (
       <div className="p-0 flex flex-col gap-4" role="alert">
-        <Card className="bg-red-error/15 border-red-error/40 text-red-error flex gap-3 items-start">
+        <Card className="bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)] flex gap-3 items-start">
           <span className="text-xl" role="img" aria-label="Leaderboard error">
             ❌
           </span>
           <div>
-            <p className="m-0 mb-2 font-semibold text-red-300">Не удалось получить рейтинг</p>
+            <p className="m-0 mb-2 font-semibold text-token-primary">Не удалось получить рейтинг</p>
             <small className="text-[var(--color-text-secondary)]">{leaderboardError}</small>
           </div>
         </Card>

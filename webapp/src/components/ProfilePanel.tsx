@@ -33,7 +33,7 @@ export function ProfilePanel() {
   if (profileError) {
     return (
       <div className="p-0 flex flex-col gap-4">
-        <Card className="bg-red-error/15 border-red-error/40 text-red-error">
+        <Card className="bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)]">
           <p className="m-0 mb-2 font-semibold">Не удалось получить профиль.</p>
           <small className="text-token-secondary">{profileError}</small>
         </Card>

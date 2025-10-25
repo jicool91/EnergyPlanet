@@ -151,7 +151,7 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
 
       {/* Error State */}
       {boostHubError && (
-        <Card className="bg-red-error/15 border-red-error/40 text-red-error text-caption">
+        <Card className="bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)] text-caption">
           {boostHubError}
         </Card>
       )}

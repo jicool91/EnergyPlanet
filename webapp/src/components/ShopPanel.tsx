@@ -227,10 +227,14 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
 
       {/* Errors */}
       {activeSection === 'star_packs' && starPacksError && (
-        <Card className="bg-red-error/15 border-red-error/40 text-red-error">{starPacksError}</Card>
+        <Card className="bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)]">
+          {starPacksError}
+        </Card>
       )}
       {activeSection === 'cosmetics' && cosmeticsError && (
-        <Card className="bg-red-error/15 border-red-error/40 text-red-error">{cosmeticsError}</Card>
+        <Card className="bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)]">
+          {cosmeticsError}
+        </Card>
       )}
 
       {/* Featured Star Pack Section */}
