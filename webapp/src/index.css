@@ -151,3 +151,49 @@ body {
 
 /* Tailwind CSS v3.4.0 - Migrated 2025-10-23 */
 /* iPhone safe-area fix deployed 2025-10-22 20:00 UTC */
+
+.app-shell {
+  background: linear-gradient(
+    180deg,
+    var(--app-header-bg, var(--app-bg)) 0%,
+    var(--app-bg) 55%,
+    var(--app-bg) 100%
+  );
+}
+
+.surface-translucent {
+  background-color: var(--app-bottom-bar-bg, var(--app-bg));
+  background-color: color-mix(in srgb, var(--app-bottom-bar-bg, var(--app-bg)) 90%, transparent);
+}
+
+.text-token-primary {
+  color: var(--color-text-primary);
+}
+
+.text-token-secondary {
+  color: var(--color-text-secondary);
+}
+
+.text-token-accent {
+  color: var(--color-text-accent);
+}
+
+.bg-token-surface {
+  background-color: var(--color-surface-secondary);
+}
+
+.bg-token-surface-tertiary {
+  background-color: var(--color-surface-tertiary);
+}
+
+.border-token-subtle {
+  border-color: var(--color-border-subtle);
+}
+
+.border-token-muted {
+  border-color: color-mix(in srgb, var(--color-border-subtle) 65%, transparent);
+}
+
+.bg-token-track {
+  background-color: color-mix(in srgb, var(--color-border-subtle) 35%, transparent);
+}

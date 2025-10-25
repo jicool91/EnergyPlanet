@@ -35,7 +35,7 @@ export function ProfilePanel() {
       <div className="p-0 flex flex-col gap-4">
         <Card className="bg-red-error/15 border-red-error/40 text-red-error">
           <p className="m-0 mb-2 font-semibold">Не удалось получить профиль.</p>
-          <small className="text-white/60">{profileError}</small>
+          <small className="text-token-secondary">{profileError}</small>
         </Card>
       </div>
     );
@@ -43,7 +43,7 @@ export function ProfilePanel() {
 
   if (!profile) {
     return (
-      <div className="p-0 flex flex-col gap-4 items-center justify-center text-center text-white/70">
+      <div className="p-0 flex flex-col gap-4 items-center justify-center text-center text-token-secondary">
         <p>Профиль недоступен.</p>
       </div>
     );
@@ -92,7 +92,7 @@ export function ProfilePanel() {
       {profile.profile.bio && (
         <Card>
           <h4 className="mb-2 text-body uppercase font-semibold">О себе</h4>
-          <p className="m-0 text-caption text-white/80">{profile.profile.bio}</p>
+          <p className="m-0 text-caption text-token-secondary">{profile.profile.bio}</p>
         </Card>
       )}
 
@@ -103,7 +103,7 @@ export function ProfilePanel() {
           <ul className="list-none flex flex-col gap-2 m-0 p-0">
             {boosts.map(boost => (
               <li key={boost.id} className="flex justify-between items-center text-caption">
-                <span className="text-white/80">{boost.boost_type}</span>
+                <span className="text-token-primary">{boost.boost_type}</span>
                 <Badge variant="success" size="sm">
                   x{boost.multiplier}
                 </Badge>

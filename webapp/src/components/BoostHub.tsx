@@ -112,13 +112,13 @@ export function BoostHub() {
   );
 
   return (
-    <div className="flex flex-col gap-4 p-0">
+    <div className="flex flex-col gap-4 p-0 text-token-primary">
       {/* Header */}
       <div className="relative flex flex-col gap-1">
         <div className="flex justify-between items-start gap-3">
           <div>
-            <h2 className="m-0 text-heading text-white font-semibold">Boost Hub</h2>
-            <p className="m-0 text-caption text-white/60">
+            <h2 className="m-0 text-heading font-semibold">Boost Hub</h2>
+            <p className="m-0 text-caption text-token-secondary">
               Активируйте бусты, чтобы ускорить прогресс
             </p>
           </div>
@@ -142,7 +142,9 @@ export function BoostHub() {
 
       <div className="flex flex-col gap-4">
         {isBoostHubLoading && boostHub.length === 0 ? (
-          <div className="p-6 text-center text-white/70 text-sm">Получаем данные о бустах…</div>
+          <div className="p-6 text-center text-token-secondary text-sm">
+            Получаем данные о бустах…
+          </div>
         ) : (
           items.map(item => {
             const label = resolveBoostLabel(item.boost_type);
@@ -173,8 +175,8 @@ export function BoostHub() {
                 {/* Title + Multiplier */}
                 <div className="flex justify-between items-start gap-3">
                   <div>
-                    <h3 className="m-0 text-body font-semibold text-white">{label}</h3>
-                    <p className="m-0 text-caption text-white/70">{description}</p>
+                    <h3 className="m-0 text-body font-semibold">{label}</h3>
+                    <p className="m-0 text-caption text-token-secondary">{description}</p>
                   </div>
                   <Badge variant="warning" size="sm">
                     x{item.multiplier}
@@ -182,7 +184,7 @@ export function BoostHub() {
                 </div>
 
                 {/* Duration + Cooldown */}
-                <div className="flex gap-4 text-caption text-white/60">
+                <div className="flex gap-4 text-caption text-token-secondary">
                   <span>Длительность: {formatDuration(item.duration_minutes)}</span>
                   <span>Кулдаун: {formatDuration(item.cooldown_minutes)}</span>
                 </div>

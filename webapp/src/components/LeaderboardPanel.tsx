@@ -82,17 +82,17 @@ export function LeaderboardPanel() {
 
   if (rows.length === 0) {
     return (
-      <div className="p-0 flex flex-col gap-4 items-center justify-center text-center text-white/70">
+      <div className="p-0 flex flex-col gap-4 items-center justify-center text-center text-token-secondary">
         <p>Ещё никто не попал в рейтинг. Будь первым!</p>
       </div>
     );
   }
 
   return (
-    <div className="p-0 flex flex-col gap-4">
+    <div className="p-0 flex flex-col gap-4 text-token-primary">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
-        <h3 className="m-0 text-heading font-semibold text-white">Топ игроков</h3>
+        <h3 className="m-0 text-heading font-semibold">Топ игроков</h3>
         <span className="text-caption text-[var(--color-text-secondary)]">
           Всего: {leaderboardTotal.toLocaleString()}
         </span>
@@ -103,18 +103,20 @@ export function LeaderboardPanel() {
         <Card className="bg-gradient-to-r from-cyan/20 to-lime/20 border-cyan/40">
           <div className="flex items-center justify-between gap-3 mb-2">
             <div>
-              <p className="m-0 text-xs uppercase tracking-[0.5px] text-white/60">Ваша позиция</p>
-              <p className="m-0 text-sm font-bold text-white">
+              <p className="m-0 text-xs uppercase tracking-[0.5px] text-token-secondary">
+                Ваша позиция
+              </p>
+              <p className="m-0 text-sm font-bold">
                 #{userLeaderboardEntry.rank} из {leaderboardTotal}
               </p>
             </div>
             <div className="text-right">
-              <p className="m-0 text-xs text-white/60">Top</p>
+              <p className="m-0 text-xs text-token-secondary">Top</p>
               <p className="m-0 text-sm font-bold text-lime">{Math.round(userRankProgress)}%</p>
             </div>
           </div>
           {/* Progress bar */}
-          <div className="w-full h-2 rounded-full bg-white/10 overflow-hidden">
+          <div className="w-full h-2 rounded-full bg-token-track overflow-hidden">
             <motion.div
               className="h-full bg-gradient-to-r from-cyan to-lime"
               initial={{ width: 0 }}
@@ -131,16 +133,16 @@ export function LeaderboardPanel() {
           <table className="w-full min-w-[540px] border-collapse text-caption">
             <thead>
               <tr>
-                <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
+                <th className="px-[14px] py-3 text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
                   #
                 </th>
-                <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
+                <th className="px-[14px] py-3 text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
                   Игрок
                 </th>
-                <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
+                <th className="px-[14px] py-3 text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
                   Уровень
                 </th>
-                <th className="px-[14px] py-3 text-left border-b border-white/[0.04] font-semibold text-white/70 text-xs uppercase">
+                <th className="px-[14px] py-3 text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
                   Энергия
                 </th>
               </tr>
@@ -155,7 +157,7 @@ export function LeaderboardPanel() {
                     key={entry.user_id}
                     initial={false}
                     animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
-                    className={`border-b border-white/[0.04] hover:bg-cyan/[0.08] transition-colors ${
+                    className={`border-b border-token-muted hover:bg-cyan/[0.08] transition-colors ${
                       isCurrentUser ? 'bg-cyan/[0.15] font-semibold' : ''
                     }`}
                   >
@@ -167,7 +169,7 @@ export function LeaderboardPanel() {
                             {medal.icon}
                           </span>
                         )}
-                        <span className="font-bold text-white">{entry.rank}</span>
+                        <span className="font-bold">{entry.rank}</span>
                       </div>
                     </td>
 
@@ -176,7 +178,7 @@ export function LeaderboardPanel() {
                       <div className="flex items-center gap-2">
                         <div className="flex flex-col gap-[2px] flex-1">
                           <span
-                            className={`font-semibold ${isCurrentUser ? 'text-cyan' : 'text-white'}`}
+                            className={`font-semibold ${isCurrentUser ? 'text-cyan' : 'text-token-primary'}`}
                           >
                             {entry.username || entry.first_name || 'Игрок'}
                             {isCurrentUser && ' ⭐'}
@@ -194,7 +196,7 @@ export function LeaderboardPanel() {
                     {/* Energy + Diff */}
                     <td className="px-[14px] py-3 text-left">
                       <div className="flex flex-col gap-[2px]">
-                        <span className="font-semibold text-white">{entry.energyDisplay}</span>
+                        <span className="font-semibold">{entry.energyDisplay}</span>
                         {entry.energyDiffDisplay && (
                           <span className="text-micro text-[var(--color-text-secondary)]">
                             -{entry.energyDiffDisplay}
@@ -218,10 +220,8 @@ export function LeaderboardPanel() {
                 key={entry.user_id}
                 initial={false}
                 animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
-                className={`rounded-lg border border-white/[0.08] bg-white/5/0 backdrop-blur-sm px-4 py-3 flex flex-col gap-2 transition-colors max-[360px]:px-3 max-[320px]:px-2 ${
-                  isCurrentUser
-                    ? 'bg-cyan/15 border-cyan/40'
-                    : 'bg-[var(--color-surface-secondary)]'
+                className={`rounded-lg border border-token-muted backdrop-blur-sm px-4 py-3 flex flex-col gap-2 transition-colors max-[360px]:px-3 max-[320px]:px-2 ${
+                  isCurrentUser ? 'bg-cyan/15 border-cyan/40' : 'bg-token-surface'
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -234,7 +234,7 @@ export function LeaderboardPanel() {
                     <div className="flex flex-col leading-tight">
                       <span
                         className={`font-semibold ${
-                          isCurrentUser ? 'text-cyan' : 'text-white'
+                          isCurrentUser ? 'text-cyan' : 'text-token-primary'
                         } max-[360px]:text-sm max-[320px]:text-xs`}
                       >
                         #{entry.rank} {entry.username || entry.first_name || 'Игрок'}
@@ -244,13 +244,13 @@ export function LeaderboardPanel() {
                       </span>
                     </div>
                   </div>
-                  <span className="text-heading font-semibold text-white max-[360px]:text-base">
+                  <span className="text-heading font-semibold max-[360px]:text-base">
                     {entry.level}
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-1 text-sm text-white/80 max-[360px]:text-xs">
-                  <span className="text-white/60">Энергия</span>
-                  <span className="font-medium">{entry.energyDisplay}</span>
+                <div className="flex flex-wrap items-center justify-between gap-1 text-sm text-token-secondary max-[360px]:text-xs">
+                  <span>Энергия</span>
+                  <span className="font-medium text-token-primary">{entry.energyDisplay}</span>
                 </div>
                 {entry.energyDiffDisplay && (
                   <div className="text-caption text-[var(--color-text-secondary)] max-[360px]:text-[10px]">

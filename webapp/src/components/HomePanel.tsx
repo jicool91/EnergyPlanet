@@ -177,7 +177,7 @@ export function HomePanel({
       </div>
 
       {/* Right column: Progress & social blocks */}
-      <div className="flex flex-col gap-2 px-4 py-2 overflow-y-auto lg:px-0 lg:py-0 lg:overflow-visible">
+      <div className="flex flex-col gap-2 px-4 py-2 lg:px-0 lg:py-0">
         {/* Daily Reward Banner */}
         <DailyRewardBanner />
 
@@ -201,7 +201,9 @@ export function HomePanel({
                 <p className="m-0 text-xs uppercase tracking-[0.6px] text-[var(--color-text-secondary)]">
                   Следующая цель
                 </p>
-                <h3 className="m-0 text-lg text-white font-semibold">{purchaseInsight.name}</h3>
+                <h3 className="m-0 text-lg text-[var(--color-text-primary)] font-semibold">
+                  {purchaseInsight.name}
+                </h3>
               </div>
               {purchaseInsight.roiRank && (
                 <span className="text-xs text-lime/80 font-semibold">
@@ -209,11 +211,11 @@ export function HomePanel({
                 </span>
               )}
             </div>
-            <div className="text-sm text-white/70">
+            <div className="text-sm text-[var(--color-text-secondary)]">
               Стоимость: {formatNumberWithSpaces(Math.floor(purchaseInsight.cost))} E
             </div>
             {purchaseInsight.remaining > 0 && (
-              <div className="text-sm text-white/60 mt-1">
+              <div className="text-sm text-[var(--color-text-secondary)] mt-1">
                 Осталось: {formatNumberWithSpaces(Math.floor(purchaseInsight.remaining))} E
               </div>
             )}

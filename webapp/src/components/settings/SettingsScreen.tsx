@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
 import { usePreferencesStore, type ThemeMode, type Language } from '../../store/preferencesStore';
 import { useNotification } from '../../hooks/useNotification';
 import { useHaptic } from '../../hooks/useHaptic';
+import { useTelegramMainButton } from '../../hooks';
 import { Button } from '../Button';
 import { Card } from '../Card';
 import { Toggle } from './Toggle';
@@ -28,6 +29,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
   const { success, warning } = useNotification();
   const { light } = useHaptic();
   const [confirmLogout, setConfirmLogout] = useState(false);
+  const handleCloseScreen = useCallback(() => {
+    onClose?.();
+  }, [onClose]);
+
+  useTelegramMainButton({
+    text: 'Готово',
+    onClick: handleCloseScreen,
+    enabled: Boolean(onClose),
+  });
 
   // Preferences
   const {
@@ -77,7 +87,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       className={`py-2 rounded-lg font-medium transition-all ${
         selected
           ? 'bg-lime text-black shadow-lg'
-          : 'bg-dark-tertiary border border-cyan/[0.14] text-white/70 hover:bg-dark-secondary'
+          : 'bg-token-surface-tertiary border border-token-subtle text-token-secondary hover:bg-token-surface'
       }`}
     >
       {label}
@@ -96,14 +106,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
         {profile ? (
           <div className="flex flex-col gap-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-white/60">Имя:</span>
-              <span className="text-white font-medium">
+              <span className="text-token-secondary">Имя:</span>
+              <span className="text-token-primary font-medium">
                 {profile.user.username || profile.user.first_name || 'Игрок'}
               </span>
             </div>
             <div className="flex justify-between">
-              <span className="text-white/60">ID:</span>
-              <span className="text-white/80 font-mono text-xs">
+              <span className="text-token-secondary">ID:</span>
+              <span className="text-token-secondary font-mono text-xs">
                 {profile.user.id.slice(0, 8)}...
               </span>
             </div>
@@ -111,13 +121,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
         ) : (
           <div className="flex flex-col gap-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-white/60">Имя:</span>
-              <span className="text-white font-medium">{username || 'Игрок'}</span>
+              <span className="text-token-secondary">Имя:</span>
+              <span className="text-token-primary font-medium">{username || 'Игрок'}</span>
             </div>
             {userId && (
               <div className="flex justify-between">
-                <span className="text-white/60">ID:</span>
-                <span className="text-white/80 font-mono text-xs">{userId.slice(0, 8)}...</span>
+                <span className="text-token-secondary">ID:</span>
+                <span className="text-token-secondary font-mono text-xs">
+                  {userId.slice(0, 8)}...
+                </span>
               </div>
             )}
           </div>
@@ -127,7 +139,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       {/* Audio & Sound Section */}
       <SettingsSection title="Звук" icon="🔊" description="Звуковые эффекты игры">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-white/80">Звуки включены</span>
+          <span className="text-sm text-token-secondary">Звуки включены</span>
           <Toggle enabled={soundEnabled} onChange={setSoundEnabled} />
         </div>
 
@@ -143,13 +155,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       {/* Haptic Feedback Section */}
       <SettingsSection title="Вибрация" icon="📳" description="Тактильная обратная связь">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-white/80">Вибрация включена</span>
+          <span className="text-sm text-token-secondary">Вибрация включена</span>
           <Toggle enabled={hapticEnabled} onChange={setHapticEnabled} />
         </div>
 
         {hapticEnabled && (
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-white/80">Интенсивность</label>
+            <label className="text-sm font-medium text-token-secondary">Интенсивность</label>
             <div className="grid grid-cols-3 gap-2">
               {(['light', 'medium', 'strong'] as const).map(intensity => (
                 <SelectButton
@@ -176,12 +188,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       {/* Notifications Section */}
       <SettingsSection title="Уведомления" icon="🔔" description="Оповещения в игре">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-white/80">Уведомления включены</span>
+          <span className="text-sm text-token-secondary">Уведомления включены</span>
           <Toggle enabled={notificationsEnabled} onChange={setNotificationsEnabled} />
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-white/80">Push-уведомления</span>
+          <span className="text-sm text-token-secondary">Push-уведомления</span>
           <Toggle
             enabled={pushNotificationsEnabled}
             onChange={setPushNotificationsEnabled}
@@ -193,7 +205,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       {/* Display Section */}
       <SettingsSection title="Дисплей" icon="🎨" description="Внешний вид и язык">
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-white/80">Тема оформления</label>
+          <label className="text-sm font-medium text-token-secondary">Тема оформления</label>
           <div className="grid grid-cols-3 gap-2">
             {(['light', 'dark', 'auto'] as ThemeMode[]).map(t => (
               <SelectButton
@@ -210,7 +222,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-white/80">Язык</label>
+          <label className="text-sm font-medium text-token-secondary">Язык</label>
           <div className="grid grid-cols-2 gap-2">
             {(['ru', 'en'] as Language[]).map(lang => (
               <SelectButton
@@ -230,7 +242,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       {/* Accessibility Section */}
       <SettingsSection title="Доступность" icon="♿" description="Параметры для комфорта">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-white/80">Меньше анимаций</span>
+          <span className="text-sm text-token-secondary">Меньше анимаций</span>
           <Toggle enabled={reduceMotion} onChange={setReduceMotion} />
         </div>
       </SettingsSection>
@@ -300,7 +312,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
 
       {/* About Section */}
       <SettingsSection title="О приложении" icon="ℹ️">
-        <div className="flex flex-col gap-2 text-xs text-white/60">
+        <div className="flex flex-col gap-2 text-xs text-token-secondary">
           <div>Energy Planet v1.0.0</div>
           <div className="text-[var(--color-text-secondary)]">
             © 2025 Energy Planet. Все права защищены.
@@ -309,7 +321,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
             <a href="#privacy" className="text-cyan hover:text-cyan/80 transition-colors underline">
               Политика приватности
             </a>
-            <span className="text-white/20">•</span>
+            <span className="text-token-secondary opacity-40">•</span>
             <a href="#terms" className="text-cyan hover:text-cyan/80 transition-colors underline">
               Условия использования
             </a>

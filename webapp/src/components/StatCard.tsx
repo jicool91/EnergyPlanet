@@ -14,9 +14,10 @@ export interface StatCardProps {
  * No hardcoded colors - all colors from tailwind.config.js
  */
 const toneStyles: Record<NonNullable<StatCardProps['tone']>, string> = {
-  default: 'bg-dark-secondary/70 border-white/10 text-white/80',
-  positive: 'bg-lime/10 border-lime/30 text-lime',
-  warning: 'bg-orange/10 border-orange/30 text-orange',
+  default:
+    'bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)] text-[var(--color-text-primary)]',
+  positive: 'bg-lime/10 border-[rgba(72,255,173,0.4)] text-[var(--color-success)]',
+  warning: 'bg-orange/10 border-[rgba(255,201,87,0.4)] text-[var(--color-warning)]',
 };
 
 export function StatCard({
@@ -35,7 +36,7 @@ export function StatCard({
   const content = (
     <>
       {/* Label row: icon + text label */}
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 text-[var(--color-text-secondary)]">
         <span className="text-lg" aria-hidden>
           {icon}
         </span>
@@ -43,10 +44,12 @@ export function StatCard({
       </div>
 
       {/* Value: large, bold, white */}
-      <div className="stat-display text-white">{value}</div>
+      <div className="stat-display text-[var(--color-text-primary)]">{value}</div>
 
       {/* Optional subLabel: small, muted */}
-      {subLabel && <div className="text-caption text-white/60">{subLabel}</div>}
+      {subLabel && (
+        <div className="text-caption text-[var(--color-text-secondary)]">{subLabel}</div>
+      )}
     </>
   );
 

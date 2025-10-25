@@ -4,16 +4,15 @@
  */
 
 import React from 'react';
-import { motion, type MotionProps, type Transition } from 'framer-motion';
+import { motion, type HTMLMotionProps, type Transition } from 'framer-motion';
 
 type TransitionType = 'fade' | 'slide' | 'slide-right';
 
-interface ScreenTransitionProps {
-  children: React.ReactNode;
+type ScreenTransitionProps = HTMLMotionProps<'div'> & {
   type?: TransitionType;
   className?: string;
-  key?: string | number;
-}
+  children: React.ReactNode;
+};
 
 /**
  * ScreenTransition: Wraps screen with animated entrance
@@ -32,9 +31,9 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
   children,
   type = 'fade',
   className = '',
-  key,
+  ...rest
 }) => {
-  type MotionTarget = Exclude<MotionProps['initial'], boolean | undefined>;
+  type MotionTarget = Exclude<NonNullable<HTMLMotionProps<'div'>['initial']>, boolean>;
 
   const transitionConfigs: Record<
     TransitionType,
@@ -69,12 +68,12 @@ export const ScreenTransition: React.FC<ScreenTransitionProps> = ({
 
   return (
     <motion.div
-      key={key}
       className={className}
       initial={config.initial}
       animate={config.animate}
       exit={config.exit}
       transition={config.transition}
+      {...rest}
     >
       {children}
     </motion.div>

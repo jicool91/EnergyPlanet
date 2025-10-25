@@ -4,7 +4,7 @@ import { BuildingCard } from './BuildingCard';
 import type { BuildingCardBuilding } from './BuildingCard';
 import { BuildingSkeleton, ErrorBoundary } from './skeletons';
 import { useHaptic } from '../hooks/useHaptic';
-import { useSafeArea } from '../hooks';
+import { useSafeArea, useTelegramMainButton } from '../hooks';
 import { formatCompactNumber } from '../utils/number';
 
 const PURCHASE_OPTIONS = [
@@ -62,6 +62,7 @@ export function BuildingsPanel() {
     };
   }, [contentBottom]);
   const energyDisplay = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
+  const [isMainButtonBusy, setMainButtonBusy] = useState(false);
 
   const selectedOption = useMemo(
     () => PURCHASE_OPTIONS.find(option => option.id === selectedPurchaseId) ?? PURCHASE_OPTIONS[0],
@@ -196,16 +197,71 @@ export function BuildingsPanel() {
     return bestId;
   }, [sortedBuildings]);
 
+  const mainButtonAction = useMemo(() => {
+    for (const building of sortedBuildings) {
+      const isLocked =
+        building.unlock_level !== null && building.unlock_level !== undefined
+          ? playerLevel < building.unlock_level
+          : false;
+      const purchasePlan = estimatePlan(building);
+      const canPurchase = !isLocked && purchasePlan.quantity > 0;
+      if (canPurchase) {
+        return {
+          building,
+          action: 'purchase' as const,
+          quantity: purchasePlan.quantity,
+        };
+      }
+      const canUpgrade =
+        building.count > 0 && building.nextUpgradeCost > 0 && energy >= building.nextUpgradeCost;
+      if (canUpgrade) {
+        return {
+          building,
+          action: 'upgrade' as const,
+          quantity: 1,
+        };
+      }
+    }
+    return null;
+  }, [energy, estimatePlan, playerLevel, sortedBuildings]);
+
+  const handleMainButtonAction = useCallback(async () => {
+    if (!mainButtonAction) {
+      return;
+    }
+    setMainButtonBusy(true);
+    try {
+      if (mainButtonAction.action === 'purchase') {
+        await handlePurchase(mainButtonAction.building.id, mainButtonAction.quantity);
+      } else {
+        await handleUpgrade(mainButtonAction.building.id);
+      }
+    } finally {
+      setMainButtonBusy(false);
+    }
+  }, [handlePurchase, handleUpgrade, mainButtonAction]);
+
+  useTelegramMainButton({
+    text: mainButtonAction
+      ? mainButtonAction.action === 'purchase'
+        ? `Купить ${mainButtonAction.quantity > 1 ? `${mainButtonAction.quantity}× ` : ''}${mainButtonAction.building.name}`
+        : `Улучшить ${mainButtonAction.building.name}`
+      : '',
+    onClick: handleMainButtonAction,
+    enabled: Boolean(mainButtonAction),
+    showProgress: isMainButtonBusy,
+  });
+
   return (
     <div className="flex flex-col gap-4 p-0" style={panelPadding}>
       <div className="flex justify-between items-start gap-3">
         <div>
           <h2 className="m-0 text-heading text-[#f8fbff]">Постройки</h2>
-          <p className="m-0 text-caption text-white/60">
+          <p className="m-0 text-caption text-token-secondary">
             Развивайте инфраструктуру и увеличивайте пассивный доход
           </p>
         </div>
-        <div className="text-body text-white/75 font-semibold">Энергия: {energyDisplay}</div>
+        <div className="text-body text-token-primary font-semibold">Энергия: {energyDisplay}</div>
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -217,8 +273,8 @@ export function BuildingsPanel() {
               type="button"
               className={`px-3 py-1.5 rounded-full border text-caption font-semibold transition-all duration-150 ${
                 isActive
-                  ? 'border-cyan/60 bg-cyan/20 text-[#f8fbff]'
-                  : 'border-cyan/15 bg-dark-secondary/40 text-white/60 hover:text-[#f8fbff]'
+                  ? 'border-cyan/60 bg-cyan/20 text-token-primary'
+                  : 'border-cyan/15 bg-dark-secondary/40 text-token-secondary hover:text-token-primary'
               }`}
               onClick={() => setSelectedPurchaseId(option.id)}
               title={
@@ -250,7 +306,7 @@ export function BuildingsPanel() {
           <BuildingSkeleton count={3} />
         </ErrorBoundary>
       ) : sortedBuildings.length === 0 ? (
-        <div className="p-4 rounded-[14px] border border-dashed border-cyan/30 text-white/65 text-center">
+        <div className="p-4 rounded-[14px] border border-dashed border-cyan/30 text-token-secondary text-center">
           Постройки пока недоступны. Продвигайтесь по уровням, чтобы разблокировать их.
         </div>
       ) : (

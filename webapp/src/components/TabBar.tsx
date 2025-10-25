@@ -67,8 +67,9 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
 
   return (
     <footer
-      className="fixed bottom-0 left-0 right-0 bg-black/85 border-t border-white/10 z-[100] w-full backdrop-blur"
+      className="fixed bottom-0 left-0 right-0 surface-translucent border-t border-[var(--color-border-subtle)] z-[100] w-full backdrop-blur"
       style={footerPadding}
+      role="tablist"
     >
       <div
         ref={scrollContainerRef}
@@ -88,14 +89,17 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
               ref={isActive ? activeTabRef : null}
               className={`flex flex-col gap-1 items-center justify-center flex-shrink-0 px-3 py-2 min-w-[60px] cursor-pointer transition-colors border-none bg-none text-sm ${
                 isActive
-                  ? 'text-cyan font-semibold'
-                  : 'text-white/60 hover:text-white hover:bg-white/5'
+                  ? 'text-[var(--color-text-accent)] font-semibold'
+                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-secondary)]'
               } focus-ring`}
               type="button"
               onClick={() => onChange(tab.id)}
               title={tab.title || tab.label}
               aria-selected={isActive}
               aria-label={`${tab.label} tab`}
+              role="tab"
+              id={`tab-${tab.id}`}
+              aria-controls={`tab-panel-${tab.id}`}
             >
               <span className="text-lg" aria-hidden="true">
                 {tab.icon}

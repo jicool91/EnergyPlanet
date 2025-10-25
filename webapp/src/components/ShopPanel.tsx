@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { ShopSkeleton, ErrorBoundary } from './skeletons';
 import { Button } from './Button';
@@ -6,7 +6,7 @@ import { Card } from './Card';
 import { Badge } from './Badge';
 import { OptimizedImage } from './OptimizedImage';
 import { useHaptic } from '../hooks/useHaptic';
-import { useSafeArea } from '../hooks';
+import { useSafeArea, useTelegramMainButton } from '../hooks';
 
 type CategoryOption = {
   id: string;
@@ -126,47 +126,89 @@ export function ShopPanel() {
     };
   }, [contentBottom]);
 
-  const handlePurchaseCosmetic = async (cosmeticId: string) => {
-    try {
-      await purchaseCosmetic(cosmeticId);
-      hapticSuccess();
-    } catch (error) {
-      hapticError();
-      console.error('Failed to purchase cosmetic', error);
-    }
-  };
+  const handlePurchaseCosmetic = useCallback(
+    async (cosmeticId: string) => {
+      try {
+        await purchaseCosmetic(cosmeticId);
+        hapticSuccess();
+      } catch (error) {
+        hapticError();
+        console.error('Failed to purchase cosmetic', error);
+      }
+    },
+    [purchaseCosmetic, hapticSuccess, hapticError]
+  );
 
-  const handleEquip = async (cosmeticId: string) => {
-    try {
-      await equipCosmetic(cosmeticId);
-      hapticSuccess();
-    } catch (error) {
-      hapticError();
-      console.error('Failed to equip cosmetic', error);
-    }
-  };
+  const handleEquip = useCallback(
+    async (cosmeticId: string) => {
+      try {
+        await equipCosmetic(cosmeticId);
+        hapticSuccess();
+      } catch (error) {
+        hapticError();
+        console.error('Failed to equip cosmetic', error);
+      }
+    },
+    [equipCosmetic, hapticSuccess, hapticError]
+  );
 
-  const handlePurchaseStarPack = async (packId: string) => {
-    try {
-      await purchaseStarPack(packId);
-      hapticSuccess();
-    } catch (error) {
-      hapticError();
-      console.error('Failed to purchase star pack', error);
-    }
-  };
+  const handlePurchaseStarPack = useCallback(
+    async (packId: string) => {
+      try {
+        await purchaseStarPack(packId);
+        hapticSuccess();
+      } catch (error) {
+        hapticError();
+        console.error('Failed to purchase star pack', error);
+      }
+    },
+    [purchaseStarPack, hapticSuccess, hapticError]
+  );
 
   const featuredPack = starPacks.find(pack => pack.featured);
+  const [isMainButtonBusy, setMainButtonBusy] = useState(false);
+
+  const mainButtonPack = useMemo(() => {
+    if (activeSection !== 'star_packs' || isStarPacksLoading) {
+      return null;
+    }
+    if (featuredPack) {
+      return featuredPack;
+    }
+    if (bestValuePack) {
+      return bestValuePack;
+    }
+    return starPacks[0] ?? null;
+  }, [activeSection, bestValuePack, featuredPack, isStarPacksLoading, starPacks]);
+
+  const handleMainButtonClick = useCallback(async () => {
+    if (!mainButtonPack) {
+      return;
+    }
+    setMainButtonBusy(true);
+    try {
+      await handlePurchaseStarPack(mainButtonPack.id);
+    } finally {
+      setMainButtonBusy(false);
+    }
+  }, [handlePurchaseStarPack, mainButtonPack]);
+
+  useTelegramMainButton({
+    text: mainButtonPack ? `Купить ${mainButtonPack.title}` : '',
+    onClick: handleMainButtonClick,
+    enabled: Boolean(mainButtonPack),
+    showProgress: isMainButtonBusy,
+  });
 
   return (
     <div className="flex flex-col gap-4 p-0" style={panelPadding}>
       {/* Header with Power Up title */}
       <div className="flex justify-between items-start gap-3">
         <div className="flex-1">
-          <h2 className="m-0 mb-1 text-heading text-white font-bold bg-gradient-to-r from-gold to-orange bg-clip-text text-transparent">
+          <h2 className="m-0 mb-1 text-heading font-bold bg-gradient-to-r from-gold to-orange bg-clip-text text-transparent">
             🚀 Power Up
           </h2>
-          <p className="m-0 text-caption text-white/60">
+          <p className="m-0 text-caption text-token-secondary">
             {activeSection === 'star_packs'
               ? 'Получите Stars и разблокируйте новые возможности'
               : 'Кастомизируйте вашу планету эксклюзивной косметикой'}
@@ -178,7 +220,7 @@ export function ShopPanel() {
             loadCosmetics(true);
           }}
           disabled={isStarPacksLoading || isCosmeticsLoading}
-          className="flex-shrink-0 p-2.5 rounded-lg hover:bg-white/10 active:bg-white/20 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xl focus-ring"
+          className="flex-shrink-0 p-2.5 rounded-lg hover:bg-token-surface transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xl focus-ring"
           title="Обновить"
           aria-label="Обновить магазин"
           type="button"
@@ -242,12 +284,14 @@ export function ShopPanel() {
             {/* Content */}
             <div className="flex-1 flex flex-col gap-3">
               <div className="flex justify-between items-center gap-2">
-                <h3 className="m-0 text-body font-bold text-gold">{featuredPack.title}</h3>
+                <h3 className="m-0 text-body font-bold text-[var(--color-gold)]">
+                  {featuredPack.title}
+                </h3>
                 <Badge variant="warning" size="sm">
                   {featuredPack.stars + (featuredPack.bonus_stars ?? 0)} ⭐ всего
                 </Badge>
               </div>
-              <p className="m-0 text-caption text-white/80">
+              <p className="m-0 text-caption text-token-secondary">
                 {featuredPack.description ?? `Получите максимум Stars`}
               </p>
 
@@ -258,7 +302,7 @@ export function ShopPanel() {
                     <span className="text-lg" aria-hidden="true">
                       ⭐
                     </span>
-                    <span className="text-sm text-white/80">Базовых</span>
+                    <span className="text-sm text-token-secondary">Базовых</span>
                   </div>
                   <span className="text-sm font-bold text-gold">{featuredPack.stars}</span>
                 </div>
@@ -269,7 +313,7 @@ export function ShopPanel() {
                         <span className="text-lg" aria-hidden="true">
                           ✨
                         </span>
-                        <span className="text-sm text-white/80">Бонус</span>
+                        <span className="text-sm text-token-secondary">Бонус</span>
                       </div>
                       <span className="text-sm font-bold text-lime">
                         +{featuredPack.bonus_stars}
@@ -280,7 +324,7 @@ export function ShopPanel() {
                         <span className="text-lg" aria-hidden="true">
                           🚀
                         </span>
-                        <span className="text-sm text-white/80">Буст</span>
+                        <span className="text-sm text-token-secondary">Буст</span>
                       </div>
                       <span className="text-sm font-bold text-lime">
                         +
@@ -330,7 +374,9 @@ export function ShopPanel() {
       {activeSection === 'cosmetics' && (
         <div className="flex gap-2 flex-wrap p-0">
           {categories.length === 0 && !isCosmeticsLoading && (
-            <span className="text-caption text-white/60">Пока нет косметики для отображения</span>
+            <span className="text-caption text-token-secondary">
+              Пока нет косметики для отображения
+            </span>
           )}
 
           {categories.map(category => (
@@ -393,7 +439,7 @@ export function ShopPanel() {
                     <div className="flex-1 flex flex-col gap-2">
                       <div className="flex justify-between items-center gap-2">
                         <h3
-                          className={`m-0 text-body font-semibold ${isBestValue ? 'text-lime' : 'text-white'}`}
+                          className={`m-0 text-body font-semibold ${isBestValue ? 'text-lime' : 'text-token-primary'}`}
                         >
                           {pack.title}
                         </h3>
@@ -401,7 +447,7 @@ export function ShopPanel() {
                           {totalStars} ⭐
                         </Badge>
                       </div>
-                      <p className="m-0 text-caption text-white/70">
+                      <p className="m-0 text-caption text-token-secondary">
                         {pack.description ?? `Получите ${totalStars} Stars`}
                       </p>
 
@@ -410,7 +456,7 @@ export function ShopPanel() {
                         className={`text-xs space-y-1 rounded px-2 py-1.5 ${isBestValue ? 'bg-lime/10 border border-lime/20' : 'bg-white/5 border border-white/10'}`}
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <span className="text-white/70">⭐ Базовых:</span>
+                          <span className="text-token-secondary">⭐ Базовых:</span>
                           <span className={`font-bold ${isBestValue ? 'text-lime' : 'text-gold'}`}>
                             {pack.stars}
                           </span>
@@ -418,11 +464,11 @@ export function ShopPanel() {
                         {bonus > 0 && (
                           <>
                             <div className="flex items-center justify-between gap-2">
-                              <span className="text-white/70">✨ Бонус:</span>
+                              <span className="text-token-secondary">✨ Бонус:</span>
                               <span className="font-bold text-lime">+{bonus}</span>
                             </div>
                             <div className="flex items-center justify-between gap-2 border-t border-white/10 pt-1">
-                              <span className="text-white/70">🚀 Буст:</span>
+                              <span className="text-token-secondary">🚀 Буст:</span>
                               <span className="font-bold text-lime">
                                 +{calculateBonusPercentage(pack.stars, bonus)}%
                               </span>
@@ -433,7 +479,7 @@ export function ShopPanel() {
 
                       <div className="flex gap-2 items-center">
                         <div
-                          className={`text-caption flex-1 ${isBestValue ? 'text-lime/80 font-semibold' : 'text-white/65'}`}
+                          className={`text-caption flex-1 ${isBestValue ? 'text-lime/80 font-semibold' : 'text-token-secondary'}`}
                         >
                           {priceLabel}
                         </div>
@@ -516,12 +562,14 @@ export function ShopPanel() {
               );
             } else if (cosmetic.status === 'locked' && cosmetic.unlock_requirement?.level) {
               actionButton = (
-                <div className="text-caption text-white/60">
+                <div className="text-caption text-token-secondary">
                   Откроется с {cosmetic.unlock_requirement.level} уровня
                 </div>
               );
             } else if (cosmetic.status === 'event_locked') {
-              actionButton = <div className="text-caption text-white/60">Доступно на событии</div>;
+              actionButton = (
+                <div className="text-caption text-token-secondary">Доступно на событии</div>
+              );
             } else {
               actionButton = (
                 <Button
@@ -565,7 +613,7 @@ export function ShopPanel() {
                 <div className="flex-1 flex flex-col gap-2">
                   <div className="flex justify-between items-center gap-2">
                     <h3
-                      className={`m-0 text-body font-semibold ${isMostPopular ? 'text-cyan' : 'text-white'}`}
+                      className={`m-0 text-body font-semibold ${isMostPopular ? 'text-cyan' : 'text-token-primary'}`}
                     >
                       {cosmetic.name}
                     </h3>
@@ -576,9 +624,9 @@ export function ShopPanel() {
                       {isMostPopular ? '⭐ Popular' : cosmetic.rarity}
                     </Badge>
                   </div>
-                  <p className="m-0 text-caption text-white/70">{cosmetic.description}</p>
+                  <p className="m-0 text-caption text-token-secondary">{cosmetic.description}</p>
                   {price > 0 && cosmetic.status !== 'owned' && (
-                    <div className="text-caption text-white/65">Стоимость: {price} ⭐</div>
+                    <div className="text-caption text-token-secondary">Стоимость: {price} ⭐</div>
                   )}
                 </div>
 

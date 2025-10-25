@@ -198,7 +198,7 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
 
       {/* Header: Building name + count */}
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between max-[420px]:gap-1">
-        <h3 className="m-0 text-subheading font-semibold text-white text-base sm:text-subheading max-[360px]:text-sm">
+        <h3 className="m-0 text-subheading font-semibold text-token-primary text-base sm:text-subheading max-[360px]:text-sm">
           {building.name}
         </h3>
         <motion.span
@@ -212,8 +212,8 @@ export const BuildingCard: React.FC<BuildingCardProps> = ({
 
       {/* Stats: Level, Income, Payback, ROI */}
       <div className="grid gap-2 text-caption text-[var(--color-text-secondary)] sm:flex sm:flex-wrap sm:gap-4 max-[420px]:text-xs max-[360px]:grid-cols-2">
-        <span className="font-medium text-white/80">Уровень: {building.level}</span>
-        <span className="font-medium text-white/80">
+        <span className="font-medium text-token-secondary">Уровень: {building.level}</span>
+        <span className="font-medium text-token-secondary">
           Доход: {building.incomePerSec.toLocaleString()} /с
         </span>
         <span>Окупаемость: {payback}</span>

@@ -164,7 +164,7 @@ function App() {
 
   return (
     <div
-      className="w-full h-screen flex flex-col bg-gradient-to-b from-dark-bg to-black overflow-hidden"
+      className="w-full h-screen flex flex-col app-shell overflow-hidden"
       style={appPaddingStyle}
     >
       {/* Header with Quick Actions */}

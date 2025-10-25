@@ -111,6 +111,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     () => TAB_BAR_RESERVE_PX + Math.max(0, safeBottom),
     [safeBottom]
   );
+  const floatingButtonOffset = useMemo(() => Math.max(0, safeBottom) + 80, [safeBottom]);
   const previousStreakRef = useRef(streakCount);
 
   const handleTap = () => {
@@ -273,7 +274,13 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     switch (activeTab) {
       case 'home':
         return (
-          <ScreenTransition key="home" type="fade">
+          <ScreenTransition
+            key="home"
+            type="fade"
+            id="tab-panel-home"
+            role="tabpanel"
+            aria-labelledby="tab-home"
+          >
             <HomePanel
               energy={energy}
               level={level}
@@ -295,7 +302,14 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         );
       case 'shop':
         return (
-          <ScreenTransition key="shop" type="slide" className="flex-1 overflow-auto">
+          <ScreenTransition
+            key="shop"
+            type="slide"
+            className="flex-1"
+            id="tab-panel-shop"
+            role="tabpanel"
+            aria-labelledby="tab-shop"
+          >
             <Suspense fallback={<ShopSkeleton />}>
               <ShopPanel />
             </Suspense>
@@ -303,7 +317,14 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         );
       case 'boosts':
         return (
-          <ScreenTransition key="boosts" type="slide" className="flex-1 overflow-auto">
+          <ScreenTransition
+            key="boosts"
+            type="slide"
+            className="flex-1"
+            id="tab-panel-boosts"
+            role="tabpanel"
+            aria-labelledby="tab-boosts"
+          >
             <Suspense fallback={<ShopSkeleton />}>
               <BoostHub />
             </Suspense>
@@ -311,7 +332,14 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         );
       case 'builds':
         return (
-          <ScreenTransition key="builds" type="slide" className="flex-1 overflow-auto">
+          <ScreenTransition
+            key="builds"
+            type="slide"
+            className="flex-1"
+            id="tab-panel-builds"
+            role="tabpanel"
+            aria-labelledby="tab-builds"
+          >
             <Suspense fallback={<BuildingSkeleton />}>
               <BuildingsPanel />
             </Suspense>
@@ -319,7 +347,14 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         );
       case 'leaderboard':
         return (
-          <ScreenTransition key="leaderboard" type="slide" className="flex-1 overflow-auto">
+          <ScreenTransition
+            key="leaderboard"
+            type="slide"
+            className="flex-1"
+            id="tab-panel-leaderboard"
+            role="tabpanel"
+            aria-labelledby="tab-leaderboard"
+          >
             <Suspense fallback={<LeaderboardSkeleton />}>
               <LeaderboardPanel />
             </Suspense>
@@ -327,7 +362,14 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         );
       case 'profile':
         return (
-          <ScreenTransition key="profile" type="slide" className="flex-1 overflow-auto">
+          <ScreenTransition
+            key="profile"
+            type="slide"
+            className="flex-1"
+            id="tab-panel-profile"
+            role="tabpanel"
+            aria-labelledby="tab-profile"
+          >
             <Suspense fallback={<ProfileSkeleton />}>
               <ProfilePanel />
             </Suspense>
@@ -335,7 +377,14 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         );
       case 'settings':
         return (
-          <ScreenTransition key="settings" type="slide" className="flex-1 overflow-auto">
+          <ScreenTransition
+            key="settings"
+            type="slide"
+            className="flex-1"
+            id="tab-panel-settings"
+            role="tabpanel"
+            aria-labelledby="tab-settings"
+          >
             <Suspense fallback={<div className="p-4">Загрузка...</div>}>
               <SettingsScreen onClose={() => onTabChange('home')} />
             </Suspense>
@@ -361,8 +410,12 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         ) : (
           <div className="flex flex-col gap-3 p-4">
             <div>
-              <h2 className="m-0 text-xl font-semibold text-white">{TAB_META[activeTab].title}</h2>
-              <p className="m-0 text-sm text-white/60">{TAB_META[activeTab].description}</p>
+              <h2 className="m-0 text-xl font-semibold text-[var(--color-text-primary)]">
+                {TAB_META[activeTab].title}
+              </h2>
+              <p className="m-0 text-sm text-[var(--color-text-secondary)]">
+                {TAB_META[activeTab].description}
+              </p>
             </div>
             {renderActiveTab()}
           </div>
@@ -379,7 +432,10 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
               onTabChange('home');
               scrollToTop(true);
             }}
-            className="fixed bottom-20 right-4 z-40 px-4 py-2 rounded-full bg-gradient-to-r from-cyan/20 to-lime/20 border border-cyan/50 hover:border-cyan hover:from-cyan/30 hover:to-lime/30 transition-all duration-200 text-sm font-medium text-white active:scale-95 shadow-lg"
+            className="fixed right-4 z-40 px-4 py-2 rounded-full bg-gradient-to-r from-cyan/20 to-lime/20 border border-cyan/50 hover:border-cyan hover:from-cyan/30 hover:to-lime/30 transition-all duration-200 text-sm font-medium text-[var(--color-text-primary)] active:scale-95 shadow-glow"
+            style={{
+              bottom: `${floatingButtonOffset}px`,
+            }}
             title="Back to Tap"
             aria-label="Back to Tap"
             type="button"

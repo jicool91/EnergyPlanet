@@ -75,8 +75,12 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
             🎁
           </span>
           <div>
-            <p className="m-0 text-sm font-bold text-gold">Ежедневное вознаграждение</p>
-            <p className="m-0 text-xs text-gold/80">Приходит через {timeLeft}</p>
+            <p className="m-0 text-sm font-bold text-[var(--color-gold)]">
+              Ежедневное вознаграждение
+            </p>
+            <p className="m-0 text-xs text-[var(--color-gold)] opacity-80">
+              Приходит через {timeLeft}
+            </p>
           </div>
         </div>
 

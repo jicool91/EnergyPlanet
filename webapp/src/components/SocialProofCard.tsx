@@ -23,14 +23,18 @@ export const SocialProofCard: React.FC<SocialProofCardProps> = ({
     <Card className="flex items-center justify-between gap-4 bg-gradient-to-r from-cyan/20 to-lime/20 border-cyan/40">
       {/* Content */}
       <div className="flex flex-col gap-1">
-        <p className="m-0 text-caption font-semibold text-white">👥 Друзья играют</p>
-        <p className="m-0 text-sm text-white/70">{friendsCount} игроков онлайн</p>
+        <p className="m-0 text-caption font-semibold text-[var(--color-text-primary)]">
+          👥 Друзья играют
+        </p>
+        <p className="m-0 text-sm text-[var(--color-text-secondary)]">
+          {friendsCount} игроков онлайн
+        </p>
       </div>
 
       {/* Action Button */}
       <button
         onClick={onViewLeaderboard}
-        className="flex-shrink-0 px-4 py-2 rounded-lg bg-gradient-to-br from-cyan/40 to-lime/40 hover:from-cyan/60 hover:to-lime/60 text-white font-medium text-caption transition-all duration-200 active:scale-95 focus-ring"
+        className="flex-shrink-0 px-4 py-2 rounded-lg bg-gradient-to-br from-cyan/40 to-lime/40 hover:from-cyan/60 hover:to-lime/60 text-[var(--color-text-primary)] font-medium text-caption transition-all duration-200 active:scale-95 focus-ring"
         type="button"
         aria-label="View leaderboard"
       >
