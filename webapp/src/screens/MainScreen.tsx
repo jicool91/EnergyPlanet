@@ -17,6 +17,7 @@ import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
 import { useNotification } from '../hooks/useNotification';
 import { useSafeArea } from '../hooks';
+import { shallow } from 'zustand/shallow';
 
 const TAB_BAR_RESERVE_PX = 88;
 
@@ -93,13 +94,40 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     isCriticalStreak,
     lastTapAt,
     isLoading,
-    tap,
-    resetStreak,
-    loadLeaderboard,
-    loadProfile,
-    buildingCatalog,
-    buildings,
-  } = useGameStore();
+  } = useGameStore(
+    state => ({
+      energy: state.energy,
+      level: state.level,
+      xpIntoLevel: state.xpIntoLevel,
+      xpToNextLevel: state.xpToNextLevel,
+      tapLevel: state.tapLevel,
+      tapIncome: state.tapIncome,
+      passiveIncomePerSec: state.passiveIncomePerSec,
+      passiveIncomeMultiplier: state.passiveIncomeMultiplier,
+      streakCount: state.streakCount,
+      bestStreak: state.bestStreak,
+      isCriticalStreak: state.isCriticalStreak,
+      lastTapAt: state.lastTapAt,
+      isLoading: state.isLoading,
+    }),
+    shallow
+  );
+  const { tap, resetStreak, loadLeaderboard, loadProfile } = useGameStore(
+    state => ({
+      tap: state.tap,
+      resetStreak: state.resetStreak,
+      loadLeaderboard: state.loadLeaderboard,
+      loadProfile: state.loadProfile,
+    }),
+    shallow
+  );
+  const { buildingCatalog, buildings } = useGameStore(
+    state => ({
+      buildingCatalog: state.buildingCatalog,
+      buildings: state.buildings,
+    }),
+    shallow
+  );
 
   const { tap: hapticTap } = useHaptic();
   const { scrollRef, scrollToTop } = useScrollToTop();

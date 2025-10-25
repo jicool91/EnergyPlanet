@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { shallow } from 'zustand/shallow';
 import { useGameStore } from '../store/gameStore';
 import { ShopSkeleton, ErrorBoundary } from './skeletons';
 import { Button } from './Button';
@@ -59,16 +60,39 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
     isCosmeticsLoading,
     cosmeticsError,
     isProcessingCosmeticId,
+    loadCosmetics,
+    purchaseCosmetic,
+    equipCosmetic,
+  } = useGameStore(
+    state => ({
+      cosmetics: state.cosmetics,
+      isCosmeticsLoading: state.isCosmeticsLoading,
+      cosmeticsError: state.cosmeticsError,
+      isProcessingCosmeticId: state.isProcessingCosmeticId,
+      loadCosmetics: state.loadCosmetics,
+      purchaseCosmetic: state.purchaseCosmetic,
+      equipCosmetic: state.equipCosmetic,
+    }),
+    shallow
+  );
+  const {
     starPacks,
     isStarPacksLoading,
     starPacksError,
     isProcessingStarPackId,
-    loadCosmetics,
     loadStarPacks,
-    purchaseCosmetic,
     purchaseStarPack,
-    equipCosmetic,
-  } = useGameStore();
+  } = useGameStore(
+    state => ({
+      starPacks: state.starPacks,
+      isStarPacksLoading: state.isStarPacksLoading,
+      starPacksError: state.starPacksError,
+      isProcessingStarPackId: state.isProcessingStarPackId,
+      loadStarPacks: state.loadStarPacks,
+      purchaseStarPack: state.purchaseStarPack,
+    }),
+    shallow
+  );
 
   const [activeSection, setActiveSection] = useState<ShopSection>('star_packs');
   const [activeCategory, setActiveCategory] = useState<string>('planet_skin');
