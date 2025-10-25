@@ -1,5 +1,5 @@
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, type Transition } from 'framer-motion';
 import { cva, type VariantProps } from 'class-variance-authority';
 import clsx from 'clsx';
 
@@ -110,11 +110,15 @@ export interface ButtonProps
  * </Button>
  */
 // Shake animation for error state
-const shakeVariants = {
-  shake: {
-    x: [0, -8, 8, -8, 8, 0],
-    transition: { duration: 0.4, ease: 'easeInOut' },
-  },
+const shakeAnimation = {
+  x: [0, -8, 8, -8, 8, 0],
+};
+
+const springTransition: Transition = {
+  type: 'spring',
+  stiffness: 400,
+  damping: 25,
+  duration: 0.2,
 };
 
 export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
@@ -138,26 +142,22 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     // Determine button state for styling
     const buttonVariant = success ? 'success' : error ? 'danger' : variant;
     const isDisabled = disabled || loading || success;
+    const errorTransition: Transition | undefined = error
+      ? { duration: 0.4, ease: 'easeInOut' }
+      : undefined;
 
     return (
       <motion.button
-        ref={ref as any}
+        ref={ref}
         disabled={isDisabled}
         className={clsx(buttonVariants({ variant: buttonVariant, size, fullWidth }), className)}
         // Micro-interactions: hover and tap animations
         initial={{ scale: 1 }}
         whileHover={!isDisabled ? { scale: 1.05 } : { scale: 1 }}
         whileTap={!isDisabled ? { scale: 0.95 } : { scale: 1 }}
-        animate={error ? 'shake' : 'initial'}
-        variants={shakeVariants as any}
-        // Success animation
-        transition={{
-          type: 'spring' as any,
-          stiffness: 400,
-          damping: 25,
-          duration: 0.2,
-        }}
-        {...(props as any)}
+        animate={error ? shakeAnimation : { x: 0 }}
+        transition={error ? errorTransition : springTransition}
+        {...props}
       >
         {/* Loading spinner */}
         {loading && (

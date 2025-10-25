@@ -4,7 +4,7 @@ import { BuildingCard } from './BuildingCard';
 import type { BuildingCardBuilding } from './BuildingCard';
 import { BuildingSkeleton, ErrorBoundary } from './skeletons';
 import { useHaptic } from '../hooks/useHaptic';
-import { useSafeArea, useTelegramMainButton } from '../hooks';
+import { useSafeArea } from '../hooks';
 import { formatCompactNumber } from '../utils/number';
 
 const PURCHASE_OPTIONS = [
@@ -62,7 +62,6 @@ export function BuildingsPanel() {
     };
   }, [contentBottom]);
   const energyDisplay = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
-  const [isMainButtonBusy, setMainButtonBusy] = useState(false);
 
   const selectedOption = useMemo(
     () => PURCHASE_OPTIONS.find(option => option.id === selectedPurchaseId) ?? PURCHASE_OPTIONS[0],
@@ -196,61 +195,6 @@ export function BuildingsPanel() {
 
     return bestId;
   }, [sortedBuildings]);
-
-  const mainButtonAction = useMemo(() => {
-    for (const building of sortedBuildings) {
-      const isLocked =
-        building.unlock_level !== null && building.unlock_level !== undefined
-          ? playerLevel < building.unlock_level
-          : false;
-      const purchasePlan = estimatePlan(building);
-      const canPurchase = !isLocked && purchasePlan.quantity > 0;
-      if (canPurchase) {
-        return {
-          building,
-          action: 'purchase' as const,
-          quantity: purchasePlan.quantity,
-        };
-      }
-      const canUpgrade =
-        building.count > 0 && building.nextUpgradeCost > 0 && energy >= building.nextUpgradeCost;
-      if (canUpgrade) {
-        return {
-          building,
-          action: 'upgrade' as const,
-          quantity: 1,
-        };
-      }
-    }
-    return null;
-  }, [energy, estimatePlan, playerLevel, sortedBuildings]);
-
-  const handleMainButtonAction = useCallback(async () => {
-    if (!mainButtonAction) {
-      return;
-    }
-    setMainButtonBusy(true);
-    try {
-      if (mainButtonAction.action === 'purchase') {
-        await handlePurchase(mainButtonAction.building.id, mainButtonAction.quantity);
-      } else {
-        await handleUpgrade(mainButtonAction.building.id);
-      }
-    } finally {
-      setMainButtonBusy(false);
-    }
-  }, [handlePurchase, handleUpgrade, mainButtonAction]);
-
-  useTelegramMainButton({
-    text: mainButtonAction
-      ? mainButtonAction.action === 'purchase'
-        ? `Купить ${mainButtonAction.quantity > 1 ? `${mainButtonAction.quantity}× ` : ''}${mainButtonAction.building.name}`
-        : `Улучшить ${mainButtonAction.building.name}`
-      : '',
-    onClick: handleMainButtonAction,
-    enabled: Boolean(mainButtonAction),
-    showProgress: isMainButtonBusy,
-  });
 
   return (
     <div className="flex flex-col gap-4 p-0" style={panelPadding}>

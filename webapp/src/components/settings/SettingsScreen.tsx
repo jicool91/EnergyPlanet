@@ -1,10 +1,9 @@
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
 import { usePreferencesStore, type ThemeMode, type Language } from '../../store/preferencesStore';
 import { useNotification } from '../../hooks/useNotification';
 import { useHaptic } from '../../hooks/useHaptic';
-import { useTelegramMainButton } from '../../hooks';
 import { Button } from '../Button';
 import { Card } from '../Card';
 import { Toggle } from './Toggle';
@@ -29,15 +28,6 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
   const { success, warning } = useNotification();
   const { light } = useHaptic();
   const [confirmLogout, setConfirmLogout] = useState(false);
-  const handleCloseScreen = useCallback(() => {
-    onClose?.();
-  }, [onClose]);
-
-  useTelegramMainButton({
-    text: 'Готово',
-    onClick: handleCloseScreen,
-    enabled: Boolean(onClose),
-  });
 
   // Preferences
   const {

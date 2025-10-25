@@ -6,7 +6,7 @@ import { Card } from './Card';
 import { Badge } from './Badge';
 import { OptimizedImage } from './OptimizedImage';
 import { useHaptic } from '../hooks/useHaptic';
-import { useSafeArea, useTelegramMainButton } from '../hooks';
+import { useSafeArea } from '../hooks';
 
 type CategoryOption = {
   id: string;
@@ -166,39 +166,6 @@ export function ShopPanel() {
   );
 
   const featuredPack = starPacks.find(pack => pack.featured);
-  const [isMainButtonBusy, setMainButtonBusy] = useState(false);
-
-  const mainButtonPack = useMemo(() => {
-    if (activeSection !== 'star_packs' || isStarPacksLoading) {
-      return null;
-    }
-    if (featuredPack) {
-      return featuredPack;
-    }
-    if (bestValuePack) {
-      return bestValuePack;
-    }
-    return starPacks[0] ?? null;
-  }, [activeSection, bestValuePack, featuredPack, isStarPacksLoading, starPacks]);
-
-  const handleMainButtonClick = useCallback(async () => {
-    if (!mainButtonPack) {
-      return;
-    }
-    setMainButtonBusy(true);
-    try {
-      await handlePurchaseStarPack(mainButtonPack.id);
-    } finally {
-      setMainButtonBusy(false);
-    }
-  }, [handlePurchaseStarPack, mainButtonPack]);
-
-  useTelegramMainButton({
-    text: mainButtonPack ? `Купить ${mainButtonPack.title}` : '',
-    onClick: handleMainButtonClick,
-    enabled: Boolean(mainButtonPack),
-    showProgress: isMainButtonBusy,
-  });
 
   return (
     <div className="flex flex-col gap-4 p-0" style={panelPadding}>

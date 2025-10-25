@@ -3,7 +3,7 @@
  * Displays full-screen animated overlay when player levels up
  */
 
-import { useEffect } from 'react';
+import { useEffect, type CSSProperties } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Confetti } from './animations/Confetti';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
@@ -50,6 +50,16 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
       return () => clearTimeout(timer);
     }
   }, [isOpen, playSound, onDismiss, autoDismissDuration]);
+
+  const rotatingRingStyle: CSSProperties = {
+    background:
+      'conic-gradient(from 0deg, rgba(0,217,255,0.8), rgba(72,255,173,0.8), rgba(255,201,87,0.8), transparent)',
+    width: '280px',
+    height: '280px',
+    opacity: 0.3,
+    filter: 'blur(2px)',
+    pointerEvents: 'none',
+  };
 
   const textVariants = {
     container: {
@@ -126,17 +136,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                     repeat: Infinity,
                     ease: 'linear',
                   }}
-                  style={
-                    {
-                      background:
-                        'conic-gradient(from 0deg, rgba(0,217,255,0.8), rgba(72,255,173,0.8), rgba(255,201,87,0.8), transparent)',
-                      width: '280px',
-                      height: '280px',
-                      opacity: 0.3,
-                      filter: 'blur(2px)',
-                      pointerEvents: 'none',
-                    } as any
-                  }
+                  style={rotatingRingStyle}
                 />
 
                 {/* Level number */}
