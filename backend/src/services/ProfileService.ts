@@ -34,8 +34,12 @@ interface CachedProfile {
     energy: number;
     tap_level: number;
     tap_income: number;
+    prestige_level: number;
+    prestige_multiplier: number;
+    prestige_energy_since_reset: number;
     passive_income_per_sec: number;
     passive_income_multiplier: number;
+    boost_multiplier: number;
     last_login: string | null;
     last_logout: string | null;
   };
@@ -60,7 +64,11 @@ export class ProfileService {
     const context = await transaction(client => loadPlayerContext(userId, client));
 
     const buildingDetails = buildBuildingDetails(context.inventory, context.progress.level);
-    const passiveIncome = computePassiveIncome(buildingDetails, context.boosts);
+    const passiveIncome = computePassiveIncome(
+      buildingDetails,
+      context.boosts,
+      context.progress.prestigeMultiplier
+    );
     const levelInfo = calculateLevelProgress(context.progress.xp);
     const tapIncome = tapEnergyForLevel(context.progress.tapLevel);
 
@@ -91,8 +99,13 @@ export class ProfileService {
         energy: context.progress.energy,
         tap_level: context.progress.tapLevel,
         tap_income: tapIncome,
+        prestige_level: context.progress.prestigeLevel,
+        prestige_multiplier: context.progress.prestigeMultiplier,
+        prestige_energy_since_reset:
+          context.progress.totalEnergyProduced - context.progress.prestigeEnergySnapshot,
         passive_income_per_sec: passiveIncome.effectiveIncome,
-        passive_income_multiplier: passiveIncome.boostMultiplier,
+        passive_income_multiplier: passiveIncome.effectiveMultiplier,
+        boost_multiplier: passiveIncome.boostMultiplier,
         last_login: context.progress.lastLogin ? context.progress.lastLogin.toISOString() : null,
         last_logout: context.progress.lastLogout ? context.progress.lastLogout.toISOString() : null,
       },

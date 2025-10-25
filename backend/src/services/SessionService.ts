@@ -43,6 +43,11 @@ interface SessionState {
     total_energy_produced: number;
     passive_income_per_sec: number;
     passive_income_multiplier: number;
+    boost_multiplier: number;
+    prestige_multiplier: number;
+    prestige_level: number;
+    prestige_energy_since_reset: number;
+    prestige_last_reset: string | null;
     tap_level: number;
     tap_income: number;
     last_login: string | null;
@@ -87,8 +92,13 @@ export class SessionService {
       }
 
       const detailedInventory = buildBuildingDetails(effectiveInventory, progress.level);
-      const passiveIncomeSnapshot = computePassiveIncomeSnapshot(detailedInventory, boosts);
-      const { baseIncome, boostMultiplier, effectiveIncome } = passiveIncomeSnapshot;
+      const passiveIncomeSnapshot = computePassiveIncomeSnapshot(
+        detailedInventory,
+        boosts,
+        progress.prestigeMultiplier
+      );
+      const { baseIncome, boostMultiplier, prestigeMultiplier, effectiveMultiplier, effectiveIncome } =
+        passiveIncomeSnapshot;
 
       const offlineSecondsRaw = progress.lastLogout
         ? secondsBetween(progress.lastLogout, now)
@@ -152,6 +162,8 @@ export class SessionService {
         },
         passiveIncome: baseIncome,
         boostMultiplier,
+        prestigeMultiplier,
+        effectiveMultiplier,
         effectivePassiveIncome: effectiveIncome,
         featureFlags,
       };
@@ -179,7 +191,15 @@ export class SessionService {
         energy: state.progress.energy,
         total_energy_produced: state.progress.totalEnergyProduced,
         passive_income_per_sec: Math.floor(state.effectivePassiveIncome),
-        passive_income_multiplier: state.boostMultiplier,
+        passive_income_multiplier: state.effectiveMultiplier,
+        boost_multiplier: state.boostMultiplier,
+        prestige_multiplier: state.prestigeMultiplier,
+        prestige_level: state.progress.prestigeLevel,
+        prestige_energy_since_reset:
+          state.progress.totalEnergyProduced - state.progress.prestigeEnergySnapshot,
+        prestige_last_reset: state.progress.prestigeLastReset
+          ? state.progress.prestigeLastReset.toISOString()
+          : null,
         tap_level: state.progress.tapLevel,
         tap_income: tapIncome,
         last_login: state.progress.lastLogin ? state.progress.lastLogin.toISOString() : null,

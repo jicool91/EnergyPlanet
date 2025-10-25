@@ -11,12 +11,14 @@ import monetizationRoutes from './monetization';
 import adminRoutes from './admin';
 import telemetryRoutes from './telemetry';
 import contentRoutes from './content';
+import prestigeRoutes from './prestige';
 
 const router = Router();
 
 router.use('/auth', authRoutes);
 router.use('/session', sessionRoutes);
 router.use('/', gameplayRoutes); // /tap, /tick, /upgrade
+router.use('/', prestigeRoutes); // /prestige
 router.use('/', socialRoutes); // /leaderboard, /profile
 router.use('/', monetizationRoutes); // /cosmetics, /purchase, /boost
 router.use('/telemetry', telemetryRoutes);

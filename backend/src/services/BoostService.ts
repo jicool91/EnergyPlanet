@@ -11,6 +11,7 @@ import { addDuration } from '../utils/time';
 import { loadPlayerContext } from './playerContext';
 import { config } from '../config';
 import { invalidateProfileCache } from '../cache/invalidation';
+import { contentService } from './ContentService';
 
 type BoostType = 'ad_boost' | 'daily_boost' | 'premium_boost';
 
@@ -21,28 +22,81 @@ interface BoostDefinition {
   requiresPremium?: boolean;
 }
 
-const BOOST_DEFINITIONS: Record<BoostType, BoostDefinition> = {
-  ad_boost: {
-    multiplier: 2,
-    durationMinutes: 30,
-    cooldownMinutes: 60,
-  },
-  daily_boost: {
-    multiplier: 3,
-    durationMinutes: 120,
-    cooldownMinutes: 24 * 60,
-  },
-  premium_boost: {
-    multiplier: 4,
-    durationMinutes: 240,
-    cooldownMinutes: 24 * 60,
-    requiresPremium: true,
-  },
-};
+function fromSeconds(value: number | undefined, fallbackMinutes: number): number {
+  if (!value || value <= 0) {
+    return fallbackMinutes;
+  }
+  return Math.max(1, Math.round(value / 60));
+}
+
+function resolveBoostDefinitions(): Record<BoostType, BoostDefinition> {
+  const overrides = contentService.getFeatureFlags()?.boosts ?? {};
+
+  const defaults: Record<BoostType, BoostDefinition> = {
+    ad_boost: {
+      multiplier: 1.8,
+      durationMinutes: 10,
+      cooldownMinutes: 30,
+    },
+    daily_boost: {
+      multiplier: 1.5,
+      durationMinutes: 15,
+      cooldownMinutes: 24 * 60,
+    },
+    premium_boost: {
+      multiplier: 2.5,
+      durationMinutes: 240,
+      cooldownMinutes: 24 * 60,
+      requiresPremium: true,
+    },
+  };
+
+  const resolved: Record<BoostType, BoostDefinition> = { ...defaults };
+
+  if (overrides.ad_boost?.enabled !== false) {
+    resolved.ad_boost = {
+      ...resolved.ad_boost,
+      multiplier: overrides.ad_boost?.multiplier ?? resolved.ad_boost.multiplier,
+      durationMinutes: fromSeconds(overrides.ad_boost?.duration_sec, resolved.ad_boost.durationMinutes),
+      cooldownMinutes: fromSeconds(overrides.ad_boost?.cooldown_sec, resolved.ad_boost.cooldownMinutes),
+    };
+  }
+
+  if (overrides.daily_boost?.enabled !== false) {
+    resolved.daily_boost = {
+      ...resolved.daily_boost,
+      multiplier: overrides.daily_boost?.multiplier ?? resolved.daily_boost.multiplier,
+      durationMinutes: fromSeconds(
+        overrides.daily_boost?.duration_sec,
+        resolved.daily_boost.durationMinutes
+      ),
+      cooldownMinutes: fromSeconds(
+        overrides.daily_boost?.cooldown_sec,
+        resolved.daily_boost.cooldownMinutes
+      ),
+    };
+  }
+
+  const premiumItems = overrides.premium_boosts?.items;
+  if (premiumItems && Array.isArray(premiumItems) && premiumItems.length > 0) {
+    const defaultItem = premiumItems[0];
+    resolved.premium_boost = {
+      ...resolved.premium_boost,
+      multiplier: defaultItem.multiplier ?? resolved.premium_boost.multiplier,
+      durationMinutes: fromSeconds(defaultItem.duration_sec, resolved.premium_boost.durationMinutes),
+      cooldownMinutes: fromSeconds(
+        overrides.premium_boosts?.cooldown_sec,
+        resolved.premium_boost.cooldownMinutes
+      ),
+    };
+  }
+
+  return resolved;
+}
 
 export class BoostService {
   getDefinitions() {
-    return BOOST_DEFINITIONS;
+    return resolveBoostDefinitions();
   }
 
   async getBoostHub(userId: string) {
@@ -103,7 +157,8 @@ export class BoostService {
   }
 
   async claimBoost(userId: string, boostType: BoostType): Promise<BoostRecord> {
-    const definition = BOOST_DEFINITIONS[boostType];
+    const definitions = this.getDefinitions();
+    const definition = definitions[boostType];
 
     if (!definition) {
       throw new AppError(400, 'unknown_boost_type');

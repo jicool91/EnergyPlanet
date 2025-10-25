@@ -8,6 +8,10 @@ export interface ProgressRecord {
   energy: number;
   totalEnergyProduced: number;
   tapLevel: number;
+  prestigeLevel: number;
+  prestigeMultiplier: number;
+  prestigeEnergySnapshot: number;
+  prestigeLastReset: Date | null;
   lastLogin: Date | null;
   lastLogout: Date | null;
   createdAt: Date;
@@ -21,6 +25,10 @@ interface ProgressRow {
   energy: string;
   total_energy_produced: string;
   tap_level: number;
+  prestige_level: number;
+  prestige_multiplier: string;
+  prestige_energy_snapshot: string;
+  prestige_last_reset: string | null;
   last_login: string | null;
   last_logout: string | null;
   created_at: string;
@@ -35,6 +43,10 @@ function mapProgress(row: ProgressRow): ProgressRecord {
     energy: Number(row.energy),
     totalEnergyProduced: Number(row.total_energy_produced),
     tapLevel: row.tap_level,
+    prestigeLevel: row.prestige_level ?? 0,
+    prestigeMultiplier: Number(row.prestige_multiplier ?? '1'),
+    prestigeEnergySnapshot: Number(row.prestige_energy_snapshot ?? '0'),
+    prestigeLastReset: row.prestige_last_reset ? new Date(row.prestige_last_reset) : null,
     lastLogin: row.last_login ? new Date(row.last_login) : null,
     lastLogout: row.last_logout ? new Date(row.last_logout) : null,
     createdAt: new Date(row.created_at),
@@ -66,8 +78,8 @@ export async function createDefaultProgress(
   client?: PoolClient
 ): Promise<ProgressRecord> {
   const result = await runQuery<ProgressRow>(
-    `INSERT INTO progress (user_id, level, xp, energy, total_energy_produced, tap_level)
-     VALUES ($1, 1, 0, 0, 0, 1)
+    `INSERT INTO progress (user_id, level, xp, energy, total_energy_produced, tap_level, prestige_level, prestige_multiplier, prestige_energy_snapshot)
+     VALUES ($1, 1, 0, 0, 0, 1, 0, 1, 0)
      RETURNING *`,
     [userId],
     client
@@ -82,6 +94,10 @@ export interface UpdateProgressInput {
   energy?: number;
   totalEnergyProduced?: number;
   tapLevel?: number;
+  prestigeLevel?: number;
+  prestigeMultiplier?: number;
+  prestigeEnergySnapshot?: number;
+  prestigeLastReset?: Date | null;
   lastLogin?: Date | null;
   lastLogout?: Date | null;
 }
@@ -117,6 +133,26 @@ export async function updateProgress(
   if (data.tapLevel !== undefined) {
     fields.push(`tap_level = $${fields.length + 1}`);
     values.push(data.tapLevel);
+  }
+
+  if (data.prestigeLevel !== undefined) {
+    fields.push(`prestige_level = $${fields.length + 1}`);
+    values.push(data.prestigeLevel);
+  }
+
+  if (data.prestigeMultiplier !== undefined) {
+    fields.push(`prestige_multiplier = $${fields.length + 1}`);
+    values.push(data.prestigeMultiplier);
+  }
+
+  if (data.prestigeEnergySnapshot !== undefined) {
+    fields.push(`prestige_energy_snapshot = $${fields.length + 1}`);
+    values.push(data.prestigeEnergySnapshot);
+  }
+
+  if (data.prestigeLastReset !== undefined) {
+    fields.push(`prestige_last_reset = $${fields.length + 1}`);
+    values.push(data.prestigeLastReset);
   }
 
   if (data.lastLogin !== undefined) {

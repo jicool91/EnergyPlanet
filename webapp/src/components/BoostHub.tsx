@@ -193,9 +193,7 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
                   ? `Кулдаун ${formatSeconds(item.cooldownRemaining)}`
                   : isClaimingBoostType === item.boost_type
                     ? 'Активация…'
-                    : item.boost_type === 'ad_boost'
-                      ? 'Получить ×2'
-                      : 'Активировать';
+                    : `Получить ×${item.multiplier.toFixed(1).replace(/\.0$/, '')}`;
 
             return (
               <Card key={item.boost_type} className="flex flex-col gap-4">

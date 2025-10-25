@@ -99,3 +99,14 @@ export async function deleteBoostById(
     client
   );
 }
+
+export async function clearBoostsForUser(
+  userId: string,
+  client?: PoolClient
+): Promise<void> {
+  await runQuery(
+    `DELETE FROM boosts WHERE user_id = $1`,
+    [userId],
+    client
+  );
+}

@@ -18,6 +18,8 @@ interface Building {
   cost_multiplier?: number;
   upgrade_cost_multiplier?: number;
   upgrade_income_bonus?: number;
+  upgrade_soft_cap_level?: number;
+  upgrade_post_soft_cap_multiplier?: number;
   max_count?: number;
   feature_flag?: string;
   [key: string]: any;
@@ -200,7 +202,19 @@ class ContentService {
   getBuildingUpgradeCost(building: Building, currentLevel: number): number {
     const upgradeMultiplier = building.upgrade_cost_multiplier ?? 1;
     const baseCost = building.base_cost ?? 0;
-    const cost = baseCost * 5 * Math.pow(upgradeMultiplier, currentLevel);
+    const softCapLevel = building.upgrade_soft_cap_level;
+    const postSoftCapMultiplier = building.upgrade_post_soft_cap_multiplier ?? upgradeMultiplier;
+    const normalizedLevel = Math.max(0, currentLevel);
+
+    if (softCapLevel !== undefined && normalizedLevel > softCapLevel) {
+      const cappedMultiplier = Math.pow(upgradeMultiplier, softCapLevel);
+      const extraLevels = normalizedLevel - softCapLevel;
+      const postMultiplier = Math.pow(postSoftCapMultiplier, extraLevels);
+      const cost = baseCost * 5 * cappedMultiplier * postMultiplier;
+      return Math.ceil(cost);
+    }
+
+    const cost = baseCost * 5 * Math.pow(upgradeMultiplier, normalizedLevel);
     return Math.ceil(cost);
   }
 

@@ -15,6 +15,39 @@ jest.mock('../../repositories/EventRepository', () => ({
   logEvent: jest.fn(async (...args: unknown[]) => logEventMock(...args)),
 }));
 
+jest.mock('../ContentService', () => ({
+  contentService: {
+    getFeatureFlags: jest.fn(() => ({
+      boosts: {
+        ad_boost: {
+          enabled: true,
+          duration_sec: 600,
+          multiplier: 1.8,
+          cooldown_sec: 1800,
+        },
+        daily_boost: {
+          enabled: true,
+          duration_sec: 900,
+          multiplier: 1.5,
+          cooldown_sec: 86400,
+        },
+        premium_boosts: {
+          enabled: true,
+          cooldown_sec: 86400,
+          items: [
+            {
+              id: 'premium_boost_1h',
+              duration_sec: 3600,
+              multiplier: 2.5,
+              price_stars: 50,
+            },
+          ],
+        },
+      },
+    })),
+  },
+}));
+
 const { boostService } = require('../BoostService');
 
 describe('BoostService.getBoostHub', () => {

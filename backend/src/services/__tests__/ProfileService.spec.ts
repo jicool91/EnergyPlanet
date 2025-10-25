@@ -36,7 +36,13 @@ jest.mock('../playerContext', () => ({
 
 jest.mock('../passiveIncome', () => ({
   buildBuildingDetails: jest.fn(() => [{ buildingId: 'solar_panel', count: 1, level: 0, incomePerSec: 10 }]),
-  computePassiveIncome: jest.fn(() => ({ effectiveIncome: 42, boostMultiplier: 1.5 })),
+  computePassiveIncome: jest.fn(() => ({
+    baseIncome: 42,
+    boostMultiplier: 1.5,
+    prestigeMultiplier: 1.3,
+    effectiveMultiplier: 1.95,
+    effectiveIncome: 81.9,
+  })),
 }));
 
 jest.mock('../../utils/level', () => ({
@@ -80,6 +86,10 @@ describe('ProfileService caching', () => {
       totalEnergyProduced: 5000,
       energy: 800,
       tapLevel: 2,
+      prestigeLevel: 2,
+      prestigeMultiplier: 1.3,
+      prestigeEnergySnapshot: 3500,
+      prestigeLastReset: new Date('2025-10-20T08:00:00Z'),
       lastLogin: new Date('2025-10-22T09:00:00Z'),
       lastLogout: null,
     },

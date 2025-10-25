@@ -222,13 +222,13 @@ export class TapAggregator {
 
         await createTapEvent({ userId, taps, energyDelta }, client);
 
-        const boostMultiplier = baseEnergyDelta > 0 ? energyDelta / baseEnergyDelta : 1;
+        const effectiveMultiplier = baseEnergyDelta > 0 ? energyDelta / baseEnergyDelta : 1;
 
         const payload = {
           taps,
           energy_delta: energyDelta,
           base_energy: baseEnergyDelta,
-          boost_multiplier: Number(boostMultiplier.toFixed(3)),
+          effective_multiplier: Number(effectiveMultiplier.toFixed(3)),
           xp_delta: xpDelta,
           latency_ms: latencyMs,
           leveled_up: leveledUp,

@@ -27,6 +27,8 @@ export class BuildingController {
           cost_multiplier: building.cost_multiplier ?? null,
           upgrade_cost_multiplier: building.upgrade_cost_multiplier ?? null,
           upgrade_income_bonus: building.upgrade_income_bonus ?? null,
+          upgrade_soft_cap_level: building.upgrade_soft_cap_level ?? null,
+          upgrade_post_soft_cap_multiplier: building.upgrade_post_soft_cap_multiplier ?? null,
           unlock_level: building.unlock_level ?? null,
           max_count: building.max_count ?? null,
           category: building.category ?? null,

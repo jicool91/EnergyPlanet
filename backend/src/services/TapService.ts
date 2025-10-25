@@ -71,8 +71,10 @@ export class TapService {
 
     const activeBoosts = await getActiveBoosts(userId);
     const boostMultiplier = activeBoosts.reduce((acc, boost) => acc * boost.multiplier, 1);
+    const prestigeMultiplier = Math.max(1, progress.prestigeMultiplier ?? 1);
+    const totalMultiplier = boostMultiplier * prestigeMultiplier;
 
-    const boostedEnergy = Math.round(baseEnergy * boostMultiplier);
+    const boostedEnergy = Math.round(baseEnergy * totalMultiplier);
     const xpGained = xpFromEnergy(boostedEnergy);
 
     const bufferTotals = await tapAggregator.bufferTap(userId, {
@@ -97,6 +99,8 @@ export class TapService {
       xp_to_next_level: levelInfo.xpToNextLevel,
       level_up: leveledUp,
       boost_multiplier: boostMultiplier,
+      prestige_multiplier: prestigeMultiplier,
+      total_multiplier: totalMultiplier,
     };
   }
 }

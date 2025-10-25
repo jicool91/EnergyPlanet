@@ -89,7 +89,15 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     tapLevel,
     tapIncome,
     passiveIncomePerSec,
-    passiveIncomeMultiplier,
+    boostMultiplier,
+    prestigeMultiplier,
+    prestigeLevel,
+    prestigeEnergySinceReset,
+    prestigeNextThreshold,
+    prestigeEnergyToNext,
+    prestigeGainAvailable,
+    isPrestigeAvailable,
+    isPrestigeLoading,
     streakCount,
     bestStreak,
     isCriticalStreak,
@@ -105,7 +113,15 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
       tapLevel: state.tapLevel,
       tapIncome: state.tapIncome,
       passiveIncomePerSec: state.passiveIncomePerSec,
-      passiveIncomeMultiplier: state.passiveIncomeMultiplier,
+      boostMultiplier: state.boostMultiplier,
+      prestigeMultiplier: state.prestigeMultiplier,
+      prestigeLevel: state.prestigeLevel,
+      prestigeEnergySinceReset: state.prestigeEnergySinceReset,
+      prestigeNextThreshold: state.prestigeNextThreshold,
+      prestigeEnergyToNext: state.prestigeEnergyToNext,
+      prestigeGainAvailable: state.prestigeGainAvailable,
+      isPrestigeAvailable: state.isPrestigeAvailable,
+      isPrestigeLoading: state.isPrestigeLoading,
       streakCount: state.streakCount,
       bestStreak: state.bestStreak,
       isCriticalStreak: state.isCriticalStreak,
@@ -115,12 +131,15 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     }),
     shallow
   );
-  const { tap, resetStreak, loadLeaderboard, loadProfile } = useGameStore(
+  const { tap, resetStreak, loadLeaderboard, loadProfile, loadPrestigeStatus, performPrestige } =
+    useGameStore(
     state => ({
       tap: state.tap,
       resetStreak: state.resetStreak,
       loadLeaderboard: state.loadLeaderboard,
       loadProfile: state.loadProfile,
+      loadPrestigeStatus: state.loadPrestigeStatus,
+      performPrestige: state.performPrestige,
     }),
     shallow
   );
@@ -163,6 +182,10 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     }
   }, [activeTab, scrollRef]);
 
+  useEffect(() => {
+    loadPrestigeStatus();
+  }, [loadPrestigeStatus]);
+
   const tapIncomeDisplay = useMemo(
     () => Math.max(0, tapIncome).toLocaleString('ru-RU'),
     [tapIncome]
@@ -178,10 +201,11 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             : passiveIncomePerSec.toFixed(1)
         } E/с`
       : '—';
-  const multiplierLabel =
-    passiveIncomeMultiplier > 0
-      ? `Множитель ×${passiveIncomeMultiplier.toFixed(2)}`
-      : 'Активируйте буст';
+  const multiplierLabel = useMemo(() => {
+    const prestigePart = Math.max(1, prestigeMultiplier);
+    const boostPart = Math.max(1, boostMultiplier);
+    return `Престиж ×${prestigePart.toFixed(2)} · Буст ×${boostPart.toFixed(2)}`;
+  }, [prestigeMultiplier, boostMultiplier]);
 
   const purchaseInsight = useMemo(() => {
     if (!Array.isArray(buildingCatalog) || buildingCatalog.length === 0) {
@@ -326,6 +350,15 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
               bestStreak={bestStreak}
               isCriticalStreak={isCriticalStreak}
               purchaseInsight={purchaseInsight || undefined}
+              prestigeLevel={prestigeLevel}
+              prestigeMultiplier={prestigeMultiplier}
+              prestigeEnergySinceReset={prestigeEnergySinceReset}
+              prestigeNextThreshold={prestigeNextThreshold}
+              prestigeEnergyToNext={prestigeEnergyToNext}
+              prestigeGainAvailable={prestigeGainAvailable}
+              isPrestigeAvailable={isPrestigeAvailable}
+              isPrestigeLoading={isPrestigeLoading}
+              onPrestige={performPrestige}
               onTap={handleTap}
             />
           </ScreenTransition>

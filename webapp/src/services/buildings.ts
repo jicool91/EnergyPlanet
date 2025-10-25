@@ -10,6 +10,8 @@ export interface BuildingDefinition {
   cost_multiplier: number | null;
   upgrade_cost_multiplier: number | null;
   upgrade_income_bonus: number | null;
+  upgrade_soft_cap_level: number | null;
+  upgrade_post_soft_cap_multiplier: number | null;
   unlock_level: number | null;
   max_count: number | null;
   category: string | null;

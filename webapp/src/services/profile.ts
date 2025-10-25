@@ -29,6 +29,11 @@ export interface ProfileResponse {
     tap_income: number;
     passive_income_per_sec: number;
     passive_income_multiplier: number;
+    boost_multiplier: number;
+    prestige_multiplier: number;
+    prestige_level: number;
+    prestige_energy_since_reset: number;
+    prestige_last_reset: string | null;
     last_login: string | null;
     last_logout: string | null;
   };

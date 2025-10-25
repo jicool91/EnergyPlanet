@@ -25,7 +25,11 @@ export class TickService {
       const { progress, inventory, boosts } = await loadPlayerContext(userId, client);
 
       const buildingDetails = buildBuildingDetails(inventory, progress.level);
-      const passiveIncome = computePassiveIncome(buildingDetails, boosts);
+      const passiveIncome = computePassiveIncome(
+        buildingDetails,
+        boosts,
+        progress.prestigeMultiplier
+      );
 
       const energyGained = Math.floor(passiveIncome.effectiveIncome * cappedSeconds);
       const xpGained = xpFromEnergy(energyGained);
@@ -94,6 +98,9 @@ export class TickService {
       xp_into_level: result.levelInfo.xpIntoLevel,
       xp_to_next_level: result.levelInfo.xpToNextLevel,
       passive_income_per_sec: Math.floor(result.passiveIncome.effectiveIncome),
+      passive_income_multiplier: result.passiveIncome.effectiveMultiplier,
+      boost_multiplier: result.passiveIncome.boostMultiplier,
+      prestige_multiplier: result.passiveIncome.prestigeMultiplier,
       duration_sec: cappedSeconds,
     };
   }

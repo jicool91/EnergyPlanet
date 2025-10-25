@@ -21,22 +21,27 @@ describe('computePassiveIncome', () => {
     createdAt: new Date(),
   });
 
-  it('aggregates base income and boost multipliers', () => {
+  it('aggregates base income, boost multiplier and prestige multiplier', () => {
     const snapshot = computePassiveIncome(
       [mockBuilding(100), mockBuilding(55.5)],
-      [mockBoost(1.5), mockBoost(1.1)]
+      [mockBoost(1.5), mockBoost(1.1)],
+      1.2
     );
 
     expect(snapshot.baseIncome).toBeCloseTo(155.5);
     expect(snapshot.boostMultiplier).toBeCloseTo(1.65);
-    expect(snapshot.effectiveIncome).toBeCloseTo(256.575);
+    expect(snapshot.prestigeMultiplier).toBeCloseTo(1.2);
+    expect(snapshot.effectiveMultiplier).toBeCloseTo(1.98);
+    expect(snapshot.effectiveIncome).toBeCloseTo(307.89);
   });
 
   it('defaults boost multiplier to 1 without active boosts', () => {
-    const snapshot = computePassiveIncome([mockBuilding(42)], []);
+    const snapshot = computePassiveIncome([mockBuilding(42)], [], 1.1);
 
     expect(snapshot.baseIncome).toBe(42);
     expect(snapshot.boostMultiplier).toBe(1);
-    expect(snapshot.effectiveIncome).toBe(42);
+    expect(snapshot.prestigeMultiplier).toBeCloseTo(1.1);
+    expect(snapshot.effectiveMultiplier).toBeCloseTo(1.1);
+    expect(snapshot.effectiveIncome).toBeCloseTo(46.2);
   });
 });

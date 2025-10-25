@@ -14,6 +14,7 @@ import { fetchProfile, ProfileResponse } from '../services/profile';
 import { describeError } from './storeUtils';
 import { authStore } from './authStore';
 import { uiStore } from './uiStore';
+import { fetchPrestigeStatus, performPrestigeReset } from '../services/prestige';
 
 interface BuildingState {
   buildingId: string;
@@ -42,6 +43,9 @@ interface TickSyncResponse {
   xp_into_level?: number;
   xp_to_next_level?: number;
   passive_income_per_sec?: number;
+  passive_income_multiplier?: number;
+  boost_multiplier?: number;
+  prestige_multiplier?: number;
 }
 
 interface UpgradeResponsePayload {
@@ -122,6 +126,17 @@ interface GameState {
   stars: number; // ⭐ Player's star balance
   passiveIncomePerSec: number;
   passiveIncomeMultiplier: number;
+  boostMultiplier: number;
+  prestigeMultiplier: number;
+  prestigeLevel: number;
+  prestigeEnergySinceReset: number;
+  prestigeLastReset: string | null;
+  prestigeNextThreshold: number;
+  prestigeEnergyToNext: number;
+  prestigeGainAvailable: number;
+  isPrestigeAvailable: boolean;
+  isPrestigeLoading: boolean;
+  prestigeStatusLoaded: boolean;
   streakCount: number;
   bestStreak: number;
   isCriticalStreak: boolean;
@@ -153,7 +168,11 @@ interface GameState {
   tap: (count: number) => Promise<void>;
   upgrade: (type: string, itemId: string) => Promise<void>;
   resetStreak: () => void;
-  configurePassiveIncome: (perSec: number, multiplier: number) => void;
+  configurePassiveIncome: (
+    perSec: number,
+    totalMultiplier: number,
+    extras?: { boostMultiplier?: number; prestigeMultiplier?: number }
+  ) => void;
   refreshSession: () => Promise<void>;
   purchaseBuilding: (buildingId: string, quantity?: number) => Promise<void>;
   upgradeBuilding: (buildingId: string) => Promise<void>;
@@ -161,6 +180,8 @@ interface GameState {
   logoutSession: (useKeepAlive?: boolean) => Promise<void>;
   loadLeaderboard: (force?: boolean) => Promise<void>;
   loadProfile: (force?: boolean) => Promise<void>;
+  loadPrestigeStatus: (force?: boolean) => Promise<void>;
+  performPrestige: () => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
@@ -191,6 +212,17 @@ export const useGameStore = create<GameState>((set, get) => ({
   stars: 0,
   passiveIncomePerSec: 0,
   passiveIncomeMultiplier: 1,
+  boostMultiplier: 1,
+  prestigeMultiplier: 1,
+  prestigeLevel: 0,
+  prestigeEnergySinceReset: 0,
+  prestigeLastReset: null,
+  prestigeNextThreshold: 1_000_000_000_000,
+  prestigeEnergyToNext: 1_000_000_000_000,
+  prestigeGainAvailable: 0,
+  isPrestigeAvailable: false,
+  isPrestigeLoading: false,
+  prestigeStatusLoaded: false,
   streakCount: 0,
   bestStreak: 0,
   isCriticalStreak: false,
@@ -257,7 +289,12 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
       const { user, progress, offline_gains: offlineGains, inventory } = sessionResponse.data;
       const passivePerSec = progress.passive_income_per_sec ?? 0;
-      const passiveMultiplier = progress.passive_income_multiplier ?? 1;
+      const totalMultiplier = progress.passive_income_multiplier ?? 1;
+      const boostMultiplier = progress.boost_multiplier ?? 1;
+      const prestigeMultiplier = progress.prestige_multiplier ?? 1;
+      const prestigeLevel = progress.prestige_level ?? 0;
+      const prestigeEnergySinceReset = progress.prestige_energy_since_reset ?? 0;
+      const prestigeLastReset = progress.prestige_last_reset ?? null;
       const xpIntoLevel = progress.xp_into_level ?? 0;
       const xpToNextLevel = progress.xp_to_next_level ?? 0;
       const tapLevel = progress.tap_level ?? 1;
@@ -302,7 +339,12 @@ export const useGameStore = create<GameState>((set, get) => ({
         tapIncome,
         energy: progress.energy,
         passiveIncomePerSec: passivePerSec,
-        passiveIncomeMultiplier: passiveMultiplier,
+        passiveIncomeMultiplier: totalMultiplier,
+        boostMultiplier,
+        prestigeMultiplier,
+        prestigeLevel,
+        prestigeEnergySinceReset,
+        prestigeLastReset,
         streakCount: 0,
         bestStreak: 0,
         isCriticalStreak: false,
@@ -314,9 +356,19 @@ export const useGameStore = create<GameState>((set, get) => ({
         isLoading: false,
         sessionLastSyncedAt: Date.now(),
         sessionErrorMessage: null,
+        prestigeStatusLoaded: false,
       });
 
-      get().configurePassiveIncome(passivePerSec, passiveMultiplier);
+      get().configurePassiveIncome(passivePerSec, totalMultiplier, {
+        boostMultiplier,
+        prestigeMultiplier,
+      });
+
+      get()
+        .loadPrestigeStatus()
+        .catch(error => {
+          console.error('Failed to load prestige status', error);
+        });
     } catch (error) {
       console.error('Failed to initialize game', error);
 
@@ -364,6 +416,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         xp_into_level,
         xp_to_next_level,
         boost_multiplier,
+        prestige_multiplier,
+        total_multiplier,
       } = response.data;
 
       const previousStreak = get().streakCount;
@@ -383,7 +437,9 @@ export const useGameStore = create<GameState>((set, get) => ({
         bestStreak: Math.max(state.bestStreak, newStreak),
         isCriticalStreak: isCritical,
         lastTapAt: Date.now(),
-        passiveIncomeMultiplier: boost_multiplier ?? state.passiveIncomeMultiplier,
+        passiveIncomeMultiplier: total_multiplier ?? state.passiveIncomeMultiplier,
+        boostMultiplier: boost_multiplier ?? state.boostMultiplier,
+        prestigeMultiplier: prestige_multiplier ?? state.prestigeMultiplier,
       }));
 
       if (level_up) {
@@ -423,10 +479,19 @@ export const useGameStore = create<GameState>((set, get) => ({
     set({ streakCount: 0, isCriticalStreak: false });
   },
 
-  configurePassiveIncome: (perSec: number, multiplier: number) => {
+  configurePassiveIncome: (
+    perSec: number,
+    totalMultiplier: number,
+    extras: { boostMultiplier?: number; prestigeMultiplier?: number } = {}
+  ) => {
     const flushPassiveIncome = get().flushPassiveIncome;
 
-    set({ passiveIncomePerSec: perSec, passiveIncomeMultiplier: multiplier });
+    set(state => ({
+      passiveIncomePerSec: perSec,
+      passiveIncomeMultiplier: totalMultiplier,
+      boostMultiplier: extras.boostMultiplier ?? state.boostMultiplier,
+      prestigeMultiplier: extras.prestigeMultiplier ?? state.prestigeMultiplier,
+    }));
 
     if (passiveTicker) {
       clearInterval(passiveTicker);
@@ -496,6 +561,16 @@ export const useGameStore = create<GameState>((set, get) => ({
       const xpToNextLevel = progress.xp_to_next_level ?? currentState.xpToNextLevel;
       const tapLevel = progress.tap_level ?? currentState.tapLevel;
       const tapIncome = progress.tap_income ?? currentState.tapIncome;
+      const passivePerSec = progress.passive_income_per_sec ?? 0;
+      const totalMultiplier =
+        progress.passive_income_multiplier ?? currentState.passiveIncomeMultiplier;
+      const boostMultiplier = progress.boost_multiplier ?? currentState.boostMultiplier;
+      const prestigeMultiplier =
+        progress.prestige_multiplier ?? currentState.prestigeMultiplier;
+      const prestigeLevel = progress.prestige_level ?? currentState.prestigeLevel;
+      const prestigeEnergySinceReset =
+        progress.prestige_energy_since_reset ?? currentState.prestigeEnergySinceReset;
+      const prestigeLastReset = progress.prestige_last_reset ?? currentState.prestigeLastReset;
 
       commitPassiveBuffers(set);
       set({
@@ -508,6 +583,13 @@ export const useGameStore = create<GameState>((set, get) => ({
         tapLevel,
         tapIncome,
         energy: progress.energy,
+        passiveIncomePerSec: passivePerSec,
+        passiveIncomeMultiplier: totalMultiplier,
+        boostMultiplier,
+        prestigeMultiplier,
+        prestigeLevel,
+        prestigeEnergySinceReset,
+        prestigeLastReset,
         lastTapAt: Date.now(),
         buildings,
         buildingsError: null,
@@ -516,10 +598,10 @@ export const useGameStore = create<GameState>((set, get) => ({
         sessionLastSyncedAt: Date.now(),
         sessionErrorMessage: null,
       });
-
-      const passivePerSec = progress.passive_income_per_sec ?? 0;
-      const passiveMultiplier = progress.passive_income_multiplier ?? 1;
-      get().configurePassiveIncome(passivePerSec, passiveMultiplier);
+      get().configurePassiveIncome(passivePerSec, totalMultiplier, {
+        boostMultiplier,
+        prestigeMultiplier,
+      });
     } catch (error) {
       console.error('Failed to refresh session snapshot', error);
 
@@ -568,7 +650,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
 
       const passivePerSec = payload.passive_income_per_sec ?? get().passiveIncomePerSec;
-      const passiveMultiplier = get().passiveIncomeMultiplier;
+      const totalMultiplier = payload.passive_income_multiplier ?? get().passiveIncomeMultiplier;
+      const boostMultiplier = (payload as any).boost_multiplier ?? get().boostMultiplier;
+      const prestigeMultiplier = (payload as any).prestige_multiplier ?? get().prestigeMultiplier;
+
+      get().configurePassiveIncome(passivePerSec, totalMultiplier, {
+        boostMultiplier,
+        prestigeMultiplier,
+      });
 
       set(state => ({
         energy: payload.energy,
@@ -579,8 +668,6 @@ export const useGameStore = create<GameState>((set, get) => ({
         xpToNextLevel: payload.xp_to_next_level ?? state.xpToNextLevel,
         pendingPassiveEnergy: 0,
         pendingPassiveSeconds: 0,
-        passiveIncomePerSec: passivePerSec,
-        passiveIncomeMultiplier: passiveMultiplier,
         sessionLastSyncedAt: Date.now(),
       }));
     } catch (error) {
@@ -800,6 +887,63 @@ export const useGameStore = create<GameState>((set, get) => ({
         profileError: message,
         isProfileLoading: false,
       });
+    }
+  },
+
+  loadPrestigeStatus: async (force = false) => {
+    const { prestigeStatusLoaded, isPrestigeLoading } = get();
+    if (!force && (prestigeStatusLoaded || isPrestigeLoading)) {
+      return;
+    }
+
+    set({ isPrestigeLoading: true });
+
+    try {
+      const status = await fetchPrestigeStatus();
+      const boostMultiplier = get().boostMultiplier;
+      const passivePerSec = get().passiveIncomePerSec;
+      const totalMultiplier = boostMultiplier * status.prestige_multiplier;
+
+      set({
+        prestigeStatusLoaded: true,
+        prestigeLevel: status.prestige_level,
+        prestigeMultiplier: status.prestige_multiplier,
+        prestigeEnergySinceReset: status.energy_since_prestige,
+        prestigeNextThreshold: status.next_threshold_energy,
+        prestigeEnergyToNext: status.energy_to_next_threshold,
+        prestigeGainAvailable: status.potential_multiplier_gain,
+        isPrestigeAvailable: status.can_prestige,
+        isPrestigeLoading: false,
+      });
+
+      get().configurePassiveIncome(passivePerSec, totalMultiplier, {
+        boostMultiplier,
+        prestigeMultiplier: status.prestige_multiplier,
+      });
+    } catch (error) {
+      console.error('Failed to load prestige status', error);
+      set({
+        prestigeStatusLoaded: false,
+        isPrestigeLoading: false,
+      });
+    }
+  },
+
+  performPrestige: async () => {
+    if (get().isPrestigeLoading) {
+      return;
+    }
+
+    set({ isPrestigeLoading: true });
+    try {
+      await performPrestigeReset();
+      await get().refreshSession();
+      await get().loadPrestigeStatus(true);
+      set({ isPrestigeLoading: false });
+    } catch (error) {
+      console.error('Prestige action failed', error);
+      set({ isPrestigeLoading: false });
+      throw error;
     }
   },
 }));

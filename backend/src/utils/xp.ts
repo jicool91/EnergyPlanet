@@ -1,8 +1,7 @@
 import { xpThresholdForLevel } from './level';
 
-const TRANSACTION_XP_CAP_RATIO = 0.25;
-const DIMINISH_LEVEL_BASE = 250;
-const DIMINISH_EXPONENT = 1.6;
+const DIMINISH_LEVEL_BASE = 400;
+const DIMINISH_EXPONENT = 1.3;
 
 const PURCHASE_XP_EXPONENT = 0.75;
 const PURCHASE_XP_COEFFICIENT = 2.7011479041326116;
@@ -17,6 +16,19 @@ export interface TransactionXpComputation {
   cap: number;
 }
 
+function transactionCapRatio(level: number): number {
+  if (level < 100) {
+    return 0.4;
+  }
+  if (level < 300) {
+    return 0.33;
+  }
+  if (level < 600) {
+    return 0.28;
+  }
+  return 0.25;
+}
+
 function diminishingMultiplier(level: number): number {
   const safeLevel = Math.max(1, level);
   const normalized = safeLevel / DIMINISH_LEVEL_BASE;
@@ -25,7 +37,8 @@ function diminishingMultiplier(level: number): number {
 
 export function transactionXpCap(level: number): number {
   const threshold = xpThresholdForLevel(level);
-  return Math.floor(threshold * TRANSACTION_XP_CAP_RATIO);
+  const ratio = transactionCapRatio(level);
+  return Math.floor(threshold * ratio);
 }
 
 function computeWithCap(rawXp: number, level: number): TransactionXpComputation {

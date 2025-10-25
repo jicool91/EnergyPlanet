@@ -19,6 +19,7 @@ import { SocialProofCard } from './SocialProofCard';
 import { DailyRewardBanner } from './DailyRewardBanner';
 import { useDevicePerformance, useSafeArea } from '../hooks';
 import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
+import { PrestigeCard } from './PrestigeCard';
 
 const TAB_BAR_RESERVE_PX = 88;
 
@@ -37,6 +38,15 @@ export interface HomePanelProps {
   streakCount: number;
   bestStreak: number;
   isCriticalStreak: boolean;
+  prestigeLevel: number;
+  prestigeMultiplier: number;
+  prestigeEnergySinceReset: number;
+  prestigeNextThreshold: number;
+  prestigeEnergyToNext: number;
+  prestigeGainAvailable: number;
+  isPrestigeAvailable: boolean;
+  isPrestigeLoading: boolean;
+  onPrestige: () => void;
 
   // Next goal
   purchaseInsight?: {
@@ -68,6 +78,15 @@ export function HomePanel({
   bestStreak,
   isCriticalStreak,
   purchaseInsight,
+  prestigeLevel,
+  prestigeMultiplier,
+  prestigeEnergySinceReset,
+  prestigeNextThreshold,
+  prestigeEnergyToNext,
+  prestigeGainAvailable,
+  isPrestigeAvailable,
+  isPrestigeLoading,
+  onPrestige,
   onTap,
 }: HomePanelProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
@@ -189,6 +208,18 @@ export function HomePanel({
           xpCurrent={xpIntoLevel}
           xpTotal={xpIntoLevel + xpToNextLevel}
           xpRemaining={xpRemaining}
+        />
+
+        <PrestigeCard
+          prestigeLevel={prestigeLevel}
+          prestigeMultiplier={prestigeMultiplier}
+          prestigeEnergySinceReset={prestigeEnergySinceReset}
+          prestigeNextThreshold={prestigeNextThreshold}
+          prestigeEnergyToNext={prestigeEnergyToNext}
+          prestigeGainAvailable={prestigeGainAvailable}
+          isPrestigeAvailable={isPrestigeAvailable}
+          isLoading={isPrestigeLoading}
+          onPrestige={onPrestige}
         />
 
         {/* Social Proof (Friends Playing) */}

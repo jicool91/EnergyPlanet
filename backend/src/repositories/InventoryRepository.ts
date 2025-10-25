@@ -91,3 +91,14 @@ export async function upsertInventoryItem(
 
   return mapInventory(result.rows[0]);
 }
+
+export async function resetInventory(
+  userId: string,
+  client?: PoolClient
+): Promise<void> {
+  await runQuery(
+    `DELETE FROM inventory WHERE user_id = $1`,
+    [userId],
+    client
+  );
+}

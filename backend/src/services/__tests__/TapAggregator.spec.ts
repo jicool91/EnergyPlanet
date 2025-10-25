@@ -265,7 +265,7 @@ describe('TapAggregator', () => {
           taps: 55,
           energy_delta: 550,
           base_energy: 550,
-          boost_multiplier: 1,
+          effective_multiplier: 1,
         }),
       })
     );
