@@ -8,7 +8,7 @@ import {
 } from '../repositories/InventoryRepository';
 import { logEvent } from '../repositories/EventRepository';
 import { calculateLevelProgress } from '../utils/level';
-import { xpFromEnergy } from '../utils/tap';
+import { calculatePurchaseXp, calculateUpgradeXp } from '../utils/xp';
 import { invalidateProfileCache } from '../cache/invalidation';
 
 interface UpgradeRequest {
@@ -77,8 +77,8 @@ export class UpgradeService {
         }
 
         const updatedInventory = await upsertInventoryItem(userId, request.buildingId, 1, 0, client);
-        const xpGained = xpFromEnergy(Math.floor(cost / 2));
-        const totalXp = progress.xp + xpGained;
+        const purchaseXp = calculatePurchaseXp(cost, progress.level);
+        const totalXp = progress.xp + purchaseXp.appliedXp;
         const levelInfo = calculateLevelProgress(totalXp);
         const leveledUp = levelInfo.level !== progress.level;
         const newEnergy = progress.energy - cost;
@@ -100,6 +100,10 @@ export class UpgradeService {
             building_id: request.buildingId,
             cost,
             new_count: updatedInventory.count,
+            xp_raw: purchaseXp.rawXp,
+            xp_diminished: purchaseXp.diminishedXp,
+            xp_applied: purchaseXp.appliedXp,
+            xp_cap: purchaseXp.cap,
           },
           { client }
         );
@@ -120,7 +124,7 @@ export class UpgradeService {
             next_upgrade_cost: nextUpgradeCost,
           },
           energy: updatedProgress.energy,
-          xp_gained: xpGained,
+          xp_gained: purchaseXp.appliedXp,
           level: updatedProgress.level,
           level_up: leveledUp,
           xp_into_level: levelInfo.xpIntoLevel,
@@ -138,8 +142,8 @@ export class UpgradeService {
       }
 
       const updatedInventory = await upsertInventoryItem(userId, request.buildingId, 0, 1, client);
-      const xpGained = xpFromEnergy(Math.floor(cost / 3));
-      const totalXp = progress.xp + xpGained;
+      const upgradeXp = calculateUpgradeXp(cost, progress.level);
+      const totalXp = progress.xp + upgradeXp.appliedXp;
       const levelInfo = calculateLevelProgress(totalXp);
       const leveledUp = levelInfo.level !== progress.level;
       const newEnergy = progress.energy - cost;
@@ -161,6 +165,10 @@ export class UpgradeService {
           building_id: request.buildingId,
           cost,
           new_level: updatedInventory.level,
+          xp_raw: upgradeXp.rawXp,
+          xp_diminished: upgradeXp.diminishedXp,
+          xp_applied: upgradeXp.appliedXp,
+          xp_cap: upgradeXp.cap,
         },
         { client }
       );
@@ -181,7 +189,7 @@ export class UpgradeService {
           next_upgrade_cost: nextUpgradeCost,
         },
         energy: updatedProgress.energy,
-        xp_gained: xpGained,
+        xp_gained: upgradeXp.appliedXp,
         level: updatedProgress.level,
         level_up: leveledUp,
         xp_into_level: levelInfo.xpIntoLevel,

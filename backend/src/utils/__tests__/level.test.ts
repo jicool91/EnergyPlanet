@@ -42,6 +42,12 @@ describe('calculateLevelProgress', () => {
     expect(xpAt1000).toBe(xpAt100 + 10_000 * 900);
 
     const xpAt1500 = xpThresholdForLevel(1500);
-    expect(xpAt1500).toBe(xpAt1000 + 50_000 * 500);
+    expect(xpAt1500).toBe(xpAt1000 + 150_000 * 500);
+
+    const xpAt2000 = xpThresholdForLevel(2000);
+    expect(xpAt2000).toBe(xpAt1000 + 150_000 * 1000);
+
+    const xpAt2100 = xpThresholdForLevel(2100);
+    expect(xpAt2100).toBe(xpAt2000 + 200_000 * 100 * 100);
   });
 });

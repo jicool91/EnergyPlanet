@@ -2,13 +2,19 @@ const BASE_XP_MULTIPLIER = 100;
 const BASE_EXPONENT = 1.5;
 const MID_SOFT_CAP_LEVEL = 100;
 const HIGH_SOFT_CAP_LEVEL = 1000;
+const LATE_SOFT_CAP_LEVEL = 2000;
+
 const MID_INCREMENT = 10_000;
-const HIGH_INCREMENT = 50_000;
+const HIGH_INCREMENT = 150_000;
+const LATE_QUADRATIC_COEFFICIENT = 200_000;
 
 const XP_AT_MID_SOFT_CAP = Math.round(
   BASE_XP_MULTIPLIER * Math.pow(MID_SOFT_CAP_LEVEL, BASE_EXPONENT)
 );
-const XP_AT_HIGH_SOFT_CAP = XP_AT_MID_SOFT_CAP + MID_INCREMENT * (HIGH_SOFT_CAP_LEVEL - MID_SOFT_CAP_LEVEL);
+const XP_AT_HIGH_SOFT_CAP =
+  XP_AT_MID_SOFT_CAP + MID_INCREMENT * (HIGH_SOFT_CAP_LEVEL - MID_SOFT_CAP_LEVEL);
+const XP_AT_LATE_SOFT_CAP =
+  XP_AT_HIGH_SOFT_CAP + HIGH_INCREMENT * (LATE_SOFT_CAP_LEVEL - HIGH_SOFT_CAP_LEVEL);
 
 export interface LevelProgress {
   level: number;
@@ -28,9 +34,12 @@ export function xpThresholdForLevel(level: number): number {
     return XP_AT_MID_SOFT_CAP + MID_INCREMENT * (normalizedLevel - MID_SOFT_CAP_LEVEL);
   }
 
-  return (
-    XP_AT_HIGH_SOFT_CAP + HIGH_INCREMENT * (normalizedLevel - HIGH_SOFT_CAP_LEVEL)
-  );
+  if (normalizedLevel <= LATE_SOFT_CAP_LEVEL) {
+    return XP_AT_HIGH_SOFT_CAP + HIGH_INCREMENT * (normalizedLevel - HIGH_SOFT_CAP_LEVEL);
+  }
+
+  const lateLevelOffset = normalizedLevel - LATE_SOFT_CAP_LEVEL;
+  return XP_AT_LATE_SOFT_CAP + LATE_QUADRATIC_COEFFICIENT * Math.pow(lateLevelOffset, 2);
 }
 
 export function calculateLevelProgress(totalXp: number): LevelProgress {
