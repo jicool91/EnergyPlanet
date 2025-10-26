@@ -102,6 +102,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
       isCriticalStreak: state.isCriticalStreak,
       lastTapAt: state.lastTapAt,
       isLoading: state.isLoading,
+      isInitialized: state.isInitialized,
       buildings: state.buildings,
       leaderboardTotal: state.leaderboardTotal,
       leaderboardLoaded: state.leaderboardLoaded,
