@@ -74,6 +74,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     isCriticalStreak,
     lastTapAt,
     isLoading,
+    isInitialized,
     buildings,
     leaderboardTotal,
     leaderboardLoaded,
@@ -207,8 +208,11 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   }, [activeTab, scrollRef]);
 
   useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
     loadPrestigeStatus();
-  }, [loadPrestigeStatus]);
+  }, [isInitialized, loadPrestigeStatus]);
 
   useEffect(() => {
     loadLeaderboard();
@@ -363,16 +367,22 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   }, [boostHub, boostHubTimeOffsetMs]);
 
   useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
     if (activeTab === 'leaderboard') {
       loadLeaderboard();
     }
-  }, [activeTab, loadLeaderboard]);
+  }, [activeTab, isInitialized, loadLeaderboard]);
 
   useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
     if (activeTab === 'profile') {
       loadProfile();
     }
-  }, [activeTab, loadProfile]);
+  }, [activeTab, isInitialized, loadProfile]);
 
   useEffect(() => {
     if (streakCount === 0) {
