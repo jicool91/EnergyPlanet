@@ -28,6 +28,7 @@ import { logEvent } from '../repositories/EventRepository';
 import { transaction } from '../db/connection';
 import { addDuration, durationToMilliseconds } from '../utils/time';
 import { hashToken } from '../utils/token';
+import { registerInitDataHash } from '../cache/telegramInitReplay';
 
 interface AuthTokens {
   accessToken: string;
@@ -38,6 +39,10 @@ interface AuthTokens {
 interface ParsedTelegramAuth {
   telegramUser: TelegramUser;
   matchedBotToken: string | null;
+}
+
+interface AuthenticateOptions {
+  enforceReplayProtection?: boolean;
 }
 
 export class AuthService {
@@ -122,7 +127,53 @@ export class AuthService {
     return { accessToken, refreshToken, refreshExpiresAt };
   }
 
-  async authenticateWithTelegram(initData: string) {
+  private async ensureInitDataReplayProtection(
+    initData: string,
+    context: {
+      telegramUserId: number | null;
+      matchedBotToken: string | null;
+      initDataLength: number;
+    }
+  ) {
+    const ttlSeconds = Math.max(config.telegram.authDataMaxAgeSec, 0);
+    const initDataHash = hashToken(initData);
+    try {
+      const status = await registerInitDataHash(initDataHash, ttlSeconds);
+
+      if (status === 'replay') {
+        logger.warn('Telegram init data replay detected', {
+          initDataHash,
+          ttlSeconds,
+          telegramUserId: context.telegramUserId,
+          matchedBotToken: context.matchedBotToken
+            ? `${context.matchedBotToken.slice(0, 6)}...${context.matchedBotToken.slice(-4)}`
+            : null,
+        });
+        throw new AppError(409, 'telegram_initdata_replayed');
+      }
+
+      if (status === 'skipped') {
+        logger.debug('Telegram init data replay protection skipped', {
+          reason: 'cache_disabled_or_unavailable',
+          ttlSeconds,
+          initDataLength: context.initDataLength,
+          telegramUserId: context.telegramUserId,
+        });
+      }
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      logger.warn('Telegram init data replay protection degraded', {
+        error: (error as Error).message,
+        initDataHash,
+        telegramUserId: context.telegramUserId,
+        initDataLength: context.initDataLength,
+      });
+    }
+  }
+
+  async authenticateWithTelegram(initData: string, options: AuthenticateOptions = {}) {
     const initDataLength = initData.length;
     let matchedBotToken: string | null = null;
     let telegramUserId: number | null = null;
@@ -131,6 +182,14 @@ export class AuthService {
       const { telegramUser, matchedBotToken: parsedToken } = this.parseInitData(initData);
       matchedBotToken = parsedToken;
       telegramUserId = telegramUser.id;
+
+      if (options.enforceReplayProtection) {
+        await this.ensureInitDataReplayProtection(initData, {
+          telegramUserId,
+          matchedBotToken,
+          initDataLength,
+        });
+      }
 
       const result = await transaction(async client => {
         let user = await findByTelegramId(telegramUser.id, client);

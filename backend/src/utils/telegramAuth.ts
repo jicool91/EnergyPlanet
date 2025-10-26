@@ -8,6 +8,7 @@
 import crypto from 'crypto';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from './logger';
+import { config } from '../config';
 
 export interface TelegramUser {
   id: number;
@@ -165,13 +166,27 @@ export function validateTelegramInitData(
 
   const parsed = JSON.parse(userParam) as TelegramUser;
 
-  const authDate = parseInt(urlParams.get('auth_date') || '0', 10);
+  const authDateRaw = urlParams.get('auth_date') || '0';
+  const authDate = parseInt(authDateRaw, 10);
   const now = Math.floor(Date.now() / 1000);
-  if (Number.isNaN(authDate) || now - authDate > 86400) {
+  const maxAgeSec = Math.max(config.telegram.authDataMaxAgeSec, 0);
+  const ageSeconds = now - authDate;
+
+  if (Number.isNaN(authDate) || authDate <= 0) {
+    logger.warn('Telegram auth data has invalid auth_date', {
+      authDate: authDateRaw,
+      now,
+      maxAgeSec,
+    });
+    throw new AppError(401, 'auth_data_invalid');
+  }
+
+  if (ageSeconds > maxAgeSec) {
     logger.warn('Telegram auth data expired', {
       authDate,
       now,
-      ageSeconds: now - authDate,
+      ageSeconds,
+      maxAgeSec,
     });
     throw new AppError(401, 'auth_data_expired');
   }

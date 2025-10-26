@@ -148,6 +148,7 @@ export const config = {
     },
     botUsername: process.env.TELEGRAM_BOT_USERNAME || '',
     miniAppUrl: process.env.TELEGRAM_MINI_APP_URL || '',
+    authDataMaxAgeSec: parseInt(process.env.TELEGRAM_AUTHDATA_MAX_AGE_SEC || '300', 10),
     paymentWebhookSecret: process.env.TELEGRAM_PAYMENT_WEBHOOK_SECRET || '',
   },
 

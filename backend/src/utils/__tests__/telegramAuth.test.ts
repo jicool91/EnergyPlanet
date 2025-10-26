@@ -113,8 +113,8 @@ describe('validateTelegramInitData', () => {
     }
   });
 
-  it('throws when auth_date is older than 24 hours', () => {
-    const oldAuthDate = Math.floor(Date.now() / 1000) - 90000; // > 24h
+  it('throws when auth_date is older than allowed max age', () => {
+    const oldAuthDate = Math.floor(Date.now() / 1000) - 600; // older than default 300s
     const initData = createInitData({ authDate: oldAuthDate }).toString();
 
     expect(() => validateTelegramInitData(initData, [TEST_TOKEN])).toThrowError(AppError);
@@ -123,6 +123,21 @@ describe('validateTelegramInitData', () => {
     } catch (error) {
       expect(error).toBeInstanceOf(AppError);
       expect((error as AppError).message).toBe('auth_data_expired');
+    }
+  });
+
+  it('throws when auth_date is invalid', () => {
+    const params = createInitData();
+    params.set('auth_date', 'not-a-number');
+    signInitData(params, TEST_TOKEN);
+    const initData = params.toString();
+
+    expect(() => validateTelegramInitData(initData, [TEST_TOKEN])).toThrowError(AppError);
+    try {
+      validateTelegramInitData(initData, [TEST_TOKEN]);
+    } catch (error) {
+      expect(error).toBeInstanceOf(AppError);
+      expect((error as AppError).message).toBe('auth_data_invalid');
     }
   });
 
@@ -141,4 +156,3 @@ describe('validateTelegramInitData', () => {
     }
   });
 });
-
