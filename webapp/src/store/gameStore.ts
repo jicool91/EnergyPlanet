@@ -449,6 +449,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       }
     } catch (error) {
       console.error('Tap failed', error);
+      throw error;
     }
   },
 
@@ -566,8 +567,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const totalMultiplier =
         progress.passive_income_multiplier ?? currentState.passiveIncomeMultiplier;
       const boostMultiplier = progress.boost_multiplier ?? currentState.boostMultiplier;
-      const prestigeMultiplier =
-        progress.prestige_multiplier ?? currentState.prestigeMultiplier;
+      const prestigeMultiplier = progress.prestige_multiplier ?? currentState.prestigeMultiplier;
       const prestigeLevel = progress.prestige_level ?? currentState.prestigeLevel;
       const prestigeEnergySinceReset =
         progress.prestige_energy_since_reset ?? currentState.prestigeEnergySinceReset;

@@ -17,6 +17,8 @@ import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
 import { useNotification } from '../hooks/useNotification';
 import { useSafeArea } from '../hooks';
+import { describeError } from '../store/storeUtils';
+import { logClientEvent } from '@/services/telemetry';
 import { shallow } from 'zustand/shallow';
 import { useCatalogStore } from '../store/catalogStore';
 import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
@@ -194,8 +196,19 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const scrollRafRef = useRef<number | null>(null);
 
   const handleTap = () => {
-    tap(1);
-    hapticTap();
+    tap(1)
+      .then(() => {
+        hapticTap();
+      })
+      .catch(error => {
+        const { status, message } = describeError(error, 'Не удалось выполнить тап');
+        if (status === 429) {
+          toast('Слишком быстро! Попробуйте чуть позже.', 3000, 'warning');
+        } else {
+          toast(message, 4000, 'error');
+        }
+        void logClientEvent('tap_error', { status, message }, 'warn');
+      });
   };
 
   // Track scroll position for showing back-to-tap button

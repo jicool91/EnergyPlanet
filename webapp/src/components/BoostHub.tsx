@@ -5,6 +5,9 @@ import { Button } from './Button';
 import { Card } from './Card';
 import { Badge } from './Badge';
 import { useHaptic } from '../hooks/useHaptic';
+import { useNotification } from '../hooks/useNotification';
+import { describeError } from '../store/storeUtils';
+import { logClientEvent } from '@/services/telemetry';
 
 interface BoostHubProps {
   showHeader?: boolean;
@@ -91,18 +94,31 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
   }, [boostHub.length]);
 
   const { success: hapticSuccess, error: hapticError } = useHaptic();
+  const { success: notifySuccess, error: notifyError } = useNotification();
 
   const handleClaimBoost = useCallback(
     async (boostType: string) => {
       try {
         await claimBoost(boostType);
         hapticSuccess();
+        notifySuccess('Буст активирован!');
+        void logClientEvent('boost_claim_ui_success', { boost_type: boostType });
       } catch (error) {
         hapticError();
-        throw error;
+        const { status, message } = describeError(error, 'Не удалось активировать буст');
+        if (status === 429) {
+          notifyError('Этот буст пока недоступен. Попробуйте позже.');
+        } else {
+          notifyError(message);
+        }
+        void logClientEvent(
+          'boost_claim_ui_error',
+          { boost_type: boostType, status, message },
+          'warn'
+        );
       }
     },
-    [claimBoost, hapticSuccess, hapticError]
+    [claimBoost, hapticError, hapticSuccess, notifyError, notifySuccess]
   );
 
   const items = useMemo(
