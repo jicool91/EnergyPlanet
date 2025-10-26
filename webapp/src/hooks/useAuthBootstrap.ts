@@ -101,6 +101,15 @@ export function useAuthBootstrap() {
           return;
         }
 
+        if (axios.isAxiosError(error) && error.response?.status === 409) {
+          const errorCode = (error.response.data as any)?.error;
+          if (errorCode === 'telegram_initdata_replayed') {
+            setAuthReady(true);
+            setBootstrapping(false);
+            return;
+          }
+        }
+
         authStore.clearTokens();
         setAuthReady(false);
         setBootstrapping(false);
