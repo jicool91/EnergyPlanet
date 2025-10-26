@@ -82,3 +82,28 @@ export const purchaseRateLimiter = rateLimit({
   keyGenerator: userKey,
   skip: shouldSkip,
 });
+
+/**
+ * Auth endpoints rate limiter
+ * Prevents brute force attacks on authentication endpoints
+ * 5 auth attempts per minute per IP/user
+ * This protects /auth/tma and /auth/refresh endpoints
+ */
+export const authRateLimiter = rateLimit({
+  windowMs: 60000, // 1 minute
+  max: 5, // 5 requests per minute
+  message: {
+    error: 'auth_rate_limit_exceeded',
+    message: 'Too many authentication attempts, please try again in a few minutes',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req: Request) => {
+    // For auth endpoints, prioritize IP-based limiting (unauthenticated requests)
+    // to prevent brute force attacks from same IP
+    return `ip:${req.ip ?? 'anonymous'}`;
+  },
+  skip: (req: Request) => {
+    return !config.rateLimit.enabled || process.env.NODE_ENV === 'test' || req.path === '/health';
+  },
+});
