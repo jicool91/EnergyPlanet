@@ -34,14 +34,11 @@ class ClientLogger {
 
   constructor() {
     if (typeof window !== 'undefined') {
-      this.unsubscribe = useAuthStore.subscribe(
-        state => state.accessToken,
-        accessToken => {
-          if (accessToken) {
-            void this.flushPending();
-          }
+      this.unsubscribe = useAuthStore.subscribe(state => {
+        if (state.accessToken) {
+          void this.flushPending();
         }
-      );
+      });
       if (authStore.accessToken) {
         void this.flushPending();
       }
@@ -181,7 +178,7 @@ class ClientLogger {
         context: payload.context,
         timestamp: payload.timestamp,
       })
-      .catch(error => {
+      .catch(_error => {
         // Re-queue on failure (e.g. token expired) so we can retry with a fresh token
         this.pendingLogs.unshift(payload);
         if (!authStore.accessToken) {
