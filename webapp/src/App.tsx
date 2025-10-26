@@ -136,7 +136,7 @@ function App() {
   }, [dismissAuthError]);
 
   useEffect(() => {
-    if (!isInitialized) {
+    if (!isInitialized || !authReady) {
       return;
     }
 
@@ -159,7 +159,7 @@ function App() {
       document.removeEventListener('visibilitychange', handleVisibility);
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [isInitialized, logoutSession, refreshSession]);
+  }, [isInitialized, authReady, logoutSession, refreshSession]);
 
   const modalBackHandler = useCallback(() => {
     if (isAuthModalOpen) {

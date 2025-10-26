@@ -17,6 +17,7 @@ import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
 import { useNotification } from '../hooks/useNotification';
 import { useSafeArea } from '../hooks';
+import { useAuthStore } from '../store/authStore';
 import { describeError } from '../store/storeUtils';
 import { logClientEvent } from '@/services/telemetry';
 import { shallow } from 'zustand/shallow';
@@ -145,6 +146,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     [scrollRef, setScrollContainer]
   );
   const { toast } = useNotification();
+  const authReady = useAuthStore(state => state.authReady);
   const { safeArea } = useSafeArea();
   const { bottom: safeBottom, left: safeLeft, right: safeRight } = safeArea.safe;
   const { top: contentTop } = safeArea.content;
@@ -209,15 +211,18 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   }, [activeTab, scrollRef]);
 
   useEffect(() => {
-    if (!isInitialized) {
+    if (!isInitialized || !authReady) {
       return;
     }
     loadPrestigeStatus();
-  }, [isInitialized, loadPrestigeStatus]);
+  }, [isInitialized, authReady, loadPrestigeStatus]);
 
   useEffect(() => {
+    if (!authReady) {
+      return;
+    }
     loadLeaderboard();
-  }, [loadLeaderboard]);
+  }, [authReady, loadLeaderboard]);
 
   const tapIncomeDisplay = useMemo(
     () => Math.max(0, tapIncome).toLocaleString('ru-RU'),
@@ -368,22 +373,22 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   }, [boostHub, boostHubTimeOffsetMs]);
 
   useEffect(() => {
-    if (!isInitialized) {
+    if (!isInitialized || !authReady) {
       return;
     }
     if (activeTab === 'leaderboard') {
       loadLeaderboard();
     }
-  }, [activeTab, isInitialized, loadLeaderboard]);
+  }, [activeTab, isInitialized, authReady, loadLeaderboard]);
 
   useEffect(() => {
-    if (!isInitialized) {
+    if (!isInitialized || !authReady) {
       return;
     }
     if (activeTab === 'profile') {
       loadProfile();
     }
-  }, [activeTab, isInitialized, loadProfile]);
+  }, [activeTab, isInitialized, authReady, loadProfile]);
 
   useEffect(() => {
     if (streakCount === 0) {
