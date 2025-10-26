@@ -50,19 +50,21 @@ function MainScreenHeaderComponent({
   const { safeArea } = useSafeArea();
   const { top: safeTop, left: safeLeft, right: safeRight } = safeArea.safe;
 
+  const safeTopValue = Math.max(0, safeTop);
   const headerPadding = useMemo(() => {
     return {
-      paddingTop: `${Math.max(0, safeTop) + 8}px`,
+      paddingTop: '8px',
       paddingLeft: `${Math.max(0, safeLeft) + 8}px`,
       paddingRight: `${Math.max(0, safeRight) + 8}px`,
     };
-  }, [safeLeft, safeRight, safeTop]);
+  }, [safeLeft, safeRight]);
 
   return (
     <header
-      className="fixed top-0 left-0 right-0 z-50 border-b backdrop-blur-sm transition-colors duration-200"
+      className="fixed left-0 right-0 z-50 border-b backdrop-blur-sm transition-colors duration-200"
       style={{
         ...headerPadding,
+        top: `${safeTopValue}px`,
         background: 'linear-gradient(180deg, var(--app-header-bg) 0%, var(--app-bg) 85%)',
         borderBottom: '1px solid var(--color-border-subtle)',
       }}
