@@ -1,7 +1,7 @@
 FROM prom/prometheus:v2.53.0
 
 USER root
-RUN apk add --no-cache gettext
+RUN apt-get update && apt-get install -y --no-install-recommends gettext-base && rm -rf /var/lib/apt/lists/*
 
 COPY prometheus.yml /etc/prometheus/prometheus.yml.template
 COPY alerts.yml /etc/prometheus/alerts.yml
