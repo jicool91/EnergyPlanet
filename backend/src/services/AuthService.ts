@@ -29,6 +29,10 @@ import { transaction } from '../db/connection';
 import { addDuration, durationToMilliseconds } from '../utils/time';
 import { hashToken } from '../utils/token';
 import { registerInitDataHash } from '../cache/telegramInitReplay';
+import {
+  ensurePlayerSession,
+  updatePlayerSession,
+} from '../repositories/PlayerSessionRepository';
 
 interface AuthTokens {
   accessToken: string;
@@ -232,11 +236,25 @@ export class AuthService {
 
         await ensureProfile(user.id, client);
 
+        await ensurePlayerSession(user.id, client);
+
         const tokens = this.generateTokens(user);
         const refreshTokenHash = hashToken(tokens.refreshToken);
 
         await deleteSessionByHash(refreshTokenHash, client);
-        await createSession(user.id, refreshTokenHash, tokens.refreshExpiresAt, client);
+        const sessionRecord = await createSession(
+          user.id,
+          refreshTokenHash,
+          tokens.refreshExpiresAt,
+          client
+        );
+        await updatePlayerSession(
+          user.id,
+          {
+            authSessionId: sessionRecord.id,
+          },
+          client
+        );
         await logEvent(
           user.id,
           'login',
@@ -271,6 +289,7 @@ export class AuthService {
         username: result.user.username,
         first_name: result.user.firstName,
         last_name: result.user.lastName,
+        is_admin: result.user.isAdmin,
         is_new_user: result.isNewUser,
       };
     } catch (error) {
@@ -324,10 +343,15 @@ export class AuthService {
       throw new AppError(404, 'user_not_found');
     }
 
+    await ensurePlayerSession(user.id);
+
     const tokens = this.generateTokens(user);
     const newRefreshHash = hashToken(tokens.refreshToken);
 
-    await rotateSessionToken(session.id, newRefreshHash, tokens.refreshExpiresAt);
+    const rotatedSession = await rotateSessionToken(session.id, newRefreshHash, tokens.refreshExpiresAt);
+    await updatePlayerSession(user.id, {
+      authSessionId: rotatedSession.id,
+    });
     const refreshResult = {
       access_token: tokens.accessToken,
       refresh_token: tokens.refreshToken,

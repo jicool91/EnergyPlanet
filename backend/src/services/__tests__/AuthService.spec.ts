@@ -5,12 +5,15 @@ const rotateSessionTokenMock = jest.fn();
 const deleteSessionByHashMock = jest.fn();
 const findUserByIdMock = jest.fn();
 const logEventMock = jest.fn();
+const ensurePlayerSessionMock = jest.fn();
+const updatePlayerSessionMock = jest.fn();
 
 jest.mock('../../config', () => ({
   config: {
     jwt: { secret: 'test-secret', accessExpiry: '15m', refreshExpiry: '7d' },
     telegram: { botTokens: ['123456:test-token'] },
     testing: { bypassAuth: false },
+    session: { timeoutMin: 30, maxOfflineHours: 12 },
   },
 }));
 
@@ -27,6 +30,11 @@ jest.mock('../../repositories/UserRepository', () => ({
 
 jest.mock('../../repositories/EventRepository', () => ({
   logEvent: jest.fn(async (...args) => logEventMock(...args)),
+}));
+
+jest.mock('../../repositories/PlayerSessionRepository', () => ({
+  ensurePlayerSession: jest.fn(async (...args) => ensurePlayerSessionMock(...args)),
+  updatePlayerSession: jest.fn(async (...args) => updatePlayerSessionMock(...args)),
 }));
 
 jest.mock('../../utils/logger', () => ({
@@ -52,6 +60,17 @@ describe('AuthService.refreshAccessToken', () => {
     logger.warn.mockClear();
     logger.error.mockClear();
     logger.debug.mockClear();
+    ensurePlayerSessionMock.mockReset();
+    updatePlayerSessionMock.mockReset();
+    ensurePlayerSessionMock.mockResolvedValue({
+      id: 'player-session-1',
+      userId: 'user-1',
+      authSessionId: 'session-1',
+      lastTickAt: null,
+      pendingPassiveSeconds: 0,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
   });
 
   it('rotates refresh token and returns new credentials', async () => {

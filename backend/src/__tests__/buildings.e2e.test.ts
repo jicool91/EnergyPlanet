@@ -9,6 +9,17 @@ jest.mock('../middleware/auth', () => ({
       username: 'test_user',
       isAdmin: false,
     };
+    req.authContext = { strategy: 'bearer' };
+    next();
+  },
+  authenticateTick: (req: any, _res: any, next: any) => {
+    req.user = {
+      id: 'test-user-id',
+      telegramId: 123,
+      username: 'test_user',
+      isAdmin: false,
+    };
+    req.authContext = { strategy: 'bearer' };
     next();
   },
   requireAdmin: (_req: any, _res: any, next: any) => next(),

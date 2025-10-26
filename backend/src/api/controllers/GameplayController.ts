@@ -30,9 +30,25 @@ export class GameplayController {
         throw new AppError(401, 'unauthorized');
       }
 
-      const timeDelta = Number(req.body.time_delta ?? req.body.timeDelta ?? 1);
+      const timeDelta = Number(req.body.time_delta ?? req.body.timeDelta ?? 0);
       const result = await this.tickService.applyTick(req.user.id, timeDelta);
-      res.status(200).json(result);
+
+      const issuedTokens = req.authContext?.issuedTokens;
+      const responsePayload: Record<string, unknown> = {
+        ...result,
+      };
+
+      if (issuedTokens) {
+        Object.assign(responsePayload, {
+          access_token: issuedTokens.accessToken,
+          refresh_token: issuedTokens.refreshToken,
+          refresh_expires_at: issuedTokens.refreshExpiresAt,
+          expires_in: issuedTokens.expiresIn,
+          auth_strategy: req.authContext?.strategy ?? 'tma',
+        });
+      }
+
+      res.status(200).json(responsePayload);
     } catch (error) {
       next(error);
     }

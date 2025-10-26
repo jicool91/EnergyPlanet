@@ -7,6 +7,7 @@ import { logger } from '../utils/logger';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { AppError } from './errorHandler';
+import { AuthService } from '../services/AuthService';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -15,13 +16,84 @@ export interface AuthRequest extends Request {
     username?: string;
     isAdmin: boolean;
   };
+  authContext?: {
+    strategy: 'bearer' | 'tma';
+    issuedTokens?: {
+      accessToken: string;
+      refreshToken: string;
+      refreshExpiresAt: string;
+      expiresIn: number;
+    };
+  };
 }
+
+const authService = new AuthService();
+
+const normalizeAuthorizationHeader = (header?: string | string[] | undefined): string | null => {
+  if (!header) {
+    return null;
+  }
+  return Array.isArray(header) ? header[0] : header;
+};
+
+const setUserFromDecodedToken = (req: AuthRequest, decoded: any) => {
+  req.user = {
+    id: decoded.userId,
+    telegramId: decoded.telegramId,
+    username: decoded.username,
+    isAdmin: decoded.isAdmin || false,
+  };
+  req.authContext = { strategy: 'bearer' };
+};
+
+const tryAuthenticateWithBearer = (req: AuthRequest, header: string | null): boolean => {
+  if (!header || !header.trim().toLowerCase().startsWith('bearer ')) {
+    return false;
+  }
+
+  const token = header.trim().substring(7);
+  if (!token) {
+    logger.warn('auth_missing_header', {
+      path: req.path,
+      origin: req.headers.origin,
+      ip: req.ip,
+    });
+    throw new AppError(401, 'unauthorized');
+  }
+
+  try {
+    const decoded = jwt.verify(token, config.jwt.secret) as any;
+    setUserFromDecodedToken(req, decoded);
+    return true;
+  } catch (error) {
+    if (error instanceof jwt.TokenExpiredError) {
+      logger.warn('auth_token_expired', { path: req.path, origin: req.headers.origin, ip: req.ip });
+      throw new AppError(401, 'token_expired');
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      logger.warn('auth_invalid_token', {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+        message: error.message,
+      });
+      throw new AppError(401, 'invalid_token');
+    } else {
+      logger.error('auth_unexpected_error', {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+        error,
+      });
+      throw error;
+    }
+  }
+};
 
 export const authenticate = async (req: AuthRequest, _res: Response, next: NextFunction) => {
   try {
-    const authHeader = req.headers.authorization;
+    const header = normalizeAuthorizationHeader(req.headers.authorization);
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!header || !header.toLowerCase().startsWith('bearer ')) {
       logger.warn('auth_missing_header', {
         path: req.path,
         origin: req.headers.origin,
@@ -30,39 +102,14 @@ export const authenticate = async (req: AuthRequest, _res: Response, next: NextF
       throw new AppError(401, 'unauthorized');
     }
 
-    const token = authHeader.substring(7);
-
-    const decoded = jwt.verify(token, config.jwt.secret) as any;
-
-    req.user = {
-      id: decoded.userId,
-      telegramId: decoded.telegramId,
-      username: decoded.username,
-      isAdmin: decoded.isAdmin || false,
-    };
+    const handled = tryAuthenticateWithBearer(req, header);
+    if (!handled) {
+      throw new AppError(401, 'unauthorized');
+    }
 
     next();
   } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      logger.warn('auth_token_expired', { path: req.path, origin: req.headers.origin, ip: req.ip });
-      next(new AppError(401, 'token_expired'));
-    } else if (error instanceof jwt.JsonWebTokenError) {
-      logger.warn('auth_invalid_token', {
-        path: req.path,
-        origin: req.headers.origin,
-        ip: req.ip,
-        message: error.message,
-      });
-      next(new AppError(401, 'invalid_token'));
-    } else {
-      logger.error('auth_unexpected_error', {
-        path: req.path,
-        origin: req.headers.origin,
-        ip: req.ip,
-        error,
-      });
-      next(error);
-    }
+    next(error);
   }
 };
 
@@ -71,4 +118,73 @@ export const requireAdmin = (req: AuthRequest, _res: Response, next: NextFunctio
     throw new AppError(403, 'forbidden');
   }
   next();
+};
+
+export const authenticateTick = async (req: AuthRequest, _res: Response, next: NextFunction) => {
+  try {
+    const header = normalizeAuthorizationHeader(req.headers.authorization);
+
+    if (tryAuthenticateWithBearer(req, header)) {
+      return next();
+    }
+
+    if (!header) {
+      logger.warn('auth_missing_header', {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+      });
+      throw new AppError(401, 'authorization_header_missing');
+    }
+
+    const [scheme, ...rest] = header.trim().split(/\s+/);
+    const payload = rest.join(' ').trim();
+    const normalizedScheme = (scheme || '').toLowerCase();
+    const allowedSchemes = new Set(['tma', 'telegraminit']);
+
+    if (!allowedSchemes.has(normalizedScheme)) {
+      logger.warn('auth_invalid_scheme', {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+        scheme,
+      });
+      throw new AppError(400, 'authorization_scheme_invalid');
+    }
+
+    if (!payload) {
+      logger.warn('auth_invalid_header', {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+        scheme,
+      });
+      throw new AppError(400, 'authorization_header_malformed');
+    }
+
+    const authResult = await authService.authenticateWithTelegram(payload, {
+      enforceReplayProtection: true,
+    });
+
+    req.user = {
+      id: authResult.user_id,
+      telegramId: authResult.telegram_id,
+      username: authResult.username ?? undefined,
+      isAdmin: Boolean(authResult.is_admin),
+    };
+
+    req.authContext = {
+      strategy: 'tma',
+      issuedTokens: {
+        accessToken: authResult.access_token,
+        refreshToken: authResult.refresh_token,
+        refreshExpiresAt: authResult.refresh_expires_at,
+        expiresIn: authResult.expires_in,
+      },
+    };
+
+    next();
+  } catch (error) {
+    next(error);
+  }
 };

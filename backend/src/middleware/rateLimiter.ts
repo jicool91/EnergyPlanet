@@ -58,6 +58,19 @@ export const upgradeRateLimiter = rateLimit({
   skip: shouldSkip,
 });
 
+export const tickRateLimiter = rateLimit({
+  windowMs: 8000,
+  max: 1,
+  message: {
+    error: 'tick_rate_limit_exceeded',
+    message: 'Ticking too fast, slow down',
+  },
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: userKey,
+  skip: shouldSkip,
+});
+
 export const purchaseRateLimiter = rateLimit({
   windowMs: 10000, // 10 seconds
   max: 1,

@@ -8,21 +8,57 @@ import { updateProgress } from '../repositories/ProgressRepository';
 import { logEvent } from '../repositories/EventRepository';
 import { AppError } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
+import {
+  ensurePlayerSession,
+  updatePlayerSession,
+} from '../repositories/PlayerSessionRepository';
 
-const MAX_SECONDS_FALLBACK = 3600; // 1 hour safety cap
+const MIN_TICK_SECONDS = 1;
 
 export class TickService {
-  async applyTick(userId: string, timeDeltaSec: number) {
-    if (Number.isNaN(timeDeltaSec)) {
+  async applyTick(userId: string, clientReportedDelta: number) {
+    if (Number.isNaN(clientReportedDelta)) {
       throw new AppError(400, 'invalid_time_delta');
     }
 
-    const normalizedSeconds = Math.max(1, Math.floor(timeDeltaSec));
-    const maxAllowed = Math.max(1, config.session.timeoutMin * 60);
-    const cappedSeconds = Math.min(normalizedSeconds, Math.min(maxAllowed, MAX_SECONDS_FALLBACK));
+    const sanitizedClientDelta = Number.isFinite(clientReportedDelta)
+      ? Math.max(0, Math.floor(clientReportedDelta))
+      : 0;
+
+    const now = new Date();
+    const nowSeconds = Math.floor(now.getTime() / 1000);
+
+    const onlineCapSeconds = Math.max(MIN_TICK_SECONDS, Math.floor(config.session.timeoutMin * 60));
+    const offlineCapSeconds = Math.max(
+      onlineCapSeconds,
+      Math.floor(config.session.maxOfflineHours * 3600)
+    );
 
     const result = await transaction(async client => {
       const { progress, inventory, boosts } = await loadPlayerContext(userId, client);
+      const playerSession = await ensurePlayerSession(userId, client);
+
+      const fallbackBaseline =
+        playerSession.lastTickAt ??
+        progress.lastLogout ??
+        progress.updatedAt ??
+        progress.createdAt ??
+        null;
+
+      const lastTickSeconds = fallbackBaseline
+        ? Math.floor(fallbackBaseline.getTime() / 1000)
+        : null;
+      const derivedElapsed = lastTickSeconds ? Math.max(0, nowSeconds - lastTickSeconds) : 0;
+
+      const elapsedSeconds =
+        lastTickSeconds === null ? Math.max(derivedElapsed, sanitizedClientDelta) : derivedElapsed;
+
+      const availableSeconds = playerSession.pendingPassiveSeconds + elapsedSeconds;
+      const accountedSeconds =
+        availableSeconds > 0
+          ? Math.max(MIN_TICK_SECONDS, Math.min(availableSeconds, offlineCapSeconds))
+          : 0;
+      const carriedSeconds = Math.max(0, availableSeconds - accountedSeconds);
 
       const buildingDetails = buildBuildingDetails(inventory, progress.level);
       const passiveIncome = computePassiveIncome(
@@ -31,21 +67,35 @@ export class TickService {
         progress.prestigeMultiplier
       );
 
-      const energyGained = Math.floor(passiveIncome.effectiveIncome * cappedSeconds);
+      const energyGained = Math.floor(passiveIncome.effectiveIncome * accountedSeconds);
       const xpGained = xpFromEnergy(energyGained);
-      const totalEnergyProduced = progress.totalEnergyProduced + energyGained;
-      const newEnergy = progress.energy + energyGained;
-      const totalXp = progress.xp + xpGained;
+      const totalEnergyProduced = energyGained
+        ? progress.totalEnergyProduced + energyGained
+        : progress.totalEnergyProduced;
+      const newEnergy = energyGained ? progress.energy + energyGained : progress.energy;
+      const totalXp = xpGained ? progress.xp + xpGained : progress.xp;
       const levelInfo = calculateLevelProgress(totalXp);
       const leveledUp = levelInfo.level !== progress.level;
 
-      const updatedProgress = await updateProgress(
+      const updatedProgress =
+        energyGained > 0 || xpGained > 0 || leveledUp
+          ? await updateProgress(
+              userId,
+              {
+                energy: newEnergy,
+                totalEnergyProduced,
+                xp: totalXp,
+                level: levelInfo.level,
+              },
+              client
+            )
+          : progress;
+
+      await updatePlayerSession(
         userId,
         {
-          energy: newEnergy,
-          totalEnergyProduced,
-          xp: totalXp,
-          level: levelInfo.level,
+          lastTickAt: now,
+          pendingPassiveSeconds: carriedSeconds,
         },
         client
       );
@@ -55,10 +105,11 @@ export class TickService {
           userId,
           'tick',
           {
-            duration_sec: cappedSeconds,
+            duration_sec: accountedSeconds,
             energy_gained: energyGained,
             xp_gained: xpGained,
             leveled_up: leveledUp,
+            carried_over_sec: carriedSeconds,
           },
           { client }
         );
@@ -72,13 +123,18 @@ export class TickService {
         leveledUp,
         levelInfo,
         totalXp,
+        accountedSeconds,
+        carriedSeconds,
+        availableSeconds,
         previousLevel: progress.level,
       };
     });
 
     logger.debug('tick_applied', {
       userId,
-      duration_sec: cappedSeconds,
+      duration_sec: result.accountedSeconds,
+      available_sec: result.availableSeconds,
+      carried_over_sec: result.carriedSeconds,
       passive_income_per_sec: Math.round(result.passiveIncome.effectiveIncome),
       energy_gained: result.energyGained,
       xp_gained: result.xpGained,
@@ -101,7 +157,9 @@ export class TickService {
       passive_income_multiplier: result.passiveIncome.effectiveMultiplier,
       boost_multiplier: result.passiveIncome.boostMultiplier,
       prestige_multiplier: result.passiveIncome.prestigeMultiplier,
-      duration_sec: cappedSeconds,
+      duration_sec: result.accountedSeconds,
+      carried_over_sec: result.carriedSeconds,
+      pending_passive_sec: result.carriedSeconds,
     };
   }
 }
