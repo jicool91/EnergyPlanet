@@ -227,10 +227,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       role="radio"
       aria-checked={selected}
       tabIndex={selected ? 0 : -1}
-      className={`py-2 rounded-lg font-medium transition-all ${
+      className={`py-2 rounded-lg font-medium transition-all border focus-ring ${
         selected
-          ? 'bg-lime text-black shadow-lg'
-          : 'bg-token-surface-tertiary border border-token-subtle text-token-secondary hover:bg-token-surface'
+          ? 'bg-lime/90 text-slate-900 border-lime-400 shadow-lg'
+          : 'bg-token-surface-tertiary border-token-subtle text-token-secondary hover:bg-token-surface'
       }`}
     >
       {label}
