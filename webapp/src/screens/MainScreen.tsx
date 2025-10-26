@@ -50,39 +50,6 @@ interface MainScreenProps {
   onTabChange: (tab: TabKey) => void;
 }
 
-const TAB_META: Record<
-  Exclude<TabKey, 'home'>,
-  {
-    title: string;
-    description: string;
-  }
-> = {
-  shop: {
-    title: 'Магазин',
-    description: 'Покупайте пакеты Stars и косметику для персонализации планеты.',
-  },
-  boosts: {
-    title: 'Boost Hub',
-    description: 'Активируйте ежедневные и рекламные ускорители для пассива и тапа.',
-  },
-  builds: {
-    title: 'Постройки',
-    description: 'Инвестируйте энергию, чтобы усилить пассивный доход и открыть новые слоты.',
-  },
-  leaderboard: {
-    title: 'Рейтинг',
-    description: 'Сравните прогресс с друзьями и лидерами клана.',
-  },
-  profile: {
-    title: 'Профиль',
-    description: 'Настройте аватар, следите за статистикой и активными бустами.',
-  },
-  settings: {
-    title: 'Настройки',
-    description: 'Управляйте звуком, вибрацией, темой и языком приложения.',
-  },
-};
-
 export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const {
     energy,
@@ -601,17 +568,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
           {activeTab === 'home' ? (
             renderActiveTab()
           ) : (
-            <div className="flex flex-col gap-3 p-4">
-              <div>
-                <h2 className="m-0 text-xl font-semibold text-[var(--color-text-primary)]">
-                  {TAB_META[activeTab].title}
-                </h2>
-                <p className="m-0 text-sm text-[var(--color-text-secondary)]">
-                  {TAB_META[activeTab].description}
-                </p>
-              </div>
-              {renderActiveTab()}
-            </div>
+            <div className="p-4">{renderActiveTab()}</div>
           )}
 
           {/* Back to Tap Button (floating) */}

@@ -278,49 +278,24 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
 
   const featuredPack = starPacks.find(pack => pack.featured);
 
-  const refreshButton = (
-    <button
-      onClick={() => {
-        loadStarPacks(true);
-        loadCosmetics(true);
-      }}
-      disabled={isStarPacksLoading || isCosmeticsLoading}
-      className="flex-shrink-0 p-2.5 rounded-lg hover:bg-token-surface transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed text-xl focus-ring"
-      title="Обновить"
-      aria-label="Обновить магазин"
-      type="button"
-    >
-      <span
-        className={`inline-block ${isStarPacksLoading || isCosmeticsLoading ? 'animate-spin' : ''}`}
-      >
-        🔄
-      </span>
-    </button>
-  );
-
   return (
     <div className="flex flex-col gap-4 p-0" style={panelPadding}>
       {showHeader ? (
-        <div className="flex justify-between items-start gap-3">
-          <div className="flex-1">
-            <h2 className="m-0 mb-1 text-heading font-bold bg-gradient-to-r from-gold to-orange bg-clip-text text-transparent">
-              🚀 Power Up
-            </h2>
-            <p className="m-0 text-caption text-token-secondary">
-              {activeSection === 'star_packs'
-                ? 'Получите Stars и разблокируйте новые возможности'
-                : 'Кастомизируйте вашу планету эксклюзивной косметикой'}
-            </p>
-            <p className="m-0 mt-1 text-xs text-token-secondary/80">
-              Stars ускоряют пассивный доход и помогают быстрее достичь следующей цели. Косметика и
-              бусты возвращают игроков — используйте оба инструмента.
-            </p>
-          </div>
-          {refreshButton}
+        <div className="flex flex-col gap-1">
+          <h2 className="m-0 mb-1 text-heading font-bold bg-gradient-to-r from-gold to-orange bg-clip-text text-transparent">
+            🚀 Power Up
+          </h2>
+          <p className="m-0 text-caption text-token-secondary">
+            {activeSection === 'star_packs'
+              ? 'Получите Stars и разблокируйте новые возможности'
+              : 'Кастомизируйте вашу планету эксклюзивной косметикой'}
+          </p>
+          <p className="m-0 mt-1 text-xs text-token-secondary/80">
+            Stars ускоряют пассивный доход и помогают быстрее достичь следующей цели. Косметика и
+            бусты возвращают игроков — используйте оба инструмента.
+          </p>
         </div>
-      ) : (
-        <div className="flex justify-end">{refreshButton}</div>
-      )}
+      ) : null}
 
       {/* Section Tabs */}
       <div className="flex gap-2 p-0" role="tablist" aria-label="Разделы магазина">

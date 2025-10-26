@@ -153,28 +153,9 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
                 Активируйте бусты, чтобы ускорить прогресс
               </p>
             </div>
-            <Button
-              variant="secondary"
-              size="md"
-              loading={isBoostHubLoading}
-              onClick={() => loadBoostHub(true)}
-            >
-              Обновить
-            </Button>
           </div>
         </div>
-      ) : (
-        <div className="flex justify-end">
-          <Button
-            variant="secondary"
-            size="md"
-            loading={isBoostHubLoading}
-            onClick={() => loadBoostHub(true)}
-          >
-            Обновить
-          </Button>
-        </div>
-      )}
+      ) : null}
 
       {/* Error State */}
       {boostHubError && (
