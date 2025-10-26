@@ -9,6 +9,8 @@ import { Card } from './Card';
 import { Badge } from './Badge';
 import { OptimizedImage } from './OptimizedImage';
 import { useHaptic } from '../hooks/useHaptic';
+import { useNotification } from '../hooks/useNotification';
+import { describeError } from '../store/storeUtils';
 import { useSafeArea } from '../hooks';
 
 interface ShopPanelProps {
@@ -83,6 +85,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
 
   const [activeSection, setActiveSection] = useState<ShopSection>('star_packs');
   const [activeCategory, setActiveCategory] = useState<string>('planet_skin');
+  const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useNotification();
 
   useEffect(() => {
     loadCosmetics();
@@ -229,12 +232,14 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
       try {
         await purchaseCosmetic(cosmeticId);
         hapticSuccess();
+        notifySuccess('Косметика разблокирована!');
       } catch (error) {
         hapticError();
-        console.error('Failed to purchase cosmetic', error);
+        const { message } = describeError(error, 'Не удалось купить косметику');
+        notifyError(message);
       }
     },
-    [purchaseCosmetic, hapticSuccess, hapticError]
+    [hapticError, hapticSuccess, notifyError, notifySuccess, purchaseCosmetic]
   );
 
   const handleEquip = useCallback(
@@ -242,12 +247,14 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
       try {
         await equipCosmetic(cosmeticId);
         hapticSuccess();
+        notifySuccess('Косметика экипирована');
       } catch (error) {
         hapticError();
-        console.error('Failed to equip cosmetic', error);
+        const { message } = describeError(error, 'Не удалось экипировать косметику');
+        notifyError(message);
       }
     },
-    [equipCosmetic, hapticSuccess, hapticError]
+    [equipCosmetic, hapticError, hapticSuccess, notifyError, notifySuccess]
   );
 
   const handlePurchaseStarPack = useCallback(
@@ -255,12 +262,18 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
       try {
         await purchaseStarPack(packId);
         hapticSuccess();
+        notifySuccess('Stars начислены на баланс!');
       } catch (error) {
         hapticError();
-        console.error('Failed to purchase star pack', error);
+        const { status, message } = describeError(error, 'Не удалось купить Stars');
+        if (status === 409) {
+          notifyWarning('Покупка уже была оформлена.');
+        } else {
+          notifyError(message);
+        }
       }
     },
-    [purchaseStarPack, hapticSuccess, hapticError]
+    [hapticError, hapticSuccess, notifyError, notifySuccess, notifyWarning, purchaseStarPack]
   );
 
   const featuredPack = starPacks.find(pack => pack.featured);
@@ -297,6 +310,10 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
               {activeSection === 'star_packs'
                 ? 'Получите Stars и разблокируйте новые возможности'
                 : 'Кастомизируйте вашу планету эксклюзивной косметикой'}
+            </p>
+            <p className="m-0 mt-1 text-xs text-token-secondary/80">
+              Stars ускоряют пассивный доход и помогают быстрее достичь следующей цели. Косметика и
+              бусты возвращают игроков — используйте оба инструмента.
             </p>
           </div>
           {refreshButton}
@@ -351,6 +368,11 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
           role="tabpanel"
           aria-labelledby={getSectionTabId('star_packs')}
         >
+          <Card className="bg-cyan/10 border-cyan/20 text-sm text-token-secondary">
+            <strong className="text-token-primary">Бонус первой покупки:</strong> оформите любое
+            пополнение Stars и получите +10% к начислению. Используйте Stars, чтобы активировать
+            бусты без ожидания.
+          </Card>
           {featuredPack && !isStarPacksLoading && (
             <div className="relative">
               <div className="absolute -inset-px bg-gradient-to-r from-gold via-orange to-gold opacity-20 rounded-2xl blur-lg pointer-events-none" />
@@ -582,9 +604,10 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
         >
           <div className="flex gap-2 flex-wrap p-0" role="tablist" aria-label="Категории косметики">
             {categories.length === 0 && !isCosmeticsLoading && (
-              <span className="text-caption text-token-secondary">
-                Пока нет косметики для отображения
-              </span>
+              <Card className="flex-1 text-sm text-token-secondary bg-token-surface-tertiary border-token-subtle">
+                Косметика откроется после уровня 5. Продолжайте улучшать здания и активируйте бусты,
+                чтобы увидеть новые стили планеты.
+              </Card>
             )}
 
             {categories.map((category, index) => {
