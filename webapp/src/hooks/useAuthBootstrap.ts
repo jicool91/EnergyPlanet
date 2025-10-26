@@ -5,6 +5,7 @@ import { getTelegramInitData } from '../services/telegram';
 import { useAuthStore, authStore } from '../store/authStore';
 import { uiStore } from '../store/uiStore';
 import { logClientEvent } from '../services/telemetry';
+import { logger } from '../utils/logger';
 
 export function useAuthBootstrap() {
   const hydrated = useAuthStore(state => state.hydrated);
@@ -76,6 +77,12 @@ export function useAuthBootstrap() {
             refreshToken: response.data.refresh_token,
           };
 
+          logger.info('🔐 Tokens received from /auth/tma', {
+            accessTokenLength: tokens.accessToken?.length || 0,
+            refreshTokenLength: tokens.refreshToken?.length || 0,
+            attempt,
+          });
+
           void logClientEvent(
             'auth_tokens_set',
             {
@@ -99,6 +106,11 @@ export function useAuthBootstrap() {
           if (axios.isAxiosError(error) && error.response?.status === 409) {
             const errorCode = (error.response.data as any)?.error;
             if (errorCode === 'telegram_initdata_replayed') {
+              logger.warn('⚠️ Telegram initData replayed (409), retrying...', {
+                attempt,
+                maxRetries,
+              });
+
               // This is expected in edge cases (fast retries, network issues)
               // Wait for TTL to pass or Telegram to generate new initData
               authRetryCountRef.current = attempt;
@@ -106,10 +118,12 @@ export function useAuthBootstrap() {
               if (attempt < maxRetries) {
                 // Exponential backoff: 2s, 4s, 8s
                 const delayMs = INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+                logger.info(`⏳ Waiting ${delayMs}ms before retry ${attempt + 1}/${maxRetries}`);
                 await sleep(delayMs);
                 continue; // Retry with fresh initData
               } else {
                 // All retries exhausted
+                logger.error('❌ Telegram initData replayed - max retries exceeded');
                 const err = new Error('telegram_initdata_replayed_max_retries');
                 throw err;
               }
@@ -117,6 +131,18 @@ export function useAuthBootstrap() {
           }
 
           // Other errors should be rethrown
+          if (axios.isAxiosError(error)) {
+            logger.error('❌ /auth/tma request failed', {
+              status: error.response?.status,
+              message: error.message,
+              attempt,
+            });
+          } else {
+            logger.error('❌ Authentication error', {
+              error: error instanceof Error ? error.message : 'unknown',
+              attempt,
+            });
+          }
           throw error;
         }
       }
@@ -127,6 +153,7 @@ export function useAuthBootstrap() {
     const bootstrap = async () => {
       try {
         if (accessToken) {
+          logger.info('✅ Access token already available');
           if (!cancelled) {
             setAuthReady(true);
             setBootstrapping(false);
@@ -136,6 +163,7 @@ export function useAuthBootstrap() {
 
         if (refreshToken) {
           try {
+            logger.info('🔄 Attempting to refresh access token');
             const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
               refresh_token: refreshToken,
             });
@@ -148,6 +176,10 @@ export function useAuthBootstrap() {
               accessToken: response.data.access_token,
               refreshToken: response.data.refresh_token,
             };
+
+            logger.info('✅ Access token refreshed successfully', {
+              accessTokenLength: refreshedTokens.accessToken?.length || 0,
+            });
 
             void logClientEvent(
               'refresh_token_success',
@@ -162,11 +194,15 @@ export function useAuthBootstrap() {
             setBootstrapping(false);
             return;
           } catch (refreshError) {
+            logger.warn('⚠️ Refresh token invalid or expired, authenticating with Telegram', {
+              error: refreshError instanceof Error ? refreshError.message : 'unknown',
+            });
             // Refresh token is invalid or expired - fall through to TMA auth
             authStore.clearTokens();
             await authenticateWithTelegramWithRetry();
           }
         } else {
+          logger.info('📝 No tokens available, authenticating with Telegram initData');
           // No tokens available - authenticate with Telegram initData
           await authenticateWithTelegramWithRetry();
         }
@@ -174,6 +210,11 @@ export function useAuthBootstrap() {
         if (cancelled) {
           return;
         }
+
+        logger.error('❌ Bootstrap failed', {
+          error: error instanceof Error ? error.message : String(error),
+          retries: authRetryCountRef.current,
+        });
 
         authStore.clearTokens();
         setAuthReady(false);
@@ -188,12 +229,15 @@ export function useAuthBootstrap() {
             if (error.message === 'init_data_missing') {
               message = 'Telegram Mini App не инициализирован. Откройте приложение через Telegram.';
               errorType = 'auth_init_data_missing';
+              logger.error('❌ init_data_missing');
             } else if (error.message.includes('telegram_initdata_replayed')) {
               message = 'Слишком много попыток входа. Подождите и попробуйте снова.';
               errorType = 'auth_replay_protection_triggered';
+              logger.error('❌ Replay protection triggered');
             }
           }
 
+          logger.info('📢 Showing auth error to user', { message, errorType });
           uiStore.openAuthError(message);
           void logClientEvent(
             errorType,

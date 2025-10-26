@@ -8,6 +8,7 @@ import { isAxiosError } from 'axios';
 import { apiClient, API_BASE_URL } from '../services/apiClient';
 import { postQueue } from '../services/requestQueue';
 import { logClientEvent } from '../services/telemetry';
+import { logger } from '../utils/logger';
 import { triggerHapticImpact } from '../services/telegram';
 import { fetchLeaderboard, LeaderboardUserEntry } from '../services/leaderboard';
 import { fetchProfile, ProfileResponse } from '../services/profile';
@@ -261,6 +262,12 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       const previousLevel = get().level;
 
+      logger.info('🎮 initGame starting', {
+        hasAccessToken: !!authStore.accessToken,
+        accessTokenLength: authStore.accessToken?.length || 0,
+        previousLevel,
+      });
+
       void logClientEvent(
         'initGame_start',
         {
@@ -272,6 +279,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       );
 
       if (!authStore.accessToken) {
+        logger.warn('⚠️ initGame failed: no access token', {
+          accessToken: authStore.accessToken,
+        });
+
         void logClientEvent(
           'initGame_no_access_token',
           {
@@ -286,10 +297,19 @@ export const useGameStore = create<GameState>((set, get) => ({
       // Start session
       let sessionResponse;
       try {
+        logger.info('📡 Calling /session endpoint', {
+          hasToken: !!authStore.accessToken,
+        });
         sessionResponse = await postQueue.enqueue(() => apiClient.post('/session'));
       } catch (sessionError) {
         const { status, message } = describeError(sessionError, fallbackSessionError);
         set({ sessionErrorMessage: message || fallbackSessionError });
+
+        logger.error('❌ /session endpoint failed', {
+          status,
+          message,
+          sessionError: sessionError instanceof Error ? sessionError.message : 'unknown',
+        });
 
         await logClientEvent(
           'offline_income_error',
@@ -380,13 +400,24 @@ export const useGameStore = create<GameState>((set, get) => ({
         prestigeMultiplier,
       });
 
+      logger.info('✅ Game initialized successfully', {
+        userId: user.id,
+        level: progress.level,
+        buildings: buildings.length,
+        offlineGains: offlineGains?.energy || 0,
+      });
+
       get()
         .loadPrestigeStatus()
         .catch(error => {
-          console.error('Failed to load prestige status', error);
+          logger.warn('Failed to load prestige status', {
+            error: error instanceof Error ? error.message : 'unknown',
+          });
         });
     } catch (error) {
-      console.error('Failed to initialize game', error);
+      logger.error('❌ Failed to initialize game', {
+        error: error instanceof Error ? error.message : 'unknown',
+      });
 
       const fallbackMessage =
         'Не удалось авторизоваться. Проверьте подключение и попробуйте ещё раз.';
