@@ -8,7 +8,7 @@ import { isAxiosError } from 'axios';
 import { apiClient, API_BASE_URL } from '../services/apiClient';
 import { postQueue } from '../services/requestQueue';
 import { logClientEvent } from '../services/telemetry';
-import { getTelegramInitData, triggerHapticImpact } from '../services/telegram';
+import { triggerHapticImpact } from '../services/telegram';
 import { fetchLeaderboard, LeaderboardUserEntry } from '../services/leaderboard';
 import { fetchProfile, ProfileResponse } from '../services/profile';
 import { describeError } from './storeUtils';
@@ -46,6 +46,11 @@ interface TickSyncResponse {
   passive_income_multiplier?: number;
   boost_multiplier?: number;
   prestige_multiplier?: number;
+  access_token?: string;
+  refresh_token?: string;
+  refresh_expires_at?: string;
+  expires_in?: number;
+  pending_passive_sec?: number;
 }
 
 interface UpgradeResponsePayload {
@@ -255,18 +260,10 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ isLoading: true, sessionErrorMessage: null });
 
       const previousLevel = get().level;
-
-      // Authenticate with Telegram
-      const initData = getTelegramInitData();
-      const authResponse = await postQueue.enqueue(() =>
-        apiClient.post('/auth/telegram', { initData })
-      );
-
-      // Store tokens
-      authStore.setTokens({
-        accessToken: authResponse.data.access_token,
-        refreshToken: authResponse.data.refresh_token,
-      });
+      if (!authStore.accessToken) {
+        set({ isLoading: false });
+        return;
+      }
 
       // Start session
       let sessionResponse;
@@ -625,10 +622,11 @@ export const useGameStore = create<GameState>((set, get) => ({
     commitPassiveBuffers(set);
     const pendingSeconds = get().pendingPassiveSeconds;
     const accessToken = authStore.accessToken;
+    const authReady = authStore.authReady;
     if (!pendingSeconds || pendingSeconds <= 0 || passiveFlushInFlight) {
       return;
     }
-    if (!accessToken) {
+    if (!accessToken || !authReady) {
       void logClientEvent(
         'tick_skip_unauthenticated',
         {
@@ -667,6 +665,17 @@ export const useGameStore = create<GameState>((set, get) => ({
       const boostMultiplier = (payload as any).boost_multiplier ?? get().boostMultiplier;
       const prestigeMultiplier = (payload as any).prestige_multiplier ?? get().prestigeMultiplier;
 
+      if (payload.access_token) {
+        if (payload.refresh_token) {
+          authStore.setTokens({
+            accessToken: payload.access_token,
+            refreshToken: payload.refresh_token,
+          });
+        } else {
+          authStore.setAccessToken(payload.access_token);
+        }
+      }
+
       get().configurePassiveIncome(passivePerSec, totalMultiplier, {
         boostMultiplier,
         prestigeMultiplier,
@@ -680,7 +689,7 @@ export const useGameStore = create<GameState>((set, get) => ({
           payload.xp_into_level ?? Math.max(0, state.xpIntoLevel + (payload.xp_gained ?? 0)),
         xpToNextLevel: payload.xp_to_next_level ?? state.xpToNextLevel,
         pendingPassiveEnergy: 0,
-        pendingPassiveSeconds: 0,
+        pendingPassiveSeconds: payload.pending_passive_sec ?? 0,
         sessionLastSyncedAt: Date.now(),
       }));
     } catch (error) {

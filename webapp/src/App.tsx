@@ -11,7 +11,8 @@ import { useNotification } from './hooks/useNotification';
 import { useTelegramBackButton } from './hooks/useTelegramBackButton';
 import { logClientEvent } from './services/telemetry';
 import { initializePreferenceCloudSync } from './services/preferencesSync';
-import { useSafeArea } from './hooks';
+import { useSafeArea, useAuthBootstrap } from './hooks';
+import { useAuthStore, authStore } from './store/authStore';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 
@@ -53,6 +54,9 @@ function App() {
   const previousLevelRef = useRef(1);
   const hasBootstrappedLevelRef = useRef(false);
   const { toast } = useNotification();
+  const authReady = useAuthStore(state => state.authReady);
+
+  useAuthBootstrap();
 
   useEffect(() => {
     initializePreferenceCloudSync().catch(error => {
@@ -120,14 +124,16 @@ function App() {
   }, [currentLevel, isInitialized, toast]);
 
   useEffect(() => {
-    // Initialize game on mount
+    if (!authReady || isInitialized) {
+      return;
+    }
     initGame();
-  }, [initGame]);
+  }, [authReady, isInitialized, initGame]);
 
   const handleRetry = useCallback(() => {
     dismissAuthError();
-    initGame();
-  }, [dismissAuthError, initGame]);
+    authStore.requestBootstrapRetry();
+  }, [dismissAuthError]);
 
   useEffect(() => {
     if (!isInitialized) {

@@ -12,11 +12,17 @@ interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
   hydrated: boolean;
+  authReady: boolean;
+  bootstrapping: boolean;
+  bootstrapNonce: number;
   hydrate: () => void;
   setTokens: (tokens: AuthTokens) => void;
   setAccessToken: (token: string) => void;
   clearTokens: () => void;
   getAuthHeaders: () => Record<string, string>;
+  setAuthReady: (ready: boolean) => void;
+  setBootstrapping: (value: boolean) => void;
+  requestBootstrapRetry: () => void;
 }
 
 function persist(key: string, value: string | null) {
@@ -34,27 +40,30 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   refreshToken: null,
   hydrated: false,
+  authReady: false,
+  bootstrapping: false,
+  bootstrapNonce: 0,
   hydrate: () => {
     if (typeof window === 'undefined') {
       return;
     }
     const access = window.localStorage.getItem(ACCESS_TOKEN_KEY);
     const refresh = window.localStorage.getItem(REFRESH_TOKEN_KEY);
-    set({ accessToken: access, refreshToken: refresh, hydrated: true });
+    set({ accessToken: access, refreshToken: refresh, hydrated: true, authReady: false });
   },
   setTokens: ({ accessToken, refreshToken }) => {
     persist(ACCESS_TOKEN_KEY, accessToken);
     persist(REFRESH_TOKEN_KEY, refreshToken);
-    set({ accessToken, refreshToken });
+    set({ accessToken, refreshToken, authReady: true });
   },
   setAccessToken: (token: string) => {
     persist(ACCESS_TOKEN_KEY, token);
-    set({ accessToken: token });
+    set({ accessToken: token, authReady: true });
   },
   clearTokens: () => {
     persist(ACCESS_TOKEN_KEY, null);
     persist(REFRESH_TOKEN_KEY, null);
-    set({ accessToken: null, refreshToken: null });
+    set({ accessToken: null, refreshToken: null, authReady: false });
   },
   getAuthHeaders: () => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -63,6 +72,15 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       headers.Authorization = `Bearer ${token}`;
     }
     return headers;
+  },
+  setAuthReady: ready => {
+    set({ authReady: ready });
+  },
+  setBootstrapping: value => {
+    set({ bootstrapping: value });
+  },
+  requestBootstrapRetry: () => {
+    set(state => ({ bootstrapNonce: state.bootstrapNonce + 1 }));
   },
 }));
 
@@ -87,5 +105,23 @@ export const authStore = {
   },
   getAuthHeaders() {
     return useAuthStore.getState().getAuthHeaders();
+  },
+  get authReady() {
+    return useAuthStore.getState().authReady;
+  },
+  setAuthReady(ready: boolean) {
+    useAuthStore.getState().setAuthReady(ready);
+  },
+  get bootstrapping() {
+    return useAuthStore.getState().bootstrapping;
+  },
+  setBootstrapping(value: boolean) {
+    useAuthStore.getState().setBootstrapping(value);
+  },
+  requestBootstrapRetry() {
+    useAuthStore.getState().requestBootstrapRetry();
+  },
+  get bootstrapNonce() {
+    return useAuthStore.getState().bootstrapNonce;
   },
 };

@@ -81,7 +81,7 @@ apiClient.interceptors.response.use(
         const refreshToken = authStore.refreshToken;
         if (!refreshToken) {
           authStore.clearTokens();
-          window.location.reload();
+          authStore.requestBootstrapRetry();
           return Promise.reject(error);
         }
         const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
@@ -94,9 +94,9 @@ apiClient.interceptors.response.use(
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return apiClient(originalRequest);
       } catch (refreshError) {
-        // Refresh failed, logout user
+        // Refresh failed, trigger bootstrap retry
         authStore.clearTokens();
-        window.location.reload();
+        authStore.requestBootstrapRetry();
       }
     }
 
