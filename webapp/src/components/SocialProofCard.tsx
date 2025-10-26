@@ -44,10 +44,13 @@ export const SocialProofCard: React.FC<SocialProofCardProps> = ({
       {/* Content */}
       <div className="flex flex-col gap-1">
         <p className="m-0 text-caption font-semibold text-[var(--color-text-primary)]">
-          👥 Игроки рядом с тобой
+          🔥 Друзья ускоряют прогресс
         </p>
         <p className="m-0 text-sm text-[var(--color-text-secondary)]">
-          {formattedCount} в рейтинге прямо сейчас
+          {formattedCount} игроков активировали бусты сегодня
+        </p>
+        <p className="m-0 text-xs text-[var(--color-text-secondary)] opacity-80">
+          Откройте рейтинг и пригласите друга — оба получите бонусные Stars.
         </p>
       </div>
 
@@ -63,7 +66,7 @@ export const SocialProofCard: React.FC<SocialProofCardProps> = ({
         aria-label="Открыть лидерборд"
         disabled={!isActionEnabled}
       >
-        Рейтинг →
+        Посмотреть друзей
       </button>
     </Card>
   );

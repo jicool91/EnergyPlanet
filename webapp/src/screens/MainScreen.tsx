@@ -434,6 +434,11 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     previousStreakRef.current = streakCount;
   }, [streakCount, toast, activeTab]);
 
+  const handleOpenLeaderboardFromSocial = useCallback(() => {
+    void logClientEvent('social_proof_leaderboard_click', { source: 'home_card' });
+    onTabChange('leaderboard');
+  }, [onTabChange]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center w-full h-full min-h-screen text-lg">
@@ -478,7 +483,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
               isPrestigeLoading={isPrestigeLoading}
               onPrestige={performPrestige}
               onTap={handleTap}
-              onViewLeaderboard={() => onTabChange('leaderboard')}
+              onViewLeaderboard={handleOpenLeaderboardFromSocial}
               socialPlayerCount={leaderboardTotal}
               isSocialBlockLoading={!leaderboardLoaded && isLeaderboardLoading}
               activeBoost={activeBoostSummary ?? undefined}
