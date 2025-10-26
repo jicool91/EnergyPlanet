@@ -3,16 +3,17 @@
  * Displays full-screen animated overlay when player levels up
  */
 
-import { useEffect, type CSSProperties } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { useCallback, useEffect, useMemo, useRef, type CSSProperties } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { Confetti } from './animations/Confetti';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
+import { usePreferencesStore } from '@/store/preferencesStore';
 
 interface LevelUpScreenProps {
   isOpen: boolean;
   newLevel: number;
   onDismiss: () => void;
-  autoDismissDuration?: number;
+  autoDismissDuration?: number | null;
 }
 
 /**
@@ -23,8 +24,8 @@ interface LevelUpScreenProps {
  * - Animated level number (big bounce)
  * - "Level Up!" text with stagger animation
  * - Confetti burst
- * - Level-up sound (1000Hz, 0.4s)
- * - Auto-dismiss after 2 seconds
+ * - Level-up sound (1000Hz, 0.4s) respecting sound settings
+ * - Optional auto-dismiss (disabled by default)
  *
  * Example:
  * <LevelUpScreen
@@ -37,19 +38,102 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
   isOpen,
   newLevel,
   onDismiss,
-  autoDismissDuration = 2000,
+  autoDismissDuration = null,
 }) => {
   const playSound = useSoundEffect();
+  const soundEnabled = usePreferencesStore(state => state.soundEnabled);
+  const reduceMotionPreference = usePreferencesStore(state => state.reduceMotion);
+  const systemPrefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = Boolean(systemPrefersReducedMotion || reduceMotionPreference);
 
-  // Play level-up sound and auto-dismiss
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const primaryActionRef = useRef<HTMLButtonElement>(null);
+  const lastFocusedElementRef = useRef<HTMLElement | null>(null);
+
+  // Play level-up sound when open, respecting user preference
+  useEffect(() => {
+    if (isOpen && soundEnabled) {
+      playSound('levelup');
+    }
+  }, [isOpen, soundEnabled, playSound]);
+
+  // Manage focus entry/exit for accessibility
   useEffect(() => {
     if (isOpen) {
-      playSound('levelup');
+      lastFocusedElementRef.current = document.activeElement as HTMLElement | null;
+      const focusTimer = window.setTimeout(() => {
+        primaryActionRef.current?.focus();
+      }, 0);
 
-      const timer = setTimeout(onDismiss, autoDismissDuration);
-      return () => clearTimeout(timer);
+      return () => window.clearTimeout(focusTimer);
     }
-  }, [isOpen, playSound, onDismiss, autoDismissDuration]);
+
+    if (!isOpen && lastFocusedElementRef.current) {
+      lastFocusedElementRef.current.focus();
+      lastFocusedElementRef.current = null;
+    }
+  }, [isOpen]);
+
+  // Optional auto-dismiss if explicitly provided
+  useEffect(() => {
+    if (!isOpen || autoDismissDuration == null) {
+      return;
+    }
+
+    const timer = window.setTimeout(onDismiss, autoDismissDuration);
+    return () => window.clearTimeout(timer);
+  }, [isOpen, autoDismissDuration, onDismiss]);
+
+  const focusTrapHandler = useCallback(
+    (event: React.KeyboardEvent<HTMLDivElement>) => {
+      if (!dialogRef.current) {
+        return;
+      }
+
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        onDismiss();
+        return;
+      }
+
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const focusableElements = dialogRef.current.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        dialogRef.current.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const isShiftPressed = event.shiftKey;
+      const activeElement = document.activeElement as HTMLElement | null;
+
+      if (!isShiftPressed && activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+      } else if (isShiftPressed && activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      }
+    },
+    [onDismiss]
+  );
+
+  const handleOverlayClick = useCallback(
+    (event: React.MouseEvent<HTMLDivElement>) => {
+      if (event.target === event.currentTarget) {
+        onDismiss();
+      }
+    },
+    [onDismiss]
+  );
 
   const rotatingRingStyle: CSSProperties = {
     background:
@@ -61,114 +145,138 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
     pointerEvents: 'none',
   };
 
-  const textVariants = {
-    container: {
-      hidden: { opacity: 0 },
-      show: {
-        opacity: 1,
-        transition: {
-          staggerChildren: 0.1,
-          delayChildren: 0.3,
+  const textVariants = useMemo(
+    () => ({
+      container: {
+        hidden: { opacity: 0 },
+        show: {
+          opacity: 1,
+          transition: {
+            staggerChildren: prefersReducedMotion ? 0 : 0.1,
+            delayChildren: prefersReducedMotion ? 0 : 0.3,
+          },
         },
       },
-    },
-    item: {
-      hidden: { opacity: 0, y: 20 },
-      show: {
-        opacity: 1,
-        y: 0,
-        transition: {
-          duration: 0.4,
-          ease: 'easeOut',
+      item: {
+        hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
+        show: {
+          opacity: 1,
+          y: 0,
+          transition: {
+            duration: prefersReducedMotion ? 0.2 : 0.4,
+            ease: 'easeOut',
+          },
         },
       },
-    },
-  };
+    }),
+    [prefersReducedMotion]
+  );
+
+  const levelNumberAnimation = prefersReducedMotion
+    ? { scale: 1, textShadow: '0 0 20px rgba(0,217,255,0.5)' }
+    : {
+        scale: [1, 1.1, 1],
+        textShadow: [
+          '0 0 20px rgba(0,217,255,0.5)',
+          '0 0 40px rgba(72,255,173,0.8)',
+          '0 0 20px rgba(0,217,255,0.5)',
+        ],
+      };
+
+  const glowAnimation = prefersReducedMotion
+    ? { opacity: 0.8, scale: 1 }
+    : {
+        scale: [1, 1.3, 1],
+        opacity: [0.6, 1, 0.6],
+      };
+
+  const glowTransition = prefersReducedMotion
+    ? { duration: 0.3, repeat: 0 as const }
+    : { duration: 1.2, repeat: 1 as const };
+
+  const sparkleTransition = prefersReducedMotion
+    ? { duration: 0.2 }
+    : { duration: 1.5, repeat: Infinity as const };
 
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Confetti */}
-          <Confetti count={50} duration={2.5} />
+          {!prefersReducedMotion && <Confetti count={50} duration={2.5} />}
 
-          {/* Full-screen overlay */}
           <motion.div
+            ref={dialogRef}
             className="fixed inset-0 bg-black/80 flex items-center justify-center z-[2000]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3 }}
-            onClick={onDismiss}
+            transition={{ duration: prefersReducedMotion ? 0 : 0.3 }}
+            onClick={handleOverlayClick}
+            onKeyDown={focusTrapHandler}
+            tabIndex={-1}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="levelup-title"
+            aria-describedby="levelup-message"
           >
             <div className="flex flex-col items-center gap-6">
-              {/* Level number - big bounce */}
               <motion.div
-                initial={{ scale: 0, y: 50, opacity: 0 }}
+                initial={{
+                  scale: prefersReducedMotion ? 1 : 0,
+                  y: prefersReducedMotion ? 0 : 50,
+                  opacity: 0,
+                }}
                 animate={{ scale: 1, y: 0, opacity: 1 }}
-                exit={{ scale: 0, y: 50, opacity: 0 }}
+                exit={prefersReducedMotion ? { opacity: 0 } : { scale: 0, y: 50, opacity: 0 }}
                 transition={{
-                  type: 'spring',
-                  bounce: 0.6,
-                  duration: 0.8,
+                  type: prefersReducedMotion ? 'tween' : 'spring',
+                  bounce: prefersReducedMotion ? 0 : 0.6,
+                  duration: prefersReducedMotion ? 0.3 : 0.8,
                 }}
                 className="relative will-animate"
               >
-                {/* Glow effect behind number - enhanced */}
                 <motion.div
                   className="absolute inset-0 rounded-full blur-3xl bg-gradient-to-br from-cyan/60 to-lime/60 pointer-events-none will-transform"
-                  animate={{
-                    scale: [1, 1.3, 1],
-                    opacity: [0.6, 1, 0.6],
-                  }}
-                  transition={{
-                    duration: 1.2,
-                    repeat: 1,
-                  }}
+                  animate={glowAnimation}
+                  transition={glowTransition}
                 />
 
-                {/* Rotating star ring effect */}
                 <motion.div
                   className="absolute inset-0 rounded-full"
-                  animate={{ rotate: 360 }}
-                  transition={{
-                    duration: 3,
-                    repeat: Infinity,
-                    ease: 'linear',
-                  }}
+                  animate={prefersReducedMotion ? { opacity: 0.3 } : { rotate: 360 }}
+                  transition={
+                    prefersReducedMotion
+                      ? undefined
+                      : {
+                          duration: 3,
+                          repeat: Infinity,
+                          ease: 'linear',
+                        }
+                  }
                   style={rotatingRingStyle}
                 />
 
-                {/* Level number */}
                 <motion.div
                   className="relative text-hero-display font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan via-lime to-gold drop-shadow-[0_0_30px_rgba(0,217,255,0.8)]"
-                  animate={{
-                    scale: [1, 1.1, 1],
-                    textShadow: [
-                      '0 0 20px rgba(0,217,255,0.5)',
-                      '0 0 40px rgba(72,255,173,0.8)',
-                      '0 0 20px rgba(0,217,255,0.5)',
-                    ],
-                  }}
+                  animate={levelNumberAnimation}
                   transition={{
-                    duration: 0.8,
+                    duration: prefersReducedMotion ? 0.3 : 0.8,
                     times: [0, 0.5, 1],
                   }}
                 >
                   {newLevel}
                 </motion.div>
 
-                {/* Sparkle elements */}
                 {[...Array(8)].map((_, i) => (
                   <motion.div
                     key={i}
                     className="absolute text-3xl"
-                    initial={{ opacity: 0, scale: 0 }}
+                    initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0 }}
+                    exit={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0 }}
                     transition={{
-                      delay: 0.2 + i * 0.1,
-                      duration: 0.4,
+                      delay: prefersReducedMotion ? 0 : 0.2 + i * 0.1,
+                      duration: prefersReducedMotion ? 0.2 : 0.4,
                     }}
                     style={{
                       left: `${50 + 45 * Math.cos((i * Math.PI) / 4)}%`,
@@ -178,14 +286,17 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                   >
                     <motion.div
                       animate={{
-                        opacity: [0.8, 0, 0.8],
-                        scale: [1, 1.3, 1],
+                        opacity: prefersReducedMotion ? 1 : [0.8, 0, 0.8],
+                        scale: prefersReducedMotion ? 1 : [1, 1.3, 1],
                       }}
-                      transition={{
-                        duration: 1.5,
-                        repeat: Infinity,
-                        delay: 0.3 + i * 0.1,
-                      }}
+                      transition={
+                        prefersReducedMotion
+                          ? { duration: 0 }
+                          : {
+                              ...sparkleTransition,
+                              delay: 0.3 + i * 0.1,
+                            }
+                      }
                     >
                       ✨
                     </motion.div>
@@ -193,12 +304,12 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                 ))}
               </motion.div>
 
-              {/* Text animation with stagger */}
               <motion.div
                 className="flex flex-col items-center gap-2 text-center"
                 variants={textVariants.container}
                 initial="hidden"
                 animate="show"
+                id="levelup-title"
               >
                 <motion.h1
                   className="m-0 text-5xl font-black text-lime tracking-wider"
@@ -213,24 +324,42 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                   ПОВЫШЕН!
                 </motion.h1>
 
-                {/* Bonus text */}
                 <motion.p
                   className="m-0 mt-4 text-body font-semibold text-token-secondary"
                   variants={textVariants.item}
+                  id="levelup-message"
                 >
                   Доступны новые постройки
                 </motion.p>
               </motion.div>
 
-              {/* Click to continue hint */}
               <motion.p
                 className="m-0 text-caption text-[var(--color-text-secondary)] mt-8"
                 initial={{ opacity: 0 }}
-                animate={{ opacity: [0.3, 0.8, 0.3] }}
-                transition={{ duration: 1.5, repeat: Infinity }}
+                animate={prefersReducedMotion ? { opacity: 0.8 } : { opacity: [0.3, 0.8, 0.3] }}
+                transition={
+                  prefersReducedMotion
+                    ? undefined
+                    : {
+                        duration: 1.5,
+                        repeat: Infinity,
+                      }
+                }
               >
                 Коснитесь для продолжения
               </motion.p>
+
+              <motion.button
+                ref={primaryActionRef}
+                type="button"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan to-lime text-dark-bg font-semibold text-base shadow-lg focus-ring"
+                whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
+                whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
+                onClick={onDismiss}
+                aria-label="Закрыть поздравительный экран и вернуться в игру"
+              >
+                Продолжить
+              </motion.button>
             </div>
           </motion.div>
         </>
