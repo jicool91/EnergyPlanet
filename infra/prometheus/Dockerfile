@@ -1,7 +1,9 @@
+FROM alpine:3.20 AS tools
+RUN apk add --no-cache gettext
+
 FROM prom/prometheus:v2.53.0
 
-USER root
-RUN apt-get update && apt-get install -y --no-install-recommends gettext-base && rm -rf /var/lib/apt/lists/*
+COPY --from=tools /usr/bin/envsubst /usr/local/bin/envsubst
 
 COPY prometheus.yml /etc/prometheus/prometheus.yml.template
 COPY alerts.yml /etc/prometheus/alerts.yml
