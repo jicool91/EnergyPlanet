@@ -1,7 +1,10 @@
 /**
  * Browser Logger Configuration
  * Similar to backend Winston logger but for client-side
+ * Logs errors and warnings are sent to backend via telemetry endpoint
  */
+
+import { apiClient } from '../services/apiClient';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -51,6 +54,27 @@ class ClientLogger {
     }
   }
 
+  private async sendToBackend(level: LogLevel, message: string, context?: Record<string, unknown>) {
+    // Only send warn and error logs to backend
+    if (level !== 'warn' && level !== 'error') {
+      return;
+    }
+
+    try {
+      // Non-blocking send to telemetry endpoint
+      // Don't await to avoid blocking logger calls
+      void apiClient.post('/telemetry/client', {
+        event: message,
+        severity: level,
+        context,
+      }).catch(() => {
+        // Silently fail - don't double log errors
+      });
+    } catch {
+      // Ignore errors from sending logs
+    }
+  }
+
   private log(level: LogLevel, message: string, context?: Record<string, unknown>) {
     const entry: LogEntry = {
       timestamp: this.getTimestamp(),
@@ -69,6 +93,9 @@ class ClientLogger {
       const method = this.getConsoleMethod(level);
       console[method](formatted);
     }
+
+    // Send errors and warnings to backend
+    this.sendToBackend(level, message, context);
   }
 
   debug(message: string, context?: Record<string, unknown>) {
