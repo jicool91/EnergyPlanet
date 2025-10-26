@@ -37,6 +37,7 @@ interface CatalogState {
   isBoostHubLoading: boolean;
   boostHubError: string | null;
   isClaimingBoostType: string | null;
+  boostHubTimeOffsetMs: number | null;
 
   // Actions
   loadBuildingCatalog: (force?: boolean) => Promise<void>;
@@ -72,6 +73,7 @@ export const useCatalogStore = create<CatalogState>()(
     isBoostHubLoading: false,
     boostHubError: null,
     isClaimingBoostType: null,
+    boostHubTimeOffsetMs: null,
 
     async loadBuildingCatalog(force = false) {
       const { buildingCatalogLoaded, isBuildingCatalogLoading } = get();
@@ -308,11 +310,15 @@ export const useCatalogStore = create<CatalogState>()(
 
       try {
         const response = await fetchBoostHub();
+        const clientReceivedAt = Date.now();
+        const serverTimeMs = Date.parse(response.server_time);
+        const offsetMs = Number.isNaN(serverTimeMs) ? null : serverTimeMs - clientReceivedAt;
         set({
           boostHub: response.boosts,
           boostHubLoaded: true,
           isBoostHubLoading: false,
           boostHubError: null,
+          boostHubTimeOffsetMs: offsetMs,
         });
       } catch (error) {
         const { message } = describeError(error, 'Не удалось загрузить бусты');
