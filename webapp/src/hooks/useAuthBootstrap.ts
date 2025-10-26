@@ -75,7 +75,6 @@ export function useAuthBootstrap() {
             accessToken: response.data.access_token,
             refreshToken: response.data.refresh_token,
           });
-          setAuthReady(true);
           setBootstrapping(false);
           return;
         } catch (error) {
@@ -136,7 +135,6 @@ export function useAuthBootstrap() {
               accessToken: response.data.access_token,
               refreshToken: response.data.refresh_token,
             });
-            setAuthReady(true);
             setBootstrapping(false);
             return;
           } catch (refreshError) {
