@@ -24,7 +24,7 @@ import { useCatalogStore } from '../store/catalogStore';
 import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
 
 const TAB_BAR_RESERVE_PX = 88;
-const HEADER_RESERVE_PX = 72;
+const HEADER_RESERVE_PX = 56;
 
 // Lazy load heavy components
 const ShopPanel = lazy(() =>
