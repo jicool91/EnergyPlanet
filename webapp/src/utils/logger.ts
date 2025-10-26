@@ -5,6 +5,7 @@
  */
 
 import { apiClient } from '../services/apiClient';
+import { authStore, useAuthStore } from '../store/authStore';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -15,11 +16,41 @@ interface LogEntry {
   context?: Record<string, unknown>;
 }
 
+interface PendingLog {
+  level: LogLevel;
+  message: string;
+  context?: Record<string, unknown>;
+  timestamp: string;
+}
+
 class ClientLogger {
   private isDev = import.meta.env.DEV;
   private logHistory: LogEntry[] = [];
   private maxHistorySize = 100;
   private storageKey = 'ENERGY_PLANET_LOGS';
+  private pendingLogs: PendingLog[] = [];
+  private isFlushing = false;
+  private unsubscribe?: () => void;
+
+  constructor() {
+    if (typeof window !== 'undefined') {
+      this.unsubscribe = useAuthStore.subscribe(
+        state => state.accessToken,
+        accessToken => {
+          if (accessToken) {
+            void this.flushPending();
+          }
+        }
+      );
+      if (authStore.accessToken) {
+        void this.flushPending();
+      }
+      window.addEventListener('beforeunload', () => {
+        this.unsubscribe?.();
+        this.unsubscribe = undefined;
+      });
+    }
+  }
 
   private getTimestamp(): string {
     return new Date().toLocaleTimeString('en-US', {
@@ -87,23 +118,77 @@ class ClientLogger {
     }
   }
 
-  private async sendToBackend(level: LogLevel, message: string, context?: Record<string, unknown>) {
-    // Send ALL logs to backend (including info/debug for auth flow debugging)
-    // This is a Telegram Mini App - we can't use browser DevTools!
-    try {
-      // Non-blocking send to telemetry endpoint
-      // Don't await to avoid blocking logger calls
-      void apiClient.post('/telemetry/client', {
-        event: message,
-        severity: level,
-        context,
-        timestamp: new Date().toISOString(),
-      }).catch(() => {
-        // Silently fail - don't double log errors
-      });
-    } catch {
-      // Ignore errors from sending logs
+  private async flushPending() {
+    if (this.isFlushing) {
+      return;
     }
+    if (!authStore.accessToken) {
+      return;
+    }
+
+    this.isFlushing = true;
+    try {
+      while (this.pendingLogs.length > 0 && authStore.accessToken) {
+        const entry = this.pendingLogs.shift();
+        if (!entry) {
+          break;
+        }
+        try {
+          await apiClient.post('/telemetry/client', {
+            event: entry.message,
+            severity: entry.level,
+            context: entry.context,
+            timestamp: entry.timestamp,
+          });
+        } catch (error) {
+          // If we still cannot deliver (e.g., token expired), push it back and stop flushing
+          this.pendingLogs.unshift(entry);
+          break;
+        }
+      }
+    } finally {
+      this.isFlushing = false;
+    }
+  }
+
+  private sendToBackend(level: LogLevel, message: string, context?: Record<string, unknown>) {
+    // Prepare payload once, irrespective of delivery path
+    const payload: PendingLog = {
+      level,
+      message,
+      context,
+      timestamp: new Date().toISOString(),
+    };
+
+    if (!authStore.accessToken) {
+      // Queue log until an access token is available to avoid bootstrap-breaking 401s
+      this.pendingLogs.push(payload);
+      // Cap queue size to prevent unbounded growth
+      if (this.pendingLogs.length > this.maxHistorySize) {
+        this.pendingLogs.shift();
+      }
+      return;
+    }
+
+    if (this.pendingLogs.length > 0) {
+      void this.flushPending();
+    }
+
+    void apiClient
+      .post('/telemetry/client', {
+        event: payload.message,
+        severity: payload.level,
+        context: payload.context,
+        timestamp: payload.timestamp,
+      })
+      .catch(error => {
+        // Re-queue on failure (e.g. token expired) so we can retry with a fresh token
+        this.pendingLogs.unshift(payload);
+        if (!authStore.accessToken) {
+          return;
+        }
+        // Network hiccups will be retried on the next flush call
+      });
   }
 
   private log(level: LogLevel, message: string, context?: Record<string, unknown>) {
