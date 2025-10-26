@@ -105,6 +105,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     lastTapAt,
     isLoading,
     buildings,
+    leaderboardTotal,
+    leaderboardLoaded,
+    isLeaderboardLoading,
   } = useGameStore(
     state => ({
       energy: state.energy,
@@ -129,21 +132,24 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
       lastTapAt: state.lastTapAt,
       isLoading: state.isLoading,
       buildings: state.buildings,
+      leaderboardTotal: state.leaderboardTotal,
+      leaderboardLoaded: state.leaderboardLoaded,
+      isLeaderboardLoading: state.isLeaderboardLoading,
     }),
     shallow
   );
   const { tap, resetStreak, loadLeaderboard, loadProfile, loadPrestigeStatus, performPrestige } =
     useGameStore(
-    state => ({
-      tap: state.tap,
-      resetStreak: state.resetStreak,
-      loadLeaderboard: state.loadLeaderboard,
-      loadProfile: state.loadProfile,
-      loadPrestigeStatus: state.loadPrestigeStatus,
-      performPrestige: state.performPrestige,
-    }),
-    shallow
-  );
+      state => ({
+        tap: state.tap,
+        resetStreak: state.resetStreak,
+        loadLeaderboard: state.loadLeaderboard,
+        loadProfile: state.loadProfile,
+        loadPrestigeStatus: state.loadPrestigeStatus,
+        performPrestige: state.performPrestige,
+      }),
+      shallow
+    );
   const { buildingCatalog } = useCatalogStore(
     state => ({
       buildingCatalog: state.buildingCatalog,
@@ -196,6 +202,10 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   useEffect(() => {
     loadPrestigeStatus();
   }, [loadPrestigeStatus]);
+
+  useEffect(() => {
+    loadLeaderboard();
+  }, [loadLeaderboard]);
 
   const tapIncomeDisplay = useMemo(
     () => Math.max(0, tapIncome).toLocaleString('ru-RU'),
@@ -371,6 +381,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
               isPrestigeLoading={isPrestigeLoading}
               onPrestige={performPrestige}
               onTap={handleTap}
+              onViewLeaderboard={() => onTabChange('leaderboard')}
+              socialPlayerCount={leaderboardTotal}
+              isSocialBlockLoading={!leaderboardLoaded && isLeaderboardLoading}
             />
           </ScreenTransition>
         );

@@ -61,6 +61,9 @@ export interface HomePanelProps {
 
   // Actions
   onTap: () => void;
+  onViewLeaderboard?: () => void;
+  socialPlayerCount?: number;
+  isSocialBlockLoading?: boolean;
 }
 
 export function HomePanel({
@@ -88,6 +91,9 @@ export function HomePanel({
   isPrestigeLoading,
   onPrestige,
   onTap,
+  onViewLeaderboard,
+  socialPlayerCount = 0,
+  isSocialBlockLoading = false,
 }: HomePanelProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
   const performance = useDevicePerformance();
@@ -223,7 +229,11 @@ export function HomePanel({
         />
 
         {/* Social Proof (Friends Playing) */}
-        <SocialProofCard friendsCount={Math.floor(Math.random() * 50) + 5} />
+        <SocialProofCard
+          friendsCount={socialPlayerCount}
+          isLoading={isSocialBlockLoading}
+          onViewLeaderboard={onViewLeaderboard}
+        />
 
         {/* Next Goal Card */}
         {purchaseInsight && (
