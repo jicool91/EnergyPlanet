@@ -172,13 +172,26 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   );
   const { toast } = useNotification();
   const { safeArea } = useSafeArea();
-  const { bottom: safeBottom } = safeArea.safe;
+  const { bottom: safeBottom, left: safeLeft, right: safeRight } = safeArea.safe;
   const scrollPaddingBottom = useMemo(
     () => TAB_BAR_RESERVE_PX + Math.max(0, safeBottom),
     [safeBottom]
   );
+  const scrollContainerStyle = useMemo(() => {
+    const style: Record<string, string> = {
+      paddingBottom: `${scrollPaddingBottom}px`,
+    };
+    if (safeLeft > 0) {
+      style.paddingLeft = `${safeLeft}px`;
+    }
+    if (safeRight > 0) {
+      style.paddingRight = `${safeRight}px`;
+    }
+    return style;
+  }, [scrollPaddingBottom, safeLeft, safeRight]);
   const floatingButtonOffset = useMemo(() => Math.max(0, safeBottom) + 80, [safeBottom]);
   const previousStreakRef = useRef(streakCount);
+  const scrollRafRef = useRef<number | null>(null);
 
   const handleTap = () => {
     tap(1);
@@ -186,10 +199,16 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   };
 
   // Track scroll position for showing back-to-tap button
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    setIsScrolled(target.scrollTop > 100);
-  };
+  const handleScroll = useCallback((event: React.UIEvent<HTMLDivElement>) => {
+    const target = event.currentTarget;
+    if (scrollRafRef.current !== null) {
+      return;
+    }
+    scrollRafRef.current = window.requestAnimationFrame(() => {
+      setIsScrolled(target.scrollTop > 100);
+      scrollRafRef.current = null;
+    });
+  }, []);
 
   // Reset scroll position when switching tabs
   useEffect(() => {
@@ -329,6 +348,15 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
 
     return () => clearInterval(timer);
   }, [streakCount, lastTapAt, resetStreak]);
+
+  useEffect(() => {
+    return () => {
+      if (scrollRafRef.current !== null) {
+        window.cancelAnimationFrame(scrollRafRef.current);
+        scrollRafRef.current = null;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (previousStreakRef.current > 0 && streakCount === 0 && activeTab === 'home') {
@@ -488,10 +516,10 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         <div
           ref={handleScrollContainerRef}
           className="flex flex-col overflow-y-auto flex-1 min-h-0 relative"
-          style={{
-            paddingBottom: `${scrollPaddingBottom}px`,
-          }}
+          style={scrollContainerStyle}
           onScroll={handleScroll}
+          role="main"
+          aria-label="Основной контент"
         >
           {activeTab === 'home' ? (
             renderActiveTab()

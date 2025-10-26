@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { shallow } from 'zustand/shallow';
 import { useGameStore } from '../store/gameStore';
 import { useCatalogStore } from '../store/catalogStore';
@@ -174,6 +175,45 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
 
   const scrollParent = useContext(ScrollContainerContext);
 
+  const handlePurchaseOptionKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
+      const lastIndex = PURCHASE_OPTIONS.length - 1;
+
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown': {
+          event.preventDefault();
+          const nextIndex = index === lastIndex ? 0 : index + 1;
+          setSelectedPurchaseId(PURCHASE_OPTIONS[nextIndex].id);
+          break;
+        }
+        case 'ArrowLeft':
+        case 'ArrowUp': {
+          event.preventDefault();
+          const prevIndex = index === 0 ? lastIndex : index - 1;
+          setSelectedPurchaseId(PURCHASE_OPTIONS[prevIndex].id);
+          break;
+        }
+        case 'Home':
+          event.preventDefault();
+          setSelectedPurchaseId(PURCHASE_OPTIONS[0].id);
+          break;
+        case 'End':
+          event.preventDefault();
+          setSelectedPurchaseId(PURCHASE_OPTIONS[lastIndex].id);
+          break;
+        case ' ':
+        case 'Enter':
+          event.preventDefault();
+          setSelectedPurchaseId(PURCHASE_OPTIONS[index].id);
+          break;
+        default:
+          break;
+      }
+    },
+    [setSelectedPurchaseId]
+  );
+
   return (
     <div className="flex flex-col gap-4 p-0" style={panelPadding}>
       {showHeader ? (
@@ -192,8 +232,12 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2">
-        {PURCHASE_OPTIONS.map(option => {
+      <div
+        className="flex flex-wrap gap-2"
+        role="radiogroup"
+        aria-label="Количество построек для покупки"
+      >
+        {PURCHASE_OPTIONS.map((option, index) => {
           const isActive = option.id === selectedPurchaseId;
           return (
             <button
@@ -205,9 +249,18 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
                   : 'border-cyan/15 bg-dark-secondary/40 text-token-secondary hover:text-token-primary'
               }`}
               onClick={() => setSelectedPurchaseId(option.id)}
+              onKeyDown={event => handlePurchaseOptionKeyDown(event, index)}
+              role="radio"
+              aria-checked={isActive}
+              tabIndex={isActive ? 0 : -1}
               title={
                 option.id === 'max'
                   ? 'Покупает столько построек, сколько позволяет энергия и лимиты'
+                  : `Пакетная покупка ${option.label}`
+              }
+              aria-label={
+                option.id === 'max'
+                  ? 'Максимальная доступная покупка построек'
                   : `Пакетная покупка ${option.label}`
               }
             >
@@ -224,7 +277,7 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
             onClick={() => loadBuildingCatalog()}
             className="text-xs px-2 py-1 bg-red-error/20 hover:bg-red-error/30 rounded transition-colors"
           >
-            Переload
+            Перезагрузить
           </button>
         </div>
       )}

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { shallow } from 'zustand/shallow';
 import { useCatalogStore } from '../store/catalogStore';
 import { buildShopViewModel } from '@/viewModels/shopViewModel';
@@ -20,6 +21,10 @@ const SECTION_TABS: { id: ShopSection; label: string }[] = [
   { id: 'star_packs', label: 'Паки Stars' },
   { id: 'cosmetics', label: 'Косметика' },
 ];
+
+const getSectionTabId = (id: ShopSection) => `shop-tab-${id}`;
+const getSectionPanelId = (id: ShopSection) => `shop-panel-${id}`;
+const COSMETICS_GRID_ID = 'shop-cosmetics-grid';
 
 function formatPriceLabel(priceRub?: number, priceUsd?: number): string {
   if (priceRub) {
@@ -114,6 +119,111 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
     };
   }, [contentBottom]);
 
+  const handleSectionKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
+      const lastIndex = SECTION_TABS.length - 1;
+
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown': {
+          event.preventDefault();
+          const nextIndex = index === lastIndex ? 0 : index + 1;
+          setActiveSection(SECTION_TABS[nextIndex].id);
+          break;
+        }
+        case 'ArrowLeft':
+        case 'ArrowUp': {
+          event.preventDefault();
+          const prevIndex = index === 0 ? lastIndex : index - 1;
+          setActiveSection(SECTION_TABS[prevIndex].id);
+          break;
+        }
+        case 'Home':
+          event.preventDefault();
+          setActiveSection(SECTION_TABS[0].id);
+          break;
+        case 'End':
+          event.preventDefault();
+          setActiveSection(SECTION_TABS[lastIndex].id);
+          break;
+        case ' ':
+        case 'Enter':
+          event.preventDefault();
+          setActiveSection(SECTION_TABS[index].id);
+          break;
+        default:
+          break;
+      }
+    },
+    [setActiveSection]
+  );
+
+  const handleCategoryKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
+      if (categories.length === 0) {
+        return;
+      }
+
+      const isDisabled = (categoryId: string) =>
+        isCosmeticsLoading && categoryId !== activeCategory;
+
+      const moveToAvailable = (startIndex: number, direction: 1 | -1) => {
+        let nextIndex = startIndex;
+        for (let i = 0; i < categories.length; i += 1) {
+          nextIndex = (nextIndex + direction + categories.length) % categories.length;
+          const nextCategory = categories[nextIndex];
+          if (!isDisabled(nextCategory.id)) {
+            setActiveCategory(nextCategory.id);
+            return;
+          }
+        }
+      };
+
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown':
+          event.preventDefault();
+          moveToAvailable(index, 1);
+          break;
+        case 'ArrowLeft':
+        case 'ArrowUp':
+          event.preventDefault();
+          moveToAvailable(index, -1);
+          break;
+        case 'Home':
+          event.preventDefault();
+          for (let i = 0; i < categories.length; i += 1) {
+            if (!isDisabled(categories[i].id)) {
+              setActiveCategory(categories[i].id);
+              break;
+            }
+          }
+          break;
+        case 'End':
+          event.preventDefault();
+          for (let i = categories.length - 1; i >= 0; i -= 1) {
+            if (!isDisabled(categories[i].id)) {
+              setActiveCategory(categories[i].id);
+              break;
+            }
+          }
+          break;
+        case ' ':
+        case 'Enter': {
+          const current = categories[index];
+          if (current && !isDisabled(current.id)) {
+            event.preventDefault();
+            setActiveCategory(current.id);
+          }
+          break;
+        }
+        default:
+          break;
+      }
+    },
+    [activeCategory, categories, isCosmeticsLoading, setActiveCategory]
+  );
+
   const handlePurchaseCosmetic = useCallback(
     async (cosmeticId: string) => {
       try {
@@ -196,17 +306,30 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
       )}
 
       {/* Section Tabs */}
-      <div className="flex gap-2 p-0">
-        {SECTION_TABS.map(section => (
-          <Button
-            key={section.id}
-            variant={activeSection === section.id ? 'primary' : 'ghost'}
-            size="md"
-            onClick={() => setActiveSection(section.id)}
-          >
-            {section.label}
-          </Button>
-        ))}
+      <div className="flex gap-2 p-0" role="tablist" aria-label="Разделы магазина">
+        {SECTION_TABS.map((section, index) => {
+          const isActive = activeSection === section.id;
+          const tabId = getSectionTabId(section.id);
+          const panelId = getSectionPanelId(section.id);
+
+          return (
+            <Button
+              key={section.id}
+              variant={isActive ? 'primary' : 'ghost'}
+              size="md"
+              onClick={() => setActiveSection(section.id)}
+              role="tab"
+              aria-selected={isActive}
+              aria-controls={panelId}
+              id={tabId}
+              tabIndex={isActive ? 0 : -1}
+              onKeyDown={event => handleSectionKeyDown(event, index)}
+              type="button"
+            >
+              {section.label}
+            </Button>
+          );
+        })}
       </div>
 
       {/* Errors */}
@@ -221,147 +344,124 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
         </Card>
       )}
 
-      {/* Featured Star Pack Section */}
-      {activeSection === 'star_packs' && featuredPack && !isStarPacksLoading && (
-        <div className="relative">
-          <div className="absolute -inset-px bg-gradient-to-r from-gold via-orange to-gold opacity-20 rounded-2xl blur-lg pointer-events-none" />
-          <Card
-            highlighted
-            highlightBadge="✨ ЛУЧШИЙ ВЫБОР"
-            className="relative flex gap-4 bg-gradient-to-br from-dark-secondary/80 to-dark-tertiary/80 border-gold/30"
-          >
-            {/* Icon */}
-            <div className="w-[80px] h-[80px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden border-2 border-gold/40 flex-shrink-0">
-              {featuredPack.icon_url ? (
-                <OptimizedImage
-                  src={featuredPack.icon_url}
-                  alt={featuredPack.title}
-                  width={80}
-                  height={80}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <span className="text-icon-lg" aria-hidden="true">
-                  ⭐
-                </span>
-              )}
-            </div>
-
-            {/* Content */}
-            <div className="flex-1 flex flex-col gap-3">
-              <div className="flex justify-between items-center gap-2">
-                <h3 className="m-0 text-body font-bold text-[var(--color-gold)]">
-                  {featuredPack.title}
-                </h3>
-                <Badge variant="warning" size="sm">
-                  {featuredPack.stars + (featuredPack.bonus_stars ?? 0)} ⭐ всего
-                </Badge>
-              </div>
-              <p className="m-0 text-caption text-token-secondary">
-                {featuredPack.description ?? `Получите максимум Stars`}
-              </p>
-
-              {/* Bundle Breakdown */}
-              <div className="bg-dark-tertiary/40 rounded-lg p-3 border border-gold/20 flex flex-col gap-2">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg" aria-hidden="true">
+      {activeSection === 'star_packs' && (
+        <div
+          className="flex flex-col gap-4 p-0"
+          id={getSectionPanelId('star_packs')}
+          role="tabpanel"
+          aria-labelledby={getSectionTabId('star_packs')}
+        >
+          {featuredPack && !isStarPacksLoading && (
+            <div className="relative">
+              <div className="absolute -inset-px bg-gradient-to-r from-gold via-orange to-gold opacity-20 rounded-2xl blur-lg pointer-events-none" />
+              <Card
+                highlighted
+                highlightBadge="✨ ЛУЧШИЙ ВЫБОР"
+                className="relative flex gap-4 bg-gradient-to-br from-dark-secondary/80 to-dark-tertiary/80 border-gold/30"
+              >
+                <div className="w-[80px] h-[80px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden border-2 border-gold/40 flex-shrink-0">
+                  {featuredPack.icon_url ? (
+                    <OptimizedImage
+                      src={featuredPack.icon_url}
+                      alt={featuredPack.title}
+                      width={80}
+                      height={80}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-icon-lg" aria-hidden="true">
                       ⭐
                     </span>
-                    <span className="text-sm text-token-secondary">Базовых</span>
-                  </div>
-                  <span className="text-sm font-bold text-gold">{featuredPack.stars}</span>
+                  )}
                 </div>
-                {(featuredPack.bonus_stars ?? 0) > 0 && (
-                  <>
+
+                <div className="flex-1 flex flex-col gap-3">
+                  <div className="flex justify-between items-center gap-2">
+                    <h3 className="m-0 text-body font-bold text-[var(--color-gold)]">
+                      {featuredPack.title}
+                    </h3>
+                    <Badge variant="warning" size="sm">
+                      {featuredPack.stars + (featuredPack.bonus_stars ?? 0)} ⭐ всего
+                    </Badge>
+                  </div>
+                  <p className="m-0 text-caption text-token-secondary">
+                    {featuredPack.description ?? `Получите максимум Stars`}
+                  </p>
+
+                  <div className="bg-dark-tertiary/40 rounded-lg p-3 border border-gold/20 flex flex-col gap-2">
                     <div className="flex items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <span className="text-lg" aria-hidden="true">
-                          ✨
+                          ⭐
                         </span>
-                        <span className="text-sm text-token-secondary">Бонус</span>
+                        <span className="text-sm text-token-secondary">Базовых</span>
                       </div>
-                      <span className="text-sm font-bold text-lime">
-                        +{featuredPack.bonus_stars}
-                      </span>
+                      <span className="text-sm font-bold text-gold">{featuredPack.stars}</span>
                     </div>
-                    <div className="border-t border-white/10 pt-2 flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg" aria-hidden="true">
-                          🚀
-                        </span>
-                        <span className="text-sm text-token-secondary">Буст</span>
-                      </div>
-                      <span className="text-sm font-bold text-lime">
-                        +
-                        {calculateBonusPercentage(
-                          featuredPack.stars,
-                          featuredPack.bonus_stars ?? 0
-                        )}
-                        %
-                      </span>
-                    </div>
-                  </>
-                )}
-              </div>
-
-              <div className="flex gap-3 items-center">
-                <div className="text-caption text-gold/80 font-semibold flex-1">
-                  {formatPriceLabel(featuredPack.price_rub, featuredPack.price_usd)}
-                </div>
-                {featuredPack.price_rub && (
-                  <div className="text-caption text-gold/70 px-2 py-1 rounded bg-gold/10 border border-gold/20 whitespace-nowrap">
-                    {(
-                      featuredPack.price_rub /
-                      (featuredPack.stars + (featuredPack.bonus_stars ?? 0))
-                    ).toFixed(1)}{' '}
-                    ₽/⭐
+                    {(featuredPack.bonus_stars ?? 0) > 0 && (
+                      <>
+                        <div className="flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg" aria-hidden="true">
+                              ✨
+                            </span>
+                            <span className="text-sm text-token-secondary">Бонус</span>
+                          </div>
+                          <span className="text-sm font-bold text-lime">
+                            +{featuredPack.bonus_stars}
+                          </span>
+                        </div>
+                        <div className="border-t border-white/10 pt-2 flex items-center justify-between gap-3">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg" aria-hidden="true">
+                              🚀
+                            </span>
+                            <span className="text-sm text-token-secondary">Буст</span>
+                          </div>
+                          <span className="text-sm font-bold text-lime">
+                            +
+                            {calculateBonusPercentage(
+                              featuredPack.stars,
+                              featuredPack.bonus_stars ?? 0
+                            )}
+                            %
+                          </span>
+                        </div>
+                      </>
+                    )}
                   </div>
-                )}
-              </div>
-            </div>
 
-            {/* Button */}
-            <div className="flex items-center flex-shrink-0">
-              <Button
-                variant="success"
-                size="lg"
-                loading={isProcessingStarPackId === featuredPack.id}
-                onClick={() => handlePurchaseStarPack(featuredPack.id)}
-              >
-                Купить
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
+                  <div className="flex gap-3 items-center">
+                    <div className="text-caption text-gold/80 font-semibold flex-1">
+                      {formatPriceLabel(featuredPack.price_rub, featuredPack.price_usd)}
+                    </div>
+                    {featuredPack.price_rub && (
+                      <div className="text-caption text-gold/70 px-2 py-1 rounded bg-gold/10 border border-gold/20 whitespace-nowrap">
+                        {(
+                          featuredPack.price_rub /
+                          (featuredPack.stars + (featuredPack.bonus_stars ?? 0))
+                        ).toFixed(1)}{' '}
+                        ₽/⭐
+                      </div>
+                    )}
+                  </div>
+                </div>
 
-      {/* Cosmetics Categories */}
-      {activeSection === 'cosmetics' && (
-        <div className="flex gap-2 flex-wrap p-0">
-          {categories.length === 0 && !isCosmeticsLoading && (
-            <span className="text-caption text-token-secondary">
-              Пока нет косметики для отображения
-            </span>
+                <div className="flex items-center flex-shrink-0">
+                  <Button
+                    variant="success"
+                    size="lg"
+                    loading={isProcessingStarPackId === featuredPack.id}
+                    onClick={() => handlePurchaseStarPack(featuredPack.id)}
+                  >
+                    Купить
+                  </Button>
+                </div>
+              </Card>
+            </div>
           )}
 
-          {categories.map(category => (
-            <Button
-              key={category.id}
-              variant={category.id === activeCategory ? 'primary' : 'ghost'}
-              size="md"
-              onClick={() => setActiveCategory(category.id)}
-              disabled={isCosmeticsLoading && category.id !== activeCategory}
-            >
-              {category.label}
-            </Button>
-          ))}
-        </div>
-      )}
-
-      <div className="flex flex-col gap-4 p-0">
-        {activeSection === 'star_packs' ? (
-          isStarPacksLoading && starPacks.length === 0 ? (
+          {isStarPacksLoading && starPacks.length === 0 ? (
             <ErrorBoundary>
               <ShopSkeleton count={3} />
             </ErrorBoundary>
@@ -382,7 +482,6 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
                     highlightBadge={isBestValue ? '💰 BEST VALUE' : undefined}
                     className={`flex gap-4 ${isBestValue ? 'bg-gradient-to-br from-dark-secondary/60 to-dark-tertiary/60 border-lime/30' : ''}`}
                   >
-                    {/* Icon */}
                     <div
                       className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isBestValue ? 'border-2 border-lime/40' : 'border border-cyan/10'}`}
                     >
@@ -401,7 +500,6 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
                       )}
                     </div>
 
-                    {/* Content */}
                     <div className="flex-1 flex flex-col gap-2">
                       <div className="flex justify-between items-center gap-2">
                         <h3
@@ -417,7 +515,6 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
                         {pack.description ?? `Получите ${totalStars} Stars`}
                       </p>
 
-                      {/* Bundle Breakdown */}
                       <div
                         className={`text-xs space-y-1 rounded px-2 py-1.5 ${isBestValue ? 'bg-lime/10 border border-lime/20' : 'bg-white/5 border border-white/10'}`}
                       >
@@ -459,7 +556,6 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
                       </div>
                     </div>
 
-                    {/* Button */}
                     <div className="flex items-center flex-shrink-0">
                       <Button
                         variant="success"
@@ -473,136 +569,182 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
                   </Card>
                 );
               })
-          )
-        ) : isCosmeticsLoading && filteredCosmetics.length === 0 ? (
-          <ErrorBoundary>
-            <ShopSkeleton count={4} />
-          </ErrorBoundary>
-        ) : (
-          filteredCosmetics.map(cosmetic => {
-            const processing = isProcessingCosmeticId === cosmetic.id;
-            const price = cosmetic.price_stars ?? 0;
-            const isMostPopular = cosmetic.id === mostPopularCosmeticId;
+          )}
+        </div>
+      )}
 
-            // Determine rarity variant for badge
-            const rarityMap: Record<
-              string,
-              'default' | 'primary' | 'success' | 'warning' | 'error' | 'epic' | 'legendary'
-            > = {
-              common: 'default',
-              rare: 'primary',
-              epic: 'epic',
-              legendary: 'legendary',
-            };
+      {activeSection === 'cosmetics' && (
+        <div
+          className="flex flex-col gap-4 p-0"
+          id={getSectionPanelId('cosmetics')}
+          role="tabpanel"
+          aria-labelledby={getSectionTabId('cosmetics')}
+        >
+          <div className="flex gap-2 flex-wrap p-0" role="tablist" aria-label="Категории косметики">
+            {categories.length === 0 && !isCosmeticsLoading && (
+              <span className="text-caption text-token-secondary">
+                Пока нет косметики для отображения
+              </span>
+            )}
 
-            // Determine action button
-            let actionButton: JSX.Element | null = null;
+            {categories.map((category, index) => {
+              const isActiveCategory = category.id === activeCategory;
+              const isDisabled = isCosmeticsLoading && !isActiveCategory;
 
-            if (cosmetic.equipped) {
-              actionButton = (
-                <Button variant="success" size="md" disabled>
-                  Экипировано
-                </Button>
-              );
-            } else if (cosmetic.owned) {
-              actionButton = (
+              return (
                 <Button
-                  variant="secondary"
+                  key={category.id}
+                  variant={isActiveCategory ? 'primary' : 'ghost'}
                   size="md"
-                  loading={processing}
-                  onClick={() => handleEquip(cosmetic.id)}
+                  onClick={() => setActiveCategory(category.id)}
+                  disabled={isDisabled}
+                  role="tab"
+                  aria-selected={isActiveCategory}
+                  aria-controls={COSMETICS_GRID_ID}
+                  id={`cosmetics-category-${category.id}`}
+                  tabIndex={isActiveCategory ? 0 : -1}
+                  onKeyDown={event => handleCategoryKeyDown(event, index)}
+                  type="button"
                 >
-                  Экипировать
+                  {category.label}
                 </Button>
               );
-            } else if (cosmetic.status === 'purchase_required' && price > 0) {
-              actionButton = (
-                <Button
-                  variant="success"
-                  size="md"
-                  loading={processing}
-                  onClick={() => handlePurchaseCosmetic(cosmetic.id)}
-                >
-                  Купить {price} ⭐
-                </Button>
-              );
-            } else if (cosmetic.status === 'locked' && cosmetic.unlock_requirement?.level) {
-              actionButton = (
-                <div className="text-caption text-token-secondary">
-                  Откроется с {cosmetic.unlock_requirement.level} уровня
-                </div>
-              );
-            } else if (cosmetic.status === 'event_locked') {
-              actionButton = (
-                <div className="text-caption text-token-secondary">Доступно на событии</div>
-              );
-            } else {
-              actionButton = (
-                <Button
-                  variant="secondary"
-                  size="md"
-                  loading={processing}
-                  onClick={() => handlePurchaseCosmetic(cosmetic.id)}
-                >
-                  Получить
-                </Button>
-              );
-            }
+            })}
+          </div>
 
-            return (
-              <Card
-                key={cosmetic.id}
-                highlighted={isMostPopular}
-                highlightBadge={isMostPopular ? '⭐ POPULAR' : undefined}
-                className={`flex gap-4 ${isMostPopular ? 'bg-gradient-to-br from-dark-secondary/60 to-dark-tertiary/60 border-cyan/30' : ''}`}
-              >
-                {/* Icon */}
-                <div
-                  className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isMostPopular ? 'border-2 border-cyan/40' : 'border border-cyan/10'}`}
-                >
-                  {cosmetic.preview_url ? (
-                    <OptimizedImage
-                      src={cosmetic.preview_url}
-                      alt={cosmetic.name}
-                      width={72}
-                      height={72}
-                      className="w-full h-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-icon-md" aria-hidden="true">
-                      ✦
-                    </span>
-                  )}
-                </div>
+          <div id={COSMETICS_GRID_ID} className="flex flex-col gap-4 p-0">
+            {isCosmeticsLoading && filteredCosmetics.length === 0 ? (
+              <ErrorBoundary>
+                <ShopSkeleton count={4} />
+              </ErrorBoundary>
+            ) : (
+              filteredCosmetics.map(cosmetic => {
+                const processing = isProcessingCosmeticId === cosmetic.id;
+                const price = cosmetic.price_stars ?? 0;
+                const isMostPopular = cosmetic.id === mostPopularCosmeticId;
 
-                {/* Content */}
-                <div className="flex-1 flex flex-col gap-2">
-                  <div className="flex justify-between items-center gap-2">
-                    <h3
-                      className={`m-0 text-body font-semibold ${isMostPopular ? 'text-cyan' : 'text-token-primary'}`}
+                const rarityMap: Record<
+                  string,
+                  'default' | 'primary' | 'success' | 'warning' | 'error' | 'epic' | 'legendary'
+                > = {
+                  common: 'default',
+                  rare: 'primary',
+                  epic: 'epic',
+                  legendary: 'legendary',
+                };
+
+                let actionButton: JSX.Element | null = null;
+
+                if (cosmetic.equipped) {
+                  actionButton = (
+                    <Button variant="success" size="md" disabled>
+                      Экипировано
+                    </Button>
+                  );
+                } else if (cosmetic.owned) {
+                  actionButton = (
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      loading={processing}
+                      onClick={() => handleEquip(cosmetic.id)}
                     >
-                      {cosmetic.name}
-                    </h3>
-                    <Badge
-                      variant={isMostPopular ? 'primary' : rarityMap[cosmetic.rarity] || 'default'}
-                      size="sm"
+                      Экипировать
+                    </Button>
+                  );
+                } else if (cosmetic.status === 'purchase_required' && price > 0) {
+                  actionButton = (
+                    <Button
+                      variant="success"
+                      size="md"
+                      loading={processing}
+                      onClick={() => handlePurchaseCosmetic(cosmetic.id)}
                     >
-                      {isMostPopular ? '⭐ Popular' : cosmetic.rarity}
-                    </Badge>
-                  </div>
-                  <p className="m-0 text-caption text-token-secondary">{cosmetic.description}</p>
-                  {price > 0 && cosmetic.status !== 'owned' && (
-                    <div className="text-caption text-token-secondary">Стоимость: {price} ⭐</div>
-                  )}
-                </div>
+                      Купить {price} ⭐
+                    </Button>
+                  );
+                } else if (cosmetic.status === 'locked' && cosmetic.unlock_requirement?.level) {
+                  actionButton = (
+                    <div className="text-caption text-token-secondary">
+                      Откроется с {cosmetic.unlock_requirement.level} уровня
+                    </div>
+                  );
+                } else if (cosmetic.status === 'event_locked') {
+                  actionButton = (
+                    <div className="text-caption text-token-secondary">Доступно на событии</div>
+                  );
+                } else {
+                  actionButton = (
+                    <Button
+                      variant="secondary"
+                      size="md"
+                      loading={processing}
+                      onClick={() => handlePurchaseCosmetic(cosmetic.id)}
+                    >
+                      Получить
+                    </Button>
+                  );
+                }
 
-                {/* Action */}
-                <div className="flex items-center flex-shrink-0">{actionButton}</div>
-              </Card>
-            );
-          })
-        )}
-      </div>
+                return (
+                  <Card
+                    key={cosmetic.id}
+                    highlighted={isMostPopular}
+                    highlightBadge={isMostPopular ? '⭐ POPULAR' : undefined}
+                    className={`flex gap-4 ${isMostPopular ? 'bg-gradient-to-br from-dark-secondary/60 to-dark-tertiary/60 border-cyan/30' : ''}`}
+                  >
+                    <div
+                      className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isMostPopular ? 'border-2 border-cyan/40' : 'border border-cyan/10'}`}
+                    >
+                      {cosmetic.preview_url ? (
+                        <OptimizedImage
+                          src={cosmetic.preview_url}
+                          alt={cosmetic.name}
+                          width={72}
+                          height={72}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-icon-md" aria-hidden="true">
+                          ✦
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="flex-1 flex flex-col gap-2">
+                      <div className="flex justify-between items-center gap-2">
+                        <h3
+                          className={`m-0 text-body font-semibold ${isMostPopular ? 'text-cyan' : 'text-token-primary'}`}
+                        >
+                          {cosmetic.name}
+                        </h3>
+                        <Badge
+                          variant={
+                            isMostPopular ? 'primary' : rarityMap[cosmetic.rarity] || 'default'
+                          }
+                          size="sm"
+                        >
+                          {isMostPopular ? '⭐ Popular' : cosmetic.rarity}
+                        </Badge>
+                      </div>
+                      <p className="m-0 text-caption text-token-secondary">
+                        {cosmetic.description}
+                      </p>
+                      {price > 0 && cosmetic.status !== 'owned' && (
+                        <div className="text-caption text-token-secondary">
+                          Стоимость: {price} ⭐
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center flex-shrink-0">{actionButton}</div>
+                  </Card>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
