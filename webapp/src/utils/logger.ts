@@ -19,6 +19,7 @@ class ClientLogger {
   private isDev = import.meta.env.DEV;
   private logHistory: LogEntry[] = [];
   private maxHistorySize = 100;
+  private storageKey = 'ENERGY_PLANET_LOGS';
 
   private getTimestamp(): string {
     return new Date().toLocaleTimeString('en-US', {
@@ -27,6 +28,38 @@ class ClientLogger {
       second: '2-digit',
       hour12: false,
     });
+  }
+
+  private saveToLocalStorage(entry: LogEntry) {
+    try {
+      const existing = localStorage.getItem(this.storageKey);
+      const logs = existing ? JSON.parse(existing) : [];
+      logs.push(entry);
+      // Keep only last 50 entries in localStorage
+      if (logs.length > 50) {
+        logs.shift();
+      }
+      localStorage.setItem(this.storageKey, JSON.stringify(logs));
+    } catch {
+      // localStorage full or unavailable - ignore
+    }
+  }
+
+  public getStorageLogs(): LogEntry[] {
+    try {
+      const logs = localStorage.getItem(this.storageKey);
+      return logs ? JSON.parse(logs) : [];
+    } catch {
+      return [];
+    }
+  }
+
+  public clearStorageLogs() {
+    try {
+      localStorage.removeItem(this.storageKey);
+    } catch {
+      // ignore
+    }
   }
 
   private formatMessage(
@@ -87,6 +120,9 @@ class ClientLogger {
     if (this.logHistory.length > this.maxHistorySize) {
       this.logHistory.shift();
     }
+
+    // Always save to localStorage for debugging
+    this.saveToLocalStorage(entry);
 
     if (this.isDev || level === 'warn' || level === 'error') {
       const formatted = this.formatMessage(level, message, context);

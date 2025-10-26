@@ -10,6 +10,16 @@ import { initializeTelegramWebApp, onTelegramThemeChange } from './services/tele
 import { authStore } from './store/authStore';
 import { uiStore } from './store/uiStore';
 import { getResolvedTelegramTheme, initializeTelegramTheme } from './utils/telegramTheme';
+import { logger } from './utils/logger';
+
+// Export logger to window for debugging
+declare global {
+  interface Window {
+    _energyLogs?: typeof logger;
+  }
+}
+
+window._energyLogs = logger;
 
 initializeTelegramTheme();
 initializeTelegramWebApp();

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { logger } from '../utils/logger';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
@@ -52,15 +53,25 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ accessToken: access, refreshToken: refresh, hydrated: true, authReady: false });
   },
   setTokens: ({ accessToken, refreshToken }) => {
+    logger.info('🔐 setTokens called', {
+      accessTokenLength: accessToken.length,
+      refreshTokenLength: refreshToken.length,
+    });
     persist(ACCESS_TOKEN_KEY, accessToken);
     persist(REFRESH_TOKEN_KEY, refreshToken);
     set({ accessToken, refreshToken, authReady: true });
+    logger.info('✅ authReady set to true (via setTokens)');
   },
   setAccessToken: (token: string) => {
+    logger.info('🔐 setAccessToken called', {
+      tokenLength: token.length,
+    });
     persist(ACCESS_TOKEN_KEY, token);
     set({ accessToken: token, authReady: true });
+    logger.info('✅ authReady set to true (via setAccessToken)');
   },
   clearTokens: () => {
+    logger.warn('🗑️ clearTokens called - clearing all tokens');
     persist(ACCESS_TOKEN_KEY, null);
     persist(REFRESH_TOKEN_KEY, null);
     set({ accessToken: null, refreshToken: null, authReady: false });
@@ -74,6 +85,10 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return headers;
   },
   setAuthReady: ready => {
+    logger.info(`${ready ? '✅' : '❌'} setAuthReady called`, {
+      ready,
+      hasAccessToken: !!get().accessToken,
+    });
     set({ authReady: ready });
   },
   setBootstrapping: value => {

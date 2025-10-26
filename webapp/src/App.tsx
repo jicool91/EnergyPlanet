@@ -13,6 +13,7 @@ import { logClientEvent } from './services/telemetry';
 import { initializePreferenceCloudSync } from './services/preferencesSync';
 import { useSafeArea, useAuthBootstrap } from './hooks';
 import { useAuthStore, authStore } from './store/authStore';
+import { logger } from './utils/logger';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 
@@ -124,9 +125,24 @@ function App() {
   }, [currentLevel, isInitialized, toast]);
 
   useEffect(() => {
+    logger.info('🔍 App.tsx state check', {
+      authReady,
+      isInitialized,
+      hasAccessToken: !!authStore.accessToken,
+    });
+
     if (!authReady || isInitialized) {
+      if (!authReady) {
+        logger.info('⏳ Waiting for authReady...');
+      }
+      if (isInitialized) {
+        logger.info('✅ Game already initialized, skipping initGame call');
+      }
       return;
     }
+
+    logger.info('🎮 Calling initGame from App.tsx');
+
     initGame();
   }, [authReady, isInitialized, initGame]);
 
