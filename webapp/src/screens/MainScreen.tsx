@@ -24,6 +24,7 @@ import { useCatalogStore } from '../store/catalogStore';
 import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
 
 const TAB_BAR_RESERVE_PX = 88;
+const HEADER_RESERVE_PX = 72;
 
 // Lazy load heavy components
 const ShopPanel = lazy(() =>
@@ -144,9 +145,14 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const { toast } = useNotification();
   const { safeArea } = useSafeArea();
   const { bottom: safeBottom, left: safeLeft, right: safeRight } = safeArea.safe;
+  const { top: contentTop } = safeArea.content;
   const scrollPaddingBottom = useMemo(
     () => TAB_BAR_RESERVE_PX + Math.max(0, safeBottom),
     [safeBottom]
+  );
+  const nonHomePaddingTop = useMemo(
+    () => Math.max(0, contentTop) + HEADER_RESERVE_PX,
+    [contentTop]
   );
   const scrollContainerStyle = useMemo(() => {
     const style: Record<string, string> = {
@@ -568,7 +574,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
           {activeTab === 'home' ? (
             renderActiveTab()
           ) : (
-            <div className="p-4">{renderActiveTab()}</div>
+            <div className="px-4 pb-4" style={{ paddingTop: `${nonHomePaddingTop}px` }}>
+              {renderActiveTab()}
+            </div>
           )}
 
           {/* Back to Tap Button (floating) */}
