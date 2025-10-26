@@ -191,12 +191,12 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
       };
 
   const glowTransition = prefersReducedMotion
-    ? { duration: 0.3, repeat: 0 as const }
-    : { duration: 1.2, repeat: 1 as const };
+    ? { duration: 0.3, repeat: 0 }
+    : { duration: 1.2, repeat: 1 };
 
   const sparkleTransition = prefersReducedMotion
     ? { duration: 0.2 }
-    : { duration: 1.5, repeat: Infinity as const };
+    : { duration: 1.5, repeat: Infinity };
 
   return (
     <AnimatePresence>
