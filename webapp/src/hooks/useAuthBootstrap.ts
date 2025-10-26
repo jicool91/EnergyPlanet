@@ -71,10 +71,23 @@ export function useAuthBootstrap() {
             return;
           }
 
-          setTokens({
+          const tokens = {
             accessToken: response.data.access_token,
             refreshToken: response.data.refresh_token,
-          });
+          };
+
+          void logClientEvent(
+            'auth_tokens_set',
+            {
+              hasAccessToken: !!tokens.accessToken,
+              hasRefreshToken: !!tokens.refreshToken,
+              accessTokenLength: tokens.accessToken?.length || 0,
+              attempt,
+            },
+            'info'
+          );
+
+          setTokens(tokens);
           setBootstrapping(false);
           return;
         } catch (error) {
@@ -131,10 +144,21 @@ export function useAuthBootstrap() {
               return;
             }
 
-            setTokens({
+            const refreshedTokens = {
               accessToken: response.data.access_token,
               refreshToken: response.data.refresh_token,
-            });
+            };
+
+            void logClientEvent(
+              'refresh_token_success',
+              {
+                hasAccessToken: !!refreshedTokens.accessToken,
+                accessTokenLength: refreshedTokens.accessToken?.length || 0,
+              },
+              'info'
+            );
+
+            setTokens(refreshedTokens);
             setBootstrapping(false);
             return;
           } catch (refreshError) {

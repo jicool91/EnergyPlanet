@@ -260,7 +260,25 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({ isLoading: true, sessionErrorMessage: null });
 
       const previousLevel = get().level;
+
+      void logClientEvent(
+        'initGame_start',
+        {
+          hasAccessToken: !!authStore.accessToken,
+          accessTokenLength: authStore.accessToken?.length || 0,
+          previousLevel,
+        },
+        'info'
+      );
+
       if (!authStore.accessToken) {
+        void logClientEvent(
+          'initGame_no_access_token',
+          {
+            accessToken: authStore.accessToken,
+          },
+          'warn'
+        );
         set({ isLoading: false });
         return;
       }
