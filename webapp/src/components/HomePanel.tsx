@@ -126,8 +126,8 @@ export function HomePanel({
           <StatCard icon="⚡" label="Энергия" value={`${energyCompact} E`} subLabel="Баланс" />
           <StatCard
             icon="🪐"
-            label="Tap Lvl"
-            value={`Lv ${tapLevel}`}
+            label="Уровень тапа"
+            value={`Ур. ${tapLevel}`}
             subLabel={`${tapIncomeDisplay} E`}
           />
           <StatCard
@@ -138,7 +138,7 @@ export function HomePanel({
           />
           <StatCard
             icon="🎯"
-            label="Уровень"
+            label="Прогресс уровня"
             value={`${Math.round(xpProgress * 100)}%`}
             subLabel={xpRemaining > 0 ? `+${formatNumberWithSpaces(xpRemaining)} XP` : 'Готов'}
           />
@@ -204,6 +204,15 @@ export function HomePanel({
 
       {/* Right column: Progress & social blocks */}
       <div className="flex flex-col gap-2 px-4 py-2 lg:px-0 lg:py-0">
+        <div className="px-1 lg:px-0">
+          <h2 className="m-0 text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-[0.12em]">
+            Возвращайтесь каждый день
+          </h2>
+          <p className="m-0 mt-1 text-xs text-[var(--color-text-secondary)]">
+            Заберите ежедневную награду и откройте Boost Hub, чтобы ускорить следующее повышение
+            уровня.
+          </p>
+        </div>
         {/* Daily Reward Banner */}
         <DailyRewardBanner />
 
