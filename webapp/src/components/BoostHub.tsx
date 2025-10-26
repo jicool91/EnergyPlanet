@@ -94,7 +94,7 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
   }, [boostHub.length]);
 
   const { success: hapticSuccess, error: hapticError } = useHaptic();
-  const { success: notifySuccess, error: notifyError } = useNotification();
+  const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useNotification();
 
   const handleClaimBoost = useCallback(
     async (boostType: string) => {
@@ -218,6 +218,20 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
                   <div>
                     <h3 className="m-0 text-body font-semibold">{label}</h3>
                     <p className="m-0 text-caption text-token-secondary">{description}</p>
+                    {item.requires_premium && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          notifyWarning(
+                            'Премиум подписка в разработке. Оставьте заявку в поддержке, чтобы получить ранний доступ.'
+                          )
+                        }
+                        className="mt-2"
+                      >
+                        Узнать о премиуме
+                      </Button>
+                    )}
                   </div>
                   <Badge variant="warning" size="sm">
                     x{item.multiplier}

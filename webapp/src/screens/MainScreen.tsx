@@ -152,9 +152,11 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
       }),
       shallow
     );
-  const { buildingCatalog } = useCatalogStore(
+  const { buildingCatalog, boostHub, boostHubTimeOffsetMs } = useCatalogStore(
     state => ({
       buildingCatalog: state.buildingCatalog,
+      boostHub: state.boostHub,
+      boostHubTimeOffsetMs: state.boostHubTimeOffsetMs,
     }),
     shallow
   );
@@ -333,6 +335,60 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     };
   }, [buildingCatalog, buildings, level, energy]);
 
+  const { activeBoostSummary, nextBoostAvailabilityMs } = useMemo(() => {
+    if (!Array.isArray(boostHub) || boostHub.length === 0) {
+      return { activeBoostSummary: null, nextBoostAvailabilityMs: undefined };
+    }
+
+    const serverOffset = boostHubTimeOffsetMs ?? 0;
+    const nowMs = Date.now() + serverOffset;
+
+    let activeSummary: { boostType: string; multiplier: number; remainingMs: number } | null = null;
+    let nextAvailabilityMs: number | undefined;
+    let hasReadyBoost = false;
+
+    boostHub.forEach(item => {
+      if (item.active) {
+        const expiresAtMs = item.active.expires_at ? Date.parse(item.active.expires_at) : null;
+        const remainingMs =
+          expiresAtMs !== null
+            ? Math.max(0, expiresAtMs - nowMs)
+            : (item.active.remaining_seconds ?? 0) * 1000;
+        if (
+          !activeSummary ||
+          remainingMs > activeSummary.remainingMs ||
+          item.multiplier > activeSummary.multiplier
+        ) {
+          activeSummary = {
+            boostType: item.boost_type,
+            multiplier: item.multiplier,
+            remainingMs,
+          };
+        }
+      } else {
+        const cooldownSeconds = item.cooldown_remaining_seconds ?? 0;
+        const availableAtMs = item.available_at ? Date.parse(item.available_at) : null;
+        let untilMs = cooldownSeconds > 0 ? cooldownSeconds * 1000 : 0;
+        if (untilMs === 0 && availableAtMs !== null) {
+          untilMs = Math.max(0, availableAtMs - nowMs);
+        }
+
+        if (untilMs <= 0) {
+          hasReadyBoost = true;
+        } else {
+          nextAvailabilityMs =
+            nextAvailabilityMs === undefined ? untilMs : Math.min(nextAvailabilityMs, untilMs);
+        }
+      }
+    });
+
+    if (hasReadyBoost) {
+      nextAvailabilityMs = 0;
+    }
+
+    return { activeBoostSummary: activeSummary, nextBoostAvailabilityMs: nextAvailabilityMs };
+  }, [boostHub, boostHubTimeOffsetMs]);
+
   useEffect(() => {
     if (activeTab === 'leaderboard') {
       loadLeaderboard();
@@ -425,6 +481,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
               onViewLeaderboard={() => onTabChange('leaderboard')}
               socialPlayerCount={leaderboardTotal}
               isSocialBlockLoading={!leaderboardLoaded && isLeaderboardLoading}
+              activeBoost={activeBoostSummary ?? undefined}
+              nextBoostAvailabilityMs={nextBoostAvailabilityMs}
+              onViewBoosts={() => onTabChange('boosts')}
             />
           </ScreenTransition>
         );

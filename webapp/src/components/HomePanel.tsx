@@ -20,6 +20,7 @@ import { DailyRewardBanner } from './DailyRewardBanner';
 import { useDevicePerformance, useSafeArea } from '../hooks';
 import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
 import { PrestigeCard } from './PrestigeCard';
+import { Button } from './Button';
 
 const TAB_BAR_RESERVE_PX = 88;
 
@@ -64,6 +65,13 @@ export interface HomePanelProps {
   onViewLeaderboard?: () => void;
   socialPlayerCount?: number;
   isSocialBlockLoading?: boolean;
+  activeBoost?: {
+    boostType: string;
+    multiplier: number;
+    remainingMs: number;
+  };
+  nextBoostAvailabilityMs?: number | undefined;
+  onViewBoosts?: () => void;
 }
 
 export function HomePanel({
@@ -94,6 +102,9 @@ export function HomePanel({
   onViewLeaderboard,
   socialPlayerCount = 0,
   isSocialBlockLoading = false,
+  activeBoost,
+  nextBoostAvailabilityMs,
+  onViewBoosts,
 }: HomePanelProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
   const performance = useDevicePerformance();
@@ -112,6 +123,21 @@ export function HomePanel({
   const glowClassName = isLowPerformance
     ? 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-12 -z-10'
     : 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-20 blur-xl -z-10';
+
+  const formatMsToReadable = (ms: number) => {
+    const totalSeconds = Math.max(0, Math.round(ms / 1000));
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    if (minutes >= 60) {
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      return `${hours}ч ${mins.toString().padStart(2, '0')}м`;
+    }
+    if (minutes > 0) {
+      return `${minutes}м ${seconds.toString().padStart(2, '0')}с`;
+    }
+    return `${seconds}с`;
+  };
 
   return (
     <div
@@ -215,6 +241,45 @@ export function HomePanel({
         </div>
         {/* Daily Reward Banner */}
         <DailyRewardBanner />
+        {activeBoost ? (
+          <Card className="flex items-center justify-between gap-3 bg-lime/15 border-lime/40">
+            <div>
+              <p className="m-0 text-xs uppercase tracking-[0.3em] text-lime-600">Активный буст</p>
+              <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
+                ×{activeBoost.multiplier.toFixed(1)} к доходу
+              </p>
+              <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                Осталось {formatMsToReadable(activeBoost.remainingMs)}
+              </p>
+            </div>
+            {onViewBoosts && (
+              <Button variant="ghost" size="sm" onClick={onViewBoosts}>
+                Управлять
+              </Button>
+            )}
+          </Card>
+        ) : typeof nextBoostAvailabilityMs !== 'undefined' ? (
+          <Card className="flex items-center justify-between gap-3 bg-cyan/10 border-cyan/30">
+            <div>
+              <p className="m-0 text-xs uppercase tracking-[0.3em] text-cyan-600">
+                {nextBoostAvailabilityMs === 0 ? 'Буст доступен' : 'Следующий буст'}
+              </p>
+              <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
+                {nextBoostAvailabilityMs === 0
+                  ? 'Свободный буст ждёт вас в Boost Hub'
+                  : `Откройте Boost Hub через ${formatMsToReadable(nextBoostAvailabilityMs)}`}
+              </p>
+              <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                Бусты удваивают пассивный доход и ускоряют новые постройки.
+              </p>
+            </div>
+            {onViewBoosts && (
+              <Button variant="secondary" size="sm" onClick={onViewBoosts}>
+                Открыть Boost Hub
+              </Button>
+            )}
+          </Card>
+        ) : null}
 
         {/* XP Progress Card */}
         <XPProgressCard
