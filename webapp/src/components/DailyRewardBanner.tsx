@@ -4,7 +4,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import { shallow } from 'zustand/shallow';
 import { useDevicePerformance } from '../hooks';
 import { useCatalogStore } from '@/store/catalogStore';
@@ -34,6 +34,7 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
   const performance = useDevicePerformance();
   const isLowPerformance = performance === 'low';
   const isMediumPerformance = performance === 'medium';
+  const prefersReducedMotion = useReducedMotion();
   const { success, error } = useNotification();
 
   const {
@@ -87,12 +88,22 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
     hasData && remainingToAvailabilityMs <= 0 && (activeRemainingMs <= 0 || !dailyBoost?.active);
   const buttonDisabled = !isAvailable || isClaiming || isLoading;
 
+  const rewardHeadline = useMemo(() => {
+    if (!dailyBoost?.multiplier) {
+      return 'Ежедневная награда';
+    }
+    const bonusPercent = Math.round((dailyBoost.multiplier - 1) * 100);
+    return bonusPercent > 0
+      ? `Ежедневный буст +${bonusPercent}% пассивного дохода`
+      : 'Ежедневная награда';
+  }, [dailyBoost]);
+
   const visualCountdown = isAvailable
-    ? 'Доступно'
+    ? 'Буст готов — заберите сейчас'
     : activeRemainingMs > 0
       ? `Активно ещё ${formatDuration(activeRemainingMs)}`
       : hasData
-        ? `Приходит через ${formatDuration(remainingToAvailabilityMs)}`
+        ? `Доступно через ${formatDuration(remainingToAvailabilityMs)}`
         : 'Загружаем…';
 
   const accessibleStatus = useMemo(() => {
@@ -147,42 +158,34 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-lg bg-gradient-to-r from-gold/40 to-orange/40 border border-gold/60 p-4 shadow-lg"
+      className="relative overflow-hidden rounded-xl border border-amber-400/60 bg-gradient-to-r from-amber-200/90 via-amber-100/95 to-yellow-100/95 p-4 shadow-lg text-amber-900"
     >
-      <motion.div
-        className="absolute inset-0 bg-gradient-to-r from-gold/20 to-transparent opacity-50"
-        animate={
-          isLowPerformance
-            ? undefined
-            : {
-                x: ['-100%', '100%'],
-              }
-        }
-        transition={
-          isLowPerformance
-            ? undefined
-            : {
-                duration: isMediumPerformance ? 3.6 : 3,
-                repeat: Infinity,
-                repeatType: 'loop',
-              }
-        }
-      />
+      {!prefersReducedMotion && !isLowPerformance && (
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-r from-amber-300/35 to-transparent opacity-60"
+          animate={{
+            x: ['-100%', '100%'],
+          }}
+          transition={{
+            duration: isMediumPerformance ? 3.6 : 3,
+            repeat: Infinity,
+            repeatType: 'loop',
+          }}
+        />
+      )}
 
       <div className="relative flex flex-wrap items-center justify-between gap-4 z-10">
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-[220px] flex-1">
           <span
-            className={`text-4xl ${isLowPerformance ? '' : 'animate-bounce'}`}
+            className={`text-4xl ${isLowPerformance || prefersReducedMotion ? '' : 'animate-bounce'}`}
             role="img"
             aria-label="Подарок ежедневной награды"
           >
             🎁
           </span>
-          <div>
-            <p className="m-0 text-sm font-bold text-[var(--color-gold)]">
-              Ежедневное вознаграждение
-            </p>
-            <p className="m-0 text-xs text-[var(--color-gold)] opacity-80">
+          <div className="flex-1 min-w-[160px]">
+            <p className="m-0 text-sm font-bold">{rewardHeadline}</p>
+            <p className="m-0 text-xs text-amber-800/80">
               {visualCountdown}
               <span className="sr-only" aria-live="polite" aria-atomic="true">
                 {accessibleStatus}
@@ -200,10 +203,8 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
           whileHover={!buttonDisabled ? { scale: 1.05 } : undefined}
           whileTap={!buttonDisabled ? { scale: 0.95 } : undefined}
           onClick={handleClaim}
-          className={`flex-shrink-0 px-4 py-2 rounded-lg bg-gradient-to-r from-gold to-orange text-dark-bg font-bold text-sm transition-all duration-200 shadow-md focus-ring ${
-            buttonDisabled
-              ? 'opacity-60 cursor-not-allowed'
-              : 'hover:from-gold/90 hover:to-orange/90'
+          className={`flex-shrink-0 px-4 py-2 rounded-lg bg-amber-500 text-amber-950 font-bold text-sm transition-all duration-200 shadow-md focus-ring ${
+            buttonDisabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-amber-400'
           }`}
           type="button"
           disabled={buttonDisabled}
