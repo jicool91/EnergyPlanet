@@ -3,6 +3,7 @@
  */
 
 import { Request, Response, NextFunction } from 'express';
+import { logger } from '../utils/logger';
 import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { AppError } from './errorHandler';
@@ -16,15 +17,16 @@ export interface AuthRequest extends Request {
   };
 }
 
-export const authenticate = async (
-  req: AuthRequest,
-  _res: Response,
-  next: NextFunction
-) => {
+export const authenticate = async (req: AuthRequest, _res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
 
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      logger.warn('auth_missing_header', {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+      });
       throw new AppError(401, 'unauthorized');
     }
 
@@ -41,21 +43,30 @@ export const authenticate = async (
 
     next();
   } catch (error) {
-    if (error instanceof jwt.JsonWebTokenError) {
-      next(new AppError(401, 'invalid_token'));
-    } else if (error instanceof jwt.TokenExpiredError) {
+    if (error instanceof jwt.TokenExpiredError) {
+      logger.warn('auth_token_expired', { path: req.path, origin: req.headers.origin, ip: req.ip });
       next(new AppError(401, 'token_expired'));
+    } else if (error instanceof jwt.JsonWebTokenError) {
+      logger.warn('auth_invalid_token', {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+        message: error.message,
+      });
+      next(new AppError(401, 'invalid_token'));
     } else {
+      logger.error('auth_unexpected_error', {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+        error,
+      });
       next(error);
     }
   }
 };
 
-export const requireAdmin = (
-  req: AuthRequest,
-  _res: Response,
-  next: NextFunction
-) => {
+export const requireAdmin = (req: AuthRequest, _res: Response, next: NextFunction) => {
   if (!req.user?.isAdmin) {
     throw new AppError(403, 'forbidden');
   }

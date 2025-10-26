@@ -624,7 +624,19 @@ export const useGameStore = create<GameState>((set, get) => ({
   flushPassiveIncome: async ({ keepAlive = false }: { keepAlive?: boolean } = {}) => {
     commitPassiveBuffers(set);
     const pendingSeconds = get().pendingPassiveSeconds;
+    const accessToken = authStore.accessToken;
     if (!pendingSeconds || pendingSeconds <= 0 || passiveFlushInFlight) {
+      return;
+    }
+    if (!accessToken) {
+      void logClientEvent(
+        'tick_skip_unauthenticated',
+        {
+          pending_seconds: pendingSeconds,
+          keep_alive: keepAlive,
+        },
+        'warn'
+      );
       return;
     }
 
