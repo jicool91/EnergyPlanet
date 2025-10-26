@@ -83,6 +83,8 @@ export function useAuthBootstrap() {
             attempt,
           });
 
+          setTokens(tokens);
+
           void logClientEvent(
             'auth_tokens_set',
             {
@@ -94,7 +96,6 @@ export function useAuthBootstrap() {
             'info'
           );
 
-          setTokens(tokens);
           setBootstrapping(false);
           return;
         } catch (error) {
@@ -181,6 +182,8 @@ export function useAuthBootstrap() {
               accessTokenLength: refreshedTokens.accessToken?.length || 0,
             });
 
+            setTokens(refreshedTokens);
+
             void logClientEvent(
               'refresh_token_success',
               {
@@ -190,7 +193,6 @@ export function useAuthBootstrap() {
               'info'
             );
 
-            setTokens(refreshedTokens);
             setBootstrapping(false);
             return;
           } catch (refreshError) {
