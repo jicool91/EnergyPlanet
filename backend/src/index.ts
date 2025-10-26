@@ -108,9 +108,21 @@ app.get('/health', async (_req, res) => {
 });
 
 if (metricsEnabled) {
-  app.get('/metrics', async (_req, res) => {
+  app.get(config.prometheus.metricsPath, async (req, res) => {
+    if (config.prometheus.basicAuthUser && config.prometheus.basicAuthPass) {
+      const authHeader = req.headers.authorization || '';
+      const expected = `Basic ${Buffer.from(`${config.prometheus.basicAuthUser}:${config.prometheus.basicAuthPass}`).toString('base64')}`;
+      if (authHeader !== expected) {
+        res.setHeader('WWW-Authenticate', 'Basic realm="metrics"');
+        res.status(401).send('Unauthorized');
+        return;
+      }
+    }
+
+    const metrics = await metricsRegister.metrics();
     res.set('Content-Type', metricsRegister.contentType);
-    res.send(await metricsRegister.metrics());
+    res.send(metrics);
+    return;
   });
 }
 

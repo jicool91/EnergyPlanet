@@ -220,6 +220,9 @@ export const config = {
   prometheus: {
     enabled: process.env.PROMETHEUS_ENABLED !== 'false',
     port: parseInt(process.env.PROMETHEUS_PORT || '9090', 10),
+    metricsPath: process.env.PROMETHEUS_METRICS_PATH || '/metrics',
+    basicAuthUser: process.env.PROM_AUTH_USER || '',
+    basicAuthPass: process.env.PROM_AUTH_PASS || '',
   },
 
   cdn: {

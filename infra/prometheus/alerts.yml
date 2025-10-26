@@ -1,0 +1,19 @@
+groups:
+  - name: energyplanet-api
+    rules:
+      - alert: TickLatencyHigh
+        expr: energyplanet_tick_latency_seconds_sum / energyplanet_tick_latency_seconds_count > 0.2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Tick latency p95 > 200ms"
+          description: "Tick latency is above 200ms for 5 minutes."
+      - alert: TickUnauthorizedSpike
+        expr: increase(energyplanet_tick_unauthorized_total[5m]) > 50
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Unauthorized tick spikes"
+          description: "Detected more than 50 unauthorized ticks in 5 minutes."
