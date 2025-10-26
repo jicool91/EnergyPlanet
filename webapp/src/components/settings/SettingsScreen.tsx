@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
+import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
 import { usePreferencesStore, type ThemeMode, type Language } from '../../store/preferencesStore';
@@ -9,6 +10,10 @@ import { Card } from '../Card';
 import { Toggle } from './Toggle';
 import { SliderControl } from './SliderControl';
 import { SettingsSection } from './SettingsSection';
+
+const INTENSITY_OPTIONS = ['light', 'medium', 'strong'] as const;
+const THEME_OPTIONS: ThemeMode[] = ['light', 'dark', 'auto'];
+const LANGUAGE_OPTIONS: Language[] = ['ru', 'en'];
 
 interface SettingsScreenProps {
   onClose?: () => void;
@@ -52,6 +57,147 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
     resetToDefaults,
   } = usePreferencesStore();
 
+  const selectIntensity = useCallback(
+    (intensity: (typeof INTENSITY_OPTIONS)[number]) => {
+      light();
+      setHapticIntensity(intensity);
+    },
+    [light, setHapticIntensity]
+  );
+
+  const selectTheme = useCallback(
+    (mode: ThemeMode) => {
+      light();
+      setTheme(mode);
+    },
+    [light, setTheme]
+  );
+
+  const selectLanguage = useCallback(
+    (lang: Language) => {
+      light();
+      setLanguage(lang);
+    },
+    [light, setLanguage]
+  );
+
+  const handleIntensityKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
+      const lastIndex = INTENSITY_OPTIONS.length - 1;
+
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown': {
+          event.preventDefault();
+          const nextIndex = index === lastIndex ? 0 : index + 1;
+          selectIntensity(INTENSITY_OPTIONS[nextIndex]);
+          break;
+        }
+        case 'ArrowLeft':
+        case 'ArrowUp': {
+          event.preventDefault();
+          const prevIndex = index === 0 ? lastIndex : index - 1;
+          selectIntensity(INTENSITY_OPTIONS[prevIndex]);
+          break;
+        }
+        case 'Home':
+          event.preventDefault();
+          selectIntensity(INTENSITY_OPTIONS[0]);
+          break;
+        case 'End':
+          event.preventDefault();
+          selectIntensity(INTENSITY_OPTIONS[lastIndex]);
+          break;
+        case ' ':
+        case 'Enter':
+          event.preventDefault();
+          selectIntensity(INTENSITY_OPTIONS[index]);
+          break;
+        default:
+          break;
+      }
+    },
+    [selectIntensity]
+  );
+
+  const handleThemeKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
+      const lastIndex = THEME_OPTIONS.length - 1;
+
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown': {
+          event.preventDefault();
+          const nextIndex = index === lastIndex ? 0 : index + 1;
+          selectTheme(THEME_OPTIONS[nextIndex]);
+          break;
+        }
+        case 'ArrowLeft':
+        case 'ArrowUp': {
+          event.preventDefault();
+          const prevIndex = index === 0 ? lastIndex : index - 1;
+          selectTheme(THEME_OPTIONS[prevIndex]);
+          break;
+        }
+        case 'Home':
+          event.preventDefault();
+          selectTheme(THEME_OPTIONS[0]);
+          break;
+        case 'End':
+          event.preventDefault();
+          selectTheme(THEME_OPTIONS[lastIndex]);
+          break;
+        case ' ':
+        case 'Enter':
+          event.preventDefault();
+          selectTheme(THEME_OPTIONS[index]);
+          break;
+        default:
+          break;
+      }
+    },
+    [selectTheme]
+  );
+
+  const handleLanguageKeyDown = useCallback(
+    (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
+      const lastIndex = LANGUAGE_OPTIONS.length - 1;
+
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown': {
+          event.preventDefault();
+          const nextIndex = index === lastIndex ? 0 : index + 1;
+          selectLanguage(LANGUAGE_OPTIONS[nextIndex]);
+          break;
+        }
+        case 'ArrowLeft':
+        case 'ArrowUp': {
+          event.preventDefault();
+          const prevIndex = index === 0 ? lastIndex : index - 1;
+          selectLanguage(LANGUAGE_OPTIONS[prevIndex]);
+          break;
+        }
+        case 'Home':
+          event.preventDefault();
+          selectLanguage(LANGUAGE_OPTIONS[0]);
+          break;
+        case 'End':
+          event.preventDefault();
+          selectLanguage(LANGUAGE_OPTIONS[lastIndex]);
+          break;
+        case ' ':
+        case 'Enter':
+          event.preventDefault();
+          selectLanguage(LANGUAGE_OPTIONS[index]);
+          break;
+        default:
+          break;
+      }
+    },
+    [selectLanguage]
+  );
+
   const handleLogout = async () => {
     try {
       await logoutSession(false);
@@ -66,14 +212,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
     label,
     selected,
     onClick,
+    onKeyDown,
   }: {
     label: string;
     selected: boolean;
     onClick: () => void;
+    onKeyDown?: (event: ReactKeyboardEvent<HTMLButtonElement>) => void;
   }) => (
     <motion.button
+      type="button"
       onClick={onClick}
+      onKeyDown={onKeyDown}
       whileTap={{ scale: 0.95 }}
+      role="radio"
+      aria-checked={selected}
+      tabIndex={selected ? 0 : -1}
       className={`py-2 rounded-lg font-medium transition-all ${
         selected
           ? 'bg-lime text-black shadow-lg'
@@ -152,8 +305,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
         {hapticEnabled && (
           <div className="flex flex-col gap-2">
             <label className="text-sm font-medium text-token-secondary">Интенсивность</label>
-            <div className="grid grid-cols-3 gap-2">
-              {(['light', 'medium', 'strong'] as const).map(intensity => (
+            <div
+              className="grid grid-cols-3 gap-2"
+              role="radiogroup"
+              aria-label="Интенсивность вибрации"
+            >
+              {INTENSITY_OPTIONS.map((intensity, index) => (
                 <SelectButton
                   key={intensity}
                   label={
@@ -164,10 +321,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
                         : '💥 Сильная'
                   }
                   selected={hapticIntensity === intensity}
-                  onClick={() => {
-                    light();
-                    setHapticIntensity(intensity);
-                  }}
+                  onClick={() => selectIntensity(intensity)}
+                  onKeyDown={event => handleIntensityKeyDown(event, index)}
                 />
               ))}
             </div>
@@ -196,16 +351,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       <SettingsSection title="Дисплей" icon="🎨" description="Внешний вид и язык">
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-token-secondary">Тема оформления</label>
-          <div className="grid grid-cols-3 gap-2">
-            {(['light', 'dark', 'auto'] as ThemeMode[]).map(t => (
+          <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Тема оформления">
+            {THEME_OPTIONS.map((mode, index) => (
               <SelectButton
-                key={t}
-                label={t === 'light' ? '☀️ Светлая' : t === 'dark' ? '🌙 Тёмная' : '🤖 Авто'}
-                selected={theme === t}
-                onClick={() => {
-                  light();
-                  setTheme(t);
-                }}
+                key={mode}
+                label={mode === 'light' ? '☀️ Светлая' : mode === 'dark' ? '🌙 Тёмная' : '🤖 Авто'}
+                selected={theme === mode}
+                onClick={() => selectTheme(mode)}
+                onKeyDown={event => handleThemeKeyDown(event, index)}
               />
             ))}
           </div>
@@ -213,16 +366,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
 
         <div className="flex flex-col gap-2">
           <label className="text-sm font-medium text-token-secondary">Язык</label>
-          <div className="grid grid-cols-2 gap-2">
-            {(['ru', 'en'] as Language[]).map(lang => (
+          <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Выбор языка">
+            {LANGUAGE_OPTIONS.map((lang, index) => (
               <SelectButton
                 key={lang}
                 label={lang === 'ru' ? '🇷🇺 Русский' : '🇬🇧 English'}
                 selected={language === lang}
-                onClick={() => {
-                  light();
-                  setLanguage(lang);
-                }}
+                onClick={() => selectLanguage(lang)}
+                onKeyDown={event => handleLanguageKeyDown(event, index)}
               />
             ))}
           </div>
@@ -308,13 +459,21 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
             © 2025 Energy Planet. Все права защищены.
           </div>
           <div className="flex gap-2 mt-2">
-            <a href="#privacy" className="text-cyan hover:text-cyan/80 transition-colors underline">
+            <button
+              type="button"
+              className="text-cyan hover:text-cyan/80 transition-colors underline focus-ring px-0"
+              onClick={() => warning('Документ будет опубликован в ближайшее время')}
+            >
               Политика приватности
-            </a>
+            </button>
             <span className="text-token-secondary opacity-40">•</span>
-            <a href="#terms" className="text-cyan hover:text-cyan/80 transition-colors underline">
+            <button
+              type="button"
+              className="text-cyan hover:text-cyan/80 transition-colors underline focus-ring px-0"
+              onClick={() => warning('Документ будет опубликован в ближайшее время')}
+            >
               Условия использования
-            </a>
+            </button>
           </div>
         </div>
       </SettingsSection>
