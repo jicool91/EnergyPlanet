@@ -88,11 +88,8 @@ class ClientLogger {
   }
 
   private async sendToBackend(level: LogLevel, message: string, context?: Record<string, unknown>) {
-    // Only send warn and error logs to backend
-    if (level !== 'warn' && level !== 'error') {
-      return;
-    }
-
+    // Send ALL logs to backend (including info/debug for auth flow debugging)
+    // This is a Telegram Mini App - we can't use browser DevTools!
     try {
       // Non-blocking send to telemetry endpoint
       // Don't await to avoid blocking logger calls
@@ -100,6 +97,7 @@ class ClientLogger {
         event: message,
         severity: level,
         context,
+        timestamp: new Date().toISOString(),
       }).catch(() => {
         // Silently fail - don't double log errors
       });
@@ -130,7 +128,7 @@ class ClientLogger {
       console[method](formatted);
     }
 
-    // Send errors and warnings to backend
+    // Send ALL logs to backend (no filtering - Telegram Mini App needs full visibility)
     this.sendToBackend(level, message, context);
   }
 
