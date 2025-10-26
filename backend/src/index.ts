@@ -12,6 +12,7 @@ import { loadContent } from './services/ContentService';
 import { tapAggregator } from './services/TapAggregator';
 import apiRouter from './api/routes';
 import { rateLimiter } from './middleware/rateLimiter';
+import { register as metricsRegister, metricsEnabled } from './metrics';
 
 const app: Application = express();
 
@@ -53,13 +54,33 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+const isTickRequest = (req: express.Request) =>
+  req.method === 'POST' && req.path === `${config.server.apiPrefix}/tick`;
+
+const shouldSampleTickLog = () => {
+  if (!config.logging.tickSampleRate) {
+    return false;
+  }
+  return Math.random() < config.logging.tickSampleRate;
+};
+
 app.use((req, _res, next) => {
-  logger.info('📨 Incoming request', {
-    method: req.method,
-    path: req.path,
-    origin: req.get('origin'),
-    host: req.get('host'),
-  });
+  if (isTickRequest(req)) {
+    if (shouldSampleTickLog()) {
+      logger.debug('tick_request_sampled', {
+        origin: req.get('origin'),
+        host: req.get('host'),
+        userAgent: req.get('user-agent'),
+      });
+    }
+  } else {
+    logger.info('📨 Incoming request', {
+      method: req.method,
+      path: req.path,
+      origin: req.get('origin'),
+      host: req.get('host'),
+    });
+  }
   next();
 });
 
@@ -85,6 +106,13 @@ app.get('/health', async (_req, res) => {
     uptime: process.uptime(),
   });
 });
+
+if (metricsEnabled) {
+  app.get('/metrics', async (_req, res) => {
+    res.set('Content-Type', metricsRegister.contentType);
+    res.send(await metricsRegister.metrics());
+  });
+}
 
 app.use(config.server.apiPrefix, apiRouter);
 

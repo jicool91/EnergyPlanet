@@ -192,6 +192,13 @@ export const config = {
     format: process.env.LOG_FORMAT || 'json',
     filePath: process.env.LOG_FILE_PATH || './logs/app.log',
     errorFilePath: process.env.LOG_ERROR_FILE_PATH || './logs/error.log',
+    tickSampleRate: (() => {
+      const raw = parseFloat(process.env.LOG_TICK_SAMPLE_RATE || '0');
+      if (!Number.isFinite(raw)) {
+        return 0;
+      }
+      return Math.min(Math.max(raw, 0), 1);
+    })(),
   },
 
   session: {
@@ -208,6 +215,11 @@ export const config = {
   admin: {
     telegramIds: process.env.ADMIN_TELEGRAM_IDS?.split(',').map(id => parseInt(id, 10)) || [],
     superAdminId: process.env.SUPER_ADMIN_TELEGRAM_ID ? parseInt(process.env.SUPER_ADMIN_TELEGRAM_ID, 10) : null,
+  },
+
+  prometheus: {
+    enabled: process.env.PROMETHEUS_ENABLED !== 'false',
+    port: parseInt(process.env.PROMETHEUS_PORT || '9090', 10),
   },
 
   cdn: {

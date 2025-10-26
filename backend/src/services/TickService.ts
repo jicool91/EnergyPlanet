@@ -12,6 +12,11 @@ import {
   ensurePlayerSession,
   updatePlayerSession,
 } from '../repositories/PlayerSessionRepository';
+import {
+  startTickLatencyTimer,
+  recordTickSuccess,
+  recordTickError,
+} from '../metrics/tick';
 
 const MIN_TICK_SECONDS = 1;
 
@@ -34,9 +39,12 @@ export class TickService {
       Math.floor(config.session.maxOfflineHours * 3600)
     );
 
-    const result = await transaction(async client => {
-      const { progress, inventory, boosts } = await loadPlayerContext(userId, client);
-      const playerSession = await ensurePlayerSession(userId, client);
+    const stopLatencyTimer = startTickLatencyTimer();
+
+    try {
+      const result = await transaction(async client => {
+        const { progress, inventory, boosts } = await loadPlayerContext(userId, client);
+        const playerSession = await ensurePlayerSession(userId, client);
 
       const fallbackBaseline =
         playerSession.lastTickAt ??
@@ -115,51 +123,65 @@ export class TickService {
         );
       }
 
+        return {
+          updatedProgress,
+          passiveIncome,
+          energyGained,
+          xpGained,
+          leveledUp,
+          levelInfo,
+          totalXp,
+          accountedSeconds,
+          carriedSeconds,
+          availableSeconds,
+          previousLevel: progress.level,
+        };
+      });
+
+      stopLatencyTimer();
+      recordTickSuccess({
+        accountedSeconds: result.accountedSeconds,
+        carriedSeconds: result.carriedSeconds,
+        energyGained: result.energyGained,
+      });
+
+      logger.debug('tick_applied', {
+        userId,
+        duration_sec: result.accountedSeconds,
+        available_sec: result.availableSeconds,
+        carried_over_sec: result.carriedSeconds,
+        passive_income_per_sec: Math.round(result.passiveIncome.effectiveIncome),
+        energy_gained: result.energyGained,
+        xp_gained: result.xpGained,
+        level_before: result.previousLevel,
+        level_after: result.updatedProgress.level,
+        total_xp: result.totalXp,
+        xp_into_level: result.levelInfo.xpIntoLevel,
+        xp_to_next_level: result.levelInfo.xpToNextLevel,
+      });
+
       return {
-        updatedProgress,
-        passiveIncome,
-        energyGained,
-        xpGained,
-        leveledUp,
-        levelInfo,
-        totalXp,
-        accountedSeconds,
-        carriedSeconds,
-        availableSeconds,
-        previousLevel: progress.level,
+        energy: result.updatedProgress.energy,
+        energy_gained: result.energyGained,
+        xp_gained: result.xpGained,
+        level: result.updatedProgress.level,
+        level_up: result.leveledUp,
+        xp_into_level: result.levelInfo.xpIntoLevel,
+        xp_to_next_level: result.levelInfo.xpToNextLevel,
+        passive_income_per_sec: Math.floor(result.passiveIncome.effectiveIncome),
+        passive_income_multiplier: result.passiveIncome.effectiveMultiplier,
+        boost_multiplier: result.passiveIncome.boostMultiplier,
+        prestige_multiplier: result.passiveIncome.prestigeMultiplier,
+        duration_sec: result.accountedSeconds,
+        carried_over_sec: result.carriedSeconds,
+        pending_passive_sec: result.carriedSeconds,
       };
-    });
-
-    logger.debug('tick_applied', {
-      userId,
-      duration_sec: result.accountedSeconds,
-      available_sec: result.availableSeconds,
-      carried_over_sec: result.carriedSeconds,
-      passive_income_per_sec: Math.round(result.passiveIncome.effectiveIncome),
-      energy_gained: result.energyGained,
-      xp_gained: result.xpGained,
-      level_before: result.previousLevel,
-      level_after: result.updatedProgress.level,
-      total_xp: result.totalXp,
-      xp_into_level: result.levelInfo.xpIntoLevel,
-      xp_to_next_level: result.levelInfo.xpToNextLevel,
-    });
-
-    return {
-      energy: result.updatedProgress.energy,
-      energy_gained: result.energyGained,
-      xp_gained: result.xpGained,
-      level: result.updatedProgress.level,
-      level_up: result.leveledUp,
-      xp_into_level: result.levelInfo.xpIntoLevel,
-      xp_to_next_level: result.levelInfo.xpToNextLevel,
-      passive_income_per_sec: Math.floor(result.passiveIncome.effectiveIncome),
-      passive_income_multiplier: result.passiveIncome.effectiveMultiplier,
-      boost_multiplier: result.passiveIncome.boostMultiplier,
-      prestige_multiplier: result.passiveIncome.prestigeMultiplier,
-      duration_sec: result.accountedSeconds,
-      carried_over_sec: result.carriedSeconds,
-      pending_passive_sec: result.carriedSeconds,
-    };
+    } catch (error) {
+      stopLatencyTimer();
+      const reason =
+        error instanceof AppError ? error.message : error instanceof Error ? error.name : 'unknown';
+      recordTickError(reason);
+      throw error;
+    }
   }
 }

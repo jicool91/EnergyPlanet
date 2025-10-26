@@ -51,6 +51,13 @@ jest.mock('../../db/connection', () => ({
   transaction: jest.fn(async (cb: any) => cb({})),
 }));
 
+jest.mock('../../metrics/tick', () => ({
+  startTickLatencyTimer: () => () => {},
+  recordTickSuccess: jest.fn(),
+  recordTickError: jest.fn(),
+  recordTickUnauthorized: jest.fn(),
+}));
+
 const { loadPlayerContext } = jest.requireMock('../playerContext');
 const { ensurePlayerSession, updatePlayerSession } = jest.requireMock(
   '../../repositories/PlayerSessionRepository'

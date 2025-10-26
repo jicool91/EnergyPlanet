@@ -8,6 +8,7 @@ import jwt from 'jsonwebtoken';
 import { config } from '../config';
 import { AppError } from './errorHandler';
 import { AuthService } from '../services/AuthService';
+import { recordTickUnauthorized, recordTickError } from '../metrics/tick';
 
 export interface AuthRequest extends Request {
   user?: {
@@ -47,19 +48,19 @@ const setUserFromDecodedToken = (req: AuthRequest, decoded: any) => {
 };
 
 const tryAuthenticateWithBearer = (req: AuthRequest, header: string | null): boolean => {
-  if (!header || !header.trim().toLowerCase().startsWith('bearer ')) {
-    return false;
-  }
+    if (!header || !header.trim().toLowerCase().startsWith('bearer ')) {
+      return false;
+    }
 
-  const token = header.trim().substring(7);
-  if (!token) {
-    logger.warn('auth_missing_header', {
-      path: req.path,
-      origin: req.headers.origin,
-      ip: req.ip,
-    });
-    throw new AppError(401, 'unauthorized');
-  }
+    const token = header.trim().substring(7);
+    if (!token) {
+      logger.warn('auth_missing_header', {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+      });
+      throw new AppError(401, 'unauthorized');
+    }
 
   try {
     const decoded = jwt.verify(token, config.jwt.secret) as any;
@@ -134,6 +135,7 @@ export const authenticateTick = async (req: AuthRequest, _res: Response, next: N
         origin: req.headers.origin,
         ip: req.ip,
       });
+      recordTickUnauthorized('missing_header');
       throw new AppError(401, 'authorization_header_missing');
     }
 
@@ -149,6 +151,7 @@ export const authenticateTick = async (req: AuthRequest, _res: Response, next: N
         ip: req.ip,
         scheme,
       });
+      recordTickUnauthorized('invalid_scheme');
       throw new AppError(400, 'authorization_scheme_invalid');
     }
 
@@ -159,6 +162,7 @@ export const authenticateTick = async (req: AuthRequest, _res: Response, next: N
         ip: req.ip,
         scheme,
       });
+      recordTickUnauthorized('malformed');
       throw new AppError(400, 'authorization_header_malformed');
     }
 
@@ -185,6 +189,17 @@ export const authenticateTick = async (req: AuthRequest, _res: Response, next: N
 
     next();
   } catch (error) {
+    const reason =
+      error instanceof AppError ? error.message : error instanceof Error ? error.name : 'unexpected_error';
+
+    if (reason === 'unauthorized') {
+      recordTickUnauthorized('bearer_missing');
+    } else if (reason === 'token_expired' || reason === 'invalid_token') {
+      recordTickError(reason);
+    } else {
+      recordTickError(reason);
+    }
+
     next(error);
   }
 };
