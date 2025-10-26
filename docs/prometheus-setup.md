@@ -8,12 +8,14 @@ docker build -t energyplanet-prometheus infra/prometheus
 
 ## 2. Railway service configuration
 
-- Create a new service based on the built image (or connect GitHub repo).
-- Set environment variables:
-  - `PROMETHEUS_SCRAPE_TARGET=api:3000` (use private hostname/port).
-  - `PROMETHEUS_SCRAPE_SCHEME=http` (or `https` if exposed publicly).
-  - `PROMETHEUS_METRICS_PATH=/metrics` (default).
-- Mount `alerts.yml` if alertmanager is configured; otherwise ignore.
+- В проекте Railway нажми “New Service” → “Deploy from GitHub” и выбери репозиторий + папку `infra/prometheus`.
+- После деплоя добавь переменные:
+  - `PROMETHEUS_SCRAPE_TARGET=api:3000` (внутренний hostname backend’а, см. Private Networking). Если идёшь по публичному домену — `your-api.up.railway.app:443`.
+  - `PROMETHEUS_SCRAPE_SCHEME=http` (или `https` при внешнем доступе).
+  - `PROMETHEUS_METRICS_PATH=/metrics` (необязательно, это дефолт).
+  - Если `/metrics` защищён basic auth: `PROM_AUTH_USER` / `PROM_AUTH_PASS`.
+- Включи Private Networking и для backend, и для prometheus, чтобы адрес `api:3000` резолвился.
+- После изменений нажми **Deploy** (prometheus пересоберёт конфиг через `envsubst`).
 
 ## 3. API environment
 
@@ -41,4 +43,3 @@ Prometheus UI: `http://localhost:9090/graph` → run query `energyplanet_tick_su
 
 - Add `--config.file=/etc/prometheus/prometheus.yml --web.enable-lifecycle` in Railway start command.
 - Deploy Alertmanager (Railway) and wire to Prometheus via `alerting` section.
-
