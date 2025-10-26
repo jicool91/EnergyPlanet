@@ -48,9 +48,8 @@ function MainScreenHeaderComponent({
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
   const starsCompact = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
   const { safeArea } = useSafeArea();
-  const { top: safeTop, left: safeLeft, right: safeRight } = safeArea.safe;
-
-  const safeTopValue = Math.max(0, safeTop);
+  const { left: safeLeft, right: safeRight } = safeArea.safe;
+  const topInset = Math.max(0, safeArea.content.top);
   const headerPadding = useMemo(() => {
     return {
       paddingTop: '8px',
@@ -64,7 +63,7 @@ function MainScreenHeaderComponent({
       className="fixed left-0 right-0 z-50 border-b backdrop-blur-sm transition-colors duration-200"
       style={{
         ...headerPadding,
-        top: `${safeTopValue}px`,
+        top: `${topInset}px`,
         background: 'linear-gradient(180deg, var(--app-header-bg) 0%, var(--app-bg) 85%)',
         borderBottom: '1px solid var(--color-border-subtle)',
       }}
