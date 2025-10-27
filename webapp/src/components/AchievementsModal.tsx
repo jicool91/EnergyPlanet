@@ -55,7 +55,7 @@ export function AchievementsModal({
             Постоянный бонус от достижений
           </p>
           <p className="text-lg font-semibold text-[var(--color-text-primary)]">
-            ×{achievementMultiplier.toFixed(2)}
+            {achievementMultiplier > 1 ? `+${Math.round((achievementMultiplier - 1) * 100)}%` : '—'}
           </p>
         </div>
 
@@ -83,20 +83,31 @@ export function AchievementsModal({
         {!loading && !error && sorted.length > 0 && (
           <div className="flex flex-col gap-sm">
             {sorted.map(item => {
-              const progressPercent = Math.min(100, Math.round(item.progressRatio * 100));
-              const nextThreshold = item.nextThreshold
-                ? formatNumberWithSpaces(Math.ceil(item.nextThreshold))
-                : null;
               const claimableTier = item.claimableTier;
-              const claimableTierMeta = claimableTier
-                ? item.tiers.find(tier => tier.tier === claimableTier)
-                : null;
+              const nextTier =
+                claimableTier ?? (item.currentTier < item.maxTier ? item.currentTier + 1 : null);
+              const tierMeta = nextTier ? item.tiers.find(tier => tier.tier === nextTier) : null;
+              const rewardPercent = tierMeta
+                ? Math.round((tierMeta.rewardMultiplier - 1) * 100)
+                : Math.round((item.claimedMultiplier - 1) * 100);
+              const targetValue = tierMeta ? tierMeta.threshold : item.progressValue;
+              const progressPercent = tierMeta
+                ? Math.min(
+                    100,
+                    Math.round((item.progressValue / Math.max(tierMeta.threshold, 1)) * 100)
+                  )
+                : 100;
+              const remaining = tierMeta ? Math.max(0, tierMeta.threshold - item.progressValue) : 0;
               const isClaiming = claimingSlug === item.slug;
+              const currentBonusPercent = Math.max(
+                0,
+                Math.round((item.claimedMultiplier - 1) * 100)
+              );
 
               return (
                 <div
                   key={item.slug}
-                  className="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--app-surface)] p-sm-plus flex flex-col gap-xs"
+                  className="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--app-surface)] p-sm-plus flex flex-col gap-sm"
                 >
                   <div className="flex items-start justify-between gap-sm">
                     <div className="flex items-start gap-sm">
@@ -113,55 +124,64 @@ export function AchievementsModal({
                           </p>
                         )}
                         <p className="text-caption text-[var(--color-text-tertiary)] mt-1">
-                          Уровень {item.currentTier} / {item.maxTier}
+                          {currentBonusPercent > 0
+                            ? `Текущий бонус: +${currentBonusPercent}%`
+                            : 'Бонус ещё не получен'}
                         </p>
                       </div>
                     </div>
-                    {claimableTierMeta && (
+                    {claimableTier && tierMeta && (
                       <Button
                         size="sm"
                         variant="primary"
                         loading={isClaiming}
                         onClick={() => onClaim(item.slug)}
                       >
-                        Получить ×{claimableTierMeta.rewardMultiplier.toFixed(2)}
+                        Получить +{rewardPercent}%
                       </Button>
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-xs">
-                    <div className="w-full h-2 rounded-full bg-[var(--color-border-subtle)] overflow-hidden">
-                      <div
-                        className="h-full bg-[var(--color-accent)]"
-                        style={{ width: `${progressPercent}%` }}
-                      />
-                    </div>
-                    <div className="flex justify-between text-caption text-[var(--color-text-secondary)]">
-                      <span>
-                        {formatNumberWithSpaces(Math.floor(item.progressValue))} {item.unit}
-                      </span>
-                      <span>
-                        {nextThreshold ? `Следующий: ${nextThreshold} ${item.unit}` : 'Максимум'}
-                      </span>
-                    </div>
-                  </div>
+                  {tierMeta ? (
+                    <>
+                      <div className="rounded-md border border-[var(--color-border-subtle)] bg-[var(--app-card-bg)] px-sm py-xs">
+                        {claimableTier ? (
+                          <p className="text-caption text-[var(--color-text-primary)] font-medium">
+                            Готово к получению: +{rewardPercent}% навсегда
+                          </p>
+                        ) : (
+                          <p className="text-caption text-[var(--color-text-secondary)]">
+                            Следующая ступень: +{rewardPercent}% при{' '}
+                            {formatNumberWithSpaces(Math.ceil(targetValue))} {item.unit}
+                          </p>
+                        )}
+                      </div>
 
-                  <div className="flex flex-wrap gap-xs text-caption text-[var(--color-text-tertiary)]">
-                    {item.tiers.map(tier => (
-                      <span
-                        key={tier.id}
-                        className={`px-xs-plus py-0.5 rounded-sm border ${
-                          tier.earned
-                            ? 'border-[var(--color-accent)] text-[var(--color-text-primary)]'
-                            : tier.claimable
-                              ? 'border-[var(--color-accent)] text-[var(--color-accent)]'
-                              : 'border-[var(--color-border-subtle)]'
-                        }`}
-                      >
-                        {tier.tier} · ×{tier.rewardMultiplier.toFixed(2)}
-                      </span>
-                    ))}
-                  </div>
+                      {!claimableTier && (
+                        <div className="flex flex-col gap-xs">
+                          <div className="w-full h-2 rounded-full bg-[var(--color-border-subtle)] overflow-hidden">
+                            <div
+                              className="h-full bg-[var(--color-accent)]"
+                              style={{ width: `${progressPercent}%` }}
+                            />
+                          </div>
+                          <div className="flex justify-between text-caption text-[var(--color-text-secondary)]">
+                            <span>
+                              {formatNumberWithSpaces(Math.floor(item.progressValue))} {item.unit}
+                            </span>
+                            <span>
+                              Осталось {formatNumberWithSpaces(Math.max(0, Math.ceil(remaining)))}{' '}
+                              {item.unit}
+                            </span>
+                          </div>
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-caption text-[var(--color-text-secondary)]">
+                      Все ступени завершены — спасибо!
+                    </p>
+                  )}
                 </div>
               );
             })}

@@ -344,8 +344,11 @@ export function MainScreen({
   const multiplierLabel = useMemo(() => {
     const prestigePart = Math.max(1, prestigeMultiplier);
     const boostPart = Math.max(1, boostMultiplier);
-    const achievementsPart = Math.max(1, achievementMultiplier);
-    return `Престиж ×${prestigePart.toFixed(2)} · Буст ×${boostPart.toFixed(2)} · Дост. ×${achievementsPart.toFixed(2)}`;
+    const parts = [`Престиж ×${prestigePart.toFixed(2)}`, `Буст ×${boostPart.toFixed(2)}`];
+    if (achievementMultiplier > 1.001) {
+      parts.push(`Достижения +${Math.round((achievementMultiplier - 1) * 100)}%`);
+    }
+    return parts.join(' · ');
   }, [prestigeMultiplier, boostMultiplier, achievementMultiplier]);
   const claimableAchievementsCount = useMemo(() => {
     if (!Array.isArray(achievements)) {
