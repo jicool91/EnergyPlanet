@@ -44,8 +44,18 @@ export function LeaderboardPanel() {
     }
     if (leaderboard.length === 0) {
       void logClientEvent('leaderboard_panel_empty', { userId }, 'warn');
+    } else {
+      void logClientEvent('leaderboard_panel_render', {
+        userId,
+        entries: leaderboard.length,
+        sample: leaderboard.slice(0, 3).map(entry => ({
+          rank: entry.rank,
+          username: entry.username ?? entry.first_name ?? 'Игрок',
+          energy: entry.total_energy_produced,
+        })),
+      });
     }
-  }, [leaderboardLoaded, isLeaderboardLoading, leaderboardError, leaderboard.length, userId]);
+  }, [leaderboardLoaded, isLeaderboardLoading, leaderboardError, leaderboard, userId]);
 
   const rows = useMemo(() => leaderboard.slice(0, 100), [leaderboard]);
 

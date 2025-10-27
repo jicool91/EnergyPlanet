@@ -27,8 +27,15 @@ export function ProfilePanel() {
     }
     if (!profile) {
       void logClientEvent('profile_panel_empty', { userId }, 'warn');
+      return;
     }
-  }, [isProfileLoading, profile, profileError, userId]);
+    void logClientEvent('profile_panel_render', {
+      userId,
+      level: profile.progress.level,
+      energy: profile.progress.energy,
+      boosts: profileBoosts.length,
+    });
+  }, [isProfileLoading, profile, profileBoosts.length, profileError, userId]);
 
   const boosts = useMemo(() => profileBoosts, [profileBoosts]);
   const energyValue = profile?.progress.energy ?? 0;

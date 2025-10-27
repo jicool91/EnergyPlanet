@@ -37,6 +37,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
 
   useEffect(() => {
     if (profile || !userId) {
+      if (profile) {
+        void logClientEvent('settings_panel_render', {
+          userId,
+          equippedPlanet: profile.profile.equipped_planet_skin,
+        });
+      }
       return;
     }
     void logClientEvent('settings_panel_missing_profile', { userId }, 'warn');
