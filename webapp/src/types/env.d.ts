@@ -4,6 +4,7 @@ interface ImportMetaEnv {
   readonly VITE_TMA_MIGRATION_THEME?: string;
   readonly VITE_TMA_MIGRATION_BACK_BUTTON?: string;
   readonly VITE_TMA_MIGRATION_MAIN_BUTTON?: string;
+  readonly VITE_TMA_MIGRATION_INIT_DATA?: string;
 }
 
 interface ImportMeta {
