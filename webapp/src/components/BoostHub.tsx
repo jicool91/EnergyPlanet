@@ -9,8 +9,11 @@ import { useNotification } from '../hooks/useNotification';
 import { describeError } from '../store/storeUtils';
 import { logClientEvent } from '@/services/telemetry';
 
+type BoostCategory = 'daily' | 'ad' | 'premium';
+
 interface BoostHubProps {
   showHeader?: boolean;
+  filter?: BoostCategory;
 }
 
 function formatSeconds(seconds: number): string {
@@ -55,7 +58,17 @@ function resolveBoostLabel(type: string): string {
   }
 }
 
-export function BoostHub({ showHeader = true }: BoostHubProps) {
+function resolveBoostCategory(type: string, requiresPremium?: boolean): BoostCategory {
+  if (requiresPremium || type === 'premium_boost') {
+    return 'premium';
+  }
+  if (type === 'ad_boost') {
+    return 'ad';
+  }
+  return 'daily';
+}
+
+export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
   const {
     boostHub,
     isBoostHubLoading,
@@ -146,6 +159,15 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
     });
   }, [boostHub, boostHubTimeOffsetMs, now]);
 
+  const filteredItems = useMemo(() => {
+    if (!filter) {
+      return items;
+    }
+    return items.filter(
+      item => resolveBoostCategory(item.boost_type, item.requires_premium) === filter
+    );
+  }, [filter, items]);
+
   return (
     <div className="flex flex-col gap-md text-token-primary">
       {showHeader ? (
@@ -169,12 +191,16 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
       )}
 
       <div className="flex flex-col gap-md">
-        {isBoostHubLoading && boostHub.length === 0 ? (
+        {isBoostHubLoading && filteredItems.length === 0 ? (
           <div className="p-6 text-center text-token-secondary text-sm">
             Получаем данные о бустах…
           </div>
+        ) : filteredItems.length === 0 ? (
+          <Card className="bg-token-surface-tertiary text-token-secondary text-sm">
+            В этом разделе пока нет бустов. Загляните позже — обновления не заставят себя ждать.
+          </Card>
         ) : (
-          items.map(item => {
+          filteredItems.map(item => {
             const label = resolveBoostLabel(item.boost_type);
             const description = item.requires_premium
               ? 'Доступно владельцам премиум-подписки'
