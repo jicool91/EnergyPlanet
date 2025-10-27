@@ -67,8 +67,10 @@ function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
   root.dataset.tgContentSafeAreaBottom = `${content.bottom}`;
   root.dataset.tgContentSafeAreaLeft = `${content.left}`;
 
-  const headerBaseInset = Math.max(0, safe.top, content.top);
-  const contentBaseInset = Math.max(0, content.top, safe.top);
+  const deviceInsetTop = Math.max(0, safe.top);
+  const telegramInsetTop = Math.max(0, content.top);
+  const headerBaseInset = deviceInsetTop + telegramInsetTop;
+  const contentBaseInset = headerBaseInset;
   const headerOffset = headerBaseInset + HEADER_BUFFER_PX;
   const contentPaddingTop = contentBaseInset + HEADER_RESERVE_PX + HEADER_BUFFER_PX;
 

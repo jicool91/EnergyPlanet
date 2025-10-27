@@ -109,7 +109,7 @@
 
   --app-header-reserve: 90px;
   --app-header-buffer: 12px;
-  --app-content-base-top: max(var(--safe-area-top), var(--content-safe-area-top));
+  --app-content-base-top: calc(var(--safe-area-top) + var(--content-safe-area-top));
   --app-header-offset-top: calc(var(--app-content-base-top) + var(--app-header-buffer));
   --app-content-padding-top: calc(
     var(--app-content-base-top) + var(--app-header-reserve) + var(--app-header-buffer)

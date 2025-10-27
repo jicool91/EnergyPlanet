@@ -76,12 +76,12 @@ function App() {
   const [overlayLevel, setOverlayLevel] = useState<number | null>(null);
   const { safeArea } = useSafeArea();
   const safeTop = Math.max(0, safeArea.safe.top ?? 0);
+  const contentTopInset = Math.max(0, safeArea.content.top ?? 0);
+  const headerBaseInset = safeTop + contentTopInset;
   const safeRight = Math.max(0, safeArea.safe.right ?? 0);
   const safeBottom = Math.max(0, safeArea.safe.bottom ?? 0);
   const safeLeft = Math.max(0, safeArea.safe.left ?? 0);
-  const contentTopInset = Math.max(0, safeArea.content.top ?? 0);
-  const contentInsetBase = Math.max(contentTopInset, safeTop);
-  const contentPaddingTopPx = contentInsetBase + HEADER_RESERVE_PX + HEADER_BUFFER_PX;
+  const contentPaddingTopPx = headerBaseInset + HEADER_RESERVE_PX + HEADER_BUFFER_PX;
 
   const handleLevelCelebration = useEffectEvent(
     ({ majorLevel, gainedLevels }: { majorLevel: number | undefined; gainedLevels: number[] }) => {

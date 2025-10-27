@@ -50,10 +50,10 @@ function MainScreenHeaderComponent({
   const starsCompact = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
   const { safeArea } = useSafeArea();
   const safeTop = Math.max(0, safeArea.safe.top ?? 0);
+  const contentTop = Math.max(0, safeArea.content.top ?? 0);
+  const headerBaseInset = safeTop + contentTop;
   const safeLeft = Math.max(0, safeArea.safe.left ?? 0);
   const safeRight = Math.max(0, safeArea.safe.right ?? 0);
-  const contentTop = Math.max(0, safeArea.content.top ?? 0);
-  const headerBaseInset = Math.max(contentTop, safeTop);
   const headerOffsetTop = headerBaseInset + HEADER_BUFFER_PX;
   const headerPadding = useMemo(() => {
     return {
