@@ -1,7 +1,7 @@
 {
   "name": "energy-planet-webapp",
   "version": "1.0.0",
-  "buildId": "2025-10-27-20-00-27",
+  "buildId": "2025-10-27-20-26-10",
   "description": "Energy Planet Telegram Mini App Frontend",
   "type": "module",
   "scripts": {
@@ -16,6 +16,7 @@
     "test:perf": "playwright test tests/performance/tap-loop.spec.ts"
   },
   "dependencies": {
+    "@tma.js/sdk-react": "^3.0.8",
     "@twa-dev/sdk": "^8.0.2",
     "@twa-dev/types": "^8.0.2",
     "axios": "^1.6.5",
