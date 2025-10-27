@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../../store/gameStore';
@@ -10,6 +10,7 @@ import { Card } from '../Card';
 import { Toggle } from './Toggle';
 import { SliderControl } from './SliderControl';
 import { SettingsSection } from './SettingsSection';
+import { logClientEvent } from '@/services/telemetry';
 
 const INTENSITY_OPTIONS = ['light', 'medium', 'strong'] as const;
 const THEME_OPTIONS: ThemeMode[] = ['light', 'dark', 'auto'];
@@ -33,6 +34,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
   const { success, warning } = useNotification();
   const { light } = useHaptic();
   const [confirmLogout, setConfirmLogout] = useState(false);
+
+  useEffect(() => {
+    if (profile || !userId) {
+      return;
+    }
+    void logClientEvent('settings_panel_missing_profile', { userId }, 'warn');
+  }, [profile, userId]);
 
   // Preferences
   const {

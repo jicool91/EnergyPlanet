@@ -1,9 +1,10 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { LeaderboardSkeleton, ErrorBoundary } from './skeletons';
 import { Card } from './Card';
 import { formatCompactNumber } from '../utils/number';
+import { logClientEvent } from '@/services/telemetry';
 
 // Medal emojis for top 3
 const MEDAL_MAP: Record<number, { icon: string; label: string }> = {
@@ -20,6 +21,7 @@ export function LeaderboardPanel() {
     leaderboardError,
     leaderboardTotal,
     userLeaderboardEntry,
+    userId,
   } = useGameStore(state => ({
     leaderboard: state.leaderboardEntries,
     leaderboardLoaded: state.leaderboardLoaded,
@@ -27,7 +29,23 @@ export function LeaderboardPanel() {
     leaderboardError: state.leaderboardError,
     leaderboardTotal: state.leaderboardTotal,
     userLeaderboardEntry: state.userLeaderboardEntry,
+    userId: state.userId,
   }));
+
+  useEffect(() => {
+    if (leaderboardError) {
+      void logClientEvent('leaderboard_panel_error', { userId, message: leaderboardError }, 'warn');
+    }
+  }, [leaderboardError, userId]);
+
+  useEffect(() => {
+    if (!leaderboardLoaded || isLeaderboardLoading || leaderboardError) {
+      return;
+    }
+    if (leaderboard.length === 0) {
+      void logClientEvent('leaderboard_panel_empty', { userId }, 'warn');
+    }
+  }, [leaderboardLoaded, isLeaderboardLoading, leaderboardError, leaderboard.length, userId]);
 
   const rows = useMemo(() => leaderboard.slice(0, 100), [leaderboard]);
 

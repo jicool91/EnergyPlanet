@@ -1,17 +1,34 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useGameStore } from '../store/gameStore';
 import { ProfileSkeleton, ErrorBoundary } from './skeletons';
 import { Card } from './Card';
 import { Badge } from './Badge';
 import { formatCompactNumber } from '../utils/number';
+import { logClientEvent } from '@/services/telemetry';
 
 export function ProfilePanel() {
-  const { isProfileLoading, profileError, profile, profileBoosts } = useGameStore(state => ({
-    isProfileLoading: state.isProfileLoading,
-    profileError: state.profileError,
-    profile: state.profile,
-    profileBoosts: state.profileBoosts,
-  }));
+  const { isProfileLoading, profileError, profile, profileBoosts, userId } = useGameStore(
+    state => ({
+      isProfileLoading: state.isProfileLoading,
+      profileError: state.profileError,
+      profile: state.profile,
+      profileBoosts: state.profileBoosts,
+      userId: state.userId,
+    })
+  );
+
+  useEffect(() => {
+    if (isProfileLoading) {
+      return;
+    }
+    if (profileError) {
+      void logClientEvent('profile_panel_error', { userId, message: profileError }, 'warn');
+      return;
+    }
+    if (!profile) {
+      void logClientEvent('profile_panel_empty', { userId }, 'warn');
+    }
+  }, [isProfileLoading, profile, profileError, userId]);
 
   const boosts = useMemo(() => profileBoosts, [profileBoosts]);
   const energyValue = profile?.progress.energy ?? 0;
