@@ -36,15 +36,6 @@ function formatSeconds(seconds: number): string {
   return `${secs}с`;
 }
 
-function formatDuration(minutes: number): string {
-  if (minutes >= 60) {
-    const hrs = Math.floor(minutes / 60);
-    const mins = minutes % 60;
-    return mins > 0 ? `${hrs}ч ${mins}м` : `${hrs}ч`;
-  }
-  return `${minutes}м`;
-}
-
 function resolveBoostLabel(type: string): string {
   switch (type) {
     case 'ad_boost':
@@ -251,8 +242,18 @@ export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
 
                 {/* Duration + Cooldown */}
                 <div className="flex gap-md text-caption text-token-secondary">
-                  <span>Длительность: {formatDuration(item.duration_minutes)}</span>
-                  <span>Кулдаун: {formatDuration(item.cooldown_minutes)}</span>
+                  <span>
+                    Длительность:{' '}
+                    {item.duration_minutes >= 60
+                      ? `${Math.floor(item.duration_minutes / 60)}ч ${item.duration_minutes % 60}м`
+                      : `${item.duration_minutes}м`}
+                  </span>
+                  <span>
+                    Кулдаун:{' '}
+                    {item.cooldown_minutes >= 60
+                      ? `${Math.floor(item.cooldown_minutes / 60)}ч ${item.cooldown_minutes % 60}м`
+                      : `${item.cooldown_minutes}м`}
+                  </span>
                 </div>
 
                 {/* Action Button */}

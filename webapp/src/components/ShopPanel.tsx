@@ -30,7 +30,7 @@ const SECTION_TABS: { id: ShopSection; label: string }[] = [
   { id: 'cosmetics', label: 'Косметика' },
 ];
 const STAR_PACK_TABS: Array<{ id: StarPackSubSection; label: string }> = [
-  { id: 'one_time', label: 'Разовые паки' },
+  { id: 'one_time', label: 'Разовые пакеты' },
   { id: 'subscriptions', label: 'Подписки' },
   { id: 'bundles', label: 'Наборы' },
 ];
@@ -61,6 +61,27 @@ function calculateBonusPercentage(baseStars: number, bonusStars: number): number
 
 const SUBSCRIPTION_MARKERS = ['подпис', 'week', 'недел', 'month', 'месяц', 'sub'];
 const BUNDLE_MARKERS = ['bundle', 'набор', 'pack', 'коллекц'];
+
+const SUBSCRIPTION_PLACEHOLDERS = [
+  {
+    id: 'weekly_subscription',
+    title: 'Еженедельная подписка',
+    description: ' +5% к пассивному доходу и ежедневный бонус 250 ⭐',
+    priceLabel: '349 ₽ / неделя',
+  },
+  {
+    id: 'monthly_subscription',
+    title: 'Ежемесячная подписка',
+    description: '+12% к пассивному доходу и ежедневный бонус 500 ⭐',
+    priceLabel: '999 ₽ / месяц',
+  },
+];
+
+const BUNDLE_PLACEHOLDER = {
+  title: 'Комбо-набор (в разработке)',
+  description: 'Планируем объединить Stars и уникальные косметические предметы в один пакет.',
+  note: 'Следите за анонсами — здесь появятся ограниченные наборы с особыми эффектами.',
+};
 
 const resolveStarPackSubSection = (pack: StarPack): StarPackSubSection => {
   const haystack =
@@ -641,9 +662,48 @@ export function ShopPanel({
               <ShopSkeleton count={3} />
             </ErrorBoundary>
           ) : visibleStarPacks.length === 0 ? (
-            <Card className="text-sm text-token-secondary bg-token-surface-tertiary border-token-subtle">
-              Раздел скоро пополнится. Следите за новостями, чтобы не пропустить новые предложения.
-            </Card>
+            activeStarPackSection === 'subscriptions' ? (
+              <div className="grid gap-md md:grid-cols-2">
+                {SUBSCRIPTION_PLACEHOLDERS.map(plan => (
+                  <Card
+                    key={plan.id}
+                    className="flex flex-col gap-sm bg-token-surface-tertiary border-token-subtle"
+                  >
+                    <h3 className="m-0 text-subheading text-token-primary">{plan.title}</h3>
+                    <p className="m-0 text-caption text-token-secondary">{plan.description}</p>
+                    <div className="text-body font-semibold text-token-primary">
+                      {plan.priceLabel}
+                    </div>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() =>
+                        notifyWarning(
+                          'Подписки появятся позже. Мы сообщим о запуске через уведомление и соцсети.'
+                        )
+                      }
+                    >
+                      Сообщить о старте
+                    </Button>
+                  </Card>
+                ))}
+              </div>
+            ) : activeStarPackSection === 'bundles' ? (
+              <Card className="text-sm text-token-secondary bg-token-surface-tertiary border-token-subtle">
+                <h3 className="m-0 text-body text-token-primary">{BUNDLE_PLACEHOLDER.title}</h3>
+                <p className="m-0 mt-2 text-caption text-token-secondary">
+                  {BUNDLE_PLACEHOLDER.description}
+                </p>
+                <p className="m-0 mt-2 text-caption text-token-secondary/80">
+                  {BUNDLE_PLACEHOLDER.note}
+                </p>
+              </Card>
+            ) : (
+              <Card className="text-sm text-token-secondary bg-token-surface-tertiary border-token-subtle">
+                В этом разделе пока нет предложений. Следите за новостями, чтобы не пропустить
+                свежие пакеты.
+              </Card>
+            )
           ) : (
             regularVisiblePacks.map(pack => {
               const processing = isProcessingStarPackId === pack.id;
