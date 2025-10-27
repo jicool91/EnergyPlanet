@@ -35,4 +35,5 @@
 - [x] `react` / `react-dom` и соответствующие `@types` обновлены до 19.x.
 - [x] Плагины ESLint (`react-hooks`, `@typescript-eslint`) обновлены и конфигурация проходит `npm run lint`.
 - [x] `framer-motion`, `zustand` и другие пакеты подтверждены как совместимые или обновлены (обновлены `framer-motion@12`, `zustand@5`, `react-router-dom@6.30`, адаптированы `useShallow` и новые lint-правила `react-hooks`).
+- [x] Lazy-компоненты `LeaderboardPanel`, `ProfilePanel`, `SettingsScreen` переведены на `useShallow`, чтобы селекторы Zustand 5 корректно работали с Suspense.
 - [ ] Ручные тесты: переключение вкладок, Suspense fallback (`ShopPanel`/`BuildingsPanel`), никаких warning’ов в консоли.
