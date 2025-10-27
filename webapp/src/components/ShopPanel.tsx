@@ -614,7 +614,11 @@ export function ShopPanel({
           role="tabpanel"
           aria-labelledby={getSectionTabId('cosmetics')}
         >
-          <div className="flex gap-sm flex-wrap" role="tablist" aria-label="Категории косметики">
+          <nav
+            className="flex flex-wrap gap-1 rounded-xl bg-[var(--color-surface-secondary)]/70 p-1"
+            role="tablist"
+            aria-label="Категории косметики"
+          >
             {categories.length === 0 && !isCosmeticsLoading && (
               <Card className="flex-1 text-sm text-token-secondary bg-token-surface-tertiary border-token-subtle">
                 Косметика откроется после уровня 5. Продолжайте улучшать здания и активируйте бусты,
@@ -627,10 +631,8 @@ export function ShopPanel({
               const isDisabled = isCosmeticsLoading && !isActiveCategory;
 
               return (
-                <Button
+                <button
                   key={category.id}
-                  variant={isActiveCategory ? 'primary' : 'ghost'}
-                  size="md"
                   onClick={() => setSelectedCategory(category.id)}
                   disabled={isDisabled}
                   role="tab"
@@ -640,12 +642,19 @@ export function ShopPanel({
                   tabIndex={isActiveCategory ? 0 : -1}
                   onKeyDown={event => handleCategoryKeyDown(event, index)}
                   type="button"
+                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 focus-ring flex-1 sm:flex-none min-w-[120px] text-center ${
+                    isDisabled
+                      ? 'opacity-60 cursor-not-allowed'
+                      : isActiveCategory
+                        ? 'bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)] shadow-glow'
+                        : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                  }`}
                 >
                   {category.label}
-                </Button>
+                </button>
               );
             })}
-          </div>
+          </nav>
 
           <div id={COSMETICS_GRID_ID} className="flex flex-col gap-md">
             {isCosmeticsLoading && filteredCosmetics.length === 0 ? (
