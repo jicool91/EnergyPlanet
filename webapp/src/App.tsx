@@ -14,6 +14,7 @@ import { initializePreferenceCloudSync } from './services/preferencesSync';
 import { useSafeArea, useAuthBootstrap } from './hooks';
 import { useAuthStore, authStore } from './store/authStore';
 import { logger } from './utils/logger';
+import { HEADER_BUFFER_PX, HEADER_RESERVE_PX } from './constants/layout';
 
 type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
 
@@ -74,9 +75,13 @@ function App() {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [overlayLevel, setOverlayLevel] = useState<number | null>(null);
   const { safeArea } = useSafeArea();
-  const { right: safeRight, bottom: safeBottom, left: safeLeft } = safeArea.safe;
-  const contentTopInset = Math.max(0, safeArea.content.top ?? 0, safeArea.safe.top ?? 0);
-  const HEADER_RESERVE_PX = 56;
+  const safeTop = Math.max(0, safeArea.safe.top ?? 0);
+  const safeRight = Math.max(0, safeArea.safe.right ?? 0);
+  const safeBottom = Math.max(0, safeArea.safe.bottom ?? 0);
+  const safeLeft = Math.max(0, safeArea.safe.left ?? 0);
+  const contentTopInset = Math.max(0, safeArea.content.top ?? 0);
+  const contentInsetBase = Math.max(contentTopInset, safeTop);
+  const contentPaddingTopPx = contentInsetBase + HEADER_RESERVE_PX + HEADER_BUFFER_PX;
 
   const handleLevelCelebration = useEffectEvent(
     ({ majorLevel, gainedLevels }: { majorLevel: number | undefined; gainedLevels: number[] }) => {
@@ -97,12 +102,12 @@ function App() {
 
   const appPaddingStyle = useMemo(() => {
     return {
-      paddingTop: `${contentTopInset + HEADER_RESERVE_PX}px`,
-      paddingRight: `${Math.max(0, safeRight)}px`,
-      paddingBottom: `${Math.max(0, safeBottom) + 16}px`,
-      paddingLeft: `${Math.max(0, safeLeft)}px`,
+      paddingTop: `var(--app-content-padding-top, ${contentPaddingTopPx}px)`,
+      paddingRight: `${safeRight}px`,
+      paddingBottom: `${safeBottom + 16}px`,
+      paddingLeft: `${safeLeft}px`,
     };
-  }, [contentTopInset, safeBottom, safeLeft, safeRight]);
+  }, [contentPaddingTopPx, safeBottom, safeLeft, safeRight]);
 
   // Detect level up
   useEffect(() => {

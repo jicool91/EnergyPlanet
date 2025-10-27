@@ -27,6 +27,7 @@ import { motion } from 'framer-motion';
 import { formatCompactNumber } from '../utils/number';
 import { LevelBar } from './LevelBar';
 import { useSafeArea } from '../hooks';
+import { HEADER_BUFFER_PX } from '../constants/layout';
 
 interface MainScreenHeaderProps {
   level: number;
@@ -48,14 +49,17 @@ function MainScreenHeaderComponent({
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
   const starsCompact = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
   const { safeArea } = useSafeArea();
+  const safeTop = Math.max(0, safeArea.safe.top ?? 0);
+  const safeLeft = Math.max(0, safeArea.safe.left ?? 0);
+  const safeRight = Math.max(0, safeArea.safe.right ?? 0);
   const contentTop = Math.max(0, safeArea.content.top ?? 0);
-  const fallbackTop = Math.max(0, safeArea.safe.top ?? 0);
-  const { left: safeLeft, right: safeRight } = safeArea.safe;
+  const headerBaseInset = Math.max(contentTop, safeTop);
+  const headerOffsetTop = headerBaseInset + HEADER_BUFFER_PX;
   const headerPadding = useMemo(() => {
     return {
       paddingTop: '8px',
-      paddingLeft: `${Math.max(0, safeLeft) + 8}px`,
-      paddingRight: `${Math.max(0, safeRight) + 8}px`,
+      paddingLeft: `${safeLeft + 8}px`,
+      paddingRight: `${safeRight + 8}px`,
     };
   }, [safeLeft, safeRight]);
 
@@ -64,7 +68,7 @@ function MainScreenHeaderComponent({
       className="fixed left-0 right-0 z-50 border-b backdrop-blur-sm transition-colors duration-200"
       style={{
         ...headerPadding,
-        top: `${Math.max(contentTop, fallbackTop)}px`,
+        top: `var(--app-header-offset-top, ${headerOffsetTop}px)`,
         background: 'linear-gradient(180deg, var(--app-header-bg) 0%, var(--app-bg) 85%)',
         borderBottom: '1px solid var(--color-border-subtle)',
       }}

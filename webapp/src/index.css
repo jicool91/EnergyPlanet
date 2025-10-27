@@ -89,6 +89,31 @@
 
   --safe-area-horizontal: calc(var(--safe-area-left) + var(--safe-area-right));
   --safe-area-vertical: calc(var(--safe-area-top) + var(--safe-area-bottom));
+
+  --content-safe-area-top: max(
+    var(--tg-content-safe-area-inset-top, 0px),
+    var(--tg-content-safe-area-top, 0px)
+  );
+  --content-safe-area-bottom: max(
+    var(--tg-content-safe-area-inset-bottom, 0px),
+    var(--tg-content-safe-area-bottom, 0px)
+  );
+  --content-safe-area-left: max(
+    var(--tg-content-safe-area-inset-left, 0px),
+    var(--tg-content-safe-area-left, 0px)
+  );
+  --content-safe-area-right: max(
+    var(--tg-content-safe-area-inset-right, 0px),
+    var(--tg-content-safe-area-right, 0px)
+  );
+
+  --app-header-reserve: 56px;
+  --app-header-buffer: 12px;
+  --app-content-base-top: max(var(--safe-area-top), var(--content-safe-area-top));
+  --app-header-offset-top: calc(var(--app-content-base-top) + var(--app-header-buffer));
+  --app-content-padding-top: calc(
+    var(--app-content-base-top) + var(--app-header-reserve) + var(--app-header-buffer)
+  );
 }
 
 @media (prefers-color-scheme: light) {

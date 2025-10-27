@@ -1,6 +1,7 @@
 import { viewport } from '@tma.js/sdk';
 import type { SafeAreaInsets } from '@tma.js/bridge';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
+import { HEADER_BUFFER_PX, HEADER_RESERVE_PX } from '@/constants/layout';
 
 export type SafeAreaSnapshot = {
   safe: SafeAreaInsets;
@@ -65,6 +66,17 @@ function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
   root.dataset.tgContentSafeAreaRight = `${content.right}`;
   root.dataset.tgContentSafeAreaBottom = `${content.bottom}`;
   root.dataset.tgContentSafeAreaLeft = `${content.left}`;
+
+  const headerBaseInset = Math.max(0, safe.top, content.top);
+  const contentBaseInset = Math.max(0, content.top, safe.top);
+  const headerOffset = headerBaseInset + HEADER_BUFFER_PX;
+  const contentPaddingTop = contentBaseInset + HEADER_RESERVE_PX + HEADER_BUFFER_PX;
+
+  root.style.setProperty('--app-header-reserve', `${HEADER_RESERVE_PX}px`);
+  root.style.setProperty('--app-header-buffer', `${HEADER_BUFFER_PX}px`);
+  root.style.setProperty('--app-content-base-top', `${contentBaseInset}px`);
+  root.style.setProperty('--app-header-offset-top', `${headerOffset}px`);
+  root.style.setProperty('--app-content-padding-top', `${contentPaddingTop}px`);
 }
 
 function applyViewportCss(metrics: ViewportMetrics): void {
