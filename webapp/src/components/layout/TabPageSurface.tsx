@@ -7,11 +7,11 @@ interface TabPageSurfaceProps extends React.HTMLAttributes<HTMLDivElement> {
 }
 
 /**
- * Shared wrapper for вкладки (кроме Home).
- * Приводит паддинги к safe-area из Telegram и к дизайновым токенам.
+ * Общий контейнер вкладок. Внешние safe-area отступы уже учтены оболочкой `App`,
+ * поэтому здесь оставляем только регулируемые внутренние паддинги.
  */
 export const TabPageSurface = forwardRef<HTMLDivElement, TabPageSurfaceProps>(
-  ({ className, insetTop = 16, insetBottom = 16, style, children, ...rest }, ref) => (
+  ({ className, insetTop = 0, insetBottom = 16, style, children, ...rest }, ref) => (
     <div
       ref={ref}
       className={clsx('flex w-full flex-1 flex-col gap-md px-md', className)}

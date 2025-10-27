@@ -24,7 +24,14 @@ type TelegramWebAppEvents =
   | 'themeChanged'
   | 'viewportChanged'
   | 'backButtonClicked'
-  | 'safe_area_changed';
+  | 'safe_area_changed'
+  | 'safeAreaChanged'
+  | 'contentSafeAreaChanged'
+  | 'content_safe_area_changed'
+  | 'activated'
+  | 'deactivated'
+  | 'fullscreenChanged'
+  | 'fullscreenFailed';
 
 type TelegramHapticStyle = 'light' | 'medium' | 'heavy' | 'rigid' | 'soft';
 type TelegramHapticNotification = 'error' | 'success' | 'warning';
@@ -362,10 +369,29 @@ export function initializeTelegramWebApp(): void {
         content: webApp.contentSafeAreaInset,
       });
     };
+    const handleContentSafeAreaChange = () => {
+      applySafeArea({
+        safe: webApp.safeAreaInset,
+        content: webApp.contentSafeAreaInset,
+      });
+    };
+    const handleActivated = () => {
+      try {
+        webApp.expand();
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.debug('expand() unsupported on activation', error);
+        }
+      }
+    };
 
     webApp.onEvent('themeChanged', handleThemeChange);
     webApp.onEvent('viewportChanged', handleViewportChange);
+    webApp.onEvent('safeAreaChanged', handleSafeAreaChange);
     webApp.onEvent('safe_area_changed', handleSafeAreaChange);
+    webApp.onEvent('contentSafeAreaChanged', handleContentSafeAreaChange);
+    webApp.onEvent('content_safe_area_changed', handleContentSafeAreaChange);
+    webApp.onEvent('activated', handleActivated);
 
     initialized = true;
   } catch (error) {
