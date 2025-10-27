@@ -23,7 +23,7 @@
 | Safe-area handling | `useSafeArea` + CSS vars keep content usable across Telegram browsers. | Mirrors Telegram Mini App guidelines for expanded mode and dynamic viewport changes.
 | Component library | `Card`, `Button`, `Badge`, skeletons, and notifications provide cohesive look & feel with haptics and telemetry hooks. | Already integrated across most panels.
 | Data orchestration | Lazy loading + Suspense ensures first meaningful paint remains fast; each tab handles its own loading/error states. | Keep `ScreenTransition` animation budget aligned with 300–400 ms guidance.
-| Theme awareness | CSS tokens respect Telegram theme params and `@twa-dev/sdk`. | Night mode parity already validated in QA runs.
+| Theme awareness | CSS tokens respect Telegram theme params delivered via `@tma.js/sdk`. | Night mode parity already validated in QA runs.
 
 ---
 

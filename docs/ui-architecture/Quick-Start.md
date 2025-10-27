@@ -110,9 +110,9 @@ Reference: Telegram Mini App UI Guidelines – Safe Areas & Focus Management (do
 
 ## Step 3½ – Fullscreen & Safe Areas in SDK 8 (≈15 min)
 
-- Subscribe to `onTelegramFullscreenChange` from `services/telegram` to react to the new `fullscreenChanged`/`fullscreenFailed` events exposed in `@twa-dev/sdk@8`. The helper keeps `document.documentElement` in sync via `data-tg-fullscreen` and the `--tg-fullscreen` CSS var.
-- Use `requestTelegramFullscreen` / `exitTelegramFullscreen` for dedicated fullscreen flows (e.g. intro carousel); fall back gracefully if Telegram returns `UNSUPPORTED`.
-- Safe areas now update via `contentSafeAreaChanged`, so prefer the CSS tokens (`--tg-content-safe-area-*`) over custom resize logic whenever possible.
+- Subscribe to the shared `viewport` helpers in `services/tma/viewport` – they proxy `@tma.js/sdk`’s `viewport.state` and keep `document.documentElement` in sync via `data-tg-fullscreen`, `--tg-viewport-*`, and the safe-area tokens.
+- Use `miniApp.expand()` / `miniApp.close()` from `@tma.js/sdk` (wrapped in `services/tma/core`) for fullscreen flows; fall back gracefully if Telegram reports `UNSUPPORTED`.
+- Safe areas now update via the SDK’s signals, so always prefer the generated CSS tokens (`--tg-content-safe-area-*`) over custom resize logic.
 
 ---
 

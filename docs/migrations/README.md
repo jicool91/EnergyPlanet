@@ -7,9 +7,9 @@
 - влияние на код `webapp/` и вспомогательные задачи (конфиги, скрипты, тесты);
 - чек-лист для выполнения миграции.
 
-На 27 октября 2025 года приоритет — обновить SDK Telegram, React, Tailwind CSS и Vite. Ссылки на планы:
+На 27 октября 2025 года приоритет — поддерживать в актуальном состоянии Telegram TMA SDK, React, Tailwind CSS и Vite. Ссылки на планы:
 
-- [`@twa-dev/sdk` → 8.x](./twa-dev-sdk-8.md)
+- [Переход на `@tma.js/sdk-react`](./tma-sdk-adoption.md)
 - [`react` / `react-dom` → 19.x](./react-19.md)
 - [`tailwindcss` → 4.x](./tailwindcss-4.md)
 - [`vite` → 7.x](./vite-7.md)

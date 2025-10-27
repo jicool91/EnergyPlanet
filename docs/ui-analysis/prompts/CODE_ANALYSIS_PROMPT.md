@@ -17,11 +17,11 @@
 ## Специфика Telegram Mini Apps (архитектурный аспект)
 
 ### 1. Технический стек (Energy Planet)
-- **Frontend**: React 18+, TypeScript, Vite
+- **Frontend**: React 19, TypeScript, Vite
 - **State Management**: Zustand
 - **Styling**: Tailwind CSS
 - **API Client**: Axios/Fetch
-- **Telegram SDK**: @twa-dev/sdk или telegram-webapps
+- **Telegram SDK**: @tma.js/sdk + @tma.js/sdk-react
 
 ### 2. Архитектурные требования
 - **Component-based**: Реиспользуемые компоненты с единой дизайн-системой
@@ -370,37 +370,47 @@ function Modal({ children, onClose }) {
 **Проверь:**
 
 #### 1. Telegram WebApp SDK интеграция
-- [ ] SDK инициализирован корректно (WebApp.ready())?
-- [ ] Используется ли haptic feedback (HapticFeedback.impactOccurred)?
-- [ ] MainButton/BackButton настроены правильно?
-- [ ] Theme params применяются динамически?
+- [ ] SDK инициализирован корректно (`miniApp.ready()`)?
+- [ ] Используется ли haptic feedback (`hapticFeedback.impactOccurred`)?
+- [ ] MainButton/BackButton настроены через `@tma.js/sdk`?
+- [ ] Theme params применяются динамически через `themeParams`?
 
 #### 2. Platform-specific behavior
-- [ ] Обработка viewport changes (WebApp.expand())?
-- [ ] Closing confirmation (WebApp.enableClosingConfirmation)?
+- [ ] Обработка viewport changes (`viewport.expand()`)?
+- [ ] Closing confirmation (`miniApp.enableClosingConfirmation()` / swipe behavior)?
 - [ ] Deep linking через start_param?
 
 **Пример интеграции:**
 ```typescript
-// ✅ Правильная интеграция Telegram SDK
+// ✅ Правильная интеграция Telegram SDK (tma.js)
 import { useEffect } from 'react';
-import WebApp from '@twa-dev/sdk';
+import { hapticFeedback, miniApp, themeParams, viewport } from '@tma.js/sdk';
 
 function useTelegramTheme() {
   useEffect(() => {
-    WebApp.ready();
-    WebApp.expand();
+    miniApp.ready();
+    viewport.expand();
 
-    // Применить theme params
-    const theme = WebApp.themeParams;
-    document.documentElement.style.setProperty('--tg-bg', theme.bg_color);
-    document.documentElement.style.setProperty('--tg-text', theme.text_color);
+    const applyTheme = () => {
+      const theme = themeParams.state();
+      document.documentElement.style.setProperty('--tg-bg', theme.bg_color ?? '#0f0f0f');
+      document.documentElement.style.setProperty('--tg-text', theme.text_color ?? '#ffffff');
+    };
+
+    const unsubscribe = themeParams.state.sub(applyTheme);
+    applyTheme();
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 }
 
-function TapButton({ onTap }) {
+function TapButton({ onTap }: { onTap: () => void }) {
   const handleTap = () => {
-    WebApp.HapticFeedback.impactOccurred('medium');
+    if (hapticFeedback.isSupported()) {
+      hapticFeedback.impactOccurred('medium');
+    }
     onTap();
   };
 
