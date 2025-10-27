@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../store/gameStore';
 import { useCatalogStore } from '../store/catalogStore';
 import { Virtuoso } from 'react-virtuoso';
@@ -40,23 +40,21 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
     purchaseBuilding,
     upgradeBuilding,
   } = useGameStore(
-    state => ({
+    useShallow(state => ({
       buildings: state.buildings,
       energy: state.energy,
       buildingsError: state.buildingsError,
       isProcessingBuildingId: state.isProcessingBuildingId,
       purchaseBuilding: state.purchaseBuilding,
       upgradeBuilding: state.upgradeBuilding,
-    }),
-    shallow
+    }))
   );
   const { buildingCatalog, loadBuildingCatalog, isBuildingCatalogLoading } = useCatalogStore(
-    state => ({
+    useShallow(state => ({
       buildingCatalog: state.buildingCatalog,
       loadBuildingCatalog: state.loadBuildingCatalog,
       isBuildingCatalogLoading: state.isBuildingCatalogLoading,
-    }),
-    shallow
+    }))
   );
   const playerLevel = useGameStore(state => state.level);
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<PurchaseOptionId>('x1');

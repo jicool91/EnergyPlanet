@@ -2,8 +2,18 @@
  * Main Game Screen
  */
 
-import { useEffect, useMemo, Suspense, lazy, useState, useRef, useCallback } from 'react';
+import {
+  useEffect,
+  useMemo,
+  Suspense,
+  lazy,
+  useState,
+  useRef,
+  useCallback,
+  useEffectEvent,
+} from 'react';
 import { motion } from 'framer-motion';
+import { useShallow } from 'zustand/react/shallow';
 import { streakConfig, useGameStore } from '../store/gameStore';
 import { HomePanel } from '../components/HomePanel';
 import {
@@ -21,7 +31,6 @@ import { useSafeArea } from '../hooks';
 import { useAuthStore } from '../store/authStore';
 import { describeError } from '../store/storeUtils';
 import { logClientEvent } from '@/services/telemetry';
-import { shallow } from 'zustand/shallow';
 import { useCatalogStore } from '../store/catalogStore';
 import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
 
@@ -81,7 +90,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     leaderboardLoaded,
     isLeaderboardLoading,
   } = useGameStore(
-    state => ({
+    useShallow(state => ({
       energy: state.energy,
       level: state.level,
       xpIntoLevel: state.xpIntoLevel,
@@ -108,34 +117,32 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
       leaderboardTotal: state.leaderboardTotal,
       leaderboardLoaded: state.leaderboardLoaded,
       isLeaderboardLoading: state.isLeaderboardLoading,
-    }),
-    shallow
+    }))
   );
   const { tap, resetStreak, loadLeaderboard, loadProfile, loadPrestigeStatus, performPrestige } =
     useGameStore(
-      state => ({
+      useShallow(state => ({
         tap: state.tap,
         resetStreak: state.resetStreak,
         loadLeaderboard: state.loadLeaderboard,
         loadProfile: state.loadProfile,
         loadPrestigeStatus: state.loadPrestigeStatus,
         performPrestige: state.performPrestige,
-      }),
-      shallow
+      }))
     );
   const { buildingCatalog, boostHub, boostHubTimeOffsetMs } = useCatalogStore(
-    state => ({
+    useShallow(state => ({
       buildingCatalog: state.buildingCatalog,
       boostHub: state.boostHub,
       boostHubTimeOffsetMs: state.boostHubTimeOffsetMs,
-    }),
-    shallow
+    }))
   );
 
   const { tap: hapticTap } = useHaptic();
   const { scrollRef, scrollToTop } = useScrollToTop();
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(null);
+  const [clientNowMs, setClientNowMs] = useState(() => Date.now());
   const handleScrollContainerRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (scrollRef.current !== node) {
@@ -169,6 +176,15 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const previousStreakRef = useRef(streakCount);
   const scrollRafRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    const tick = () => setClientNowMs(Date.now());
+    const intervalId = window.setInterval(tick, 1000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
   const handleTap = () => {
     tap(1)
       .then(() => {
@@ -197,13 +213,17 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     });
   }, []);
 
-  // Reset scroll position when switching tabs
-  useEffect(() => {
+  const resetScrollForTab = useEffectEvent((tab: TabKey) => {
     setIsScrolled(false);
-    if (activeTab === 'home' && scrollRef.current) {
+    if (tab === 'home' && scrollRef.current) {
       scrollRef.current.scrollTop = 0;
     }
-  }, [activeTab, scrollRef]);
+  });
+
+  // Reset scroll position when switching tabs
+  useEffect(() => {
+    resetScrollForTab(activeTab);
+  }, [activeTab]);
 
   useEffect(() => {
     if (!isInitialized || !authReady) {
@@ -318,8 +338,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
       return { activeBoostSummary: null, nextBoostAvailabilityMs: undefined };
     }
 
-    const serverOffset = boostHubTimeOffsetMs ?? 0;
-    const nowMs = Date.now() + serverOffset;
+    const currentServerMs = clientNowMs + (boostHubTimeOffsetMs ?? 0);
 
     let activeSummary: { boostType: string; multiplier: number; remainingMs: number } | null = null;
     let nextAvailabilityMs: number | undefined;
@@ -330,7 +349,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         const expiresAtMs = item.active.expires_at ? Date.parse(item.active.expires_at) : null;
         const remainingMs =
           expiresAtMs !== null
-            ? Math.max(0, expiresAtMs - nowMs)
+            ? Math.max(0, expiresAtMs - currentServerMs)
             : (item.active.remaining_seconds ?? 0) * 1000;
         if (
           !activeSummary ||
@@ -348,7 +367,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
         const availableAtMs = item.available_at ? Date.parse(item.available_at) : null;
         let untilMs = cooldownSeconds > 0 ? cooldownSeconds * 1000 : 0;
         if (untilMs === 0 && availableAtMs !== null) {
-          untilMs = Math.max(0, availableAtMs - nowMs);
+          untilMs = Math.max(0, availableAtMs - currentServerMs);
         }
 
         if (untilMs <= 0) {
@@ -365,7 +384,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     }
 
     return { activeBoostSummary: activeSummary, nextBoostAvailabilityMs: nextAvailabilityMs };
-  }, [boostHub, boostHubTimeOffsetMs]);
+  }, [boostHub, boostHubTimeOffsetMs, clientNowMs]);
 
   useEffect(() => {
     if (!isInitialized || !authReady) {

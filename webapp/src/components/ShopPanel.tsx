@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { useCatalogStore } from '../store/catalogStore';
 import { buildShopViewModel } from '@/viewModels/shopViewModel';
 import { ShopSkeleton, ErrorBoundary } from './skeletons';
@@ -52,7 +52,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
     purchaseCosmetic,
     equipCosmetic,
   } = useCatalogStore(
-    state => ({
+    useShallow(state => ({
       cosmetics: state.cosmetics,
       isCosmeticsLoading: state.isCosmeticsLoading,
       cosmeticsError: state.cosmeticsError,
@@ -60,8 +60,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
       loadCosmetics: state.loadCosmetics,
       purchaseCosmetic: state.purchaseCosmetic,
       equipCosmetic: state.equipCosmetic,
-    }),
-    shallow
+    }))
   );
   const {
     starPacks,
@@ -71,19 +70,18 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
     loadStarPacks,
     purchaseStarPack,
   } = useCatalogStore(
-    state => ({
+    useShallow(state => ({
       starPacks: state.starPacks,
       isStarPacksLoading: state.isStarPacksLoading,
       starPacksError: state.starPacksError,
       isProcessingStarPackId: state.isProcessingStarPackId,
       loadStarPacks: state.loadStarPacks,
       purchaseStarPack: state.purchaseStarPack,
-    }),
-    shallow
+    }))
   );
 
   const [activeSection, setActiveSection] = useState<ShopSection>('star_packs');
-  const [activeCategory, setActiveCategory] = useState<string>('planet_skin');
+  const [selectedCategory, setSelectedCategory] = useState<string>('planet_skin');
   const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useNotification();
 
   useEffect(() => {
@@ -91,26 +89,16 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
     loadStarPacks();
   }, [loadCosmetics, loadStarPacks]);
 
-  const { categories, filteredCosmetics, bestValuePack, mostPopularCosmeticId } = useMemo(
-    () =>
-      buildShopViewModel({
-        cosmetics,
-        starPacks,
-        activeCategory,
-      }),
-    [cosmetics, starPacks, activeCategory]
-  );
-
-  useEffect(() => {
-    if (categories.length === 0) {
-      return;
-    }
-
-    const nextCategory = categories[0]?.id;
-    if (!activeCategory || !categories.some(category => category.id === activeCategory)) {
-      setActiveCategory(nextCategory);
-    }
-  }, [categories, activeCategory]);
+  const { categories, activeCategory, filteredCosmetics, bestValuePack, mostPopularCosmeticId } =
+    useMemo(
+      () =>
+        buildShopViewModel({
+          cosmetics,
+          starPacks,
+          activeCategory: selectedCategory,
+        }),
+      [cosmetics, starPacks, selectedCategory]
+    );
 
   const { success: hapticSuccess, error: hapticError } = useHaptic();
   const handleSectionKeyDown = useCallback(
@@ -167,7 +155,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
           nextIndex = (nextIndex + direction + categories.length) % categories.length;
           const nextCategory = categories[nextIndex];
           if (!isDisabled(nextCategory.id)) {
-            setActiveCategory(nextCategory.id);
+            setSelectedCategory(nextCategory.id);
             return;
           }
         }
@@ -188,7 +176,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
           event.preventDefault();
           for (let i = 0; i < categories.length; i += 1) {
             if (!isDisabled(categories[i].id)) {
-              setActiveCategory(categories[i].id);
+              setSelectedCategory(categories[i].id);
               break;
             }
           }
@@ -197,7 +185,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
           event.preventDefault();
           for (let i = categories.length - 1; i >= 0; i -= 1) {
             if (!isDisabled(categories[i].id)) {
-              setActiveCategory(categories[i].id);
+              setSelectedCategory(categories[i].id);
               break;
             }
           }
@@ -207,7 +195,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
           const current = categories[index];
           if (current && !isDisabled(current.id)) {
             event.preventDefault();
-            setActiveCategory(current.id);
+            setSelectedCategory(current.id);
           }
           break;
         }
@@ -215,7 +203,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
           break;
       }
     },
-    [activeCategory, categories, isCosmeticsLoading, setActiveCategory]
+    [activeCategory, categories, isCosmeticsLoading, setSelectedCategory]
   );
 
   const handlePurchaseCosmetic = useCallback(
@@ -585,7 +573,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
                   key={category.id}
                   variant={isActiveCategory ? 'primary' : 'ghost'}
                   size="md"
-                  onClick={() => setActiveCategory(category.id)}
+                  onClick={() => setSelectedCategory(category.id)}
                   disabled={isDisabled}
                   role="tab"
                   aria-selected={isActiveCategory}
@@ -622,7 +610,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
                   legendary: 'legendary',
                 };
 
-                let actionButton: JSX.Element | null = null;
+                let actionButton: ReactNode = null;
 
                 if (cosmetic.equipped) {
                   actionButton = (

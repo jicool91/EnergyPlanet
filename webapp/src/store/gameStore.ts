@@ -3,7 +3,7 @@
  */
 
 import { create } from 'zustand';
-import type { SetState } from 'zustand';
+import type { StoreApi } from 'zustand';
 import { isAxiosError } from 'axios';
 import { apiClient, API_BASE_URL } from '../services/apiClient';
 import { postQueue } from '../services/requestQueue';
@@ -83,7 +83,7 @@ let passiveEnergyUiBuffer = 0;
 let passiveSecondsUiBuffer = 0;
 let lastPassiveUiCommit = 0;
 
-const commitPassiveBuffers = (set: SetState<GameState>) => {
+const commitPassiveBuffers = (set: StoreApi<GameState>['setState']) => {
   if (passiveEnergyUiBuffer === 0 && passiveSecondsUiBuffer === 0) {
     return;
   }
@@ -100,7 +100,7 @@ const commitPassiveBuffers = (set: SetState<GameState>) => {
 };
 
 const queuePassiveUpdate = (
-  set: SetState<GameState>,
+  set: StoreApi<GameState>['setState'],
   energyDelta: number,
   secondsDelta: number
 ) => {
@@ -711,8 +711,8 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       const passivePerSec = payload.passive_income_per_sec ?? get().passiveIncomePerSec;
       const totalMultiplier = payload.passive_income_multiplier ?? get().passiveIncomeMultiplier;
-      const boostMultiplier = (payload as any).boost_multiplier ?? get().boostMultiplier;
-      const prestigeMultiplier = (payload as any).prestige_multiplier ?? get().prestigeMultiplier;
+      const boostMultiplier = payload.boost_multiplier ?? get().boostMultiplier;
+      const prestigeMultiplier = payload.prestige_multiplier ?? get().prestigeMultiplier;
 
       if (payload.access_token) {
         if (payload.refresh_token) {

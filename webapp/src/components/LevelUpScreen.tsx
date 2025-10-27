@@ -4,7 +4,13 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, type CSSProperties } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import {
+  motion,
+  AnimatePresence,
+  useReducedMotion,
+  type Variants,
+  type Transition,
+} from 'framer-motion';
 import { Confetti } from './animations/Confetti';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
 import { usePreferencesStore } from '@/store/preferencesStore';
@@ -145,32 +151,34 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
     pointerEvents: 'none',
   };
 
-  const textVariants = useMemo(
-    () => ({
-      container: {
-        hidden: { opacity: 0 },
-        show: {
-          opacity: 1,
-          transition: {
-            staggerChildren: prefersReducedMotion ? 0 : 0.1,
-            delayChildren: prefersReducedMotion ? 0 : 0.3,
-          },
+  const textVariants = useMemo(() => {
+    const container: Variants = {
+      hidden: { opacity: 0 },
+      show: {
+        opacity: 1,
+        transition: {
+          staggerChildren: prefersReducedMotion ? 0 : 0.1,
+          delayChildren: prefersReducedMotion ? 0 : 0.3,
         },
       },
-      item: {
-        hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
-        show: {
-          opacity: 1,
-          y: 0,
-          transition: {
-            duration: prefersReducedMotion ? 0.2 : 0.4,
-            ease: 'easeOut',
-          },
-        },
+    };
+
+    const itemTransition: Transition = {
+      duration: prefersReducedMotion ? 0.2 : 0.4,
+      ease: prefersReducedMotion ? 'linear' : 'easeOut',
+    };
+
+    const item: Variants = {
+      hidden: { opacity: 0, y: prefersReducedMotion ? 0 : 20 },
+      show: {
+        opacity: 1,
+        y: 0,
+        transition: itemTransition,
       },
-    }),
-    [prefersReducedMotion]
-  );
+    };
+
+    return { container, item };
+  }, [prefersReducedMotion]);
 
   const levelNumberAnimation = prefersReducedMotion
     ? { scale: 1, textShadow: '0 0 20px rgba(0,217,255,0.5)' }

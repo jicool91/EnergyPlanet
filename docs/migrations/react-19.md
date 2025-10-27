@@ -16,6 +16,7 @@
   - `react-router-dom` мы не используем, но стоит убедиться, что другие пакеты совместимы (zustand 4 → 5 поддерживает React 19).
   - ESLint-плагины (`eslint-plugin-react-hooks`, `@typescript-eslint/*`) требуют актуальных версий, иначе правила могут не понимать новые хуки.
 - **Типы**: нужно обновить `@types/react` и `@types/react-dom` до 19.x и проверить кастомные декларации (например, `window._energyLogs` в `main.tsx`).
+- **Правила React Hooks**: новые версии `eslint-plugin-react-hooks` добавляют проверки `purity` и `set-state-in-effect`, поэтому эффекты переписаны через `useEffectEvent`, ленивые инициализаторы и детерминированные вычисления (`Confetti`, `BoostHub`).
 
 ## План миграции
 
@@ -31,7 +32,7 @@
 
 ## Чек-лист
 
-- [ ] `react` / `react-dom` и соответствующие `@types` обновлены до 19.x.
-- [ ] Плагины ESLint (`react-hooks`, `@typescript-eslint`) обновлены и конфигурация проходит `npm run lint`.
-- [ ] `framer-motion`, `zustand` и другие пакеты подтверждены как совместимые или обновлены.
+- [x] `react` / `react-dom` и соответствующие `@types` обновлены до 19.x.
+- [x] Плагины ESLint (`react-hooks`, `@typescript-eslint`) обновлены и конфигурация проходит `npm run lint`.
+- [x] `framer-motion`, `zustand` и другие пакеты подтверждены как совместимые или обновлены (обновлены `framer-motion@12`, `zustand@5`, `react-router-dom@6.30`, адаптированы `useShallow` и новые lint-правила `react-hooks`).
 - [ ] Ручные тесты: переключение вкладок, Suspense fallback (`ShopPanel`/`BuildingsPanel`), никаких warning’ов в консоли.

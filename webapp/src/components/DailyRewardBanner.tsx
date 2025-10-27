@@ -5,7 +5,7 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { useDevicePerformance } from '../hooks';
 import { useCatalogStore } from '@/store/catalogStore';
 import { useNotification } from '@/hooks/useNotification';
@@ -46,7 +46,7 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
     claimBoost,
     boostHubTimeOffsetMs,
   } = useCatalogStore(
-    state => ({
+    useShallow(state => ({
       boostHub: state.boostHub,
       isBoostHubLoading: state.isBoostHubLoading,
       boostHubError: state.boostHubError,
@@ -54,11 +54,10 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
       loadBoostHub: state.loadBoostHub,
       claimBoost: state.claimBoost,
       boostHubTimeOffsetMs: state.boostHubTimeOffsetMs,
-    }),
-    shallow
+    }))
   );
 
-  const [localNow, setLocalNow] = useState(Date.now());
+  const [localNow, setLocalNow] = useState(() => Date.now());
 
   useEffect(() => {
     loadBoostHub();

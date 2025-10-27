@@ -3,7 +3,7 @@
  * Used for energy counter, XP, level displays with smooth transitions
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useEffectEvent } from 'react';
 
 interface AnimationState {
   displayValue: number;
@@ -26,44 +26,57 @@ export const useNumberAnimation = (targetValue: number, duration: number = 300):
   const [displayValue, setDisplayValue] = useState(targetValue);
   const [isAnimating, setIsAnimating] = useState(false);
   const [deltaValue, setDeltaValue] = useState(0);
-  const [previousValue, setPreviousValue] = useState(targetValue);
+  const previousValueRef = useRef(targetValue);
+  const animationFrameRef = useRef<number | null>(null);
 
-  useEffect(() => {
-    if (targetValue === previousValue) {
-      return;
-    }
-
-    // Calculate change
-    const delta = targetValue - previousValue;
+  const runAnimation = useEffectEvent((from: number, to: number) => {
+    const startValue = displayValue;
+    const delta = to - from;
+    const valueDelta = to - startValue;
     setDeltaValue(delta);
-
-    // Trigger animation
     setIsAnimating(true);
 
-    // Animate the display value smoothly
-    const startTime = Date.now();
-    const startValue = displayValue;
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current);
+    }
 
-    const animationFrame = setInterval(() => {
-      const elapsed = Date.now() - startTime;
+    const startTime = performance.now();
+
+    const step = (now: number) => {
+      const elapsed = now - startTime;
       const progress = Math.min(elapsed / duration, 1);
-
-      // Easing: easeOutCubic for smooth deceleration
       const easeProgress = 1 - Math.pow(1 - progress, 3);
+      setDisplayValue(startValue + valueDelta * easeProgress);
 
-      const newValue = startValue + delta * easeProgress;
-      setDisplayValue(newValue);
-
-      if (progress >= 1) {
-        setDisplayValue(targetValue);
-        setIsAnimating(false);
-        setPreviousValue(targetValue);
-        clearInterval(animationFrame);
+      if (progress < 1) {
+        animationFrameRef.current = requestAnimationFrame(step);
+        return;
       }
-    }, 16); // ~60fps
 
-    return () => clearInterval(animationFrame);
-  }, [targetValue, previousValue, displayValue, duration]);
+      animationFrameRef.current = null;
+      setDisplayValue(to);
+      setIsAnimating(false);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(step);
+  });
+
+  useEffect(() => {
+    const from = previousValueRef.current;
+    if (targetValue === from) {
+      return () => undefined;
+    }
+
+    runAnimation(from, targetValue);
+    previousValueRef.current = targetValue;
+
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current);
+        animationFrameRef.current = null;
+      }
+    };
+  }, [targetValue]);
 
   return {
     displayValue: Math.floor(displayValue),

@@ -63,7 +63,7 @@ export const useSoundEffect = () => {
 
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + config.duration);
-    } catch (err) {
+    } catch {
       // Silently fail if AudioContext not available
       console.debug('Sound effect unavailable:', soundType);
     }

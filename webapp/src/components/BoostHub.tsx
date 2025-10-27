@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react';
-import { shallow } from 'zustand/shallow';
+import { useShallow } from 'zustand/react/shallow';
 import { useCatalogStore } from '../store/catalogStore';
 import { Button } from './Button';
 import { Card } from './Card';
@@ -63,19 +63,20 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
     isClaimingBoostType,
     loadBoostHub,
     claimBoost,
+    boostHubTimeOffsetMs,
   } = useCatalogStore(
-    state => ({
+    useShallow(state => ({
       boostHub: state.boostHub,
       isBoostHubLoading: state.isBoostHubLoading,
       boostHubError: state.boostHubError,
       isClaimingBoostType: state.isClaimingBoostType,
       loadBoostHub: state.loadBoostHub,
       claimBoost: state.claimBoost,
-    }),
-    shallow
+      boostHubTimeOffsetMs: state.boostHubTimeOffsetMs,
+    }))
   );
 
-  const [now, setNow] = useState(Date.now());
+  const [now, setNow] = useState(() => Date.now());
 
   useEffect(() => {
     loadBoostHub();
@@ -121,26 +122,29 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
     [claimBoost, hapticError, hapticSuccess, notifyError, notifySuccess]
   );
 
-  const items = useMemo(
-    () =>
-      boostHub.map(item => {
-        const cooldownRemaining = Math.max(
-          item.cooldown_remaining_seconds - Math.floor((Date.now() - now) / 1000),
-          0
-        );
+  const items = useMemo(() => {
+    const currentServerMs = now + (boostHubTimeOffsetMs ?? 0);
 
-        const activeRemaining = item.active
-          ? Math.max(item.active.remaining_seconds - Math.floor((Date.now() - now) / 1000), 0)
-          : 0;
+    return boostHub.map(item => {
+      const availableAtMs = Date.parse(item.available_at);
+      const cooldownRemaining = Number.isNaN(availableAtMs)
+        ? Math.max(0, item.cooldown_remaining_seconds)
+        : Math.max(0, Math.ceil((availableAtMs - currentServerMs) / 1000));
 
-        return {
-          ...item,
-          cooldownRemaining,
-          activeRemaining,
-        };
-      }),
-    [boostHub, now]
-  );
+      const expiresAtMs = item.active?.expires_at ? Date.parse(item.active.expires_at) : Number.NaN;
+      const activeRemaining = item.active
+        ? Number.isNaN(expiresAtMs)
+          ? Math.max(0, item.active.remaining_seconds)
+          : Math.max(0, Math.ceil((expiresAtMs - currentServerMs) / 1000))
+        : 0;
+
+      return {
+        ...item,
+        cooldownRemaining,
+        activeRemaining,
+      };
+    });
+  }, [boostHub, boostHubTimeOffsetMs, now]);
 
   return (
     <div className="flex flex-col gap-md text-token-primary">

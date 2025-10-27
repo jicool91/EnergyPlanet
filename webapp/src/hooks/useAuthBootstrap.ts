@@ -112,7 +112,13 @@ export function useAuthBootstrap() {
 
           // Handle 409: initData already used in Redis within TTL window
           if (axios.isAxiosError(error) && error.response?.status === 409) {
-            const errorCode = (error.response.data as any)?.error;
+            const errorCode =
+              typeof error.response.data === 'object' &&
+              error.response.data !== null &&
+              'error' in error.response.data &&
+              typeof (error.response.data as { error?: unknown }).error === 'string'
+                ? (error.response.data as { error: string }).error
+                : undefined;
             if (errorCode === 'telegram_initdata_replayed') {
               logger.warn('⚠️ Telegram initData replayed (409), retrying...', {
                 attempt,

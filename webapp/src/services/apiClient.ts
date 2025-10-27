@@ -100,7 +100,7 @@ apiClient.interceptors.response.use(
 
         originalRequest.headers.Authorization = `Bearer ${access_token}`;
         return apiClient(originalRequest);
-      } catch (refreshError) {
+      } catch {
         // Refresh failed, trigger bootstrap retry
         authStore.clearTokens();
         authStore.requestBootstrapRetry();

@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useState, useRef, useMemo } from 'react';
+import { useEffect, useCallback, useState, useRef, useMemo, useEffectEvent } from 'react';
 import { useGameStore } from './store/gameStore';
 import { useUIStore } from './store/uiStore';
 import { MainScreen } from './screens/MainScreen';
@@ -31,11 +31,15 @@ const shouldShowMajorLevel = (level: number): boolean => {
 };
 
 function App() {
-  if (typeof window !== 'undefined') {
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
     const metrics = window.__renderMetrics ?? { app: 0 };
     metrics.app += 1;
     window.__renderMetrics = metrics;
-  }
+  }, []);
 
   const initGame = useGameStore(state => state.initGame);
   const authErrorMessage = useUIStore(state => state.authErrorMessage);
@@ -74,6 +78,23 @@ function App() {
   const contentTopInset = Math.max(0, safeArea.content.top ?? 0, safeArea.safe.top ?? 0);
   const HEADER_RESERVE_PX = 56;
 
+  const handleLevelCelebration = useEffectEvent(
+    ({ majorLevel, gainedLevels }: { majorLevel: number | undefined; gainedLevels: number[] }) => {
+      if (majorLevel) {
+        setOverlayLevel(majorLevel);
+        setShowLevelUp(true);
+        void logClientEvent('level_up_overlay', { level: majorLevel });
+      }
+
+      gainedLevels
+        .filter(level => !shouldShowMajorLevel(level))
+        .forEach(level => {
+          toast(`Уровень ${level}! Новые постройки доступны.`, 2600, 'trophy');
+          void logClientEvent('level_up_toast', { level });
+        });
+    }
+  );
+
   const appPaddingStyle = useMemo(() => {
     return {
       paddingTop: `${contentTopInset + HEADER_RESERVE_PX}px`,
@@ -108,21 +129,10 @@ function App() {
 
     const majorLevel = [...gainedLevels].reverse().find(level => shouldShowMajorLevel(level));
 
-    if (majorLevel) {
-      setOverlayLevel(majorLevel);
-      setShowLevelUp(true);
-      void logClientEvent('level_up_overlay', { level: majorLevel });
-    }
-
-    gainedLevels
-      .filter(level => !shouldShowMajorLevel(level))
-      .forEach(level => {
-        toast(`Уровень ${level}! Новые постройки доступны.`, 2600, 'trophy');
-        void logClientEvent('level_up_toast', { level });
-      });
+    handleLevelCelebration({ majorLevel, gainedLevels });
 
     previousLevelRef.current = currentLevel;
-  }, [currentLevel, isInitialized, toast]);
+  }, [currentLevel, isInitialized]);
 
   useEffect(() => {
     logger.info('🔍 App.tsx state check', {

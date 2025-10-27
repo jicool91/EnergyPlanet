@@ -203,7 +203,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       await logoutSession(false);
       success('Вы вышли из аккаунта');
       onClose?.();
-    } catch (error) {
+    } catch {
       warning('Ошибка при выходе из аккаунта');
     }
   };

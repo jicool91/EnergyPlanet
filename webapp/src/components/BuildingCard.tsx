@@ -4,7 +4,7 @@
  * Animates when building is newly unlocked
  */
 
-import React, { memo, useState, useEffect } from 'react';
+import React, { memo, useState, useEffect, useRef, useEffectEvent } from 'react';
 import { motion } from 'framer-motion';
 import { Button } from './Button';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
@@ -72,7 +72,6 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
   onPurchase,
   onUpgrade,
 }) => {
-  const [wasLocked, setWasLocked] = useState(isLocked);
   const [showUnlockAnim, setShowUnlockAnim] = useState(false);
   const [buttonStates, setButtonStates] = useState<ButtonStateType>({
     purchase: { success: false, error: false },
@@ -82,24 +81,31 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
   const { success, error } = useNotification();
   const { success: hapticSuccess, error: hapticError } = useHaptic();
 
+  const wasLockedRef = useRef(isLocked);
+
+  const startUnlockAnimation = useEffectEvent(() => {
+    setShowUnlockAnim(true);
+    playSound('unlock');
+    hapticSuccess();
+
+    const timer = window.setTimeout(() => {
+      setShowUnlockAnim(false);
+    }, 1000);
+
+    return () => window.clearTimeout(timer);
+  });
+
   // Detect unlock transition
   useEffect(() => {
-    if (wasLocked && !isLocked) {
-      // Building just unlocked!
-      setShowUnlockAnim(true);
-      playSound('unlock');
-      hapticSuccess();
+    const previouslyLocked = wasLockedRef.current;
+    wasLockedRef.current = isLocked;
 
-      // Stop animation after 1 second
-      const timer = setTimeout(() => {
-        setShowUnlockAnim(false);
-      }, 1000);
-
-      return () => clearTimeout(timer);
+    if (!previouslyLocked || isLocked) {
+      return () => undefined;
     }
 
-    setWasLocked(isLocked);
-  }, [isLocked, wasLocked, playSound, hapticSuccess]);
+    return startUnlockAnimation();
+  }, [isLocked]);
 
   // Handle purchase with notification and button state
   const handlePurchase = async () => {
@@ -123,7 +129,7 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
       setTimeout(() => {
         setButtonStates(prev => ({ ...prev, purchase: { success: false, error: false } }));
       }, 1500);
-    } catch (err) {
+    } catch {
       setButtonStates(prev => ({ ...prev, purchase: { success: false, error: true } }));
       hapticError();
       error(`Ошибка при покупке ${building.name}`);
@@ -145,7 +151,7 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
       setTimeout(() => {
         setButtonStates(prev => ({ ...prev, upgrade: { success: false, error: false } }));
       }, 1500);
-    } catch (err) {
+    } catch {
       setButtonStates(prev => ({ ...prev, upgrade: { success: false, error: true } }));
       hapticError();
       error(`Ошибка при апгрейде ${building.name}`);

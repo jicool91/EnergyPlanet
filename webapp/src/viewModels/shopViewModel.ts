@@ -9,6 +9,7 @@ export interface ShopViewModelInput {
 
 export interface ShopViewModel {
   categories: { id: string; label: string }[];
+  activeCategory: string | null;
   filteredCosmetics: CosmeticItem[];
   bestValuePack: (StarPack & { pricePerStar: number }) | null;
   mostPopularCosmeticId: string | null;
@@ -33,13 +34,15 @@ export const buildShopViewModel = ({
   starPacks,
   activeCategory,
 }: ShopViewModelInput): ShopViewModel => {
-  const categories = resolveCategoryOptions(
-    Array.from(new Set(cosmetics.map(item => item.category)))
-  );
+  const categoryIds = Array.from(new Set(cosmetics.map(item => item.category)));
+  const categories = resolveCategoryOptions(categoryIds);
+  const firstCategory = categoryIds[0] ?? null;
+  const normalizedCategory =
+    activeCategory && categoryIds.includes(activeCategory) ? activeCategory : firstCategory;
 
-  const filteredCosmetics = cosmetics.filter(item =>
-    activeCategory ? item.category === activeCategory : true
-  );
+  const filteredCosmetics = normalizedCategory
+    ? cosmetics.filter(item => item.category === normalizedCategory)
+    : cosmetics;
 
   const regularPacks = starPacks.filter(pack => !pack.featured);
   const bestValuePack =
@@ -64,6 +67,7 @@ export const buildShopViewModel = ({
 
   return {
     categories,
+    activeCategory: normalizedCategory,
     filteredCosmetics,
     bestValuePack,
     mostPopularCosmeticId,
