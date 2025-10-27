@@ -2,6 +2,7 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from './Button';
 import clsx from 'clsx';
+import { createPortal } from 'react-dom';
 
 /**
  * ModalBase Component
@@ -113,7 +114,7 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
     lg: 'w-[min(92vw,720px)]',
   };
 
-  return (
+  const modalContent = (
     <AnimatePresence>
       {isOpen && (
         <>
@@ -130,64 +131,71 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
           />
 
           {/* Modal */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            transition={{ duration: 0.2 }}
-            className={clsx(
-              'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50',
-              'bg-[var(--app-bg)] rounded-xl border border-[var(--color-border-subtle)] shadow-xl backdrop-blur-md',
-              'max-h-[85vh] flex flex-col gap-5 p-5 sm:gap-6 sm:p-6',
-              sizeStyles[size]
-            )}
-          >
-            {/* Header */}
-            <div className="flex items-center justify-between gap-4">
-              <h2 className="text-heading font-semibold text-token-primary flex-1">{title}</h2>
-
-              {showClose && (
-                <button
-                  onClick={onClose}
-                  className="text-token-secondary hover:text-token-primary transition-colors focus-ring"
-                  aria-label="Close modal"
-                >
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M6 18L18 6M6 6l12 12"
-                    />
-                  </svg>
-                </button>
+          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4 sm:p-6">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: 0.2 }}
+              className={clsx(
+                'bg-[var(--app-bg)] rounded-xl border border-[var(--color-border-subtle)] shadow-xl backdrop-blur-md pointer-events-auto',
+                'max-h-[85vh] flex flex-col gap-5 p-5 sm:gap-6 sm:p-6 w-full',
+                sizeStyles[size]
               )}
-            </div>
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between gap-4">
+                <h2 className="text-heading font-semibold text-token-primary flex-1">{title}</h2>
 
-            {/* Content */}
-            <div className="flex-1 overflow-y-auto pr-1 text-body text-token-secondary">
-              {children}
-            </div>
-
-            {/* Actions */}
-            {actions.length > 0 && (
-              <div className="flex gap-3 justify-end flex-wrap">
-                {actions.map((action, index) => (
-                  <Button
-                    key={index}
-                    variant={action.variant || 'primary'}
-                    size="md"
-                    onClick={action.onClick}
-                    disabled={action.disabled}
+                {showClose && (
+                  <button
+                    onClick={onClose}
+                    className="text-token-secondary hover:text-token-primary transition-colors focus-ring"
+                    aria-label="Close modal"
                   >
-                    {action.label}
-                  </Button>
-                ))}
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                  </button>
+                )}
               </div>
-            )}
-          </motion.div>
+
+              {/* Content */}
+              <div className="flex-1 overflow-y-auto pr-1 text-body text-token-secondary">
+                {children}
+              </div>
+
+              {/* Actions */}
+              {actions.length > 0 && (
+                <div className="flex gap-3 justify-end flex-wrap">
+                  {actions.map((action, index) => (
+                    <Button
+                      key={index}
+                      variant={action.variant || 'primary'}
+                      size="md"
+                      onClick={action.onClick}
+                      disabled={action.disabled}
+                    >
+                      {action.label}
+                    </Button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          </div>
         </>
       )}
     </AnimatePresence>
   );
+
+  if (typeof document === 'undefined') {
+    return modalContent;
+  }
+
+  return createPortal(modalContent, document.body);
 };
