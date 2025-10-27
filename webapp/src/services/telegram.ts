@@ -1,3 +1,8 @@
+import type {
+  MainButton as TelegramSdkMainButton,
+  SafeAreaInset as TelegramSafeArea,
+  WebApp as TelegramWebApp,
+} from '@twa-dev/types';
 import {
   DEFAULT_THEME,
   initializeTelegramTheme,
@@ -13,116 +18,28 @@ export type { TelegramThemeParams } from '../utils/telegramTheme';
  * Encapsulates initialization, theme management, haptics and back button helpers.
  */
 
-type TelegramSafeArea = {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
-};
-
-type TelegramWebAppEvents =
-  | 'themeChanged'
-  | 'viewportChanged'
-  | 'backButtonClicked'
-  | 'safe_area_changed'
-  | 'safeAreaChanged'
-  | 'contentSafeAreaChanged'
-  | 'content_safe_area_changed'
-  | 'activated'
-  | 'deactivated'
-  | 'fullscreenChanged'
-  | 'fullscreenFailed';
-
 type TelegramHapticStyle = 'light' | 'medium' | 'heavy' | 'rigid' | 'soft';
 type TelegramHapticNotification = 'error' | 'success' | 'warning';
 
-interface TelegramBackButton {
-  show: () => void;
-  hide: () => void;
-  isVisible: boolean;
-  onClick: (cb: () => void) => void;
-  offClick: (cb: () => void) => void;
-}
+type TelegramMainButton = TelegramSdkMainButton & {
+  setColor?: (color: string) => TelegramSdkMainButton;
+  setTextColor?: (color: string) => TelegramSdkMainButton;
+};
 
-interface TelegramMainButton {
-  isVisible: boolean;
-  text?: string;
-  setText: (text: string) => void;
-  show: () => void;
-  hide: () => void;
-  onClick: (cb: () => void) => void;
-  offClick: (cb: () => void) => void;
-  showProgress: (leaveActive?: boolean) => void;
-  hideProgress: () => void;
-  enable: () => void;
-  disable: () => void;
-  setColor?: (color: string) => void;
-  setTextColor?: (color: string) => void;
-}
-
-interface TelegramCloudStorage {
+type TelegramCloudStorage = {
   setItem: (key: string, value: string) => Promise<void>;
   getItem: (key: string) => Promise<string | null>;
   removeItem: (key: string) => Promise<void>;
   getKeys?: () => Promise<string[]>;
   getItems?: (keys: string[]) => Promise<Record<string, string>>;
-}
+};
 
-interface TelegramHapticFeedback {
-  impactOccurred: (style: TelegramHapticStyle) => void;
-  notificationOccurred: (type: TelegramHapticNotification) => void;
-  selectionChanged: () => void;
-}
-
-interface TelegramViewportEvent {
-  isStateStable: boolean;
-  isExpanded: boolean;
-  height: number;
-  width: number;
-}
-
-interface TelegramWebApp {
-  initData: string;
-  initDataUnsafe?: unknown;
-  version: string;
-  platform: string;
-  colorScheme: 'light' | 'dark';
-  themeParams: TelegramThemeParams;
-  safeAreaInset?: TelegramSafeArea;
-  contentSafeAreaInset?: TelegramSafeArea;
-  viewportHeight?: number;
-  viewportStableHeight?: number;
-  ready(): void;
-  expand(): void;
-  close(): void;
-  enableClosingConfirmation(): void;
-  disableVerticalSwipes(): void;
-  isClosingConfirmationEnabled: boolean;
+type TelegramViewportEvent = {
+  isStateStable?: boolean;
   isExpanded?: boolean;
-  openInvoice?: (slug: string, callback?: (status?: unknown) => void) => Promise<unknown>;
-  onEvent<EventName extends TelegramWebAppEvents>(
-    eventType: EventName,
-    handler: EventName extends 'viewportChanged'
-      ? (event: TelegramViewportEvent) => void
-      : EventName extends 'safe_area_changed'
-        ? (inset: TelegramSafeArea) => void
-        : () => void
-  ): void;
-  offEvent<EventName extends TelegramWebAppEvents>(
-    eventType: EventName,
-    handler: EventName extends 'viewportChanged'
-      ? (event: TelegramViewportEvent) => void
-      : EventName extends 'safe_area_changed'
-        ? (inset: TelegramSafeArea) => void
-        : () => void
-  ): void;
-  BackButton?: TelegramBackButton;
-  HapticFeedback?: TelegramHapticFeedback;
-  MainButton?: TelegramMainButton;
-  CloudStorage?: TelegramCloudStorage;
-  setHeaderColor?: (color: string) => void;
-  setBottomBarColor?: (color: string) => void;
-}
+  height?: number;
+  width?: number;
+};
 
 declare global {
   interface Window {
@@ -157,6 +74,7 @@ const themeListeners = new Set<ThemeListener>();
 const safeAreaListeners = new Set<SafeAreaListener>();
 const viewportListeners = new Set<ViewportListener>();
 const mainButtonHandlers = new Set<MainButtonHandler>();
+const fullscreenListeners = new Set<(isFullscreen: boolean) => void>();
 let currentTheme: TelegramThemeParams = { ...DEFAULT_THEME };
 let currentSafeArea: SafeAreaSnapshot = { safe: ZERO_SAFE_AREA, content: ZERO_SAFE_AREA };
 let currentViewport: ViewportMetrics = {
@@ -166,16 +84,75 @@ let currentViewport: ViewportMetrics = {
   isExpanded: true,
   isStateStable: true,
 };
+let currentFullscreen = false;
 
-function getWebApp(): TelegramWebApp | null {
+let cachedWebApp: TelegramWebApp | null = null;
+let sdkLoadRequested = false;
+
+function getGlobalWebApp(): TelegramWebApp | null {
   if (typeof window === 'undefined') {
     return null;
   }
   return window.Telegram?.WebApp ?? null;
 }
 
+function ensureTelegramSdkRequested() {
+  if (sdkLoadRequested || typeof window === 'undefined') {
+    return;
+  }
+
+  sdkLoadRequested = true;
+  void import('@twa-dev/sdk')
+    .then(module => {
+      cachedWebApp = module.default ?? getGlobalWebApp();
+    })
+    .catch(error => {
+      if (import.meta?.env?.DEV) {
+        console.debug('Failed to load @twa-dev/sdk', error);
+      }
+      cachedWebApp = getGlobalWebApp();
+    });
+}
+
+function getWebApp(): TelegramWebApp | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  ensureTelegramSdkRequested();
+
+  if (cachedWebApp) {
+    return cachedWebApp;
+  }
+
+  cachedWebApp = getGlobalWebApp();
+  return cachedWebApp;
+}
+
 function getMainButton(): TelegramMainButton | null {
-  return getWebApp()?.MainButton ?? null;
+  const mainButton = getWebApp()?.MainButton;
+  if (!mainButton) {
+    return null;
+  }
+  return mainButton as TelegramMainButton;
+}
+
+function resolveTelegramColorToken(
+  value?: string
+): `#${string}` | 'bg_color' | 'secondary_bg_color' | null {
+  if (!value) {
+    return null;
+  }
+
+  if (value === 'bg_color' || value === 'secondary_bg_color') {
+    return value;
+  }
+
+  if (value.startsWith('#')) {
+    return value as `#${string}`;
+  }
+
+  return null;
 }
 
 function updateTelegramChrome(theme: TelegramThemeParams) {
@@ -184,8 +161,11 @@ function updateTelegramChrome(theme: TelegramThemeParams) {
     return;
   }
 
-  if (theme.header_color && typeof webApp.setHeaderColor === 'function') {
-    webApp.setHeaderColor(theme.header_color);
+  if (typeof webApp.setHeaderColor === 'function') {
+    const headerColor = resolveTelegramColorToken(theme.header_color);
+    if (headerColor) {
+      webApp.setHeaderColor(headerColor);
+    }
   }
   if (theme.bottom_bar_color && typeof webApp.setBottomBarColor === 'function') {
     webApp.setBottomBarColor(theme.bottom_bar_color);
@@ -222,6 +202,16 @@ function emitViewport(metrics: ViewportMetrics) {
   });
 }
 
+function emitFullscreen(isFullscreen: boolean) {
+  fullscreenListeners.forEach(listener => {
+    try {
+      listener(isFullscreen);
+    } catch (error) {
+      console.warn('Fullscreen listener threw an error', error);
+    }
+  });
+}
+
 function updateViewportMetrics(partial: Partial<ViewportMetrics>) {
   currentViewport = {
     ...currentViewport,
@@ -235,11 +225,24 @@ function applyMainButtonConfig(
   config: { text: string; color?: string; textColor?: string; disabled?: boolean }
 ) {
   button.setText(config.text);
-  if (config.color && typeof button.setColor === 'function') {
-    button.setColor(config.color);
+  const params: { color?: string; text_color?: string } = {};
+
+  if (config.color) {
+    if (typeof button.setColor === 'function') {
+      button.setColor(config.color);
+    } else {
+      params.color = config.color;
+    }
   }
-  if (config.textColor && typeof button.setTextColor === 'function') {
-    button.setTextColor(config.textColor);
+  if (config.textColor) {
+    if (typeof button.setTextColor === 'function') {
+      button.setTextColor(config.textColor);
+    } else {
+      params.text_color = config.textColor;
+    }
+  }
+  if (typeof button.setParams === 'function' && (params.color || params.text_color)) {
+    button.setParams(params as Parameters<typeof button.setParams>[0]);
   }
 
   if (config.disabled) {
@@ -260,11 +263,37 @@ function applyThemeFromParams(
   emitTheme(resolved);
 }
 
+function applyFullscreenState(
+  isFullscreen: boolean | undefined,
+  options: { force?: boolean } = {}
+) {
+  const normalized = Boolean(isFullscreen);
+  if (!options.force && currentFullscreen === normalized) {
+    return;
+  }
+
+  currentFullscreen = normalized;
+
+  if (typeof document !== 'undefined') {
+    const root = document.documentElement;
+    root.style.setProperty('--tg-fullscreen', normalized ? '1' : '0');
+    root.dataset.tgFullscreen = normalized ? 'true' : 'false';
+  }
+
+  emitFullscreen(normalized);
+}
+
 function applySafeArea(options: { safe?: TelegramSafeArea; content?: TelegramSafeArea }) {
-  const root = document.documentElement;
   const safe = options.safe ?? ZERO_SAFE_AREA;
   const content = options.content ?? safe;
 
+  if (typeof document === 'undefined') {
+    currentSafeArea = { safe, content };
+    emitSafeArea(currentSafeArea);
+    return;
+  }
+
+  const root = document.documentElement;
   root.style.setProperty('--tg-safe-area-inset-top', `${safe.top}px`);
   root.style.setProperty('--tg-safe-area-inset-right', `${safe.right}px`);
   root.style.setProperty('--tg-safe-area-inset-bottom', `${safe.bottom}px`);
@@ -288,14 +317,18 @@ function applySafeArea(options: { safe?: TelegramSafeArea; content?: TelegramSaf
 }
 
 function applyViewportVars(webApp: TelegramWebApp | null, event?: TelegramViewportEvent) {
-  const root = document.documentElement;
   if (!webApp) {
     return;
   }
 
   const height = typeof event?.height === 'number' ? event.height : webApp.viewportHeight;
   const stableHeight = webApp.viewportStableHeight;
-  const width = typeof event?.width === 'number' ? event.width : currentViewport.width;
+  const width =
+    typeof event?.width === 'number'
+      ? event.width
+      : typeof window !== 'undefined'
+        ? window.innerWidth
+        : currentViewport.width;
   const isExpanded =
     typeof event?.isExpanded === 'boolean'
       ? event.isExpanded
@@ -305,12 +338,14 @@ function applyViewportVars(webApp: TelegramWebApp | null, event?: TelegramViewpo
   const isStateStable =
     typeof event?.isStateStable === 'boolean' ? event.isStateStable : currentViewport.isStateStable;
 
-  if (typeof height === 'number') {
-    root.style.setProperty('--tg-viewport-height', `${height}px`);
-  }
-
-  if (typeof stableHeight === 'number') {
-    root.style.setProperty('--tg-viewport-stable-height', `${stableHeight}px`);
+  if (typeof document !== 'undefined') {
+    const root = document.documentElement;
+    if (typeof height === 'number') {
+      root.style.setProperty('--tg-viewport-height', `${height}px`);
+    }
+    if (typeof stableHeight === 'number') {
+      root.style.setProperty('--tg-viewport-stable-height', `${stableHeight}px`);
+    }
   }
 
   updateViewportMetrics({
@@ -341,9 +376,12 @@ export function initializeTelegramWebApp(): void {
         typeof window !== 'undefined' ? window.innerHeight : currentViewport.stableHeight,
       width: typeof window !== 'undefined' ? window.innerWidth : currentViewport.width,
     });
+    applyFullscreenState(false, { force: true });
     initialized = true;
     return;
   }
+
+  cachedWebApp = webApp;
 
   try {
     webApp.ready();
@@ -355,21 +393,16 @@ export function initializeTelegramWebApp(): void {
       content: webApp.contentSafeAreaInset,
     });
     applyViewportVars(webApp);
+    applyFullscreenState(webApp.isFullscreen, { force: true });
 
     const handleThemeChange = () => applyThemeFromParams(webApp.themeParams);
-    const handleViewportChange = (event: TelegramViewportEvent) => {
-      if (!event.isExpanded) {
+    const handleViewportChange = (event: { isStateStable: boolean }) => {
+      if (!webApp.isExpanded) {
         webApp.expand();
       }
-      applyViewportVars(webApp, event);
+      applyViewportVars(webApp, { isStateStable: event.isStateStable });
     };
     const handleSafeAreaChange = () => {
-      applySafeArea({
-        safe: webApp.safeAreaInset,
-        content: webApp.contentSafeAreaInset,
-      });
-    };
-    const handleContentSafeAreaChange = () => {
       applySafeArea({
         safe: webApp.safeAreaInset,
         content: webApp.contentSafeAreaInset,
@@ -383,15 +416,28 @@ export function initializeTelegramWebApp(): void {
           console.debug('expand() unsupported on activation', error);
         }
       }
+      applyFullscreenState(webApp.isFullscreen);
+    };
+    const handleDeactivated = () => {
+      applyFullscreenState(webApp.isFullscreen);
+    };
+    const handleFullscreenChange = () => {
+      applyFullscreenState(webApp.isFullscreen);
+    };
+    const handleFullscreenFailed = (payload: { error: string }) => {
+      if (import.meta.env.DEV) {
+        console.debug('Fullscreen request failed', payload.error);
+      }
     };
 
     webApp.onEvent('themeChanged', handleThemeChange);
     webApp.onEvent('viewportChanged', handleViewportChange);
     webApp.onEvent('safeAreaChanged', handleSafeAreaChange);
-    webApp.onEvent('safe_area_changed', handleSafeAreaChange);
-    webApp.onEvent('contentSafeAreaChanged', handleContentSafeAreaChange);
-    webApp.onEvent('content_safe_area_changed', handleContentSafeAreaChange);
+    webApp.onEvent('contentSafeAreaChanged', handleSafeAreaChange);
+    webApp.onEvent('fullscreenChanged', handleFullscreenChange);
+    webApp.onEvent('fullscreenFailed', handleFullscreenFailed);
     webApp.onEvent('activated', handleActivated);
+    webApp.onEvent('deactivated', handleDeactivated);
 
     initialized = true;
   } catch (error) {
@@ -461,6 +507,53 @@ export function getViewportMetrics(): ViewportMetrics {
   return currentViewport;
 }
 
+export function onTelegramFullscreenChange(listener: (isFullscreen: boolean) => void): () => void {
+  fullscreenListeners.add(listener);
+  listener(currentFullscreen);
+
+  return () => {
+    fullscreenListeners.delete(listener);
+  };
+}
+
+export function isTelegramFullscreen(): boolean {
+  return currentFullscreen;
+}
+
+export function requestTelegramFullscreen(): boolean {
+  const webApp = getWebApp();
+  if (!webApp || typeof webApp.requestFullscreen !== 'function') {
+    return false;
+  }
+
+  try {
+    webApp.requestFullscreen();
+    return true;
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.debug('requestFullscreen failed', error);
+    }
+    return false;
+  }
+}
+
+export function exitTelegramFullscreen(): boolean {
+  const webApp = getWebApp();
+  if (!webApp || typeof webApp.exitFullscreen !== 'function') {
+    return false;
+  }
+
+  try {
+    webApp.exitFullscreen();
+    return true;
+  } catch (error) {
+    if (import.meta.env.DEV) {
+      console.debug('exitFullscreen failed', error);
+    }
+    return false;
+  }
+}
+
 type TelegramMainButtonOptions = {
   text: string;
   onClick: () => void;
@@ -520,7 +613,79 @@ export function hideTelegramMainButton() {
 }
 
 function getCloudStorage(): TelegramCloudStorage | null {
-  return getWebApp()?.CloudStorage ?? null;
+  const storage = getWebApp()?.CloudStorage;
+  if (!storage) {
+    return null;
+  }
+
+  const promisifyVoid = (
+    executor: (callback: (error: string | null) => void) => void
+  ): Promise<void> =>
+    new Promise<void>((resolve, reject) => {
+      executor(error => {
+        if (error) {
+          reject(new Error(error));
+          return;
+        }
+        resolve();
+      });
+    });
+
+  const promisifyResult = <Result>(
+    executor: (callback: (error: string | null, result?: Result) => void) => void,
+    fallback: Result
+  ): Promise<Result> =>
+    new Promise<Result>((resolve, reject) => {
+      executor((error, result) => {
+        if (error) {
+          reject(new Error(error));
+          return;
+        }
+        resolve((result ?? fallback) as Result);
+      });
+    });
+
+  return {
+    async setItem(key: string, value: string) {
+      await promisifyVoid(callback =>
+        storage.setItem(key, value, (error: string | null) => callback(error))
+      );
+    },
+    async getItem(key: string) {
+      return promisifyResult<string | null>(
+        callback =>
+          storage.getItem(key, (error: string | null, result?: string) =>
+            callback(error, result ?? null)
+          ),
+        null
+      );
+    },
+    async removeItem(key: string) {
+      await promisifyVoid(callback =>
+        storage.removeItem(key, (error: string | null) => callback(error))
+      );
+    },
+    getKeys: storage.getKeys
+      ? async () =>
+          promisifyResult<string[]>(
+            callback =>
+              storage.getKeys?.((error: string | null, result?: string[]) =>
+                callback(error, result ?? [])
+              ),
+            []
+          )
+      : undefined,
+    getItems: storage.getItems
+      ? async (keys: string[]) =>
+          promisifyResult<Record<string, string>>(
+            callback =>
+              storage.getItems?.(keys, (error: string | null, result?: Record<string, string>) =>
+                callback(error, result ?? {})
+              ),
+            {}
+          )
+      : undefined,
+  };
 }
 
 export function isCloudStorageAvailable(): boolean {

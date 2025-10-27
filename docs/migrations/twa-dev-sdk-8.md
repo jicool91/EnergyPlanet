@@ -25,13 +25,13 @@
 +    <script src="https://telegram.org/js/telegram-web-app.js?56"></script>
    ```
 3. В `services/telegram.ts` использовать новые названия событий SDK (camelCase) и добавить обработчики `contentSafeAreaChanged` / `fullscreenChanged` — часть работы уже сделана, проверить реализации после обновления типов.
-4. Ввести минимальную обёртку из SDK вместо прямого чтения `window.Telegram` (например, `import WebApp from '@twa-dev/sdk'`) — это даст типобезопасный доступ и гарантирует инициализацию перед использованием. Потребуется адаптировать функции `getWebApp()` и `getMainButton()`.
+4. Ввести минимальную обёртку из SDK вместо прямого чтения `window.Telegram` (используем динамический `import('@twa-dev/sdk')`, чтобы избежать `window`-ошибок при сборке) — это даёт типобезопасный доступ и гарантирует инициализацию перед использованием. Потребуется адаптировать функции `getWebApp()` и `getMainButton()`.
 5. Прогнать smoke-тесты на iOS/Android: убедиться, что safe area и fullscreen запускаются одинаково при открытии через разные кнопки (стандартную и кастомную `Play`).
-6. Задокументировать новые возможности в UI-доках (например, как реагируем на `fullscreenChanged`).
+6. Задокументировать новые возможности в UI-доках (например, как реагируем на `fullscreenChanged` и где брать `--tg-fullscreen`).
 
 ## Чек-лист
 
-- [ ] Обновлены `package.json` / `package-lock.json`.
-- [ ] Вёрсия скрипта Telegram в `index.html` = `?56`.
-- [ ] `services/telegram.ts` использует camelCase события и экспортирует новые хелперы (`requestFullscreen` если понадобится).
-- [ ] На устройствах safe-area корректна, fullscreen включается для обеих кнопок запуска.
+- [x] Обновлены `package.json` / `package-lock.json`.
+- [x] Вёрсия скрипта Telegram в `index.html` = `?56`.
+- [x] `services/telegram.ts` использует camelCase события и экспортирует новые хелперы (`requestFullscreen` / `exitFullscreen`, `onTelegramFullscreenChange`).
+- [ ] На устройствах safe-area корректна, fullscreen включается для обеих кнопок запуска (нужна ручная проверка на iOS/Android).
