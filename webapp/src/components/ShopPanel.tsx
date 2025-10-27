@@ -11,15 +11,19 @@ import { OptimizedImage } from './OptimizedImage';
 import { useHaptic } from '../hooks/useHaptic';
 import { useNotification } from '../hooks/useNotification';
 import { describeError } from '../store/storeUtils';
+import { BoostHub } from './BoostHub';
 
 interface ShopPanelProps {
   showHeader?: boolean;
+  activeSection?: ShopSection;
+  onSectionChange?: (section: ShopSection) => void;
 }
 
-type ShopSection = 'star_packs' | 'cosmetics';
+export type ShopSection = 'star_packs' | 'cosmetics' | 'boosts';
 
 const SECTION_TABS: { id: ShopSection; label: string }[] = [
   { id: 'star_packs', label: 'Паки Stars' },
+  { id: 'boosts', label: 'Бусты' },
   { id: 'cosmetics', label: 'Косметика' },
 ];
 
@@ -42,7 +46,11 @@ function calculateBonusPercentage(baseStars: number, bonusStars: number): number
   return Math.round((bonusStars / baseStars) * 100);
 }
 
-export function ShopPanel({ showHeader = true }: ShopPanelProps) {
+export function ShopPanel({
+  showHeader = true,
+  activeSection: activeSectionProp,
+  onSectionChange,
+}: ShopPanelProps) {
   const {
     cosmetics,
     isCosmeticsLoading,
@@ -80,9 +88,23 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
     }))
   );
 
-  const [activeSection, setActiveSection] = useState<ShopSection>('star_packs');
+  const [internalSection, setInternalSection] = useState<ShopSection>(
+    activeSectionProp ?? 'star_packs'
+  );
   const [selectedCategory, setSelectedCategory] = useState<string>('planet_skin');
   const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useNotification();
+  const isControlled = typeof activeSectionProp !== 'undefined';
+  const activeSection = isControlled ? activeSectionProp : internalSection;
+
+  const changeSection = useCallback(
+    (section: ShopSection) => {
+      if (!isControlled) {
+        setInternalSection(section);
+      }
+      onSectionChange?.(section);
+    },
+    [isControlled, onSectionChange]
+  );
 
   useEffect(() => {
     loadCosmetics();
@@ -110,34 +132,34 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
         case 'ArrowDown': {
           event.preventDefault();
           const nextIndex = index === lastIndex ? 0 : index + 1;
-          setActiveSection(SECTION_TABS[nextIndex].id);
+          changeSection(SECTION_TABS[nextIndex].id);
           break;
         }
         case 'ArrowLeft':
         case 'ArrowUp': {
           event.preventDefault();
           const prevIndex = index === 0 ? lastIndex : index - 1;
-          setActiveSection(SECTION_TABS[prevIndex].id);
+          changeSection(SECTION_TABS[prevIndex].id);
           break;
         }
         case 'Home':
           event.preventDefault();
-          setActiveSection(SECTION_TABS[0].id);
+          changeSection(SECTION_TABS[0].id);
           break;
         case 'End':
           event.preventDefault();
-          setActiveSection(SECTION_TABS[lastIndex].id);
+          changeSection(SECTION_TABS[lastIndex].id);
           break;
         case ' ':
         case 'Enter':
           event.preventDefault();
-          setActiveSection(SECTION_TABS[index].id);
+          changeSection(SECTION_TABS[index].id);
           break;
         default:
           break;
       }
     },
-    [setActiveSection]
+    [changeSection]
   );
 
   const handleCategoryKeyDown = useCallback(
@@ -257,6 +279,28 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
 
   const featuredPack = starPacks.find(pack => pack.featured);
 
+  const sectionSubtitle = useMemo(() => {
+    switch (activeSection) {
+      case 'star_packs':
+        return 'Получите Stars и разблокируйте новые возможности';
+      case 'boosts':
+        return 'Активируйте бусты, чтобы ускорить прогресс';
+      default:
+        return 'Кастомизируйте вашу планету эксклюзивной косметикой';
+    }
+  }, [activeSection]);
+
+  const sectionHelper = useMemo(() => {
+    switch (activeSection) {
+      case 'star_packs':
+        return 'Stars ускоряют пассивный доход и помогают быстрее достичь следующей цели.';
+      case 'boosts':
+        return 'Собирайте ежедневные и рекламные бусты, чтобы множитель работал чаще.';
+      default:
+        return 'Косметика и бусты возвращают игроков — используйте оба инструмента.';
+    }
+  }, [activeSection]);
+
   return (
     <div className="flex flex-col gap-md">
       {showHeader ? (
@@ -264,15 +308,10 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
           <h2 className="m-0 mb-1 text-heading font-bold bg-gradient-to-r from-gold to-orange bg-clip-text text-transparent">
             🚀 Power Up
           </h2>
-          <p className="m-0 text-caption text-token-secondary">
-            {activeSection === 'star_packs'
-              ? 'Получите Stars и разблокируйте новые возможности'
-              : 'Кастомизируйте вашу планету эксклюзивной косметикой'}
-          </p>
-          <p className="m-0 mt-1 text-xs text-token-secondary/80">
-            Stars ускоряют пассивный доход и помогают быстрее достичь следующей цели. Косметика и
-            бусты возвращают игроков — используйте оба инструмента.
-          </p>
+          <p className="m-0 text-caption text-token-secondary">{sectionSubtitle}</p>
+          {sectionHelper ? (
+            <p className="m-0 mt-1 text-xs text-token-secondary/80">{sectionHelper}</p>
+          ) : null}
         </div>
       ) : null}
 
@@ -288,7 +327,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
               key={section.id}
               variant={isActive ? 'primary' : 'ghost'}
               size="md"
-              onClick={() => setActiveSection(section.id)}
+              onClick={() => changeSection(section.id)}
               role="tab"
               aria-selected={isActive}
               aria-controls={panelId}
@@ -546,6 +585,18 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
                 );
               })
           )}
+        </div>
+      )}
+      {activeSection === 'boosts' && (
+        <div
+          className="flex flex-col gap-md"
+          id={getSectionPanelId('boosts')}
+          role="tabpanel"
+          aria-labelledby={getSectionTabId('boosts')}
+        >
+          <ErrorBoundary>
+            <BoostHub showHeader={false} />
+          </ErrorBoundary>
         </div>
       )}
 

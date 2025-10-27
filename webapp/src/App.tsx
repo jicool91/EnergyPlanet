@@ -15,8 +15,9 @@ import { useSafeArea, useAuthBootstrap } from './hooks';
 import { useAuthStore, authStore } from './store/authStore';
 import { logger } from './utils/logger';
 import { HEADER_BUFFER_PX, HEADER_RESERVE_PX } from './constants/layout';
+import type { ShopSection } from './components/ShopPanel';
 
-type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'account' | 'clan';
+type TabKey = 'home' | 'shop' | 'builds' | 'leaderboard' | 'account' | 'clan';
 
 const shouldShowMajorLevel = (level: number): boolean => {
   if (level < 10) {
@@ -72,6 +73,7 @@ function App() {
 
   // Global tab navigation state
   const [activeTab, setActiveTab] = useState<TabKey>('home');
+  const [shopSection, setShopSection] = useState<ShopSection>('star_packs');
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [overlayLevel, setOverlayLevel] = useState<number | null>(null);
   const { safeArea } = useSafeArea();
@@ -222,12 +224,20 @@ function App() {
             ? Math.min(1, xpIntoLevel / (xpIntoLevel + xpToNextLevel))
             : 0
         }
-        onShopClick={() => setActiveTab('shop')}
+        onShopClick={() => {
+          setShopSection('star_packs');
+          setActiveTab('shop');
+        }}
         onSettingsClick={() => setActiveTab('account')}
       />
 
       {/* Main Content */}
-      <MainScreen activeTab={activeTab} onTabChange={setActiveTab} />
+      <MainScreen
+        activeTab={activeTab}
+        onTabChange={setActiveTab}
+        shopSection={shopSection}
+        onShopSectionChange={setShopSection}
+      />
 
       {/* Global Navigation Footer */}
       <TabBar

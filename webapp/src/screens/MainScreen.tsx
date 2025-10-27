@@ -34,6 +34,7 @@ import { describeError } from '../store/storeUtils';
 import { logClientEvent } from '@/services/telemetry';
 import { useCatalogStore } from '../store/catalogStore';
 import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
+import type { ShopSection } from '../components/ShopPanel';
 
 const TAB_BAR_RESERVE_PX = 88;
 
@@ -41,7 +42,6 @@ const TAB_BAR_RESERVE_PX = 88;
 const ShopPanel = lazy(() =>
   import('../components/ShopPanel').then(m => ({ default: m.ShopPanel }))
 );
-const BoostHub = lazy(() => import('../components/BoostHub').then(m => ({ default: m.BoostHub })));
 const BuildingsPanel = lazy(() =>
   import('../components/BuildingsPanel').then(m => ({ default: m.BuildingsPanel }))
 );
@@ -54,14 +54,21 @@ const ProfileSettingsScreen = lazy(() =>
   }))
 );
 
-type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'account' | 'clan';
+type TabKey = 'home' | 'shop' | 'builds' | 'leaderboard' | 'account' | 'clan';
 
 interface MainScreenProps {
   activeTab: TabKey;
   onTabChange: (tab: TabKey) => void;
+  shopSection: ShopSection;
+  onShopSectionChange: (section: ShopSection) => void;
 }
 
-export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
+export function MainScreen({
+  activeTab,
+  onTabChange,
+  shopSection,
+  onShopSectionChange,
+}: MainScreenProps) {
   const {
     energy,
     level,
@@ -543,7 +550,10 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
                 isSocialBlockLoading={!leaderboardLoaded && isLeaderboardLoading}
                 activeBoost={activeBoostSummary ?? undefined}
                 nextBoostAvailabilityMs={nextBoostAvailabilityMs}
-                onViewBoosts={() => onTabChange('boosts')}
+                onViewBoosts={() => {
+                  onShopSectionChange('boosts');
+                  onTabChange('shop');
+                }}
               />
             </TabPageSurface>
           </ScreenTransition>
@@ -560,24 +570,11 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
           >
             <Suspense fallback={<ShopSkeleton />}>
               <TabPageSurface>
-                <ShopPanel showHeader={false} />
-              </TabPageSurface>
-            </Suspense>
-          </ScreenTransition>
-        );
-      case 'boosts':
-        return (
-          <ScreenTransition
-            key="boosts"
-            type="slide"
-            className="flex-1"
-            id="tab-panel-boosts"
-            role="tabpanel"
-            aria-labelledby="tab-boosts"
-          >
-            <Suspense fallback={<ShopSkeleton />}>
-              <TabPageSurface>
-                <BoostHub showHeader={false} />
+                <ShopPanel
+                  showHeader={false}
+                  activeSection={shopSection}
+                  onSectionChange={onShopSectionChange}
+                />
               </TabPageSurface>
             </Suspense>
           </ScreenTransition>

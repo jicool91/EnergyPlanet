@@ -6,8 +6,8 @@ import { SettingsScreen } from './settings';
 type AccountSection = 'settings' | 'profile';
 
 const SECTIONS: Array<{ id: AccountSection; label: string; icon: string }> = [
-  { id: 'settings', label: 'Настройки', icon: '⚙️' },
   { id: 'profile', label: 'Профиль', icon: '👤' },
+  { id: 'settings', label: 'Настройки', icon: '⚙️' },
 ];
 
 interface ProfileSettingsScreenProps {
@@ -20,7 +20,7 @@ interface ProfileSettingsScreenProps {
  * into a single entry point opened from the header.
  */
 const ProfileSettingsScreenComponent: React.FC<ProfileSettingsScreenProps> = ({
-  defaultSection = 'settings',
+  defaultSection = 'profile',
   onClose,
 }) => {
   const [section, setSection] = useState<AccountSection>(defaultSection);
