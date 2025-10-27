@@ -21,8 +21,15 @@ export function useAuthBootstrap() {
   const hasShownErrorRef = useRef(false);
   const hasAttemptedOnceRef = useRef(false);
   const authRetryCountRef = useRef(0);
+  const isMountedRef = useRef(true);
   const MAX_AUTH_RETRIES = 3;
   const INITIAL_RETRY_DELAY_MS = 2000; // 2 seconds
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!hydrated) {
@@ -46,8 +53,6 @@ export function useAuthBootstrap() {
     hasShownErrorRef.current = false;
     authRetryCountRef.current = 0;
 
-    let cancelled = false;
-
     const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
     const authenticateWithTelegramWithRetry = async (maxRetries = MAX_AUTH_RETRIES): Promise<void> => {
@@ -68,7 +73,7 @@ export function useAuthBootstrap() {
             }
           );
 
-          if (cancelled) {
+          if (!isMountedRef.current) {
             return;
           }
 
@@ -99,7 +104,7 @@ export function useAuthBootstrap() {
           setBootstrapping(false);
           return;
         } catch (error) {
-          if (cancelled) {
+          if (!isMountedRef.current) {
             return;
           }
 
@@ -155,7 +160,7 @@ export function useAuthBootstrap() {
       try {
         if (accessToken) {
           logger.info('✅ Access token already available');
-          if (!cancelled) {
+          if (isMountedRef.current) {
             setAuthReady(true);
             setBootstrapping(false);
           }
@@ -169,7 +174,7 @@ export function useAuthBootstrap() {
               refresh_token: refreshToken,
             });
 
-            if (cancelled) {
+            if (!isMountedRef.current) {
               return;
             }
 
@@ -209,7 +214,7 @@ export function useAuthBootstrap() {
           await authenticateWithTelegramWithRetry();
         }
       } catch (error) {
-        if (cancelled) {
+        if (!isMountedRef.current) {
           return;
         }
 
@@ -256,9 +261,6 @@ export function useAuthBootstrap() {
 
     bootstrap();
 
-    return () => {
-      cancelled = true;
-    };
   }, [
     hydrated,
     authReady,
