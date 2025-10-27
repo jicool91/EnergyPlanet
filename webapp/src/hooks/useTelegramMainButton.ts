@@ -1,5 +1,7 @@
 import { useEffect } from 'react';
 import { hideTelegramMainButton, withTelegramMainButton } from '../services/telegram';
+import { isTmaFeatureEnabled } from '@/config/tmaFlags';
+import { hideTmaMainButton, withTmaMainButton } from '@/services/tma/mainButton';
 
 type UseTelegramMainButtonOptions = {
   text: string;
@@ -11,6 +13,13 @@ type UseTelegramMainButtonOptions = {
   enabled?: boolean;
   keepVisibleOnUnmount?: boolean;
 };
+
+const attachMainButton = isTmaFeatureEnabled('mainButton')
+  ? withTmaMainButton
+  : withTelegramMainButton;
+const hideMainButton = isTmaFeatureEnabled('mainButton')
+  ? hideTmaMainButton
+  : hideTelegramMainButton;
 
 export function useTelegramMainButton(options: UseTelegramMainButtonOptions) {
   const {
@@ -26,11 +35,11 @@ export function useTelegramMainButton(options: UseTelegramMainButtonOptions) {
 
   useEffect(() => {
     if (!enabled) {
-      hideTelegramMainButton();
+      hideMainButton();
       return undefined;
     }
 
-    return withTelegramMainButton({
+    return attachMainButton({
       text,
       onClick,
       color,
@@ -39,5 +48,14 @@ export function useTelegramMainButton(options: UseTelegramMainButtonOptions) {
       showProgress,
       keepVisibleOnUnmount,
     });
-  }, [enabled, text, onClick, color, textColor, disabled, showProgress, keepVisibleOnUnmount]);
+  }, [
+    enabled,
+    text,
+    onClick,
+    color,
+    textColor,
+    disabled,
+    showProgress,
+    keepVisibleOnUnmount,
+  ]);
 }

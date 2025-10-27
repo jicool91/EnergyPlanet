@@ -1,7 +1,7 @@
 const TRUE_LITERAL = 'true';
 const FALSE_LITERAL = 'false';
 
-type TmaMigrationFeature = 'safeArea' | 'theme' | 'backButton';
+type TmaMigrationFeature = 'safeArea' | 'theme' | 'backButton' | 'mainButton';
 
 type FlagValue = boolean | undefined;
 
@@ -21,6 +21,7 @@ const featureOverrides: Partial<Record<TmaMigrationFeature, FlagValue>> = {
   safeArea: readFlagValue(import.meta.env.VITE_TMA_MIGRATION_SAFE_AREA),
   theme: readFlagValue(import.meta.env.VITE_TMA_MIGRATION_THEME),
   backButton: readFlagValue(import.meta.env.VITE_TMA_MIGRATION_BACK_BUTTON),
+  mainButton: readFlagValue(import.meta.env.VITE_TMA_MIGRATION_MAIN_BUTTON),
 };
 
 export function isTmaFeatureEnabled(feature: TmaMigrationFeature): boolean {
