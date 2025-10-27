@@ -89,6 +89,11 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     leaderboardTotal,
     leaderboardLoaded,
     isLeaderboardLoading,
+    leaderboardError,
+    leaderboard,
+    profile,
+    profileError,
+    isProfileLoading,
   } = useGameStore(
     useShallow(state => ({
       energy: state.energy,
@@ -117,6 +122,11 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
       leaderboardTotal: state.leaderboardTotal,
       leaderboardLoaded: state.leaderboardLoaded,
       isLeaderboardLoading: state.isLeaderboardLoading,
+      leaderboardError: state.leaderboardError,
+      leaderboard: state.leaderboardEntries,
+      profile: state.profile,
+      profileError: state.profileError,
+      isProfileLoading: state.isProfileLoading,
     }))
   );
   const { tap, resetStreak, loadLeaderboard, loadProfile, loadPrestigeStatus, performPrestige } =
@@ -175,6 +185,49 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const floatingButtonOffset = useMemo(() => Math.max(0, safeBottom) + 80, [safeBottom]);
   const previousStreakRef = useRef(streakCount);
   const scrollRafRef = useRef<number | null>(null);
+  const leaderboardCount = leaderboard.length;
+
+  /* eslint-disable react-hooks/exhaustive-deps */
+  useEffect(() => {
+    if (activeTab !== 'leaderboard') {
+      return;
+    }
+    void logClientEvent('leaderboard_tab_state', {
+      isInitialized,
+      authReady,
+      leaderboardLoaded,
+      isLeaderboardLoading,
+      leaderboardError,
+      entries: leaderboardCount,
+      totalPlayers: leaderboardTotal,
+    });
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'profile') {
+      return;
+    }
+    void logClientEvent('profile_tab_state', {
+      isInitialized,
+      authReady,
+      isProfileLoading,
+      hasProfile: Boolean(profile),
+      profileError,
+    });
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab !== 'settings') {
+      return;
+    }
+    void logClientEvent('settings_tab_state', {
+      isInitialized,
+      authReady,
+      hasProfile: Boolean(profile),
+      profileError,
+    });
+  }, [activeTab]);
+  /* eslint-enable react-hooks/exhaustive-deps */
 
   useEffect(() => {
     const tick = () => setClientNowMs(Date.now());
