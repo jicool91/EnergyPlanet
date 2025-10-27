@@ -58,6 +58,7 @@ export { AuthErrorModal } from './AuthErrorModal';
 export { OfflineSummaryModal } from './OfflineSummaryModal';
 export { PurchaseSuccessModal } from './PurchaseSuccessModal';
 export { LevelUpScreen } from './LevelUpScreen';
+export { AchievementsModal } from './AchievementsModal';
 
 // Settings
 export { SettingsSection } from './settings/SettingsSection';

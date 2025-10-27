@@ -16,6 +16,7 @@ export interface PassiveIncomeSnapshot {
   baseIncome: number;
   boostMultiplier: number;
   prestigeMultiplier: number;
+  achievementMultiplier: number;
   effectiveMultiplier: number;
   effectiveIncome: number;
 }
@@ -57,16 +58,19 @@ export function buildBuildingDetails(
 export function computePassiveIncome(
   details: BuildingDetail[],
   boosts: BoostRecord[],
-  prestigeMultiplier = 1
+  prestigeMultiplier = 1,
+  achievementMultiplier = 1
 ): PassiveIncomeSnapshot {
   const baseIncome = details.reduce((sum, item) => sum + item.income_per_sec, 0);
   const boostMultiplier = boosts.reduce((acc, boost) => acc * boost.multiplier, 1);
   const normalizedPrestige = Math.max(1, prestigeMultiplier);
-  const effectiveMultiplier = boostMultiplier * normalizedPrestige;
+  const normalizedAchievement = Math.max(1, achievementMultiplier);
+  const effectiveMultiplier = boostMultiplier * normalizedPrestige * normalizedAchievement;
   return {
     baseIncome,
     boostMultiplier,
     prestigeMultiplier: normalizedPrestige,
+    achievementMultiplier: normalizedAchievement,
     effectiveMultiplier,
     effectiveIncome: baseIncome * effectiveMultiplier,
   };

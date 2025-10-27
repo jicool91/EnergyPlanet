@@ -36,6 +36,7 @@ interface CachedProfile {
     tap_income: number;
     prestige_level: number;
     prestige_multiplier: number;
+    achievement_multiplier: number;
     prestige_energy_since_reset: number;
     passive_income_per_sec: number;
     passive_income_multiplier: number;
@@ -67,7 +68,8 @@ export class ProfileService {
     const passiveIncome = computePassiveIncome(
       buildingDetails,
       context.boosts,
-      context.progress.prestigeMultiplier
+      context.progress.prestigeMultiplier,
+      context.progress.achievementMultiplier
     );
     const levelInfo = calculateLevelProgress(context.progress.xp);
     const tapIncome = tapEnergyForLevel(context.progress.tapLevel);
@@ -101,6 +103,7 @@ export class ProfileService {
         tap_income: tapIncome,
         prestige_level: context.progress.prestigeLevel,
         prestige_multiplier: context.progress.prestigeMultiplier,
+        achievement_multiplier: context.progress.achievementMultiplier,
         prestige_energy_since_reset:
           context.progress.totalEnergyProduced - context.progress.prestigeEnergySnapshot,
         passive_income_per_sec: passiveIncome.effectiveIncome,

@@ -16,7 +16,7 @@
     "clan_system_enabled": false,
     "arena_system_enabled": false,
     "tournaments_enabled": false,
-    "achievements_enabled": false,
+    "achievements_enabled": true,
     "daily_quests_enabled": false,
     "friends_system_enabled": false,
     "chat_enabled": false,

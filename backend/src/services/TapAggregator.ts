@@ -6,6 +6,7 @@ import { getProgress, updateProgress } from '../repositories/ProgressRepository'
 import { calculateLevelProgress } from '../utils/level';
 import { logEvent } from '../repositories/EventRepository';
 import { createTapEvent } from '../repositories/TapEventRepository';
+import { achievementService } from './AchievementService';
 
 interface BufferTotals {
   taps: number;
@@ -204,6 +205,7 @@ export class TapAggregator {
         }
 
         const totalEnergyProduced = progress.totalEnergyProduced + energyDelta;
+        const totalTaps = progress.totalTaps + taps;
         const energyBalance = progress.energy + energyDelta;
         const totalXp = progress.xp + xpDelta;
         const levelInfo = calculateLevelProgress(totalXp);
@@ -216,11 +218,15 @@ export class TapAggregator {
             totalEnergyProduced,
             xp: totalXp,
             level: levelInfo.level,
+            totalTaps,
           },
           client
         );
 
         await createTapEvent({ userId, taps, energyDelta }, client);
+
+        await achievementService.syncMetric(userId, 'total_energy', totalEnergyProduced, client);
+        await achievementService.syncMetric(userId, 'total_taps', totalTaps, client);
 
         const effectiveMultiplier = baseEnergyDelta > 0 ? energyDelta / baseEnergyDelta : 1;
 

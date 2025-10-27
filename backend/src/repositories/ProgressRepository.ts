@@ -7,11 +7,14 @@ export interface ProgressRecord {
   xp: number;
   energy: number;
   totalEnergyProduced: number;
+  totalTaps: number;
+  totalBuildingsPurchased: number;
   tapLevel: number;
   prestigeLevel: number;
   prestigeMultiplier: number;
   prestigeEnergySnapshot: number;
   prestigeLastReset: Date | null;
+  achievementMultiplier: number;
   lastLogin: Date | null;
   lastLogout: Date | null;
   createdAt: Date;
@@ -24,11 +27,14 @@ interface ProgressRow {
   xp: string;
   energy: string;
   total_energy_produced: string;
+  total_taps: string;
+  total_buildings_purchased: string;
   tap_level: number;
   prestige_level: number;
   prestige_multiplier: string;
   prestige_energy_snapshot: string;
   prestige_last_reset: string | null;
+  achievement_multiplier: string;
   last_login: string | null;
   last_logout: string | null;
   created_at: string;
@@ -42,11 +48,14 @@ function mapProgress(row: ProgressRow): ProgressRecord {
     xp: Number(row.xp),
     energy: Number(row.energy),
     totalEnergyProduced: Number(row.total_energy_produced),
+    totalTaps: Number(row.total_taps ?? '0'),
+    totalBuildingsPurchased: Number(row.total_buildings_purchased ?? '0'),
     tapLevel: row.tap_level,
     prestigeLevel: row.prestige_level ?? 0,
     prestigeMultiplier: Number(row.prestige_multiplier ?? '1'),
     prestigeEnergySnapshot: Number(row.prestige_energy_snapshot ?? '0'),
     prestigeLastReset: row.prestige_last_reset ? new Date(row.prestige_last_reset) : null,
+    achievementMultiplier: Number(row.achievement_multiplier ?? '1'),
     lastLogin: row.last_login ? new Date(row.last_login) : null,
     lastLogout: row.last_logout ? new Date(row.last_logout) : null,
     createdAt: new Date(row.created_at),
@@ -93,11 +102,14 @@ export interface UpdateProgressInput {
   xp?: number;
   energy?: number;
   totalEnergyProduced?: number;
+  totalTaps?: number;
+  totalBuildingsPurchased?: number;
   tapLevel?: number;
   prestigeLevel?: number;
   prestigeMultiplier?: number;
   prestigeEnergySnapshot?: number;
   prestigeLastReset?: Date | null;
+  achievementMultiplier?: number;
   lastLogin?: Date | null;
   lastLogout?: Date | null;
 }
@@ -130,6 +142,15 @@ export async function updateProgress(
     values.push(data.totalEnergyProduced);
   }
 
+  if (data.totalTaps !== undefined) {
+    fields.push(`total_taps = $${fields.length + 1}`);
+    values.push(data.totalTaps);
+  }
+
+  if (data.totalBuildingsPurchased !== undefined) {
+    fields.push(`total_buildings_purchased = $${fields.length + 1}`);
+    values.push(data.totalBuildingsPurchased);
+  }
   if (data.tapLevel !== undefined) {
     fields.push(`tap_level = $${fields.length + 1}`);
     values.push(data.tapLevel);
@@ -153,6 +174,11 @@ export async function updateProgress(
   if (data.prestigeLastReset !== undefined) {
     fields.push(`prestige_last_reset = $${fields.length + 1}`);
     values.push(data.prestigeLastReset);
+  }
+
+  if (data.achievementMultiplier !== undefined) {
+    fields.push(`achievement_multiplier = $${fields.length + 1}`);
+    values.push(data.achievementMultiplier);
   }
 
   if (data.lastLogin !== undefined) {

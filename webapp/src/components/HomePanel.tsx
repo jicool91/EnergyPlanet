@@ -70,6 +70,8 @@ export interface HomePanelProps {
   };
   nextBoostAvailabilityMs?: number | undefined;
   onViewBoosts?: () => void;
+  onViewAchievements?: () => void;
+  claimableAchievements?: number;
 }
 
 export function HomePanel({
@@ -103,6 +105,8 @@ export function HomePanel({
   activeBoost,
   nextBoostAvailabilityMs,
   onViewBoosts,
+  onViewAchievements,
+  claimableAchievements = 0,
 }: HomePanelProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
   const performance = useDevicePerformance();
@@ -156,6 +160,25 @@ export function HomePanel({
             subLabel={xpRemaining > 0 ? `+${formatNumberWithSpaces(xpRemaining)} XP` : 'Готов'}
           />
         </div>
+
+        {onViewAchievements && (
+          <div className="flex justify-end px-md -mt-sm">
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={onViewAchievements}
+              className="flex items-center gap-xs"
+            >
+              <span aria-hidden="true">🏆</span>
+              Достижения
+              {claimableAchievements > 0 && (
+                <span className="ml-xs px-xs-plus py-0.5 rounded-full bg-[var(--color-accent)] text-black text-xs font-semibold">
+                  +{claimableAchievements}
+                </span>
+              )}
+            </Button>
+          </div>
+        )}
 
         {/* Center: BIG TAP BUTTON */}
         <div className="relative flex flex-1 items-center justify-center px-md py-sm-plus lg:px-0">

@@ -17,6 +17,7 @@ import {
   recordTickSuccess,
   recordTickError,
 } from '../metrics/tick';
+import { achievementService } from './AchievementService';
 
 const MIN_TICK_SECONDS = 1;
 
@@ -72,7 +73,8 @@ export class TickService {
       const passiveIncome = computePassiveIncome(
         buildingDetails,
         boosts,
-        progress.prestigeMultiplier
+        progress.prestigeMultiplier,
+        progress.achievementMultiplier
       );
 
       const energyGained = Math.floor(passiveIncome.effectiveIncome * accountedSeconds);
@@ -98,6 +100,10 @@ export class TickService {
               client
             )
           : progress;
+
+      if (energyGained > 0) {
+        await achievementService.syncMetric(userId, 'total_energy', totalEnergyProduced, client);
+      }
 
       await updatePlayerSession(
         userId,
@@ -172,6 +178,7 @@ export class TickService {
         passive_income_multiplier: result.passiveIncome.effectiveMultiplier,
         boost_multiplier: result.passiveIncome.boostMultiplier,
         prestige_multiplier: result.passiveIncome.prestigeMultiplier,
+        achievement_multiplier: result.passiveIncome.achievementMultiplier,
         duration_sec: result.accountedSeconds,
         carried_over_sec: result.carriedSeconds,
         pending_passive_sec: result.carriedSeconds,

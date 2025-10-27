@@ -72,7 +72,8 @@ export class TapService {
     const activeBoosts = await getActiveBoosts(userId);
     const boostMultiplier = activeBoosts.reduce((acc, boost) => acc * boost.multiplier, 1);
     const prestigeMultiplier = Math.max(1, progress.prestigeMultiplier ?? 1);
-    const totalMultiplier = boostMultiplier * prestigeMultiplier;
+    const achievementMultiplier = Math.max(1, progress.achievementMultiplier ?? 1);
+    const totalMultiplier = boostMultiplier * prestigeMultiplier * achievementMultiplier;
 
     const boostedEnergy = Math.round(baseEnergy * totalMultiplier);
     const xpGained = xpFromEnergy(boostedEnergy);
@@ -100,6 +101,7 @@ export class TapService {
       level_up: leveledUp,
       boost_multiplier: boostMultiplier,
       prestige_multiplier: prestigeMultiplier,
+      achievement_multiplier: achievementMultiplier,
       total_multiplier: totalMultiplier,
     };
   }

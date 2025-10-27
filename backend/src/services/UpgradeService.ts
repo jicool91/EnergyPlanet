@@ -10,6 +10,7 @@ import { logEvent } from '../repositories/EventRepository';
 import { calculateLevelProgress } from '../utils/level';
 import { calculatePurchaseXp, calculateUpgradeXp } from '../utils/xp';
 import { invalidateProfileCache } from '../cache/invalidation';
+import { achievementService } from './AchievementService';
 
 interface UpgradeRequest {
   buildingId: string;
@@ -79,6 +80,7 @@ export class UpgradeService {
         let currentEnergy = progress.energy;
         let currentXp = progress.xp;
         let currentPlayerLevel = progress.level;
+        let lifetimeBuildings = progress.totalBuildingsPurchased;
 
         let purchased = 0;
         let totalCost = 0;
@@ -116,6 +118,7 @@ export class UpgradeService {
           currentCount += 1;
           currentXp = nextXpTotal;
           currentPlayerLevel = levelInfo.level;
+          lifetimeBuildings += 1;
 
           purchased += 1;
           totalCost += cost;
@@ -139,7 +142,15 @@ export class UpgradeService {
             energy: currentEnergy,
             xp: currentXp,
             level: currentPlayerLevel,
+            totalBuildingsPurchased: lifetimeBuildings,
           },
+          client
+        );
+
+        await achievementService.syncMetric(
+          userId,
+          'buildings_owned',
+          lifetimeBuildings,
           client
         );
 

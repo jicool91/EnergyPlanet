@@ -17,6 +17,7 @@ import {
 } from './passiveIncome';
 import { upsertInventoryItem } from '../repositories/InventoryRepository';
 import { invalidateProfileCache } from '../cache/invalidation';
+import { achievementService } from './AchievementService';
 
 interface OfflineGains {
   energy: number;
@@ -45,6 +46,7 @@ interface SessionState {
     passive_income_multiplier: number;
     boost_multiplier: number;
     prestige_multiplier: number;
+    achievement_multiplier: number;
     prestige_level: number;
     prestige_energy_since_reset: number;
     prestige_last_reset: string | null;
@@ -60,6 +62,12 @@ interface SessionState {
   offline_gains: OfflineGains;
   feature_flags: Record<string, boolean>;
   server_time: string;
+  passiveIncome: number;
+  boostMultiplier: number;
+  prestigeMultiplier: number;
+  achievementMultiplier: number;
+  effectiveMultiplier: number;
+  effectivePassiveIncome: number;
 }
 
 export class SessionService {
@@ -95,9 +103,17 @@ export class SessionService {
       const passiveIncomeSnapshot = computePassiveIncomeSnapshot(
         detailedInventory,
         boosts,
-        progress.prestigeMultiplier
+        progress.prestigeMultiplier,
+        progress.achievementMultiplier
       );
-      const { baseIncome, boostMultiplier, prestigeMultiplier, effectiveMultiplier, effectiveIncome } =
+      const {
+        baseIncome,
+        boostMultiplier,
+        prestigeMultiplier,
+        achievementMultiplier,
+        effectiveMultiplier,
+        effectiveIncome,
+      } =
         passiveIncomeSnapshot;
 
       const offlineSecondsRaw = progress.lastLogout
@@ -127,6 +143,15 @@ export class SessionService {
           lastLogin: now,
           lastLogout: null,
         },
+        client
+      );
+
+      await achievementService.syncMetric(userId, 'total_energy', totalEnergyProduced, client);
+      await achievementService.syncMetric(userId, 'prestige_level', updatedProgress.prestigeLevel, client);
+      await achievementService.syncMetric(
+        userId,
+        'buildings_owned',
+        updatedProgress.totalBuildingsPurchased,
         client
       );
 
@@ -163,6 +188,7 @@ export class SessionService {
         passiveIncome: baseIncome,
         boostMultiplier,
         prestigeMultiplier,
+        achievementMultiplier,
         effectiveMultiplier,
         effectivePassiveIncome: effectiveIncome,
         featureFlags,
@@ -194,6 +220,7 @@ export class SessionService {
         passive_income_multiplier: state.effectiveMultiplier,
         boost_multiplier: state.boostMultiplier,
         prestige_multiplier: state.prestigeMultiplier,
+        achievement_multiplier: state.achievementMultiplier,
         prestige_level: state.progress.prestigeLevel,
         prestige_energy_since_reset:
           state.progress.totalEnergyProduced - state.progress.prestigeEnergySnapshot,
@@ -210,6 +237,12 @@ export class SessionService {
       profile: state.profile,
       cosmetics: state.cosmetics,
       offline_gains: state.offline,
+      passiveIncome: state.passiveIncome,
+      boostMultiplier: state.boostMultiplier,
+      prestigeMultiplier: state.prestigeMultiplier,
+      achievementMultiplier: state.achievementMultiplier,
+      effectiveMultiplier: state.effectiveMultiplier,
+      effectivePassiveIncome: state.effectivePassiveIncome,
       feature_flags: state.featureFlags,
       server_time: now.toISOString(),
     };

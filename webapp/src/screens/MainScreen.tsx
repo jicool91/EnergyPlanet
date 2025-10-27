@@ -24,6 +24,7 @@ import {
   ProfileSkeleton,
   TabPageSurface,
   ClanComingSoon,
+  AchievementsModal,
 } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
@@ -101,6 +102,12 @@ export function MainScreen({
     profile,
     profileError,
     isProfileLoading,
+    achievementMultiplier,
+    achievements,
+    achievementsLoaded,
+    achievementsLoading,
+    achievementsError,
+    claimingAchievementSlug,
   } = useGameStore(
     useShallow(state => ({
       energy: state.energy,
@@ -134,19 +141,35 @@ export function MainScreen({
       profile: state.profile,
       profileError: state.profileError,
       isProfileLoading: state.isProfileLoading,
+      achievementMultiplier: state.achievementMultiplier,
+      achievements: state.achievements,
+      achievementsLoaded: state.achievementsLoaded,
+      achievementsLoading: state.achievementsLoading,
+      achievementsError: state.achievementsError,
+      claimingAchievementSlug: state.claimingAchievementSlug,
     }))
   );
-  const { tap, resetStreak, loadLeaderboard, loadProfile, loadPrestigeStatus, performPrestige } =
-    useGameStore(
-      useShallow(state => ({
-        tap: state.tap,
-        resetStreak: state.resetStreak,
-        loadLeaderboard: state.loadLeaderboard,
-        loadProfile: state.loadProfile,
-        loadPrestigeStatus: state.loadPrestigeStatus,
-        performPrestige: state.performPrestige,
-      }))
-    );
+  const {
+    tap,
+    resetStreak,
+    loadLeaderboard,
+    loadProfile,
+    loadPrestigeStatus,
+    performPrestige,
+    loadAchievements,
+    claimAchievement,
+  } = useGameStore(
+    useShallow(state => ({
+      tap: state.tap,
+      resetStreak: state.resetStreak,
+      loadLeaderboard: state.loadLeaderboard,
+      loadProfile: state.loadProfile,
+      loadPrestigeStatus: state.loadPrestigeStatus,
+      performPrestige: state.performPrestige,
+      loadAchievements: state.loadAchievements,
+      claimAchievement: state.claimAchievement,
+    }))
+  );
   const { buildingCatalog, boostHub, boostHubTimeOffsetMs } = useCatalogStore(
     useShallow(state => ({
       buildingCatalog: state.buildingCatalog,
@@ -160,6 +183,7 @@ export function MainScreen({
   const [isScrolled, setIsScrolled] = useState(false);
   const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(null);
   const [clientNowMs, setClientNowMs] = useState(() => Date.now());
+  const [isAchievementsOpen, setAchievementsOpen] = useState(false);
   const handleScrollContainerRef = useCallback(
     (node: HTMLDivElement | null) => {
       if (scrollRef.current !== node) {
@@ -239,6 +263,15 @@ export function MainScreen({
     };
   }, []);
 
+  useEffect(() => {
+    if (!isAchievementsOpen) {
+      return;
+    }
+    loadAchievements().catch(error => {
+      console.warn('Failed to load achievements', error);
+    });
+  }, [isAchievementsOpen, loadAchievements]);
+
   const handleTap = () => {
     tap(1)
       .then(() => {
@@ -311,8 +344,15 @@ export function MainScreen({
   const multiplierLabel = useMemo(() => {
     const prestigePart = Math.max(1, prestigeMultiplier);
     const boostPart = Math.max(1, boostMultiplier);
-    return `Престиж ×${prestigePart.toFixed(2)} · Буст ×${boostPart.toFixed(2)}`;
-  }, [prestigeMultiplier, boostMultiplier]);
+    const achievementsPart = Math.max(1, achievementMultiplier);
+    return `Престиж ×${prestigePart.toFixed(2)} · Буст ×${boostPart.toFixed(2)} · Дост. ×${achievementsPart.toFixed(2)}`;
+  }, [prestigeMultiplier, boostMultiplier, achievementMultiplier]);
+  const claimableAchievementsCount = useMemo(() => {
+    if (!Array.isArray(achievements)) {
+      return 0;
+    }
+    return achievements.reduce((sum, item) => (item.claimableTier ? sum + 1 : sum), 0);
+  }, [achievements]);
 
   const purchaseInsight = useMemo(() => {
     if (!Array.isArray(buildingCatalog) || buildingCatalog.length === 0) {
@@ -554,6 +594,8 @@ export function MainScreen({
                   onShopSectionChange('boosts');
                   onTabChange('shop');
                 }}
+                onViewAchievements={() => setAchievementsOpen(true)}
+                claimableAchievements={claimableAchievementsCount}
               />
             </TabPageSurface>
           </ScreenTransition>
@@ -687,6 +729,17 @@ export function MainScreen({
           )}
         </div>
       </div>
+      <AchievementsModal
+        isOpen={isAchievementsOpen}
+        onClose={() => setAchievementsOpen(false)}
+        achievements={achievements}
+        loading={achievementsLoading && !achievementsLoaded}
+        error={achievementsError}
+        onRetry={() => loadAchievements(true)}
+        onClaim={claimAchievement}
+        claimingSlug={claimingAchievementSlug}
+        achievementMultiplier={achievementMultiplier}
+      />
     </ScrollContainerContext.Provider>
   );
 }

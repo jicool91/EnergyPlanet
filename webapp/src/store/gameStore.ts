@@ -16,6 +16,11 @@ import { describeError } from './storeUtils';
 import { authStore } from './authStore';
 import { uiStore } from './uiStore';
 import { fetchPrestigeStatus, performPrestigeReset } from '../services/prestige';
+import {
+  fetchAchievements,
+  claimAchievement as claimAchievementApi,
+  type AchievementView,
+} from '../services/achievements';
 
 interface BuildingState {
   buildingId: string;
@@ -47,6 +52,7 @@ interface TickSyncResponse {
   passive_income_multiplier?: number;
   boost_multiplier?: number;
   prestige_multiplier?: number;
+  achievement_multiplier?: number;
   access_token?: string;
   refresh_token?: string;
   refresh_expires_at?: string;
@@ -135,6 +141,7 @@ interface GameState {
   passiveIncomeMultiplier: number;
   boostMultiplier: number;
   prestigeMultiplier: number;
+  achievementMultiplier: number;
   prestigeLevel: number;
   prestigeEnergySinceReset: number;
   prestigeLastReset: string | null;
@@ -165,6 +172,11 @@ interface GameState {
   profileBoosts: ProfileResponse['boosts'];
   isProfileLoading: boolean;
   profileError: string | null;
+  achievements: AchievementView[];
+  achievementsLoaded: boolean;
+  achievementsLoading: boolean;
+  achievementsError: string | null;
+  claimingAchievementSlug: string | null;
 
   // Game state
   isLoading: boolean;
@@ -178,7 +190,11 @@ interface GameState {
   configurePassiveIncome: (
     perSec: number,
     totalMultiplier: number,
-    extras?: { boostMultiplier?: number; prestigeMultiplier?: number }
+    extras?: {
+      boostMultiplier?: number;
+      prestigeMultiplier?: number;
+      achievementMultiplier?: number;
+    }
   ) => void;
   refreshSession: () => Promise<void>;
   purchaseBuilding: (buildingId: string, quantity?: number) => Promise<void>;
@@ -189,6 +205,8 @@ interface GameState {
   loadProfile: (force?: boolean) => Promise<void>;
   loadPrestigeStatus: (force?: boolean) => Promise<void>;
   performPrestige: () => Promise<void>;
+  loadAchievements: (force?: boolean) => Promise<void>;
+  claimAchievement: (slug: string) => Promise<void>;
 }
 
 const fallbackSessionError = 'Не удалось обновить данные. Попробуйте ещё раз позже.';
@@ -221,6 +239,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   passiveIncomeMultiplier: 1,
   boostMultiplier: 1,
   prestigeMultiplier: 1,
+  achievementMultiplier: 1,
   prestigeLevel: 0,
   prestigeEnergySinceReset: 0,
   prestigeLastReset: null,
@@ -251,6 +270,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   profileBoosts: [],
   isProfileLoading: false,
   profileError: null,
+  achievements: [],
+  achievementsLoaded: false,
+  achievementsLoading: false,
+  achievementsError: null,
+  claimingAchievementSlug: null,
   isLoading: true,
   isInitialized: false,
 
@@ -330,6 +354,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const totalMultiplier = progress.passive_income_multiplier ?? 1;
       const boostMultiplier = progress.boost_multiplier ?? 1;
       const prestigeMultiplier = progress.prestige_multiplier ?? 1;
+      const achievementMultiplier = progress.achievement_multiplier ?? 1;
       const prestigeLevel = progress.prestige_level ?? 0;
       const prestigeEnergySinceReset = progress.prestige_energy_since_reset ?? 0;
       const prestigeLastReset = progress.prestige_last_reset ?? null;
@@ -381,6 +406,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         passiveIncomeMultiplier: totalMultiplier,
         boostMultiplier,
         prestigeMultiplier,
+        achievementMultiplier,
         prestigeLevel,
         prestigeEnergySinceReset,
         prestigeLastReset,
@@ -401,6 +427,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       get().configurePassiveIncome(passivePerSec, totalMultiplier, {
         boostMultiplier,
         prestigeMultiplier,
+        achievementMultiplier,
       });
 
       logger.info('✅ Game initialized successfully', {
@@ -467,6 +494,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         xp_to_next_level,
         boost_multiplier,
         prestige_multiplier,
+        achievement_multiplier,
         total_multiplier,
       } = response.data;
 
@@ -490,6 +518,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         passiveIncomeMultiplier: total_multiplier ?? state.passiveIncomeMultiplier,
         boostMultiplier: boost_multiplier ?? state.boostMultiplier,
         prestigeMultiplier: prestige_multiplier ?? state.prestigeMultiplier,
+        achievementMultiplier: achievement_multiplier ?? state.achievementMultiplier,
       }));
 
       if (level_up) {
@@ -533,7 +562,11 @@ export const useGameStore = create<GameState>((set, get) => ({
   configurePassiveIncome: (
     perSec: number,
     totalMultiplier: number,
-    extras: { boostMultiplier?: number; prestigeMultiplier?: number } = {}
+    extras: {
+      boostMultiplier?: number;
+      prestigeMultiplier?: number;
+      achievementMultiplier?: number;
+    } = {}
   ) => {
     const flushPassiveIncome = get().flushPassiveIncome;
 
@@ -542,6 +575,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       passiveIncomeMultiplier: totalMultiplier,
       boostMultiplier: extras.boostMultiplier ?? state.boostMultiplier,
       prestigeMultiplier: extras.prestigeMultiplier ?? state.prestigeMultiplier,
+      achievementMultiplier: extras.achievementMultiplier ?? state.achievementMultiplier,
     }));
 
     if (passiveTicker) {
@@ -620,6 +654,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         progress.passive_income_multiplier ?? currentState.passiveIncomeMultiplier;
       const boostMultiplier = progress.boost_multiplier ?? currentState.boostMultiplier;
       const prestigeMultiplier = progress.prestige_multiplier ?? currentState.prestigeMultiplier;
+      const achievementMultiplier =
+        progress.achievement_multiplier ?? currentState.achievementMultiplier;
       const prestigeLevel = progress.prestige_level ?? currentState.prestigeLevel;
       const prestigeEnergySinceReset =
         progress.prestige_energy_since_reset ?? currentState.prestigeEnergySinceReset;
@@ -640,6 +676,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         passiveIncomeMultiplier: totalMultiplier,
         boostMultiplier,
         prestigeMultiplier,
+        achievementMultiplier,
         prestigeLevel,
         prestigeEnergySinceReset,
         prestigeLastReset,
@@ -654,6 +691,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       get().configurePassiveIncome(passivePerSec, totalMultiplier, {
         boostMultiplier,
         prestigeMultiplier,
+        achievementMultiplier,
       });
     } catch (error) {
       console.error('Failed to refresh session snapshot', error);
@@ -719,6 +757,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const totalMultiplier = payload.passive_income_multiplier ?? get().passiveIncomeMultiplier;
       const boostMultiplier = payload.boost_multiplier ?? get().boostMultiplier;
       const prestigeMultiplier = payload.prestige_multiplier ?? get().prestigeMultiplier;
+      const achievementMultiplier = payload.achievement_multiplier ?? get().achievementMultiplier;
 
       if (payload.access_token) {
         if (payload.refresh_token) {
@@ -734,6 +773,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       get().configurePassiveIncome(passivePerSec, totalMultiplier, {
         boostMultiplier,
         prestigeMultiplier,
+        achievementMultiplier,
       });
 
       set(state => ({
@@ -961,8 +1001,9 @@ export const useGameStore = create<GameState>((set, get) => ({
     try {
       const status = await fetchPrestigeStatus();
       const boostMultiplier = get().boostMultiplier;
+      const achievementMultiplier = get().achievementMultiplier;
       const passivePerSec = get().passiveIncomePerSec;
-      const totalMultiplier = boostMultiplier * status.prestige_multiplier;
+      const totalMultiplier = boostMultiplier * status.prestige_multiplier * achievementMultiplier;
 
       set({
         prestigeStatusLoaded: true,
@@ -979,6 +1020,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       get().configurePassiveIncome(passivePerSec, totalMultiplier, {
         boostMultiplier,
         prestigeMultiplier: status.prestige_multiplier,
+        achievementMultiplier,
       });
     } catch (error) {
       console.error('Failed to load prestige status', error);
@@ -1004,6 +1046,110 @@ export const useGameStore = create<GameState>((set, get) => ({
       console.error('Prestige action failed', error);
       set({ isPrestigeLoading: false });
       throw error;
+    }
+  },
+
+  loadAchievements: async (force = false) => {
+    const { achievementsLoaded, achievementsLoading, achievementsError } = get();
+    if (!force && achievementsLoaded && !achievementsError) {
+      return;
+    }
+    if (achievementsLoading) {
+      return;
+    }
+
+    set({ achievementsLoading: true, achievementsError: null });
+
+    try {
+      const data = await fetchAchievements();
+      set({
+        achievements: data,
+        achievementsLoaded: true,
+        achievementsLoading: false,
+        achievementsError: null,
+      });
+    } catch (error) {
+      const { message } = describeError(error, 'Не удалось загрузить достижения');
+      console.error('Failed to load achievements', error);
+      set({
+        achievementsLoading: false,
+        achievementsError: message,
+      });
+    }
+  },
+
+  claimAchievement: async (slug: string) => {
+    if (!slug) {
+      return;
+    }
+    if (get().claimingAchievementSlug === slug) {
+      return;
+    }
+
+    set({ claimingAchievementSlug: slug });
+
+    try {
+      const response = await claimAchievementApi(slug);
+      const updatedAchievements = await fetchAchievements();
+
+      const boostMultiplier = get().boostMultiplier;
+      const prestigeMultiplier = get().prestigeMultiplier;
+      const passivePerSec = get().passiveIncomePerSec;
+      const achievementMultiplier = response.newAchievementMultiplier;
+      const totalMultiplier = boostMultiplier * prestigeMultiplier * achievementMultiplier;
+
+      set({
+        achievements: updatedAchievements,
+        achievementsLoaded: true,
+        achievementsLoading: false,
+        achievementsError: null,
+        achievementMultiplier,
+        passiveIncomeMultiplier: totalMultiplier,
+        claimingAchievementSlug: null,
+      });
+
+      get().configurePassiveIncome(passivePerSec, totalMultiplier, {
+        boostMultiplier,
+        prestigeMultiplier,
+        achievementMultiplier,
+      });
+
+      const matched = updatedAchievements.find(item => item.slug === slug);
+      uiStore.addNotification({
+        type: 'achievement',
+        title: matched ? `Достижение: ${matched.name}` : 'Достижение',
+        message: `Уровень ${response.tier} активирован · ×${response.rewardMultiplier.toFixed(2)}`,
+        duration: 4800,
+        icon: 'trophy',
+      });
+
+      void logClientEvent('achievement_claim_success', {
+        slug,
+        tier: response.tier,
+        reward_multiplier: response.rewardMultiplier,
+        achievement_multiplier: achievementMultiplier,
+      });
+    } catch (error) {
+      const { message } = describeError(error, 'Не удалось получить награду');
+      console.error('Failed to claim achievement', error);
+      set({
+        achievementsError: message,
+        claimingAchievementSlug: null,
+      });
+      void logClientEvent(
+        'achievement_claim_failed',
+        {
+          slug,
+          message,
+        },
+        'error'
+      );
+      uiStore.addNotification({
+        type: 'toast',
+        message,
+        icon: 'error',
+        duration: 4000,
+      });
     }
   },
 }));
