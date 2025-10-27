@@ -32,6 +32,7 @@ export { ProfilePanel } from './ProfilePanel';
 export { BoostHub } from './BoostHub';
 export { LeaderboardPanel } from './LeaderboardPanel';
 export { ClanComingSoon } from './ClanComingSoon';
+export { ProfileSettingsScreen } from './ProfileSettingsScreen';
 
 // Notifications & Feedback
 export { NotificationContainer } from './notifications/NotificationContainer';

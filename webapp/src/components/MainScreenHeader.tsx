@@ -17,7 +17,7 @@
  *   energy={50000}
  *   xpProgress={0.65}
  *   onShopClick={() => setActiveTab('shop')}
- *   onSettingsClick={() => setActiveTab('settings')}
+ *   onSettingsClick={() => setActiveTab('account')}
  * />
  * ```
  */

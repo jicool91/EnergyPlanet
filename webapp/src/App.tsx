@@ -16,15 +16,7 @@ import { useAuthStore, authStore } from './store/authStore';
 import { logger } from './utils/logger';
 import { HEADER_BUFFER_PX, HEADER_RESERVE_PX } from './constants/layout';
 
-type TabKey =
-  | 'home'
-  | 'shop'
-  | 'boosts'
-  | 'builds'
-  | 'leaderboard'
-  | 'profile'
-  | 'settings'
-  | 'clan';
+type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'account' | 'clan';
 
 const shouldShowMajorLevel = (level: number): boolean => {
   if (level < 10) {
@@ -231,7 +223,7 @@ function App() {
             : 0
         }
         onShopClick={() => setActiveTab('shop')}
-        onSettingsClick={() => setActiveTab('settings')}
+        onSettingsClick={() => setActiveTab('account')}
       />
 
       {/* Main Content */}

@@ -48,22 +48,13 @@ const BuildingsPanel = lazy(() =>
 const LeaderboardPanel = lazy(() =>
   import('../components/LeaderboardPanel').then(m => ({ default: m.LeaderboardPanel }))
 );
-const ProfilePanel = lazy(() =>
-  import('../components/ProfilePanel').then(m => ({ default: m.ProfilePanel }))
-);
-const SettingsScreen = lazy(() =>
-  import('../components/settings').then(m => ({ default: m.SettingsScreen }))
+const ProfileSettingsScreen = lazy(() =>
+  import('../components/ProfileSettingsScreen').then(m => ({
+    default: m.ProfileSettingsScreen,
+  }))
 );
 
-type TabKey =
-  | 'home'
-  | 'shop'
-  | 'boosts'
-  | 'builds'
-  | 'leaderboard'
-  | 'profile'
-  | 'settings'
-  | 'clan';
+type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'account' | 'clan';
 
 interface MainScreenProps {
   activeTab: TabKey;
@@ -213,7 +204,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeTab !== 'profile') {
+    if (activeTab !== 'account') {
       return;
     }
     void logClientEvent('profile_tab_state', {
@@ -223,12 +214,6 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
       hasProfile: Boolean(profile),
       profileError,
     });
-  }, [activeTab]);
-
-  useEffect(() => {
-    if (activeTab !== 'settings') {
-      return;
-    }
     void logClientEvent('settings_tab_state', {
       isInitialized,
       authReady,
@@ -461,7 +446,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
     if (!isInitialized || !authReady) {
       return;
     }
-    if (activeTab === 'profile') {
+    if (activeTab === 'account') {
       loadProfile();
     }
   }, [activeTab, isInitialized, authReady, loadProfile]);
@@ -631,19 +616,19 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             </Suspense>
           </ScreenTransition>
         );
-      case 'profile':
+      case 'account':
         return (
           <ScreenTransition
-            key="profile"
+            key="account"
             type="slide"
             className="flex-1"
-            id="tab-panel-profile"
+            id="tab-panel-account"
             role="tabpanel"
-            aria-labelledby="tab-profile"
+            aria-labelledby="tab-account"
           >
             <Suspense fallback={<ProfileSkeleton />}>
               <TabPageSurface>
-                <ProfilePanel />
+                <ProfileSettingsScreen onClose={() => onTabChange('home')} />
               </TabPageSurface>
             </Suspense>
           </ScreenTransition>
@@ -661,23 +646,6 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             <TabPageSurface>
               <ClanComingSoon />
             </TabPageSurface>
-          </ScreenTransition>
-        );
-      case 'settings':
-        return (
-          <ScreenTransition
-            key="settings"
-            type="slide"
-            className="flex-1"
-            id="tab-panel-settings"
-            role="tabpanel"
-            aria-labelledby="tab-settings"
-          >
-            <Suspense fallback={<div className="p-4">Загрузка...</div>}>
-              <TabPageSurface>
-                <SettingsScreen onClose={() => onTabChange('home')} />
-              </TabPageSurface>
-            </Suspense>
           </ScreenTransition>
         );
       default:
