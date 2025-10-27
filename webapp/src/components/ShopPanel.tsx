@@ -316,17 +316,19 @@ export function ShopPanel({
       ) : null}
 
       {/* Section Tabs */}
-      <div className="flex gap-sm" role="tablist" aria-label="Разделы магазина">
+      <nav
+        className="flex gap-1 rounded-xl bg-[var(--color-surface-secondary)]/70 p-1"
+        role="tablist"
+        aria-label="Разделы магазина"
+      >
         {SECTION_TABS.map((section, index) => {
           const isActive = activeSection === section.id;
           const tabId = getSectionTabId(section.id);
           const panelId = getSectionPanelId(section.id);
 
           return (
-            <Button
+            <button
               key={section.id}
-              variant={isActive ? 'primary' : 'ghost'}
-              size="md"
               onClick={() => changeSection(section.id)}
               role="tab"
               aria-selected={isActive}
@@ -335,12 +337,17 @@ export function ShopPanel({
               tabIndex={isActive ? 0 : -1}
               onKeyDown={event => handleSectionKeyDown(event, index)}
               type="button"
+              className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 focus-ring ${
+                isActive
+                  ? 'bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)] shadow-glow'
+                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+              }`}
             >
               {section.label}
-            </Button>
+            </button>
           );
         })}
-      </div>
+      </nav>
 
       {/* Errors */}
       {activeSection === 'star_packs' && starPacksError && (
