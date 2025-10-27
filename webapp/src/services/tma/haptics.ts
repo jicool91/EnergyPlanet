@@ -1,8 +1,5 @@
 import { hapticFeedback } from '@tma.js/sdk';
-import type {
-  ImpactHapticFeedbackStyle,
-  NotificationHapticFeedbackType,
-} from '@tma.js/bridge';
+import type { ImpactHapticFeedbackStyle, NotificationHapticFeedbackType } from '@tma.js/bridge';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
 
 function isSupported(): boolean {

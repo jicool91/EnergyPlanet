@@ -12,7 +12,12 @@ import { initializeTelegramTheme } from './utils/telegramTheme';
 import { logger } from './utils/logger';
 import { ensureTmaSdkReady } from '@/services/tma/core';
 import { getTmaThemeSnapshot, onTmaThemeChange } from '@/services/tma/theme';
-import { getTmaSafeAreaSnapshot, getTmaViewportMetrics, onTmaSafeAreaChange, onTmaViewportChange } from '@/services/tma/viewport';
+import {
+  getTmaSafeAreaSnapshot,
+  getTmaViewportMetrics,
+  onTmaSafeAreaChange,
+  onTmaViewportChange,
+} from '@/services/tma/viewport';
 
 // Export logger to window for debugging
 declare global {

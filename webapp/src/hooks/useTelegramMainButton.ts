@@ -39,14 +39,5 @@ export function useTelegramMainButton(options: UseTelegramMainButtonOptions) {
       showProgress,
       keepVisibleOnUnmount,
     });
-  }, [
-    enabled,
-    text,
-    onClick,
-    color,
-    textColor,
-    disabled,
-    showProgress,
-    keepVisibleOnUnmount,
-  ]);
+  }, [enabled, text, onClick, color, textColor, disabled, showProgress, keepVisibleOnUnmount]);
 }

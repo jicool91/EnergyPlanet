@@ -30,7 +30,11 @@ function setup(): void {
   })();
 
   if (!isTelegramEnv) {
-    state = { status: 'failed', available: false, error: new Error('Telegram Mini App environment is not detected') };
+    state = {
+      status: 'failed',
+      available: false,
+      error: new Error('Telegram Mini App environment is not detected'),
+    };
     return;
   }
 
@@ -86,7 +90,7 @@ export function isTmaSdkAvailable(): boolean {
 
 export function getTmaSdkError(): unknown | null {
   setup();
-  return state.status === 'failed' ? state.error ?? null : null;
+  return state.status === 'failed' ? (state.error ?? null) : null;
 }
 
 export function disposeTmaSdk(): void {
