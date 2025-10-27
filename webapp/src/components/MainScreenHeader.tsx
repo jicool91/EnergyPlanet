@@ -49,7 +49,7 @@ function MainScreenHeaderComponent({
   const starsCompact = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
   const { safeArea } = useSafeArea();
   const { left: safeLeft, right: safeRight } = safeArea.safe;
-  const topInset = Math.max(0, safeArea.content.top);
+  const topInset = Math.max(0, safeArea.safe.top, safeArea.content.top);
   const headerPadding = useMemo(() => {
     return {
       paddingTop: '8px',

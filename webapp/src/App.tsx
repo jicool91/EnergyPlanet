@@ -71,17 +71,17 @@ function App() {
   const [overlayLevel, setOverlayLevel] = useState<number | null>(null);
   const { safeArea } = useSafeArea();
   const { right: safeRight, bottom: safeBottom, left: safeLeft } = safeArea.safe;
-  const { top: contentTop } = safeArea.content;
+  const safeTop = Math.max(0, safeArea.safe.top, safeArea.content.top);
   const HEADER_RESERVE_PX = 56;
 
   const appPaddingStyle = useMemo(() => {
     return {
-      paddingTop: `${Math.max(0, contentTop) + HEADER_RESERVE_PX}px`,
+      paddingTop: `${safeTop + HEADER_RESERVE_PX}px`,
       paddingRight: `${Math.max(0, safeRight)}px`,
       paddingBottom: `${Math.max(0, safeBottom) + 16}px`,
       paddingLeft: `${Math.max(0, safeLeft)}px`,
     };
-  }, [contentTop, safeBottom, safeLeft, safeRight]);
+  }, [safeBottom, safeLeft, safeRight, safeTop]);
 
   // Detect level up
   useEffect(() => {

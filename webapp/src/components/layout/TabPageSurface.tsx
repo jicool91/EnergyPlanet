@@ -14,8 +14,10 @@ interface TabPageSurfaceProps extends React.HTMLAttributes<HTMLDivElement> {
 export const TabPageSurface = forwardRef<HTMLDivElement, TabPageSurfaceProps>(
   ({ className, insetTop = 56, insetBottom = 16, style, children, ...rest }, ref) => {
     const { safeArea } = useSafeArea();
-    const topPadding = Math.max(0, safeArea.content.top) + insetTop;
-    const bottomPadding = Math.max(0, safeArea.content.bottom) + insetBottom;
+    const safeTop = Math.max(0, safeArea.safe.top, safeArea.content.top);
+    const safeBottom = Math.max(0, safeArea.safe.bottom, safeArea.content.bottom);
+    const topPadding = safeTop + insetTop;
+    const bottomPadding = safeBottom + insetBottom;
 
     return (
       <div
