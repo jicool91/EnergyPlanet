@@ -362,6 +362,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       const xpToNextLevel = progress.xp_to_next_level ?? 0;
       const tapLevel = progress.tap_level ?? 1;
       const tapIncome = progress.tap_income ?? 0;
+      const starsBalance =
+        typeof progress.stars_balance === 'number' ? progress.stars_balance : state.stars;
       const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
       const baselineLevel = wasInitialized ? previousLevel : progress.level;
@@ -402,6 +404,7 @@ export const useGameStore = create<GameState>((set, get) => ({
         tapLevel,
         tapIncome,
         energy: progress.energy,
+        stars: starsBalance,
         passiveIncomePerSec: passivePerSec,
         passiveIncomeMultiplier: totalMultiplier,
         boostMultiplier,
@@ -672,6 +675,8 @@ export const useGameStore = create<GameState>((set, get) => ({
         tapLevel,
         tapIncome,
         energy: progress.energy,
+        stars:
+          typeof progress.stars_balance === 'number' ? progress.stars_balance : currentState.stars,
         passiveIncomePerSec: passivePerSec,
         passiveIncomeMultiplier: totalMultiplier,
         boostMultiplier,

@@ -6,6 +6,7 @@ export interface ProgressRecord {
   level: number;
   xp: number;
   energy: number;
+  starsBalance: number;
   totalEnergyProduced: number;
   totalTaps: number;
   totalBuildingsPurchased: number;
@@ -26,6 +27,7 @@ interface ProgressRow {
   level: number;
   xp: string;
   energy: string;
+  stars_balance: string;
   total_energy_produced: string;
   total_taps: string;
   total_buildings_purchased: string;
@@ -47,6 +49,7 @@ function mapProgress(row: ProgressRow): ProgressRecord {
     level: row.level,
     xp: Number(row.xp),
     energy: Number(row.energy),
+    starsBalance: Number(row.stars_balance ?? '0'),
     totalEnergyProduced: Number(row.total_energy_produced),
     totalTaps: Number(row.total_taps ?? '0'),
     totalBuildingsPurchased: Number(row.total_buildings_purchased ?? '0'),
@@ -87,8 +90,8 @@ export async function createDefaultProgress(
   client?: PoolClient
 ): Promise<ProgressRecord> {
   const result = await runQuery<ProgressRow>(
-    `INSERT INTO progress (user_id, level, xp, energy, total_energy_produced, tap_level, prestige_level, prestige_multiplier, prestige_energy_snapshot)
-     VALUES ($1, 1, 0, 0, 0, 1, 0, 1, 0)
+    `INSERT INTO progress (user_id, level, xp, energy, stars_balance, total_energy_produced, tap_level, prestige_level, prestige_multiplier, prestige_energy_snapshot)
+     VALUES ($1, 1, 0, 0, 0, 0, 1, 0, 1, 0)
      RETURNING *`,
     [userId],
     client
@@ -101,6 +104,7 @@ export interface UpdateProgressInput {
   level?: number;
   xp?: number;
   energy?: number;
+  starsBalance?: number;
   totalEnergyProduced?: number;
   totalTaps?: number;
   totalBuildingsPurchased?: number;
@@ -135,6 +139,11 @@ export async function updateProgress(
   if (data.energy !== undefined) {
     fields.push(`energy = $${fields.length + 1}`);
     values.push(data.energy);
+  }
+
+  if (data.starsBalance !== undefined) {
+    fields.push(`stars_balance = $${fields.length + 1}`);
+    values.push(data.starsBalance);
   }
 
   if (data.totalEnergyProduced !== undefined) {
@@ -215,4 +224,26 @@ export async function updateProgress(
   }
 
   return mapProgress(result.rows[0]);
+}
+
+export async function adjustStarsBalance(
+  userId: string,
+  delta: number,
+  client?: PoolClient
+): Promise<number> {
+  const result = await runQuery<{ stars_balance: string }>(
+    `UPDATE progress
+     SET stars_balance = stars_balance + $1
+     WHERE user_id = $2
+       AND stars_balance + $1 >= 0
+     RETURNING stars_balance`,
+    [delta, userId],
+    client
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error(delta < 0 ? 'insufficient_stars' : `Progress for user ${userId} not found`);
+  }
+
+  return Number(result.rows[0].stars_balance);
 }

@@ -539,6 +539,17 @@ export function MainScreen({
     onTabChange('leaderboard');
   }, [onTabChange]);
 
+  const handleOpenBoostHub = useCallback(() => {
+    void logClientEvent('home_boosts_cta_click', { source: 'home_panel' });
+    onShopSectionChange('boosts');
+    onTabChange('shop');
+  }, [onShopSectionChange, onTabChange]);
+
+  const handleOpenAchievements = useCallback(() => {
+    void logClientEvent('home_achievements_click', { source: 'home_panel' });
+    setAchievementsOpen(true);
+  }, []);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center w-full h-full min-h-screen text-lg">
@@ -593,11 +604,8 @@ export function MainScreen({
                 isSocialBlockLoading={!leaderboardLoaded && isLeaderboardLoading}
                 activeBoost={activeBoostSummary ?? undefined}
                 nextBoostAvailabilityMs={nextBoostAvailabilityMs}
-                onViewBoosts={() => {
-                  onShopSectionChange('boosts');
-                  onTabChange('shop');
-                }}
-                onViewAchievements={() => setAchievementsOpen(true)}
+                onViewBoosts={handleOpenBoostHub}
+                onViewAchievements={handleOpenAchievements}
                 claimableAchievements={claimableAchievementsCount}
               />
             </TabPageSurface>

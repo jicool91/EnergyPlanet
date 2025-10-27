@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useCatalogStore } from '../store/catalogStore';
@@ -13,6 +13,7 @@ import { useNotification } from '../hooks/useNotification';
 import { describeError } from '../store/storeUtils';
 import { BoostHub } from './BoostHub';
 import type { StarPack } from '@/services/starPacks';
+import { logClientEvent } from '@/services/telemetry';
 
 interface ShopPanelProps {
   showHeader?: boolean;
@@ -151,6 +152,25 @@ export function ShopPanel({
   const [activeStarPackSection, setActiveStarPackSection] =
     useState<StarPackSubSection>('one_time');
   const [activeBoostSection, setActiveBoostSection] = useState<BoostSubSection>('daily');
+  const sectionSourceRef = useRef<'initial' | 'user' | 'programmatic'>('initial');
+  const lastActiveSectionRef = useRef<ShopSection | null>(null);
+  const starPackSectionSourceRef = useRef<'user' | 'programmatic'>('programmatic');
+  const lastStarPackSectionRef = useRef<StarPackSubSection | null>(null);
+
+  useEffect(() => {
+    const previous = lastActiveSectionRef.current;
+    if (previous === null) {
+      void logClientEvent('shop_view', { section: activeSection });
+    } else if (previous !== activeSection) {
+      void logClientEvent('shop_section_change', {
+        from: previous,
+        to: activeSection,
+        source: sectionSourceRef.current,
+      });
+    }
+    lastActiveSectionRef.current = activeSection;
+    sectionSourceRef.current = 'programmatic';
+  }, [activeSection]);
 
   const starPackGroups = useMemo(() => {
     return starPacks.reduce<Record<StarPackSubSection, StarPack[]>>(
@@ -172,6 +192,50 @@ export function ShopPanel({
     () => visibleStarPacks.filter(pack => !pack.featured),
     [visibleStarPacks]
   );
+
+  useEffect(() => {
+    if (activeSection !== 'star_packs') {
+      lastStarPackSectionRef.current = null;
+      starPackSectionSourceRef.current = 'programmatic';
+      return;
+    }
+
+    const previous = lastStarPackSectionRef.current;
+    if (previous === null) {
+      void logClientEvent('star_pack_section_view', {
+        sub_section: activeStarPackSection,
+      });
+    } else if (previous !== activeStarPackSection) {
+      void logClientEvent('star_pack_section_change', {
+        from: previous,
+        to: activeStarPackSection,
+        source: starPackSectionSourceRef.current,
+      });
+    }
+    lastStarPackSectionRef.current = activeStarPackSection;
+    starPackSectionSourceRef.current = 'programmatic';
+  }, [activeSection, activeStarPackSection]);
+
+  useEffect(() => {
+    if (activeSection !== 'star_packs') {
+      return;
+    }
+    const packIds: string[] = [];
+    if (featuredVisiblePack) {
+      packIds.push(featuredVisiblePack.id);
+    }
+    regularVisiblePacks.forEach(pack => {
+      packIds.push(pack.id);
+    });
+    if (packIds.length === 0) {
+      return;
+    }
+
+    void logClientEvent('star_pack_view', {
+      sub_section: activeStarPackSection,
+      pack_ids: packIds,
+    });
+  }, [activeSection, activeStarPackSection, featuredVisiblePack, regularVisiblePacks]);
   const bestValuePackId = useMemo(() => {
     const candidates = regularVisiblePacks
       .filter(pack => pack.price_rub || pack.price_usd)
@@ -190,6 +254,7 @@ export function ShopPanel({
 
   const changeSection = useCallback(
     (section: ShopSection) => {
+      sectionSourceRef.current = 'user';
       if (!isControlled) {
         setInternalSection(section);
       }
@@ -199,6 +264,7 @@ export function ShopPanel({
   );
 
   const handleStarPackSectionChange = useCallback((section: StarPackSubSection) => {
+    starPackSectionSourceRef.current = 'user';
     setActiveStarPackSection(section);
   }, []);
 
@@ -359,13 +425,39 @@ export function ShopPanel({
 
   const handlePurchaseStarPack = useCallback(
     async (packId: string) => {
+      const pack = starPacks.find(item => item.id === packId) ?? null;
+      const totalStars = pack ? pack.stars + (pack.bonus_stars ?? 0) : undefined;
+      void logClientEvent('star_pack_checkout_start', {
+        pack_id: packId,
+        section: activeSection,
+        sub_section: activeStarPackSection,
+        total_stars: totalStars,
+      });
+
       try {
         await purchaseStarPack(packId);
         hapticSuccess();
         notifySuccess('Stars начислены на баланс!');
+        void logClientEvent('star_pack_checkout_success', {
+          pack_id: packId,
+          section: activeSection,
+          sub_section: activeStarPackSection,
+          total_stars: totalStars,
+        });
       } catch (error) {
         hapticError();
         const { status, message } = describeError(error, 'Не удалось купить Stars');
+        void logClientEvent(
+          'star_pack_checkout_error',
+          {
+            pack_id: packId,
+            section: activeSection,
+            sub_section: activeStarPackSection,
+            status,
+            message,
+          },
+          'warn'
+        );
         if (status === 409) {
           notifyWarning('Покупка уже была оформлена.');
         } else {
@@ -373,7 +465,17 @@ export function ShopPanel({
         }
       }
     },
-    [hapticError, hapticSuccess, notifyError, notifySuccess, notifyWarning, purchaseStarPack]
+    [
+      activeSection,
+      activeStarPackSection,
+      hapticError,
+      hapticSuccess,
+      notifyError,
+      notifySuccess,
+      notifyWarning,
+      purchaseStarPack,
+      starPacks,
+    ]
   );
 
   const sectionSubtitle = useMemo(() => {

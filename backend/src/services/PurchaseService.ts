@@ -1,4 +1,5 @@
 import { transaction } from '../db/connection';
+import type { PoolClient } from 'pg';
 import { AppError } from '../middleware/errorHandler';
 import { logEvent } from '../repositories/EventRepository';
 import {
@@ -9,6 +10,8 @@ import {
 } from '../repositories/PurchaseRepository';
 import { config } from '../config';
 import { logger } from '../utils/logger';
+import { adjustStarsBalance } from '../repositories/ProgressRepository';
+import { contentService } from './ContentService';
 
 interface RecordPurchaseInput {
   purchaseId: string;
@@ -121,6 +124,8 @@ export class PurchaseService {
 
         await logEvent(userId, 'purchase_succeeded', payload, { client });
 
+        await this.applyPostPurchaseEffects(userId, input, client);
+
         return updated;
       }
 
@@ -148,8 +153,80 @@ export class PurchaseService {
 
       await logEvent(userId, 'purchase_succeeded', payload, { client });
 
+      await this.applyPostPurchaseEffects(userId, input, client);
+
       return purchase;
     });
+  }
+
+  private resolveStarPackCredit(input: RecordPurchaseInput): {
+    baseStars: number;
+    bonusStars: number;
+    totalStars: number;
+  } {
+    const metadata = (input.metadata ?? {}) as {
+      stars?: unknown;
+      bonus_stars?: unknown;
+    };
+    const metadataBase = typeof metadata.stars === 'number' ? (metadata.stars as number) : undefined;
+    const metadataBonus =
+      typeof metadata.bonus_stars === 'number' ? (metadata.bonus_stars as number) : undefined;
+
+    const pack = contentService.getStarPacks().find(item => item.id === input.itemId);
+    const baseStars =
+      metadataBase ??
+      (typeof pack?.stars === 'number' ? pack.stars : undefined) ??
+      (typeof input.priceStars === 'number' ? input.priceStars : 0);
+    const bonusStars =
+      metadataBonus ?? (typeof pack?.bonus_stars === 'number' ? pack.bonus_stars : 0);
+    const derivedTotal = baseStars + bonusStars;
+    const totalStars =
+      derivedTotal > 0 ? derivedTotal : typeof input.priceStars === 'number' ? input.priceStars : 0;
+
+    return {
+      baseStars,
+      bonusStars,
+      totalStars,
+    };
+  }
+
+  private async applyPostPurchaseEffects(
+    userId: string,
+    input: RecordPurchaseInput,
+    client: PoolClient
+  ): Promise<void> {
+    if (input.purchaseType !== 'stars_pack') {
+      return;
+    }
+
+    const { baseStars, bonusStars, totalStars } = this.resolveStarPackCredit(input);
+
+    if (!totalStars || totalStars <= 0) {
+      logger.warn('stars_pack_credit_skip', {
+        userId,
+        purchase_id: input.purchaseId,
+        item_id: input.itemId,
+        price_stars: input.priceStars,
+      });
+      return;
+    }
+
+    const balanceAfter = await adjustStarsBalance(userId, totalStars, client);
+
+    await logEvent(
+      userId,
+      'stars_balance_credit',
+      {
+        source: 'purchase',
+        purchase_id: input.purchaseId,
+        item_id: input.itemId,
+        base_stars: baseStars,
+        bonus_stars: bonusStars,
+        total_stars: totalStars,
+        balance_after: balanceAfter,
+      },
+      { client }
+    );
   }
 
   async markFailed(purchaseId: string): Promise<PurchaseRecord> {

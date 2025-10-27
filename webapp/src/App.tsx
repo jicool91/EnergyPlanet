@@ -111,6 +111,52 @@ function App() {
     };
   }, [contentPaddingTopPx, safeBottom, safeLeft, safeRight]);
 
+  const previousTabRef = useRef<TabKey | null>(null);
+
+  const handleTabBarChange = useCallback(
+    (tabId: string) => {
+      const nextTab = tabId as TabKey;
+      if (isInitialized) {
+        void logClientEvent('tab_click', {
+          tab: nextTab,
+          previous: activeTab,
+          source: 'tab_bar',
+        });
+      }
+      setActiveTab(nextTab);
+    },
+    [activeTab, isInitialized]
+  );
+
+  const handleProgrammaticTabChange = useCallback(
+    (nextTab: TabKey) => {
+      if (isInitialized) {
+        void logClientEvent('tab_click', {
+          tab: nextTab,
+          previous: activeTab,
+          source: 'app',
+        });
+      }
+      setActiveTab(nextTab);
+    },
+    [activeTab, isInitialized]
+  );
+
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
+
+    const previous = previousTabRef.current;
+    if (previous !== activeTab) {
+      void logClientEvent('tab_impression', { tab: activeTab });
+      if (previous) {
+        void logClientEvent('tab_sequence', { from: previous, to: activeTab });
+      }
+      previousTabRef.current = activeTab;
+    }
+  }, [activeTab, isInitialized]);
+
   // Detect level up
   useEffect(() => {
     if (!isInitialized) {
@@ -234,7 +280,7 @@ function App() {
       {/* Main Content */}
       <MainScreen
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleProgrammaticTabChange}
         shopSection={shopSection}
         onShopSectionChange={setShopSection}
       />
@@ -251,7 +297,7 @@ function App() {
           ] as TabBarItem[]
         }
         active={activeTab}
-        onChange={tabId => setActiveTab(tabId as TabKey)}
+        onChange={handleTabBarChange}
       />
 
       {/* Modals & Notifications */}

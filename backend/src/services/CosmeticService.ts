@@ -11,6 +11,7 @@ import { logEvent } from '../repositories/EventRepository';
 import { config } from '../config';
 import { invalidateProfileCache } from '../cache/invalidation';
 import { upsertCosmetics } from '../repositories/CosmeticRepository';
+import { adjustStarsBalance } from '../repositories/ProgressRepository';
 
 type UnlockType = 'free' | 'level' | 'purchase' | 'event';
 
@@ -225,6 +226,33 @@ export class CosmeticService {
             throw new AppError(403, 'purchases_disabled');
           }
 
+          const availableStars = context.progress.starsBalance ?? 0;
+          if (availableStars < priceStars) {
+            throw new AppError(402, 'not_enough_stars');
+          }
+
+          let balanceAfter: number;
+          try {
+            balanceAfter = await adjustStarsBalance(userId, -priceStars, client);
+          } catch (error) {
+            if (error instanceof Error && error.message === 'insufficient_stars') {
+              throw new AppError(402, 'not_enough_stars');
+            }
+            throw error;
+          }
+
+          await logEvent(
+            userId,
+            'stars_balance_debit',
+            {
+              source: 'cosmetic_purchase',
+              cosmetic_id: cosmeticId,
+              amount: priceStars,
+              balance_after: balanceAfter,
+            },
+            { client }
+          );
+
           await grantCosmetic(userId, cosmeticId, ownedSet, client);
           await logEvent(
             userId,
@@ -233,6 +261,7 @@ export class CosmeticService {
               cosmetic_id: cosmeticId,
               price_stars: priceStars,
               source: config.testing.mockPayments ? 'mock' : 'stars',
+              balance_after: balanceAfter,
             },
             { client }
           );

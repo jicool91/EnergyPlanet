@@ -41,6 +41,7 @@ interface SessionState {
     xp_into_level: number;
     xp_to_next_level: number;
     energy: number;
+    stars_balance: number;
     total_energy_produced: number;
     passive_income_per_sec: number;
     passive_income_multiplier: number;
@@ -215,6 +216,7 @@ export class SessionService {
         xp_into_level: levelInfo.xpIntoLevel,
         xp_to_next_level: levelInfo.xpToNextLevel,
         energy: state.progress.energy,
+        stars_balance: state.progress.starsBalance,
         total_energy_produced: state.progress.totalEnergyProduced,
         passive_income_per_sec: Math.floor(state.effectivePassiveIncome),
         passive_income_multiplier: state.effectiveMultiplier,
