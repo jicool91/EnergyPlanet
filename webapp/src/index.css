@@ -107,7 +107,7 @@
     var(--tg-content-safe-area-right, 0px)
   );
 
-  --app-header-reserve: 56px;
+  --app-header-reserve: 90px;
   --app-header-buffer: 12px;
   --app-content-base-top: max(var(--safe-area-top), var(--content-safe-area-top));
   --app-header-offset-top: calc(var(--app-content-base-top) + var(--app-header-buffer));

@@ -57,7 +57,6 @@ function MainScreenHeaderComponent({
   const headerOffsetTop = headerBaseInset + HEADER_BUFFER_PX;
   const headerPadding = useMemo(() => {
     return {
-      paddingTop: '8px',
       paddingLeft: `${safeLeft + 8}px`,
       paddingRight: `${safeRight + 8}px`,
     };
