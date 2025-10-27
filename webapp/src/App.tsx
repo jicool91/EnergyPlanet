@@ -16,7 +16,15 @@ import { useAuthStore, authStore } from './store/authStore';
 import { logger } from './utils/logger';
 import { HEADER_BUFFER_PX, HEADER_RESERVE_PX } from './constants/layout';
 
-type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
+type TabKey =
+  | 'home'
+  | 'shop'
+  | 'boosts'
+  | 'builds'
+  | 'leaderboard'
+  | 'profile'
+  | 'settings'
+  | 'clan';
 
 const shouldShowMajorLevel = (level: number): boolean => {
   if (level < 10) {
@@ -235,11 +243,9 @@ function App() {
           [
             { id: 'home', icon: '🏠', label: 'Главная', title: 'Home' },
             { id: 'shop', icon: '🛍️', label: 'Магазин', title: 'Shop' },
-            { id: 'boosts', icon: '🚀', label: 'Boost Hub', title: 'Boosts' },
             { id: 'builds', icon: '🏗️', label: 'Постройки', title: 'Buildings' },
             { id: 'leaderboard', icon: '🏆', label: 'Рейтинг', title: 'Leaderboard' },
-            { id: 'profile', icon: '👤', label: 'Профиль', title: 'Profile' },
-            { id: 'settings', icon: '⚙️', label: 'Настройки', title: 'Settings' },
+            { id: 'clan', icon: '🛡️', label: 'Клан', title: 'Clan (soon)' },
           ] as TabBarItem[]
         }
         active={activeTab}

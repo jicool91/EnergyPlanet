@@ -31,6 +31,7 @@ export { ShopPanel } from './ShopPanel';
 export { ProfilePanel } from './ProfilePanel';
 export { BoostHub } from './BoostHub';
 export { LeaderboardPanel } from './LeaderboardPanel';
+export { ClanComingSoon } from './ClanComingSoon';
 
 // Notifications & Feedback
 export { NotificationContainer } from './notifications/NotificationContainer';

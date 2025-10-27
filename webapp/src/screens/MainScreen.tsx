@@ -23,6 +23,7 @@ import {
   LeaderboardSkeleton,
   ProfileSkeleton,
   TabPageSurface,
+  ClanComingSoon,
 } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
@@ -54,7 +55,15 @@ const SettingsScreen = lazy(() =>
   import('../components/settings').then(m => ({ default: m.SettingsScreen }))
 );
 
-type TabKey = 'home' | 'shop' | 'boosts' | 'builds' | 'leaderboard' | 'profile' | 'settings';
+type TabKey =
+  | 'home'
+  | 'shop'
+  | 'boosts'
+  | 'builds'
+  | 'leaderboard'
+  | 'profile'
+  | 'settings'
+  | 'clan';
 
 interface MainScreenProps {
   activeTab: TabKey;
@@ -637,6 +646,21 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
                 <ProfilePanel />
               </TabPageSurface>
             </Suspense>
+          </ScreenTransition>
+        );
+      case 'clan':
+        return (
+          <ScreenTransition
+            key="clan"
+            type="slide"
+            className="flex-1"
+            id="tab-panel-clan"
+            role="tabpanel"
+            aria-labelledby="tab-clan"
+          >
+            <TabPageSurface>
+              <ClanComingSoon />
+            </TabPageSurface>
           </ScreenTransition>
         );
       case 'settings':
