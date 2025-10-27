@@ -69,6 +69,22 @@ interface StarPack {
   featured?: boolean;
 }
 
+type QuestType = 'daily' | 'weekly';
+
+interface QuestDefinition {
+  id: string;
+  title: string;
+  description?: string;
+  type: QuestType;
+  metric: string;
+  target: number;
+  reward: {
+    stars?: number;
+    energy?: number;
+    xp?: number;
+  };
+}
+
 class ContentService {
   private buildings: Building[] = [];
   private cosmetics: Cosmetic[] = [];
@@ -76,6 +92,10 @@ class ContentService {
   private featureFlags: FeatureFlags | null = null;
   private formulas: BuildingFormulas | null = null;
   private starPacks: StarPack[] = [];
+  private questDefinitions: Record<QuestType, QuestDefinition[]> = {
+    daily: [],
+    weekly: [],
+  };
 
   async load() {
     try {
@@ -90,12 +110,15 @@ class ContentService {
         this.loadSeason().catch(e => this.handleLoadError('season', e)),
         this.loadFeatureFlags().catch(e => this.handleLoadError('featureFlags', e)),
         this.loadStarPacks().catch(e => this.handleLoadError('starPacks', e)),
+        this.loadQuests().catch(e => this.handleLoadError('quests', e)),
       ]);
 
       logger.info('Content loaded successfully', {
         buildings: this.buildings.length,
         cosmetics: this.cosmetics.length,
         season: this.season?.season.name,
+        dailyQuests: this.questDefinitions.daily.length,
+        weeklyQuests: this.questDefinitions.weekly.length,
         starPacks: this.starPacks.length,
       });
     } catch (error) {
@@ -148,6 +171,16 @@ class ContentService {
     this.starPacks = parsed.packs ?? [];
   }
 
+  private async loadQuests() {
+    const filePath = path.join(config.content.path, 'quests', 'quests.json');
+    const data = await fs.readFile(filePath, 'utf-8');
+    const parsed = JSON.parse(data) as Partial<Record<QuestType, QuestDefinition[]>>;
+    this.questDefinitions = {
+      daily: (parsed.daily ?? []).map(q => ({ ...q, type: 'daily' })),
+      weekly: (parsed.weekly ?? []).map(q => ({ ...q, type: 'weekly' })),
+    };
+  }
+
   getBuildings(): Building[] {
     return this.buildings;
   }
@@ -174,6 +207,13 @@ class ContentService {
 
   getStarPacks(): StarPack[] {
     return this.starPacks;
+  }
+
+  getQuestDefinitions(type?: QuestType): QuestDefinition[] {
+    if (!type) {
+      return [...this.questDefinitions.daily, ...this.questDefinitions.weekly];
+    }
+    return this.questDefinitions[type] ?? [];
   }
 
   isFeatureEnabled(featureName: string): boolean {
@@ -243,4 +283,5 @@ export async function loadContent() {
   await contentService.load();
 }
 
+export type { QuestDefinition };
 export { contentService };

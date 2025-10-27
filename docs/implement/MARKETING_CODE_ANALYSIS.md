@@ -49,8 +49,8 @@
 
 ### 4.3 Ежедневная активность
 - **Daily Reward:** после claim появляется upsell на премиум буст или покупку Stars (`webapp/src/components/DailyRewardBanner.tsx`). Нужно A/B и частотный лимитер.
-- **Achievements:** модалка логирует просмотр и клики (`webapp/src/components/AchievementsModal.tsx`); пересмотр наград остаётся задачей Stage 2.
-- **Quests / Daily Missions:** отсутствуют. Нужен отдельный документ: схемы таблиц, API `/quests`, Zustand store, UI блок. Минимум один спринт backend + frontend.
+- **Quests:** ежедневные и недельные задания реализованы (`backend/content/quests/quests.json`, `backend/src/services/QuestService.ts`, `webapp/src/store/questStore.ts`, `HomePanel`). Виджет логирует `quest_widget_view` / `quest_claim_success`; остаётся добавить cron-сброс и расширить каталог.
+- **Achievements:** модалка логирует просмотр и клики (`webapp/src/components/AchievementsModal.tsx`), а новые тировые награды автоматически выдают косметику (`backend/src/services/AchievementService.ts`).
 
 ### 4.4 Телеметрия и эксперименты
 - Библиотека `logClientEvent` готова, но ключевые события не заведены: нет метрик `shop_open`, `star_pack_view`, `tab_shop_click`, `checkout_started`, `checkout_success`. Без них нельзя считать конверсию.

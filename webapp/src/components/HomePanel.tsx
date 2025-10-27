@@ -10,7 +10,7 @@
  * - Responsive design (mobile-first)
  */
 
-import { useMemo, useEffect, useRef, useCallback } from 'react';
+import { useMemo, useEffect, useRef, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from './Card';
 import { StatCard } from './StatCard';
@@ -22,6 +22,8 @@ import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
 import { PrestigeCard } from './PrestigeCard';
 import { Button } from './Button';
 import { logClientEvent } from '@/services/telemetry';
+import { useQuestStore, type QuestView } from '@/store/questStore';
+import { useShallow } from 'zustand/react/shallow';
 
 export interface HomePanelProps {
   // Game state
@@ -155,6 +157,64 @@ export function HomePanel({
     onOpenShop?.('star_packs');
   }, [onOpenShop]);
 
+  const hasLoggedQuestWidgetRef = useRef(false);
+  const [claimingQuestId, setClaimingQuestId] = useState<string | null>(null);
+
+  const {
+    quests,
+    isLoading: questsLoading,
+    error: questsError,
+    loadQuests,
+    claimQuest,
+    lastLoadedAt,
+  } = useQuestStore(
+    useShallow(state => ({
+      quests: state.quests,
+      isLoading: state.isLoading,
+      error: state.error,
+      loadQuests: state.loadQuests,
+      claimQuest: state.claimQuest,
+      lastLoadedAt: state.lastLoadedAt,
+    }))
+  );
+
+  useEffect(() => {
+    if (!lastLoadedAt && !questsLoading) {
+      void loadQuests();
+    }
+  }, [lastLoadedAt, questsLoading, loadQuests]);
+
+  const dailyQuests = useMemo(() => quests.filter(quest => quest.type === 'daily'), [quests]);
+
+  const weeklyQuests = useMemo(() => quests.filter(quest => quest.type === 'weekly'), [quests]);
+
+  useEffect(() => {
+    if (!questsLoading && quests.length > 0 && !hasLoggedQuestWidgetRef.current) {
+      hasLoggedQuestWidgetRef.current = true;
+      void logClientEvent('quest_widget_view', {
+        daily: dailyQuests.length,
+        weekly: weeklyQuests.length,
+      });
+    }
+    if (quests.length === 0) {
+      hasLoggedQuestWidgetRef.current = false;
+    }
+  }, [quests, questsLoading, dailyQuests.length, weeklyQuests.length]);
+
+  const handleQuestClaim = useCallback(
+    async (questId: string) => {
+      try {
+        setClaimingQuestId(questId);
+        await claimQuest(questId);
+      } finally {
+        setClaimingQuestId(null);
+      }
+    },
+    [claimQuest]
+  );
+
+  const questWidgetLoading = questsLoading && quests.length === 0;
+
   const formatMsToReadable = (ms: number) => {
     const totalSeconds = Math.max(0, Math.round(ms / 1000));
     const minutes = Math.floor(totalSeconds / 60);
@@ -236,6 +296,49 @@ export function HomePanel({
             </div>
           </Card>
         )}
+
+        <Card className="mx-md mt-sm bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)]">
+          <div className="flex items-center justify-between gap-sm">
+            <div>
+              <p className="m-0 text-sm font-semibold text-[var(--color-text-primary)]">Задания</p>
+              <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                Выполни квесты и получи дополнительные бонусы
+              </p>
+            </div>
+            {questsError && (
+              <span className="text-xs text-[var(--color-text-destructive)]">{questsError}</span>
+            )}
+          </div>
+          {questWidgetLoading ? (
+            <div className="mt-sm text-xs text-[var(--color-text-secondary)]">
+              Загружаем задания…
+            </div>
+          ) : (
+            <div className="mt-sm flex flex-col gap-sm">
+              {dailyQuests.slice(0, 2).map(quest => (
+                <QuestRow
+                  key={quest.id}
+                  quest={quest}
+                  onClaim={handleQuestClaim}
+                  claiming={claimingQuestId === quest.id}
+                />
+              ))}
+              {weeklyQuests.slice(0, 1).map(quest => (
+                <QuestRow
+                  key={quest.id}
+                  quest={quest}
+                  onClaim={handleQuestClaim}
+                  claiming={claimingQuestId === quest.id}
+                />
+              ))}
+              {dailyQuests.length + weeklyQuests.length === 0 && !questsLoading && (
+                <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                  Новые задания появятся в ближайшее время.
+                </p>
+              )}
+            </div>
+          )}
+        </Card>
 
         {/* Center: BIG TAP BUTTON */}
         <div className="relative flex flex-1 items-center justify-center px-md py-sm-plus lg:px-0">
@@ -410,6 +513,74 @@ export function HomePanel({
               )}
           </Card>
         )}
+      </div>
+    </div>
+  );
+}
+
+interface QuestRowProps {
+  quest: QuestView;
+  onClaim: (questId: string) => void;
+  claiming: boolean;
+}
+
+function QuestRow({ quest, onClaim, claiming }: QuestRowProps) {
+  const progressPercent =
+    quest.target > 0 ? Math.min(100, Math.round((quest.progress / quest.target) * 100)) : 0;
+  const remaining = Math.max(0, quest.target - quest.progress);
+  const expiresAt = new Date(quest.expiresAt);
+  const expiresLabel = expiresAt.toLocaleString('ru-RU', {
+    day: 'numeric',
+    month: 'short',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+  const rewardParts: string[] = [];
+  if (quest.stars > 0) rewardParts.push(`⭐ ${quest.stars}`);
+  if (quest.energy > 0) rewardParts.push(`⚡ ${formatNumberWithSpaces(quest.energy)}`);
+  if (quest.xp > 0) rewardParts.push(`XP ${formatNumberWithSpaces(quest.xp)}`);
+
+  return (
+    <div className="rounded-md border border-[var(--color-border-subtle)] bg-[var(--app-surface)] p-sm flex flex-col gap-xs">
+      <div className="flex items-start justify-between gap-sm">
+        <div>
+          <p className="m-0 text-sm font-semibold text-[var(--color-text-primary)]">
+            {quest.title}
+          </p>
+          {quest.description && (
+            <p className="m-0 text-xs text-[var(--color-text-secondary)]">{quest.description}</p>
+          )}
+          <p className="m-0 mt-xs text-[10px] uppercase tracking-[0.3px] text-[var(--color-text-tertiary)]">
+            До {quest.type === 'daily' ? 'конца дня' : 'понедельника'} · {expiresLabel}
+          </p>
+        </div>
+        {quest.status === 'ready' && (
+          <Button size="sm" variant="primary" onClick={() => onClaim(quest.id)} loading={claiming}>
+            Забрать
+          </Button>
+        )}
+      </div>
+
+      <div className="flex flex-col gap-xs">
+        <div className="w-full h-2 rounded-full bg-[var(--color-border-subtle)] overflow-hidden">
+          <div
+            className="h-full bg-gradient-to-r from-cyan to-lime"
+            style={{ width: `${Math.max(progressPercent, 2)}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
+          <span>
+            {formatNumberWithSpaces(Math.floor(quest.progress))} /{' '}
+            {formatNumberWithSpaces(Math.floor(quest.target))}
+          </span>
+          {remaining > 0 && <span>Осталось {formatNumberWithSpaces(Math.floor(remaining))}</span>}
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-center gap-xs text-[10px] uppercase tracking-[0.3px] text-[var(--color-text-tertiary)]">
+        <span>{quest.type === 'daily' ? 'Ежедневное' : 'Еженедельное'}</span>
+        {rewardParts.length > 0 && <span>· Награда: {rewardParts.join(' + ')}</span>}
+        {quest.status === 'claimed' && <span>· Получено</span>}
       </div>
     </div>
   );

@@ -1,0 +1,66 @@
+{
+  "daily": [
+    {
+      "id": "daily_taps_5000",
+      "title": "Разомни пальцы",
+      "description": "Сделай 5 000 тапов за сегодня, чтобы прокачать планету.",
+      "metric": "taps",
+      "target": 5000,
+      "reward": {
+        "stars": 25,
+        "energy": 50000,
+        "xp": 0
+      }
+    },
+    {
+      "id": "daily_energy_1m",
+      "title": "Энергетический всплеск",
+      "description": "Накопи 1 000 000 энергии за сутки.",
+      "metric": "energy",
+      "target": 1000000,
+      "reward": {
+        "stars": 30,
+        "energy": 100000,
+        "xp": 0
+      }
+    },
+    {
+      "id": "daily_buildings_5",
+      "title": "Строй без остановки",
+      "description": "Купи или улучшай здания 5 раз за сегодня.",
+      "metric": "buildings",
+      "target": 5,
+      "reward": {
+        "stars": 20,
+        "energy": 25000,
+        "xp": 0
+      }
+    }
+  ],
+  "weekly": [
+    {
+      "id": "weekly_buildings_25",
+      "title": "Архитектор недели",
+      "description": "Построй или улучшай здания 25 раз за неделю.",
+      "metric": "buildings_purchased",
+      "target": 25,
+      "reward": {
+        "stars": 120,
+        "energy": 500000,
+        "xp": 0
+      }
+    },
+    {
+      "id": "weekly_prestige_progress",
+      "title": "Подготовка к престижу",
+      "description": "Заработай 50 000 000 энергии со сброса за неделю.",
+      "metric": "prestige_energy",
+      "target": 50000000,
+      "reward": {
+        "stars": 200,
+        "energy": 0,
+        "xp": 0
+      }
+    }
+  ]
+}

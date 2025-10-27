@@ -13,6 +13,7 @@ import telemetryRoutes from './telemetry';
 import contentRoutes from './content';
 import prestigeRoutes from './prestige';
 import achievementsRoutes from './achievements';
+import questsRoutes from './quests';
 
 const router = Router();
 
@@ -22,6 +23,7 @@ router.use('/', gameplayRoutes); // /tap, /tick, /upgrade
 router.use('/', prestigeRoutes); // /prestige
 router.use('/', socialRoutes); // /leaderboard, /profile
 router.use('/', monetizationRoutes); // /cosmetics, /purchase, /boost
+router.use('/', questsRoutes); // /quests
 router.use('/achievements', achievementsRoutes);
 router.use('/telemetry', telemetryRoutes);
 router.use('/', contentRoutes); // /buildings

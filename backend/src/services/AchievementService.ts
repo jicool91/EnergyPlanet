@@ -15,8 +15,23 @@ import { getProgress, updateProgress } from '../repositories/ProgressRepository'
 import { logEvent } from '../repositories/EventRepository';
 import { AppError } from '../middleware/errorHandler';
 import { invalidateProfileCache } from '../cache/invalidation';
+import { addUserCosmetic, hasUserCosmetic } from '../repositories/UserCosmeticsRepository';
 
 type AchievementMetric = 'total_energy' | 'total_taps' | 'buildings_owned' | 'prestige_level';
+
+const ACHIEVEMENT_COSMETIC_REWARDS: Record<string, Array<{ tier: number; cosmeticId: string }>> = {
+  tap_maestro: [
+    { tier: 2, cosmeticId: 'spark_effect' },
+    { tier: 4, cosmeticId: 'explosion_effect' },
+  ],
+  builder_guild: [
+    { tier: 2, cosmeticId: 'mars_skin' },
+    { tier: 4, cosmeticId: 'cyber_planet_skin' },
+  ],
+  prestige_voyager: [
+    { tier: 1, cosmeticId: 'diamond_frame_001' },
+  ],
+};
 
 export interface AchievementTierStatus extends AchievementTier {
   earned: boolean;
@@ -242,6 +257,25 @@ export class AchievementService {
         },
         client
       );
+
+      const cosmeticRewards = ACHIEVEMENT_COSMETIC_REWARDS[definition.slug] ?? [];
+      const cosmeticForTier = cosmeticRewards.find(reward => reward.tier === nextTier);
+      if (cosmeticForTier) {
+        const alreadyOwned = await hasUserCosmetic(userId, cosmeticForTier.cosmeticId, client);
+        if (!alreadyOwned) {
+          await addUserCosmetic(userId, cosmeticForTier.cosmeticId, client);
+          await logEvent(
+            userId,
+            'achievement_cosmetic_granted',
+            {
+              achievement_slug: definition.slug,
+              tier: nextTier,
+              cosmetic_id: cosmeticForTier.cosmeticId,
+            },
+            { client }
+          );
+        }
+      }
 
       await logEvent(
         userId,
