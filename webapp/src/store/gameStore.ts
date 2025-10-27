@@ -260,7 +260,9 @@ export const useGameStore = create<GameState>((set, get) => ({
       uiStore.dismissAuthError();
       set({ isLoading: true, sessionErrorMessage: null });
 
-      const previousLevel = get().level;
+      const state = get();
+      const wasInitialized = state.isInitialized;
+      const previousLevel = state.level;
 
       logger.info('🎮 initGame starting', {
         hasAccessToken: !!authStore.accessToken,
@@ -337,7 +339,8 @@ export const useGameStore = create<GameState>((set, get) => ({
       const tapIncome = progress.tap_income ?? 0;
       const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
-      const levelsGained = Math.max(progress.level - previousLevel, 0);
+      const baselineLevel = wasInitialized ? previousLevel : progress.level;
+      const levelsGained = Math.max(progress.level - baselineLevel, 0);
       const offlineSummary =
         offlineGains && offlineGains.energy > 0
           ? {
@@ -345,7 +348,7 @@ export const useGameStore = create<GameState>((set, get) => ({
               xp: offlineGains.xp ?? 0,
               duration_sec: offlineGains.duration_sec,
               capped: offlineGains.capped,
-              level_start: previousLevel,
+              level_start: baselineLevel,
               level_end: progress.level,
               levels_gained: levelsGained,
             }
@@ -355,7 +358,7 @@ export const useGameStore = create<GameState>((set, get) => ({
                 xp: 0,
                 duration_sec: 0,
                 capped: false,
-                level_start: previousLevel,
+                level_start: baselineLevel,
                 level_end: progress.level,
                 levels_gained: levelsGained,
               }
@@ -573,12 +576,15 @@ export const useGameStore = create<GameState>((set, get) => ({
 
   refreshSession: async () => {
     try {
-      const previousLevel = get().level;
+      const state = get();
+      const wasInitialized = state.isInitialized;
+      const previousLevel = state.level;
       const response = await apiClient.post('/session');
       const { user, progress, offline_gains: offlineGains, inventory } = response.data;
       const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
-      const levelsGained = Math.max(progress.level - previousLevel, 0);
+      const baselineLevel = wasInitialized ? previousLevel : progress.level;
+      const levelsGained = Math.max(progress.level - baselineLevel, 0);
       const offlineSummary =
         offlineGains && offlineGains.energy > 0
           ? {
@@ -586,7 +592,7 @@ export const useGameStore = create<GameState>((set, get) => ({
               xp: offlineGains.xp ?? 0,
               duration_sec: offlineGains.duration_sec,
               capped: offlineGains.capped,
-              level_start: previousLevel,
+              level_start: baselineLevel,
               level_end: progress.level,
               levels_gained: levelsGained,
             }
@@ -596,7 +602,7 @@ export const useGameStore = create<GameState>((set, get) => ({
                 xp: 0,
                 duration_sec: 0,
                 capped: false,
-                level_start: previousLevel,
+                level_start: baselineLevel,
                 level_end: progress.level,
                 levels_gained: levelsGained,
               }

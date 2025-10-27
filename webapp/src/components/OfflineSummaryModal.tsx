@@ -46,8 +46,9 @@ export function OfflineSummaryModal({
 }: OfflineSummaryModalProps) {
   const startLevel = levelStart ?? null;
   const endLevel = levelEnd ?? null;
-  const gainedLevels =
-    levelsGained ?? (levelStart != null && levelEnd != null ? levelEnd - levelStart : null);
+  const computedLevelDelta =
+    levelStart != null && levelEnd != null ? Math.max(levelEnd - levelStart, 0) : null;
+  const gainedLevels = Math.max(levelsGained ?? computedLevelDelta ?? 0, 0);
   const energyLabel = formatCompactNumber(Math.floor(energy));
   const xpLabel = xp > 0 ? formatCompactNumber(Math.floor(xp)) : null;
   const passivePerSecondLabel =
@@ -63,63 +64,58 @@ export function OfflineSummaryModal({
       size="sm"
       actions={[{ label: 'Продолжить', variant: 'primary', onClick: onClose }]}
     >
-      <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden pr-1 space-y-4">
-        <p className="text-body text-token-secondary leading-relaxed break-words">
-          {durationSec > 0 || energy > 0 || xp > 0 ? (
-            <>
-              {`За ${formatDuration(durationSec)} вы накопили `}
-              <strong>{energyLabel} энергии</strong>
-              {xpLabel ? ` и ${xpLabel} XP` : ''}.
-            </>
-          ) : (
-            <>Пока вы были офлайн, прогресс продолжал считаться.</>
-          )}
-          {gainedLevels && gainedLevels > 0 && (
-            <span className="block mt-2">
-              Уровень вырос с {startLevel ?? '-'} до {endLevel ?? '-'} ({gainedLevels} новых
-              уровней).
-            </span>
-          )}
-        </p>
+      <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden space-y-4">
+        <section className="flex flex-col gap-2 bg-[var(--color-surface-secondary)]/70 border border-[var(--color-border-subtle)]/60 rounded-xl p-4">
+          <p className="m-0 text-body text-token-primary font-semibold">Пока вас не было</p>
+          <p className="m-0 text-sm text-token-secondary leading-relaxed">
+            {durationSec > 0 ? (
+              <>Вы были офлайн {formatDuration(durationSec)}.</>
+            ) : (
+              <>Вы вернулись практически сразу — прогресс почти не копился.</>
+            )}
+          </p>
+          <ul className="m-0 list-none flex flex-col gap-2 text-sm text-token-secondary">
+            <li className="flex items-center justify-between gap-3">
+              <span className="text-token-secondary">Энергия</span>
+              <strong className="text-token-primary">+{energyLabel}</strong>
+            </li>
+            {xpLabel && (
+              <li className="flex items-center justify-between gap-3">
+                <span className="text-token-secondary">XP</span>
+                <strong className="text-token-primary">+{xpLabel}</strong>
+              </li>
+            )}
+            {passivePerSecondLabel && (
+              <li className="flex items-center justify-between gap-3">
+                <span className="text-token-secondary">Средний пассивный доход</span>
+                <strong className="text-token-primary">{passivePerSecondLabel} E/с</strong>
+              </li>
+            )}
+            {gainedLevels > 0 && (
+              <li className="flex items-center justify-between gap-3">
+                <span className="text-token-secondary">Уровень</span>
+                <strong className="text-token-primary">
+                  {startLevel != null ? startLevel : '—'} → {endLevel != null ? endLevel : '—'}
+                </strong>
+              </li>
+            )}
+          </ul>
+        </section>
 
-        <div className="grid gap-3 text-sm text-token-secondary">
-          {(energy > 0 || durationSec > 0) && passivePerSecondLabel && (
-            <div
-              className="grid grid-cols-[1fr_auto] gap-3 items-center rounded-lg px-3 py-2"
-              style={{
-                background: 'color-mix(in srgb, var(--color-border-subtle) 20%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--color-border-subtle) 60%, transparent)',
-              }}
-            >
-              <span className="text-token-secondary break-words">Пассивный доход</span>
-              <span className="font-semibold text-right whitespace-nowrap text-token-primary">
-                {passivePerSecondLabel} E/с
-              </span>
-            </div>
-          )}
-          {gainedLevels != null && (
-            <div
-              className="grid grid-cols-[1fr_auto] gap-3 items-center rounded-lg px-3 py-2"
-              style={{
-                background: 'color-mix(in srgb, var(--color-border-subtle) 20%, transparent)',
-                border: '1px solid color-mix(in srgb, var(--color-border-subtle) 60%, transparent)',
-              }}
-            >
-              <span className="text-token-secondary break-words">Новые уровни</span>
-              <span className="font-semibold text-right text-token-primary">
-                {gainedLevels > 0 ? `+${gainedLevels}` : '—'}
-              </span>
-            </div>
-          )}
-          {capped && (
-            <div className="grid gap-1 bg-orange/15 border border-orange/40 text-orange/90 rounded-lg px-3 py-2">
-              <span className="font-semibold text-token-primary">Лимит офлайна достигнут</span>
-              <span className="text-xs uppercase tracking-wide text-orange/80">
-                подключайтесь чаще
-              </span>
-            </div>
-          )}
-        </div>
+        {gainedLevels === 0 && (energy > 0 || xp > 0) && (
+          <p className="m-0 text-xs text-token-secondary/80">
+            Уровень не изменился, но накопленная энергия уже добавлена на ваш счёт.
+          </p>
+        )}
+
+        {capped && (
+          <div className="flex flex-col gap-1 bg-orange/15 border border-orange/40 text-orange/90 rounded-xl px-4 py-3">
+            <span className="font-semibold text-token-primary">Лимит офлайна достигнут</span>
+            <span className="text-xs uppercase tracking-wide text-orange/80">
+              подключайтесь чаще, чтобы не терять доход
+            </span>
+          </div>
+        )}
       </div>
     </ModalBase>
   );
