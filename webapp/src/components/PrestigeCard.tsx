@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { Card } from './Card';
 import { Button } from './Button';
 import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
+import { logClientEvent } from '@/services/telemetry';
 
 interface PrestigeCardProps {
   prestigeLevel: number;
@@ -26,6 +27,8 @@ export function PrestigeCard({
   isLoading,
   onPrestige,
 }: PrestigeCardProps) {
+  const hasLoggedAvailabilityRef = useRef(false);
+
   const progress = useMemo(() => {
     if (prestigeNextThreshold <= 0) {
       return 0;
@@ -57,6 +60,30 @@ export function PrestigeCard({
     return `Доступно +${prestigeGainAvailable} к множителю`;
   }, [prestigeGainAvailable, energyRemainingLabel]);
 
+  useEffect(() => {
+    if (isPrestigeAvailable) {
+      if (!hasLoggedAvailabilityRef.current) {
+        hasLoggedAvailabilityRef.current = true;
+        void logClientEvent('prestige_cta_available', {
+          prestige_level: prestigeLevel,
+          gain_available: prestigeGainAvailable,
+          multiplier: prestigeMultiplier,
+        });
+      }
+    } else {
+      hasLoggedAvailabilityRef.current = false;
+    }
+  }, [isPrestigeAvailable, prestigeGainAvailable, prestigeLevel, prestigeMultiplier]);
+
+  const handlePrestigeClick = useCallback(() => {
+    void logClientEvent('prestige_cta_click', {
+      prestige_level: prestigeLevel,
+      gain_available: prestigeGainAvailable,
+      multiplier: prestigeMultiplier,
+    });
+    onPrestige();
+  }, [onPrestige, prestigeGainAvailable, prestigeLevel, prestigeMultiplier]);
+
   return (
     <Card>
       <div className="flex flex-col gap-3">
@@ -72,7 +99,7 @@ export function PrestigeCard({
             size="sm"
             disabled={!isPrestigeAvailable}
             loading={isLoading}
-            onClick={onPrestige}
+            onClick={handlePrestigeClick}
           >
             {isPrestigeAvailable ? 'Престиж' : 'Не готово'}
           </Button>

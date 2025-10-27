@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { ModalBase } from './ModalBase';
 import { Button } from './Button';
 import { formatNumberWithSpaces } from '../utils/number';
 import type { AchievementView } from '@/services/achievements';
+import { logClientEvent } from '@/services/telemetry';
 
 interface AchievementsModalProps {
   isOpen: boolean;
@@ -27,6 +28,7 @@ export function AchievementsModal({
   claimingSlug,
   achievementMultiplier,
 }: AchievementsModalProps) {
+  const hasLoggedViewRef = useRef(false);
   const sorted = useMemo(
     () =>
       [...achievements].sort((a, b) => {
@@ -40,6 +42,32 @@ export function AchievementsModal({
       }),
     [achievements]
   );
+
+  useEffect(() => {
+    if (isOpen) {
+      if (!hasLoggedViewRef.current) {
+        hasLoggedViewRef.current = true;
+        void logClientEvent('achievements_modal_view', {
+          total: achievements.length,
+        });
+      }
+    } else {
+      hasLoggedViewRef.current = false;
+    }
+  }, [achievements.length, isOpen]);
+
+  const handleClaim = useCallback(
+    (slug: string) => {
+      void logClientEvent('achievement_claim_click', { slug });
+      onClaim(slug);
+    },
+    [onClaim]
+  );
+
+  const handleRetry = useCallback(() => {
+    void logClientEvent('achievements_retry_click', {});
+    onRetry();
+  }, [onRetry]);
 
   return (
     <ModalBase
@@ -68,7 +96,7 @@ export function AchievementsModal({
         {error && !loading && (
           <div className="flex flex-col gap-sm text-center">
             <p className="text-body text-[var(--color-text-secondary)]">{error}</p>
-            <Button variant="secondary" onClick={onRetry}>
+            <Button variant="secondary" onClick={handleRetry}>
               Повторить
             </Button>
           </div>
@@ -135,7 +163,7 @@ export function AchievementsModal({
                         size="sm"
                         variant="primary"
                         loading={isClaiming}
-                        onClick={() => onClaim(item.slug)}
+                        onClick={() => handleClaim(item.slug)}
                       >
                         Получить +{rewardPercent}%
                       </Button>

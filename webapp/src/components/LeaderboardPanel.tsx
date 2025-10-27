@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { LeaderboardSkeleton, ErrorBoundary } from './skeletons';
@@ -6,6 +6,7 @@ import { Card } from './Card';
 import { formatCompactNumber } from '../utils/number';
 import { logClientEvent } from '@/services/telemetry';
 import { useShallow } from 'zustand/react/shallow';
+import { Button } from './Button';
 
 // Medal emojis for top 3
 const MEDAL_MAP: Record<number, { icon: string; label: string }> = {
@@ -14,7 +15,11 @@ const MEDAL_MAP: Record<number, { icon: string; label: string }> = {
   3: { icon: '🥉', label: 'Third place' },
 };
 
-export function LeaderboardPanel() {
+interface LeaderboardPanelProps {
+  onOpenShop?: (section?: 'star_packs' | 'boosts') => void;
+}
+
+export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
   const {
     leaderboard,
     leaderboardLoaded,
@@ -86,6 +91,35 @@ export function LeaderboardPanel() {
   const userRankProgress = userLeaderboardEntry
     ? Math.max(0, 100 - (userLeaderboardEntry.rank / leaderboardTotal) * 100)
     : 0;
+  const userLeaderboardRow = useMemo(
+    () => rowsWithDiff.find(entry => entry.user_id === userLeaderboardEntry?.user_id) ?? null,
+    [rowsWithDiff, userLeaderboardEntry]
+  );
+  const userEnergyDiffToNext = userLeaderboardRow?.energyDiffToNext ?? 0;
+  const userEnergyDiffDisplay = useMemo(
+    () => (userEnergyDiffToNext > 0 ? formatCompactNumber(Math.floor(userEnergyDiffToNext)) : null),
+    [userEnergyDiffToNext]
+  );
+  const hasLoggedShopCtaRef = useRef(false);
+
+  useEffect(() => {
+    if (userEnergyDiffToNext > 0 && !hasLoggedShopCtaRef.current) {
+      hasLoggedShopCtaRef.current = true;
+      void logClientEvent('leaderboard_shop_cta_view', {
+        deficit: userEnergyDiffToNext,
+      });
+    }
+    if (userEnergyDiffToNext === 0) {
+      hasLoggedShopCtaRef.current = false;
+    }
+  }, [userEnergyDiffToNext]);
+
+  const handleShopCtaClick = useCallback(() => {
+    void logClientEvent('leaderboard_shop_cta_click', {
+      deficit: userEnergyDiffToNext,
+    });
+    onOpenShop?.('boosts');
+  }, [onOpenShop, userEnergyDiffToNext]);
 
   if (!leaderboardLoaded && isLeaderboardLoading) {
     return (
@@ -157,6 +191,16 @@ export function LeaderboardPanel() {
               transition={{ duration: 0.8, ease: 'easeOut' }}
             />
           </div>
+          {userEnergyDiffDisplay && (
+            <div className="mt-sm flex flex-wrap items-center justify-between gap-sm-plus text-caption">
+              <span className="text-[var(--color-text-secondary)]">
+                До следующего места: {userEnergyDiffDisplay} E
+              </span>
+              <Button size="sm" variant="primary" onClick={handleShopCtaClick}>
+                🚀 Усилить меня
+              </Button>
+            </div>
+          )}
         </Card>
       )}
 

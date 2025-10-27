@@ -72,6 +72,7 @@ export function MainScreen({
 }: MainScreenProps) {
   const {
     energy,
+    stars,
     level,
     xpIntoLevel,
     xpToNextLevel,
@@ -111,6 +112,7 @@ export function MainScreen({
   } = useGameStore(
     useShallow(state => ({
       energy: state.energy,
+      stars: state.stars,
       level: state.level,
       xpIntoLevel: state.xpIntoLevel,
       xpToNextLevel: state.xpToNextLevel,
@@ -550,6 +552,17 @@ export function MainScreen({
     setAchievementsOpen(true);
   }, []);
 
+  const handleOpenShopStarPacks = useCallback(() => {
+    void logClientEvent('home_shop_shortcut_click', { source: 'home_panel' });
+    onShopSectionChange('star_packs');
+    onTabChange('shop');
+  }, [onShopSectionChange, onTabChange]);
+
+  const handleLeaderboardShopCta = useCallback(() => {
+    onShopSectionChange('boosts');
+    onTabChange('shop');
+  }, [onShopSectionChange, onTabChange]);
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center w-full h-full min-h-screen text-lg">
@@ -585,6 +598,7 @@ export function MainScreen({
                 tapIncomeDisplay={tapIncomeDisplay}
                 passiveIncomeLabel={passiveIncomeLabel}
                 multiplierLabel={multiplierLabel}
+                stars={stars}
                 streakCount={streakCount}
                 bestStreak={bestStreak}
                 isCriticalStreak={isCriticalStreak}
@@ -606,6 +620,7 @@ export function MainScreen({
                 nextBoostAvailabilityMs={nextBoostAvailabilityMs}
                 onViewBoosts={handleOpenBoostHub}
                 onViewAchievements={handleOpenAchievements}
+                onOpenShop={handleOpenShopStarPacks}
                 claimableAchievements={claimableAchievementsCount}
               />
             </TabPageSurface>
@@ -661,7 +676,7 @@ export function MainScreen({
           >
             <Suspense fallback={<LeaderboardSkeleton />}>
               <TabPageSurface>
-                <LeaderboardPanel />
+                <LeaderboardPanel onOpenShop={handleLeaderboardShopCta} />
               </TabPageSurface>
             </Suspense>
           </ScreenTransition>

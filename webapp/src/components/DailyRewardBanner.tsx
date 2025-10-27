@@ -3,16 +3,21 @@
  * Synchronised with backend boost data to avoid client-side exploits
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
 import { useDevicePerformance } from '../hooks';
 import { useCatalogStore } from '@/store/catalogStore';
 import { useNotification } from '@/hooks/useNotification';
 import { describeError } from '@/store/storeUtils';
+import { Button } from './Button';
+import { Card } from './Card';
+import { logClientEvent } from '@/services/telemetry';
 
 interface DailyRewardBannerProps {
   onClaim?: () => void;
+  onOpenBoosts?: () => void;
+  onOpenShop?: (section?: 'star_packs' | 'boosts') => void;
 }
 
 const formatDuration = (ms: number): string => {
@@ -30,7 +35,11 @@ const formatDuration = (ms: number): string => {
   return parts.join(':');
 };
 
-export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim }) => {
+export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
+  onClaim,
+  onOpenBoosts,
+  onOpenShop,
+}) => {
   const performance = useDevicePerformance();
   const isLowPerformance = performance === 'low';
   const isMediumPerformance = performance === 'medium';
@@ -58,6 +67,8 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
   );
 
   const [localNow, setLocalNow] = useState(() => Date.now());
+  const [showUpsell, setShowUpsell] = useState(false);
+  const hasLoggedUpsellRef = useRef(false);
 
   useEffect(() => {
     loadBoostHub();
@@ -86,6 +97,47 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
   const isAvailable =
     hasData && remainingToAvailabilityMs <= 0 && (activeRemainingMs <= 0 || !dailyBoost?.active);
   const buttonDisabled = !isAvailable || isClaiming || isLoading;
+
+  useEffect(() => {
+    if (!isAvailable && remainingToAvailabilityMs > 0) {
+      setShowUpsell(false);
+      hasLoggedUpsellRef.current = false;
+    }
+  }, [isAvailable, remainingToAvailabilityMs]);
+
+  useEffect(() => {
+    if (showUpsell && !hasLoggedUpsellRef.current) {
+      hasLoggedUpsellRef.current = true;
+      void logClientEvent('daily_boost_upsell_view', {
+        source: 'daily_reward_banner',
+      });
+    }
+  }, [showUpsell]);
+
+  const handleBoostUpsell = useCallback(() => {
+    void logClientEvent('daily_boost_upsell_click', {
+      source: 'daily_reward_banner',
+      target: 'boosts',
+    });
+    onOpenBoosts?.();
+    setShowUpsell(false);
+  }, [onOpenBoosts]);
+
+  const handleShopUpsell = useCallback(() => {
+    void logClientEvent('daily_boost_upsell_click', {
+      source: 'daily_reward_banner',
+      target: 'star_packs',
+    });
+    onOpenShop?.('star_packs');
+    setShowUpsell(false);
+  }, [onOpenShop]);
+
+  const handleUpsellDismiss = useCallback(() => {
+    void logClientEvent('daily_boost_upsell_dismiss', {
+      source: 'daily_reward_banner',
+    });
+    setShowUpsell(false);
+  }, []);
 
   const rewardHeadline = useMemo(() => {
     if (!dailyBoost?.multiplier) {
@@ -146,10 +198,23 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
     try {
       await claimBoost('daily_boost');
       success('Награда получена! +50% буст активирован');
+      void logClientEvent('daily_boost_claim_success', {
+        source: 'daily_reward_banner',
+      });
+      setShowUpsell(true);
+      hasLoggedUpsellRef.current = false;
       onClaim?.();
     } catch (err) {
       const { message } = describeError(err, 'Не удалось получить награду');
       error(message);
+      void logClientEvent(
+        'daily_boost_claim_error',
+        {
+          source: 'daily_reward_banner',
+          message,
+        },
+        'warn'
+      );
     }
   };
 
@@ -212,6 +277,28 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({ onClaim })
           {buttonLabel}
         </motion.button>
       </div>
+
+      {showUpsell && (
+        <Card className="mt-3 flex flex-col gap-sm bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border-purple-500/30 text-[var(--color-text-primary)]">
+          <div>
+            <p className="m-0 text-sm font-semibold text-purple-100">Продли ускорение</p>
+            <p className="m-0 mt-1 text-caption text-purple-100/80">
+              Активируй премиум буст или докупи Stars, чтобы удержать множитель дольше.
+            </p>
+          </div>
+          <div className="flex flex-wrap gap-sm">
+            <Button size="sm" variant="primary" onClick={handleBoostUpsell}>
+              ⚡ Премиум буст
+            </Button>
+            <Button size="sm" variant="secondary" onClick={handleShopUpsell}>
+              ⭐ Купить Stars
+            </Button>
+            <Button size="sm" variant="ghost" onClick={handleUpsellDismiss}>
+              Позже
+            </Button>
+          </div>
+        </Card>
+      )}
     </motion.div>
   );
 };

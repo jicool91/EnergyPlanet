@@ -22,7 +22,7 @@
       "price_rub": 479,
       "telegram_product_id": "stars_pack_medium",
       "icon_url": "https://cdn.energyplanet.game/monetization/stars_medium.png",
-      "featured": true
+      "featured": false
     },
     {
       "id": "stars_pack_large",
@@ -35,6 +35,30 @@
       "telegram_product_id": "stars_pack_large",
       "icon_url": "https://cdn.energyplanet.game/monetization/stars_large.png",
       "featured": false
+    },
+    {
+      "id": "stars_pack_galaxy",
+      "title": "Галактический арсенал",
+      "description": "3200 Stars + 30% бонуса",
+      "stars": 3200,
+      "bonus_stars": 960,
+      "price_usd": 19.99,
+      "price_rub": 1890,
+      "telegram_product_id": "stars_pack_galaxy",
+      "icon_url": "https://cdn.energyplanet.game/monetization/stars_galaxy.png",
+      "featured": false
+    },
+    {
+      "id": "stars_pack_supernova",
+      "title": "Сверхновая",
+      "description": "7200 Stars + 45% бонуса",
+      "stars": 7200,
+      "bonus_stars": 3240,
+      "price_usd": 39.99,
+      "price_rub": 3690,
+      "telegram_product_id": "stars_pack_supernova",
+      "icon_url": "https://cdn.energyplanet.game/monetization/stars_supernova.png",
+      "featured": true
     }
   ]
 }

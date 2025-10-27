@@ -10,7 +10,7 @@
  * - Responsive design (mobile-first)
  */
 
-import { useMemo } from 'react';
+import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Card } from './Card';
 import { StatCard } from './StatCard';
@@ -21,6 +21,7 @@ import { useDevicePerformance } from '../hooks';
 import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
 import { PrestigeCard } from './PrestigeCard';
 import { Button } from './Button';
+import { logClientEvent } from '@/services/telemetry';
 
 export interface HomePanelProps {
   // Game state
@@ -34,6 +35,7 @@ export interface HomePanelProps {
   tapIncomeDisplay: string;
   passiveIncomeLabel: string;
   multiplierLabel: string;
+  stars: number;
   streakCount: number;
   bestStreak: number;
   isCriticalStreak: boolean;
@@ -71,6 +73,7 @@ export interface HomePanelProps {
   nextBoostAvailabilityMs?: number | undefined;
   onViewBoosts?: () => void;
   onViewAchievements?: () => void;
+  onOpenShop?: (section?: 'star_packs' | 'boosts') => void;
   claimableAchievements?: number;
 }
 
@@ -85,6 +88,7 @@ export function HomePanel({
   tapIncomeDisplay,
   passiveIncomeLabel,
   multiplierLabel,
+  stars,
   streakCount,
   bestStreak,
   isCriticalStreak,
@@ -106,6 +110,7 @@ export function HomePanel({
   nextBoostAvailabilityMs,
   onViewBoosts,
   onViewAchievements,
+  onOpenShop,
   claimableAchievements = 0,
 }: HomePanelProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
@@ -117,6 +122,38 @@ export function HomePanel({
   const glowClassName = isLowPerformance
     ? 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-12 -z-10'
     : 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-20 blur-xl -z-10';
+  const hasLoggedMonetizationPromptRef = useRef(false);
+  const starsShort = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
+
+  const showMonetizationPrompt = useMemo(() => {
+    if (!purchaseInsight || purchaseInsight.remaining == null) {
+      return false;
+    }
+    if (purchaseInsight.remaining <= 0) {
+      return false;
+    }
+    return stars < purchaseInsight.remaining;
+  }, [purchaseInsight, stars]);
+
+  useEffect(() => {
+    if (showMonetizationPrompt && !hasLoggedMonetizationPromptRef.current) {
+      hasLoggedMonetizationPromptRef.current = true;
+      void logClientEvent('monetization_prompt_view', {
+        source: 'home_panel',
+        deficit: purchaseInsight ? purchaseInsight.remaining - stars : null,
+      });
+    }
+    if (!showMonetizationPrompt) {
+      hasLoggedMonetizationPromptRef.current = false;
+    }
+  }, [purchaseInsight, showMonetizationPrompt, stars]);
+
+  const handleMonetizationClick = useCallback(() => {
+    void logClientEvent('monetization_prompt_click', {
+      source: 'home_panel',
+    });
+    onOpenShop?.('star_packs');
+  }, [onOpenShop]);
 
   const formatMsToReadable = (ms: number) => {
     const totalSeconds = Math.max(0, Math.round(ms / 1000));
@@ -159,6 +196,7 @@ export function HomePanel({
             value={`${Math.round(xpProgress * 100)}%`}
             subLabel={xpRemaining > 0 ? `+${formatNumberWithSpaces(xpRemaining)} XP` : 'Готов'}
           />
+          <StatCard icon="⭐" label="Stars" value={`${starsShort} ⭐`} subLabel="Для ускорений" />
         </div>
 
         {onViewAchievements && (
@@ -178,6 +216,25 @@ export function HomePanel({
               )}
             </Button>
           </div>
+        )}
+
+        {showMonetizationPrompt && purchaseInsight && (
+          <Card className="mx-md mt-sm bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)]">
+            <div className="flex flex-col gap-xs">
+              <p className="m-0 text-sm font-semibold text-[var(--color-text-primary)]">
+                Ускорь {purchaseInsight.name}
+              </p>
+              <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                Осталось{' '}
+                {formatNumberWithSpaces(Math.max(0, Math.ceil(purchaseInsight.remaining ?? 0)))} E.
+                У тебя ⭐ {formatNumberWithSpaces(Math.max(0, Math.floor(stars)))} — докупи Stars,
+                чтобы закончить быстрее.
+              </p>
+              <Button size="sm" variant="primary" onClick={handleMonetizationClick}>
+                🛍️ Перейти в магазин
+              </Button>
+            </div>
+          </Card>
         )}
 
         {/* Center: BIG TAP BUTTON */}
@@ -250,7 +307,7 @@ export function HomePanel({
           </p>
         </div>
         {/* Daily Reward Banner */}
-        <DailyRewardBanner />
+        <DailyRewardBanner onOpenBoosts={onViewBoosts} onOpenShop={onOpenShop} />
         {activeBoost ? (
           <Card className="flex items-center justify-between gap-sm-plus bg-lime/15 border-lime/40">
             <div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useCatalogStore } from '../store/catalogStore';
 import { Button } from './Button';
@@ -62,6 +62,7 @@ function resolveBoostCategory(type: string, requiresPremium?: boolean): BoostCat
 export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
   const {
     boostHub,
+    boostHubLoaded,
     isBoostHubLoading,
     boostHubError,
     isClaimingBoostType,
@@ -71,6 +72,7 @@ export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
   } = useCatalogStore(
     useShallow(state => ({
       boostHub: state.boostHub,
+      boostHubLoaded: state.boostHubLoaded,
       isBoostHubLoading: state.isBoostHubLoading,
       boostHubError: state.boostHubError,
       isClaimingBoostType: state.isClaimingBoostType,
@@ -81,6 +83,8 @@ export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
   );
 
   const [now, setNow] = useState(() => Date.now());
+  const hasLoggedViewRef = useRef(false);
+  const loggedBoostTypesRef = useRef<Set<string>>(new Set());
 
   useEffect(() => {
     loadBoostHub();
@@ -97,6 +101,18 @@ export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
 
     return () => clearInterval(timer);
   }, [boostHub.length]);
+
+  useEffect(() => {
+    if (!boostHubLoaded || boostHub.length === 0 || hasLoggedViewRef.current) {
+      return;
+    }
+    hasLoggedViewRef.current = true;
+    void logClientEvent('boost_hub_view', {
+      source: 'home_panel',
+      total: boostHub.length,
+      filter: filter ?? 'all',
+    });
+  }, [boostHubLoaded, boostHub.length, filter]);
 
   const { success: hapticSuccess, error: hapticError } = useHaptic();
   const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useNotification();
@@ -158,6 +174,24 @@ export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
       item => resolveBoostCategory(item.boost_type, item.requires_premium) === filter
     );
   }, [filter, items]);
+
+  useEffect(() => {
+    if (!boostHubLoaded || filteredItems.length === 0) {
+      return;
+    }
+    const freshBoosts = filteredItems
+      .map(item => item.boost_type)
+      .filter(type => !loggedBoostTypesRef.current.has(type));
+    if (freshBoosts.length === 0) {
+      return;
+    }
+    freshBoosts.forEach(type => loggedBoostTypesRef.current.add(type));
+    void logClientEvent('boost_hub_item_view', {
+      source: 'home_panel',
+      filter: filter ?? 'all',
+      boost_types: freshBoosts,
+    });
+  }, [boostHubLoaded, filteredItems, filter]);
 
   return (
     <div className="flex flex-col gap-md text-token-primary">
