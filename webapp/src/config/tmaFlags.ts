@@ -1,7 +1,7 @@
 const TRUE_LITERAL = 'true';
 const FALSE_LITERAL = 'false';
 
-type TmaMigrationFeature = 'safeArea';
+type TmaMigrationFeature = 'safeArea' | 'theme';
 
 type FlagValue = boolean | undefined;
 
@@ -19,6 +19,7 @@ const globalFlag = readFlagValue(import.meta.env.VITE_TMA_MIGRATION_ENABLED) ?? 
 
 const featureOverrides: Partial<Record<TmaMigrationFeature, FlagValue>> = {
   safeArea: readFlagValue(import.meta.env.VITE_TMA_MIGRATION_SAFE_AREA),
+  theme: readFlagValue(import.meta.env.VITE_TMA_MIGRATION_THEME),
 };
 
 export function isTmaFeatureEnabled(feature: TmaMigrationFeature): boolean {
