@@ -5,7 +5,6 @@
  */
 
 import { apiClient } from '../services/apiClient';
-import { authStore, useAuthStore } from '../store/authStore';
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
@@ -30,24 +29,7 @@ class ClientLogger {
   private storageKey = 'ENERGY_PLANET_LOGS';
   private pendingLogs: PendingLog[] = [];
   private isFlushing = false;
-  private unsubscribe?: () => void;
-
-  constructor() {
-    if (typeof window !== 'undefined') {
-      this.unsubscribe = useAuthStore.subscribe(state => {
-        if (state.accessToken) {
-          void this.flushPending();
-        }
-      });
-      if (authStore.accessToken) {
-        void this.flushPending();
-      }
-      window.addEventListener('beforeunload', () => {
-        this.unsubscribe?.();
-        this.unsubscribe = undefined;
-      });
-    }
-  }
+  private hasAuthToken = false;
 
   private getTimestamp(): string {
     return new Date().toLocaleTimeString('en-US', {
@@ -116,16 +98,13 @@ class ClientLogger {
   }
 
   private async flushPending() {
-    if (this.isFlushing) {
-      return;
-    }
-    if (!authStore.accessToken) {
+    if (this.isFlushing || !this.hasAuthToken) {
       return;
     }
 
     this.isFlushing = true;
     try {
-      while (this.pendingLogs.length > 0 && authStore.accessToken) {
+      while (this.pendingLogs.length > 0 && this.hasAuthToken) {
         const entry = this.pendingLogs.shift();
         if (!entry) {
           break;
@@ -137,7 +116,7 @@ class ClientLogger {
             context: entry.context,
             timestamp: entry.timestamp,
           });
-        } catch (error) {
+        } catch (_error) {
           // If we still cannot deliver (e.g., token expired), push it back and stop flushing
           this.pendingLogs.unshift(entry);
           break;
@@ -157,7 +136,7 @@ class ClientLogger {
       timestamp: new Date().toISOString(),
     };
 
-    if (!authStore.accessToken) {
+    if (!this.hasAuthToken) {
       // Queue log until an access token is available to avoid bootstrap-breaking 401s
       this.pendingLogs.push(payload);
       // Cap queue size to prevent unbounded growth
@@ -181,7 +160,7 @@ class ClientLogger {
       .catch(_error => {
         // Re-queue on failure (e.g. token expired) so we can retry with a fresh token
         this.pendingLogs.unshift(payload);
-        if (!authStore.accessToken) {
+        if (!this.hasAuthToken) {
           return;
         }
         // Network hiccups will be retried on the next flush call
@@ -232,6 +211,15 @@ class ClientLogger {
 
   getHistory(): LogEntry[] {
     return [...this.logHistory];
+  }
+
+  notifyAuthTokenAvailable() {
+    this.hasAuthToken = true;
+    void this.flushPending();
+  }
+
+  notifyAuthTokenCleared() {
+    this.hasAuthToken = false;
   }
 
   clearHistory() {
