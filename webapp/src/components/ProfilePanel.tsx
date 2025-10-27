@@ -32,9 +32,9 @@ export function ProfilePanel() {
 
   if (profileError) {
     return (
-      <div className="p-0 flex flex-col gap-4">
+      <div className="flex flex-col gap-md">
         <Card className="bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)]">
-          <p className="m-0 mb-2 font-semibold">Не удалось получить профиль.</p>
+          <p className="m-0 mb-sm font-semibold">Не удалось получить профиль.</p>
           <small className="text-token-secondary">{profileError}</small>
         </Card>
       </div>
@@ -43,7 +43,7 @@ export function ProfilePanel() {
 
   if (!profile) {
     return (
-      <div className="p-0 flex flex-col gap-4 items-center justify-center text-center text-token-secondary">
+      <div className="flex flex-col items-center justify-center gap-md text-center text-token-secondary">
         <p>Профиль недоступен.</p>
       </div>
     );
@@ -51,7 +51,7 @@ export function ProfilePanel() {
 
   return (
     <div className="flex flex-col gap-md">
-      <header className="flex items-center gap-3">
+      <header className="flex items-center gap-sm-plus">
         <div
           className="w-14 h-14 rounded-lg bg-cyan/[0.15] flex items-center justify-center text-heading"
           aria-hidden
@@ -67,22 +67,22 @@ export function ProfilePanel() {
       </header>
 
       {/* Stats Grid */}
-      <section className="grid grid-cols-2 gap-3">
-        <Card className="flex flex-col gap-2">
+      <section className="grid grid-cols-2 gap-sm-plus">
+        <Card className="flex flex-col gap-sm">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">Уровень</span>
           <strong className="text-heading">{profile.progress.level}</strong>
         </Card>
-        <Card className="flex flex-col gap-2">
+        <Card className="flex flex-col gap-sm">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">Энергия</span>
           <strong className="text-heading">{energyCompact}</strong>
         </Card>
-        <Card className="flex flex-col gap-2">
+        <Card className="flex flex-col gap-sm">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">
             Всего энергии
           </span>
           <strong className="text-heading">{totalEnergyCompact}</strong>
         </Card>
-        <Card className="flex flex-col gap-2">
+        <Card className="flex flex-col gap-sm">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">Тап lvl</span>
           <strong className="text-heading">{profile.progress.tap_level}</strong>
         </Card>
@@ -91,7 +91,7 @@ export function ProfilePanel() {
       {/* Bio Section */}
       {profile.profile.bio && (
         <Card>
-          <h4 className="mb-2 text-body uppercase font-semibold">О себе</h4>
+          <h4 className="mb-sm text-body uppercase font-semibold">О себе</h4>
           <p className="m-0 text-caption text-token-secondary">{profile.profile.bio}</p>
         </Card>
       )}
@@ -99,8 +99,8 @@ export function ProfilePanel() {
       {/* Active Boosts Section */}
       {boosts.length > 0 && (
         <Card>
-          <h4 className="mb-3 text-body uppercase font-semibold">Активные бусты</h4>
-          <ul className="list-none flex flex-col gap-2 m-0 p-0">
+          <h4 className="mb-sm-plus text-body uppercase font-semibold">Активные бусты</h4>
+          <ul className="list-none m-0 flex flex-col gap-sm p-0">
             {boosts.map(boost => (
               <li key={boost.id} className="flex justify-between items-center text-caption">
                 <span className="text-token-primary">{boost.boost_type}</span>

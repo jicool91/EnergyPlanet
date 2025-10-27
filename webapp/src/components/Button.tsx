@@ -38,13 +38,13 @@ const buttonVariants = cva(
 
       size: {
         // Small: compact button
-        sm: 'px-3 py-1.5 text-caption rounded-sm',
+        sm: 'px-sm-plus py-xs-plus text-caption rounded-sm',
 
         // Medium: default button
-        md: 'px-4 py-2 text-caption rounded-md',
+        md: 'px-md py-sm text-caption rounded-md',
 
         // Large: prominent button
-        lg: 'px-6 py-3 text-body rounded-lg',
+        lg: 'px-lg py-sm-plus text-body rounded-lg',
       },
 
       fullWidth: {

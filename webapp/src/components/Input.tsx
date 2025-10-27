@@ -59,9 +59,9 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     ref
   ) => {
     const sizeStyles = {
-      sm: 'px-3 py-1.5 text-caption',
-      md: 'px-4 py-2 text-body',
-      lg: 'px-4 py-3 text-body',
+      sm: 'px-sm-plus py-xs-plus text-caption',
+      md: 'px-md py-sm text-body',
+      lg: 'px-md py-sm-plus text-body',
     };
 
     const baseStyles =
@@ -72,7 +72,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       : 'border-[var(--color-border-subtle)] focus:border-[var(--color-text-accent)]';
 
     return (
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-xs">
         {label && (
           <label className="text-caption font-semibold text-token-secondary">{label}</label>
         )}

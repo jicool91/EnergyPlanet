@@ -141,13 +141,13 @@ export function HomePanel({
 
   return (
     <div
-      className="flex flex-col h-full lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-6 lg:px-6 lg:py-4"
+      className="flex flex-col h-full lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-lg lg:px-lg lg:py-md"
       style={panelPadding}
     >
       {/* Left column: stats + tap CTA */}
       <div className="flex flex-col h-full">
         {/* Top: Essential Stats (responsive grid) */}
-        <div className="grid grid-cols-2 gap-2 px-4 py-2 lg:px-0 lg:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-2 gap-sm px-md py-sm lg:px-0 lg:grid-cols-2 xl:grid-cols-4">
           {/* Essential Stats */}
           <StatCard icon="⚡" label="Энергия" value={`${energyCompact} E`} subLabel="Баланс" />
           <StatCard
@@ -171,10 +171,10 @@ export function HomePanel({
         </div>
 
         {/* Center: BIG TAP BUTTON */}
-        <div className="relative flex-1 flex items-center justify-center py-3 px-4 lg:px-0">
+        <div className="relative flex flex-1 items-center justify-center px-md py-sm-plus lg:px-0">
           {streakCount > 0 && (
             <motion.div
-              className={`pointer-events-none absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 rounded-full px-3 py-1.5 border shadow-lg backdrop-blur bg-gradient-to-r ${
+              className={`pointer-events-none absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 flex items-center gap-sm rounded-full px-sm-plus py-xs-plus border shadow-lg backdrop-blur bg-gradient-to-r ${
                 isCriticalStreak
                   ? 'from-red-500/85 to-orange-400/85 border-red-400/70'
                   : 'from-cyan/80 to-lime/70 border-cyan/60'
@@ -229,8 +229,8 @@ export function HomePanel({
       </div>
 
       {/* Right column: Progress & social blocks */}
-      <div className="flex flex-col gap-2 px-4 py-2 lg:px-0 lg:py-0">
-        <div className="px-1 lg:px-0">
+      <div className="flex flex-col gap-sm px-md py-sm lg:px-0 lg:py-0">
+        <div className="px-xs lg:px-0">
           <h2 className="m-0 text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-[0.12em]">
             Возвращайтесь каждый день
           </h2>
@@ -242,7 +242,7 @@ export function HomePanel({
         {/* Daily Reward Banner */}
         <DailyRewardBanner />
         {activeBoost ? (
-          <Card className="flex items-center justify-between gap-3 bg-lime/15 border-lime/40">
+          <Card className="flex items-center justify-between gap-sm-plus bg-lime/15 border-lime/40">
             <div>
               <p className="m-0 text-xs uppercase tracking-[0.3em] text-lime-600">Активный буст</p>
               <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
@@ -259,7 +259,7 @@ export function HomePanel({
             )}
           </Card>
         ) : typeof nextBoostAvailabilityMs !== 'undefined' ? (
-          <Card className="flex items-center justify-between gap-3 bg-cyan/10 border-cyan/30">
+          <Card className="flex items-center justify-between gap-sm-plus bg-cyan/10 border-cyan/30">
             <div>
               <p className="m-0 text-xs uppercase tracking-[0.3em] text-cyan-600">
                 {nextBoostAvailabilityMs === 0 ? 'Буст доступен' : 'Следующий буст'}
@@ -312,7 +312,7 @@ export function HomePanel({
         {/* Next Goal Card */}
         {purchaseInsight && (
           <Card highlighted={purchaseInsight.affordable}>
-            <div className="flex items-center justify-between gap-3 mb-2">
+            <div className="mb-sm-plus flex items-center justify-between gap-sm-plus">
               <div>
                 <p className="m-0 text-xs uppercase tracking-[0.6px] text-[var(--color-text-secondary)]">
                   Следующая цель

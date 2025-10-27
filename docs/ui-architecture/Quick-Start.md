@@ -15,7 +15,9 @@
 // webapp/tailwind.config.js
 const spacingTokens = {
   xs: 'var(--spacing-xs)',
+  'xs-plus': 'var(--spacing-xs-plus)',
   sm: 'var(--spacing-sm)',
+  'sm-plus': 'var(--spacing-sm-plus)',
   md: 'var(--spacing-md)',
   lg: 'var(--spacing-lg)',
   xl: 'var(--spacing-xl)',

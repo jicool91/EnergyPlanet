@@ -20,7 +20,7 @@ export const TabPageSurface = forwardRef<HTMLDivElement, TabPageSurfaceProps>(
     return (
       <div
         ref={ref}
-        className={clsx('flex w-full flex-1 flex-col gap-lg px-lg', className)}
+        className={clsx('flex w-full flex-1 flex-col gap-md px-md', className)}
         style={{
           paddingTop: `${topPadding}px`,
           paddingBottom: `${bottomPadding}px`,

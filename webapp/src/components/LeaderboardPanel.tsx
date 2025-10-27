@@ -66,13 +66,15 @@ export function LeaderboardPanel() {
 
   if (leaderboardError) {
     return (
-      <div className="p-0 flex flex-col gap-4" role="alert">
-        <Card className="bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)] flex gap-3 items-start">
+      <div className="flex flex-col gap-md" role="alert">
+        <Card className="flex items-start gap-sm-plus bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)]">
           <span className="text-xl" role="img" aria-label="Leaderboard error">
             ❌
           </span>
           <div>
-            <p className="m-0 mb-2 font-semibold text-token-primary">Не удалось получить рейтинг</p>
+            <p className="m-0 mb-sm font-semibold text-token-primary">
+              Не удалось получить рейтинг
+            </p>
             <small className="text-[var(--color-text-secondary)]">{leaderboardError}</small>
           </div>
         </Card>
@@ -82,7 +84,7 @@ export function LeaderboardPanel() {
 
   if (rows.length === 0) {
     return (
-      <div className="p-0 flex flex-col gap-4 items-center justify-center text-center text-token-secondary">
+      <div className="flex flex-col items-center justify-center gap-md text-center text-token-secondary">
         <p>Ещё никто не попал в рейтинг. Будь первым!</p>
       </div>
     );
@@ -91,7 +93,7 @@ export function LeaderboardPanel() {
   return (
     <div className="flex flex-col gap-md text-token-primary">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex items-center justify-between gap-sm-plus">
         <h3 className="m-0 text-heading font-semibold">Топ игроков</h3>
         <span className="text-caption text-[var(--color-text-secondary)]">
           Всего: {leaderboardTotal.toLocaleString()}
@@ -101,7 +103,7 @@ export function LeaderboardPanel() {
       {/* User Rank Progress (if user exists) */}
       {userLeaderboardEntry && (
         <Card className="bg-gradient-to-r from-cyan/20 to-lime/20 border-cyan/40">
-          <div className="flex items-center justify-between gap-3 mb-2">
+          <div className="mb-sm-plus flex items-center justify-between gap-sm-plus">
             <div>
               <p className="m-0 text-xs uppercase tracking-[0.5px] text-token-secondary">
                 Ваша позиция
@@ -133,16 +135,16 @@ export function LeaderboardPanel() {
           <table className="w-full min-w-[540px] border-collapse text-caption">
             <thead>
               <tr>
-                <th className="px-[14px] py-3 text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
+                <th className="px-sm-plus py-sm-plus text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
                   #
                 </th>
-                <th className="px-[14px] py-3 text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
+                <th className="px-sm-plus py-sm-plus text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
                   Игрок
                 </th>
-                <th className="px-[14px] py-3 text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
+                <th className="px-sm-plus py-sm-plus text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
                   Уровень
                 </th>
-                <th className="px-[14px] py-3 text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
+                <th className="px-sm-plus py-sm-plus text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
                   Энергия
                 </th>
               </tr>
@@ -162,8 +164,8 @@ export function LeaderboardPanel() {
                     }`}
                   >
                     {/* Rank with Medal */}
-                    <td className="px-[14px] py-3 text-center">
-                      <div className="flex items-center justify-center gap-1">
+                    <td className="px-sm-plus py-sm-plus text-center">
+                      <div className="flex items-center justify-center gap-xs">
                         {medal && (
                           <span className="text-lg" role="img" aria-label={medal.label}>
                             {medal.icon}
@@ -174,8 +176,8 @@ export function LeaderboardPanel() {
                     </td>
 
                     {/* Player Name */}
-                    <td className="px-[14px] py-3 text-left">
-                      <div className="flex items-center gap-2">
+                    <td className="px-sm-plus py-sm-plus text-left">
+                      <div className="flex items-center gap-sm">
                         <div className="flex flex-col gap-[2px] flex-1">
                           <span
                             className={`font-semibold ${isCurrentUser ? 'text-cyan' : 'text-token-primary'}`}
@@ -191,10 +193,10 @@ export function LeaderboardPanel() {
                     </td>
 
                     {/* Level */}
-                    <td className="px-[14px] py-3 text-left font-semibold">{entry.level}</td>
+                    <td className="px-sm-plus py-sm-plus text-left font-semibold">{entry.level}</td>
 
                     {/* Energy + Diff */}
-                    <td className="px-[14px] py-3 text-left">
+                    <td className="px-sm-plus py-sm-plus text-left">
                       <div className="flex flex-col gap-[2px]">
                         <span className="font-semibold">{entry.energyDisplay}</span>
                         {entry.energyDiffDisplay && (
@@ -210,7 +212,7 @@ export function LeaderboardPanel() {
             </tbody>
           </table>
         </div>
-        <div className="sm:hidden flex flex-col gap-2 p-3">
+        <div className="sm:hidden flex flex-col gap-sm p-sm-plus">
           {rowsWithDiff.map(entry => {
             const isCurrentUser = entry.user_id === userLeaderboardEntry?.user_id;
             const medal = MEDAL_MAP[entry.rank];
@@ -220,12 +222,12 @@ export function LeaderboardPanel() {
                 key={entry.user_id}
                 initial={false}
                 animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
-                className={`rounded-lg border border-token-muted backdrop-blur-sm px-4 py-3 flex flex-col gap-2 transition-colors max-[360px]:px-3 max-[320px]:px-2 ${
+                className={`rounded-lg border border-token-muted backdrop-blur-sm px-md py-sm-plus flex flex-col gap-sm transition-colors max-[360px]:px-sm-plus max-[320px]:px-xs ${
                   isCurrentUser ? 'bg-cyan/15 border-cyan/40' : 'bg-token-surface'
                 }`}
               >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 max-[360px]:gap-1">
+                <div className="flex flex-wrap items-center justify-between gap-sm">
+                  <div className="flex items-center gap-sm max-[360px]:gap-xs">
                     {medal && (
                       <span className="text-lg" role="img" aria-label={medal.label}>
                         {medal.icon}
@@ -248,7 +250,7 @@ export function LeaderboardPanel() {
                     {entry.level}
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-1 text-sm text-token-secondary max-[360px]:text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-xs text-sm text-token-secondary max-[360px]:text-xs">
                   <span>Энергия</span>
                   <span className="font-medium text-token-primary">{entry.energyDisplay}</span>
                 </div>
@@ -265,7 +267,7 @@ export function LeaderboardPanel() {
       {/* User Rank (if not in top 100) */}
       {userLeaderboardEntry &&
         !rows.some(entry => entry.user_id === userLeaderboardEntry.user_id) && (
-          <Card className="bg-cyan/15 flex gap-3 items-center justify-center py-3">
+          <Card className="bg-cyan/15 flex items-center justify-center gap-sm-plus py-sm-plus">
             <span className="text-caption">Место</span>
             <strong className="text-heading">{userLeaderboardEntry.rank}</strong>
             <span className="text-caption">{userLeaderboardEntry.username || 'Вы'}</span>

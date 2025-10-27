@@ -19,8 +19,8 @@ export const SocialProofCard: React.FC<SocialProofCardProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <Card className="flex items-center justify-between gap-4 bg-gradient-to-r from-cyan/10 to-lime/10 border-cyan/30 animate-pulse">
-        <div className="flex flex-col gap-1">
+      <Card className="flex items-center justify-between gap-md bg-gradient-to-r from-cyan/10 to-lime/10 border-cyan/30 animate-pulse">
+        <div className="flex flex-col gap-xs">
           <p className="m-0 text-caption font-semibold text-[var(--color-text-secondary)]">
             Синхронизируем комьюнити…
           </p>
@@ -40,9 +40,9 @@ export const SocialProofCard: React.FC<SocialProofCardProps> = ({
   const isActionEnabled = typeof onViewLeaderboard === 'function';
 
   return (
-    <Card className="flex items-center justify-between gap-4 bg-gradient-to-r from-cyan/20 to-lime/20 border-cyan/40">
+    <Card className="flex items-center justify-between gap-md bg-gradient-to-r from-cyan/20 to-lime/20 border-cyan/40">
       {/* Content */}
-      <div className="flex flex-col gap-1">
+      <div className="flex flex-col gap-xs">
         <p className="m-0 text-caption font-semibold text-[var(--color-text-primary)]">
           🔥 Друзья ускоряют прогресс
         </p>
@@ -57,7 +57,7 @@ export const SocialProofCard: React.FC<SocialProofCardProps> = ({
       {/* Action Button */}
       <button
         onClick={isActionEnabled ? onViewLeaderboard : undefined}
-        className={`flex-shrink-0 px-4 py-2 rounded-lg bg-gradient-to-br from-cyan/40 to-lime/40 text-[var(--color-text-primary)] font-medium text-caption transition-all duration-200 focus-ring ${
+        className={`flex-shrink-0 rounded-lg bg-gradient-to-br from-cyan/40 to-lime/40 px-md py-sm text-[var(--color-text-primary)] font-medium text-caption transition-all duration-200 focus-ring ${
           isActionEnabled
             ? 'hover:from-cyan/60 hover:to-lime/60 active:scale-95'
             : 'opacity-50 cursor-not-allowed'

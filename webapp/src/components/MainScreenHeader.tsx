@@ -68,9 +68,9 @@ function MainScreenHeaderComponent({
         borderBottom: '1px solid var(--color-border-subtle)',
       }}
     >
-      <div className="flex items-center justify-between px-4 py-3 gap-3 h-14">
+      <div className="flex h-14 items-center justify-between gap-md px-md py-md">
         {/* Left: Level & Energy */}
-        <div className="flex items-center gap-4 min-w-0">
+        <div className="flex items-center gap-md min-w-0">
           {/* Level Badge */}
           <div className="flex-shrink-0 flex flex-col items-center">
             <span className="text-caption text-[var(--color-text-secondary)]">LV</span>
@@ -80,7 +80,7 @@ function MainScreenHeaderComponent({
           </div>
 
           {/* Energy */}
-          <div className="flex items-center gap-2 min-w-0">
+          <div className="flex items-center gap-sm min-w-0">
             <span className="text-subheading flex-shrink-0" role="img" aria-label="Energy">
               ⚡
             </span>
@@ -93,7 +93,7 @@ function MainScreenHeaderComponent({
           </div>
 
           {/* Stars + Quick Top-Up */}
-          <div className="flex items-center gap-1.5 min-w-0">
+          <div className="flex items-center gap-xs-plus min-w-0">
             <span className="text-subheading flex-shrink-0" role="img" aria-label="Stars">
               ⭐
             </span>

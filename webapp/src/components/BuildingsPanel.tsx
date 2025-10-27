@@ -212,7 +212,7 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
   return (
     <div className="flex flex-col gap-md">
       {showHeader ? (
-        <div className="flex justify-between items-start gap-3">
+        <div className="flex items-start justify-between gap-sm-plus">
           <div>
             <h2 className="m-0 text-heading text-token-primary">Постройки</h2>
             <p className="m-0 text-caption text-token-secondary">
@@ -223,12 +223,12 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
         </div>
       ) : (
         <div className="flex justify-end">
-          <div className="text-body text-token-primary font-semibold">Энергия: {energyDisplay}</div>
+          <div className="text-body font-semibold text-token-primary">Энергия: {energyDisplay}</div>
         </div>
       )}
 
       <div
-        className="flex flex-wrap gap-2"
+        className="flex flex-wrap gap-sm"
         role="radiogroup"
         aria-label="Количество построек для покупки"
       >
@@ -266,7 +266,7 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
       </div>
 
       {buildingsError && (
-        <div className="px-4 py-3 bg-red-error/[0.15] border border-red-error/40 text-[#ffb8b8] rounded-md text-body flex items-center justify-between">
+        <div className="flex items-center justify-between rounded-md border border-red-error/40 bg-red-error/[0.15] px-md py-sm-plus text-body text-[#ffb8b8]">
           <span>{buildingsError}</span>
           <button
             onClick={() => loadBuildingCatalog()}

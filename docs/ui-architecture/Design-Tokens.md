@@ -10,7 +10,7 @@
 
 | Category | Token | Value / Notes | Usage |
 |----------|-------|---------------|-------|
-| **Spacing** | `--spacing-xs` `--spacing-sm` `--spacing-md` `--spacing-lg` `--spacing-xl` `--spacing-2xl` | 4px baseline, currently consumed indirectly via Tailwind defaults (`gap-4` ≈ 16px). | Target: expose as Tailwind `gap-xs`, `px-lg`, etc. (see Quick Start step 1).
+| **Spacing** | `--spacing-xs` `--spacing-xs-plus` `--spacing-sm` `--spacing-sm-plus` `--spacing-md` `--spacing-lg` `--spacing-xl` `--spacing-2xl` | 4/6/8/12/16/24/32/40px scale aligned с компонентами. | Теперь доступны Tailwind-утилиты `gap-xs`, `gap-xs-plus`, `gap-sm`, `gap-sm-plus`, `gap-md`, и т.д. (см. Quick Start шаг 1).
 | **Colors – brand** | `--color-cyan`, `--color-gold`, `--color-lime`, `--color-orange` | Applied through `Card`, `Button`, gradients. | Maintain for marketing bursts and CTA emphasis.
 | **Colors – theme aware** | `--color-surface-*`, `--color-text-*`, `--color-border-*` | Derived from Telegram theme params; update via `telegramTheme` helpers. | Ensure new components use these vars instead of hard-coded hex.
 | **Typography** | `--font-display`, `--font-heading`, `--font-body`, `--font-caption`, `--font-micro` | Matched with helper classes (`text-heading`, `text-caption`). | Keep consistent with design spec; consider migrating to CSS `@font-palette-values` if needed.

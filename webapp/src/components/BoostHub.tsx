@@ -145,8 +145,8 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
   return (
     <div className="flex flex-col gap-md text-token-primary">
       {showHeader ? (
-        <div className="relative flex flex-col gap-1">
-          <div className="flex justify-between items-start gap-3">
+        <div className="relative flex flex-col gap-xs">
+          <div className="flex items-start justify-between gap-sm-plus">
             <div>
               <h2 className="m-0 text-heading font-semibold">Boost Hub</h2>
               <p className="m-0 text-caption text-token-secondary">
@@ -164,7 +164,7 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
         </Card>
       )}
 
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-md">
         {isBoostHubLoading && boostHub.length === 0 ? (
           <div className="p-6 text-center text-token-secondary text-sm">
             Получаем данные о бустах…
@@ -193,9 +193,9 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
                     : `Получить ×${item.multiplier.toFixed(1).replace(/\.0$/, '')}`;
 
             return (
-              <Card key={item.boost_type} className="flex flex-col gap-4">
+              <Card key={item.boost_type} className="flex flex-col gap-md">
                 {/* Title + Multiplier */}
-                <div className="flex justify-between items-start gap-3">
+                <div className="flex items-start justify-between gap-sm-plus">
                   <div>
                     <h3 className="m-0 text-body font-semibold">{label}</h3>
                     <p className="m-0 text-caption text-token-secondary">{description}</p>
@@ -220,7 +220,7 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
                 </div>
 
                 {/* Duration + Cooldown */}
-                <div className="flex gap-4 text-caption text-token-secondary">
+                <div className="flex gap-md text-caption text-token-secondary">
                   <span>Длительность: {formatDuration(item.duration_minutes)}</span>
                   <span>Кулдаун: {formatDuration(item.cooldown_minutes)}</span>
                 </div>
