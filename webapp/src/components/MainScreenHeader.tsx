@@ -49,7 +49,7 @@ function MainScreenHeaderComponent({
   const starsCompact = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
   const { safeArea } = useSafeArea();
   const { left: safeLeft, right: safeRight } = safeArea.safe;
-  const topInset = Math.max(0, safeArea.safe.top, safeArea.content.top);
+  const topInset = Math.max(0, safeArea.safe.top, safeArea.content.top) + HEADER_OFFSET_PX;
   const headerPadding = useMemo(() => {
     return {
       paddingTop: '8px',
@@ -173,3 +173,4 @@ function MainScreenHeaderComponent({
 export const MainScreenHeader = memo(MainScreenHeaderComponent);
 
 MainScreenHeader.displayName = 'MainScreenHeader';
+const HEADER_OFFSET_PX = 12;

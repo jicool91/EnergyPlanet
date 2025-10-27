@@ -219,50 +219,51 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
               Развивайте инфраструктуру и увеличивайте пассивный доход
             </p>
           </div>
-          <div className="text-body text-token-primary font-semibold">Энергия: {energyDisplay}</div>
-        </div>
-      ) : (
-        <div className="flex justify-end">
           <div className="text-body font-semibold text-token-primary">Энергия: {energyDisplay}</div>
         </div>
-      )}
+      ) : null}
 
-      <div
-        className="flex flex-wrap gap-sm"
-        role="radiogroup"
-        aria-label="Количество построек для покупки"
-      >
-        {PURCHASE_OPTIONS.map((option, index) => {
-          const isActive = option.id === selectedPurchaseId;
-          return (
-            <button
-              key={option.id}
-              type="button"
-              className={`px-3 py-1.5 rounded-full border text-caption font-semibold transition-all duration-150 ${
-                isActive
-                  ? 'border-cyan/60 bg-cyan/20 text-token-primary'
-                  : 'border-cyan/15 bg-dark-secondary/40 text-token-secondary hover:text-token-primary'
-              }`}
-              onClick={() => setSelectedPurchaseId(option.id)}
-              onKeyDown={event => handlePurchaseOptionKeyDown(event, index)}
-              role="radio"
-              aria-checked={isActive}
-              tabIndex={isActive ? 0 : -1}
-              title={
-                option.id === 'max'
-                  ? 'Покупает столько построек, сколько позволяет энергия и лимиты'
-                  : `Пакетная покупка ${option.label}`
-              }
-              aria-label={
-                option.id === 'max'
-                  ? 'Максимальная доступная покупка построек'
-                  : `Пакетная покупка ${option.label}`
-              }
-            >
-              {option.label}
-            </button>
-          );
-        })}
+      <div className="flex flex-wrap items-center justify-between gap-sm">
+        <div
+          className="flex flex-wrap gap-sm"
+          role="radiogroup"
+          aria-label="Количество построек для покупки"
+        >
+          {PURCHASE_OPTIONS.map((option, index) => {
+            const isActive = option.id === selectedPurchaseId;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                className={`px-3 py-1.5 rounded-full border text-caption font-semibold transition-all duration-150 ${
+                  isActive
+                    ? 'border-cyan/60 bg-cyan/20 text-token-primary'
+                    : 'border-cyan/15 bg-dark-secondary/40 text-token-secondary hover:text-token-primary'
+                }`}
+                onClick={() => setSelectedPurchaseId(option.id)}
+                onKeyDown={event => handlePurchaseOptionKeyDown(event, index)}
+                role="radio"
+                aria-checked={isActive}
+                tabIndex={isActive ? 0 : -1}
+                title={
+                  option.id === 'max'
+                    ? 'Покупает столько построек, сколько позволяет энергия и лимиты'
+                    : `Пакетная покупка ${option.label}`
+                }
+                aria-label={
+                  option.id === 'max'
+                    ? 'Максимальная доступная покупка построек'
+                    : `Пакетная покупка ${option.label}`
+                }
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+        {!showHeader && (
+          <div className="text-body font-semibold text-token-primary">Энергия: {energyDisplay}</div>
+        )}
       </div>
 
       {buildingsError && (
