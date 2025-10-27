@@ -1,4 +1,5 @@
 import { apiClient } from './apiClient';
+import { openTmaInvoiceBySlug, openTmaInvoiceByUrl } from '@/services/tma/invoice';
 
 export interface CosmeticUnlockRequirement {
   level?: number;
@@ -74,15 +75,26 @@ export async function completeCosmeticPurchase(
     invoicePayload
   );
 
-  const openInvoice =
-    typeof window !== 'undefined' ? window.Telegram?.WebApp?.openInvoice : undefined;
+  const invoiceData = invoiceResponse.data.invoice;
 
-  if (typeof openInvoice === 'function' && invoiceResponse.data.invoice?.purchase_id) {
-    try {
-      await openInvoice(invoiceResponse.data.invoice.purchase_id);
-    } catch (error) {
+  if (invoiceData) {
+    let opened = false;
+
+    if (invoiceData.purchase_id) {
+      const status = await openTmaInvoiceBySlug(invoiceData.purchase_id);
+      opened = status !== null;
+    }
+
+    if (!opened && invoiceData.pay_url) {
+      const status = await openTmaInvoiceByUrl(invoiceData.pay_url);
+      opened = status !== null;
+    }
+
+    if (!opened && import.meta.env.DEV) {
       // eslint-disable-next-line no-console
-      console.warn('openInvoice failed, falling back to mock completion', error);
+      console.warn('Failed to open invoice via TMA SDK, falling back to mock completion', {
+        invoice: invoiceData,
+      });
     }
   }
 
