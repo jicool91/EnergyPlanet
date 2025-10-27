@@ -51,9 +51,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const access = window.localStorage.getItem(ACCESS_TOKEN_KEY);
     const refresh = window.localStorage.getItem(REFRESH_TOKEN_KEY);
     set({ accessToken: access, refreshToken: refresh, hydrated: true, authReady: false });
-    if (access) {
-      logger.notifyAuthTokenAvailable();
-    }
   },
   setTokens: ({ accessToken, refreshToken }) => {
     logger.info('🔐 setTokens called', {
@@ -64,7 +61,6 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     persist(REFRESH_TOKEN_KEY, refreshToken);
     set({ accessToken, refreshToken, authReady: true });
     logger.info('✅ authReady set to true (via setTokens)');
-    logger.notifyAuthTokenAvailable();
   },
   setAccessToken: (token: string) => {
     logger.info('🔐 setAccessToken called', {
@@ -73,14 +69,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     persist(ACCESS_TOKEN_KEY, token);
     set({ accessToken: token, authReady: true });
     logger.info('✅ authReady set to true (via setAccessToken)');
-    logger.notifyAuthTokenAvailable();
   },
   clearTokens: () => {
     logger.warn('🗑️ clearTokens called - clearing all tokens');
     persist(ACCESS_TOKEN_KEY, null);
     persist(REFRESH_TOKEN_KEY, null);
     set({ accessToken: null, refreshToken: null, authReady: false });
-    logger.notifyAuthTokenCleared();
   },
   getAuthHeaders: () => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };

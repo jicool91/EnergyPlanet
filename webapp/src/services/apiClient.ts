@@ -72,9 +72,15 @@ apiClient.interceptors.response.use(
   response => response,
   async error => {
     const originalRequest = error.config;
+    const requestUrl = (originalRequest?.url ?? '') as string;
+    const isTelemetryRequest = typeof requestUrl === 'string' && requestUrl.includes('/telemetry/client');
 
     // Handle token expiration
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (isTelemetryRequest) {
+      return Promise.reject(error);
+    }
+
+    if (error.response?.status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
 
       try {

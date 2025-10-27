@@ -1,8 +1,8 @@
-/**
- * Browser Logger Configuration
- * Similar to backend Winston logger but for client-side
- * Logs errors and warnings are sent to backend via telemetry endpoint
- */
+/****\*
+ \* Browser Logger Configuration
+ \* Similar to backend Winston logger but for client-side
+ \* Logs errors and warnings are sent to backend via telemetry endpoint
+ \*/
 
 import { apiClient } from '../services/apiClient';
 
@@ -15,21 +15,11 @@ interface LogEntry {
   context?: Record<string, unknown>;
 }
 
-interface PendingLog {
-  level: LogLevel;
-  message: string;
-  context?: Record<string, unknown>;
-  timestamp: string;
-}
-
 class ClientLogger {
   private isDev = import.meta.env.DEV;
   private logHistory: LogEntry[] = [];
   private maxHistorySize = 100;
   private storageKey = 'ENERGY_PLANET_LOGS';
-  private pendingLogs: PendingLog[] = [];
-  private isFlushing = false;
-  private hasAuthToken = false;
 
   private getTimestamp(): string {
     return new Date().toLocaleTimeString('en-US', {
@@ -79,7 +69,8 @@ class ClientLogger {
   ): string {
     const timestamp = this.getTimestamp();
     const levelLabel = `[${level.toUpperCase()}]`;
-    const contextStr = context && Object.keys(context).length ? JSON.stringify(context, null, 2) : '';
+    const contextStr =
+      context && Object.keys(context).length ? JSON.stringify(context, null, 2) : '';
 
     return `${timestamp} ${levelLabel}: ${message}${contextStr ? '\n' + contextStr : ''}`;
   }
@@ -97,74 +88,25 @@ class ClientLogger {
     }
   }
 
-  private async flushPending() {
-    if (this.isFlushing || !this.hasAuthToken) {
-      return;
-    }
-
-    this.isFlushing = true;
+  private async sendToBackend(level: LogLevel, message: string, context?: Record<string, unknown>) {
+    // Send ALL logs to backend (including info/debug for auth flow debugging)
+    // This is a Telegram Mini App - we can't use browser DevTools!
     try {
-      while (this.pendingLogs.length > 0 && this.hasAuthToken) {
-        const entry = this.pendingLogs.shift();
-        if (!entry) {
-          break;
-        }
-        try {
-          await apiClient.post('/telemetry/client', {
-            event: entry.message,
-            severity: entry.level,
-            context: entry.context,
-            timestamp: entry.timestamp,
-          });
-        } catch (_error) {
-          // If we still cannot deliver (e.g., token expired), push it back and stop flushing
-          this.pendingLogs.unshift(entry);
-          break;
-        }
-      }
-    } finally {
-      this.isFlushing = false;
+      // Non-blocking send to telemetry endpoint
+      // Don't await to avoid blocking logger calls
+      void apiClient
+        .post('/telemetry/client', {
+          event: message,
+          severity: level,
+          context,
+          timestamp: new Date().toISOString(),
+        })
+        .catch(() => {
+          // Silently fail - don't double log errors
+        });
+    } catch {
+      // Ignore errors from sending logs
     }
-  }
-
-  private sendToBackend(level: LogLevel, message: string, context?: Record<string, unknown>) {
-    // Prepare payload once, irrespective of delivery path
-    const payload: PendingLog = {
-      level,
-      message,
-      context,
-      timestamp: new Date().toISOString(),
-    };
-
-    if (!this.hasAuthToken) {
-      // Queue log until an access token is available to avoid bootstrap-breaking 401s
-      this.pendingLogs.push(payload);
-      // Cap queue size to prevent unbounded growth
-      if (this.pendingLogs.length > this.maxHistorySize) {
-        this.pendingLogs.shift();
-      }
-      return;
-    }
-
-    if (this.pendingLogs.length > 0) {
-      void this.flushPending();
-    }
-
-    void apiClient
-      .post('/telemetry/client', {
-        event: payload.message,
-        severity: payload.level,
-        context: payload.context,
-        timestamp: payload.timestamp,
-      })
-      .catch(_error => {
-        // Re-queue on failure (e.g. token expired) so we can retry with a fresh token
-        this.pendingLogs.unshift(payload);
-        if (!this.hasAuthToken) {
-          return;
-        }
-        // Network hiccups will be retried on the next flush call
-      });
   }
 
   private log(level: LogLevel, message: string, context?: Record<string, unknown>) {
@@ -213,18 +155,10 @@ class ClientLogger {
     return [...this.logHistory];
   }
 
-  notifyAuthTokenAvailable() {
-    this.hasAuthToken = true;
-    void this.flushPending();
-  }
-
-  notifyAuthTokenCleared() {
-    this.hasAuthToken = false;
-  }
-
   clearHistory() {
     this.logHistory = [];
   }
 }
 
 export const logger = new ClientLogger();
+
