@@ -80,6 +80,20 @@
   --spacing-lg: 24px; /* 3 × 8px */
   --spacing-xl: 32px; /* 4 × 8px */
   --spacing-2xl: 40px; /* 5 × 8px */
+  --spacing-safe-top: var(--safe-area-top);
+  --spacing-safe-bottom: var(--safe-area-bottom);
+  --spacing-safe-left: var(--safe-area-left);
+  --spacing-safe-right: var(--safe-area-right);
+  --spacing-safe-horizontal: var(--safe-area-horizontal);
+  --spacing-safe-vertical: var(--safe-area-vertical);
+
+  /* Viewport metrics from TMA SDK */
+  --layout-viewport-height: var(--tg-viewport-height);
+  --layout-viewport-stable-height: var(--tg-viewport-stable-height);
+  --layout-viewport-width: var(--tg-viewport-width);
+  --layout-viewport-expanded: var(--tg-viewport-is-expanded);
+  --layout-viewport-stable: var(--tg-viewport-is-stable);
+  --layout-viewport-fullscreen: var(--tg-viewport-is-fullscreen);
 
   /* ===== BORDER RADIUS ===== */
 

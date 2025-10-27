@@ -13,6 +13,7 @@ export type ViewportMetrics = {
   width: number | null;
   isExpanded: boolean;
   isStateStable: boolean;
+  isFullscreen: boolean;
 };
 
 type Listener<T> = (value: T) => void;
@@ -25,6 +26,7 @@ const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
   width: typeof window !== 'undefined' ? window.innerWidth : null,
   isExpanded: true,
   isStateStable: true,
+  isFullscreen: false,
 };
 
 let currentSafeArea: SafeAreaSnapshot = { safe: ZERO_INSETS, content: ZERO_INSETS };
@@ -55,6 +57,14 @@ function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
   root.style.setProperty('--tg-content-safe-area-right', `${content.right}px`);
   root.style.setProperty('--tg-content-safe-area-bottom', `${content.bottom}px`);
   root.style.setProperty('--tg-content-safe-area-left', `${content.left}px`);
+  root.dataset.tgSafeAreaTop = `${safe.top}`;
+  root.dataset.tgSafeAreaRight = `${safe.right}`;
+  root.dataset.tgSafeAreaBottom = `${safe.bottom}`;
+  root.dataset.tgSafeAreaLeft = `${safe.left}`;
+  root.dataset.tgContentSafeAreaTop = `${content.top}`;
+  root.dataset.tgContentSafeAreaRight = `${content.right}`;
+  root.dataset.tgContentSafeAreaBottom = `${content.bottom}`;
+  root.dataset.tgContentSafeAreaLeft = `${content.left}`;
 }
 
 function applyViewportCss(metrics: ViewportMetrics): void {
@@ -69,6 +79,16 @@ function applyViewportCss(metrics: ViewportMetrics): void {
   if (typeof metrics.stableHeight === 'number') {
     root.style.setProperty('--tg-viewport-stable-height', `${metrics.stableHeight}px`);
   }
+  if (typeof metrics.width === 'number') {
+    root.style.setProperty('--tg-viewport-width', `${metrics.width}px`);
+  }
+  root.style.setProperty('--tg-viewport-is-expanded', metrics.isExpanded ? '1' : '0');
+  root.style.setProperty('--tg-viewport-is-stable', metrics.isStateStable ? '1' : '0');
+  root.style.setProperty('--tg-viewport-is-fullscreen', metrics.isFullscreen ? '1' : '0');
+  root.style.setProperty('--tg-fullscreen', metrics.isFullscreen ? '1' : '0');
+  root.dataset.tgViewportExpanded = metrics.isExpanded ? 'true' : 'false';
+  root.dataset.tgViewportStable = metrics.isStateStable ? 'true' : 'false';
+  root.dataset.tgViewportFullscreen = metrics.isFullscreen ? 'true' : 'false';
 }
 
 function readSafeAreaSnapshot(): SafeAreaSnapshot {
@@ -86,12 +106,14 @@ function readViewportMetrics(): ViewportMetrics {
   const width = viewport.width();
   const isExpanded = viewport.isExpanded();
   const isStateStable = viewport.isStable();
+  const isFullscreen = viewport.isFullscreen();
   return {
     height: Number.isFinite(height) ? height : null,
     stableHeight: Number.isFinite(stableHeight) ? stableHeight : null,
     width: Number.isFinite(width) ? width : null,
     isExpanded: Boolean(isExpanded),
     isStateStable: Boolean(isStateStable),
+    isFullscreen: Boolean(isFullscreen),
   };
 }
 
