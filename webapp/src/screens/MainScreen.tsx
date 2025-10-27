@@ -442,38 +442,44 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             role="tabpanel"
             aria-labelledby="tab-home"
           >
-            <HomePanel
-              energy={energy}
-              level={level}
-              xpProgress={xpProgress}
-              xpIntoLevel={xpIntoLevel}
-              xpToNextLevel={xpToNextLevel}
-              xpRemaining={xpRemaining}
-              tapLevel={tapLevel}
-              tapIncomeDisplay={tapIncomeDisplay}
-              passiveIncomeLabel={passiveIncomeLabel}
-              multiplierLabel={multiplierLabel}
-              streakCount={streakCount}
-              bestStreak={bestStreak}
-              isCriticalStreak={isCriticalStreak}
-              purchaseInsight={purchaseInsight || undefined}
-              prestigeLevel={prestigeLevel}
-              prestigeMultiplier={prestigeMultiplier}
-              prestigeEnergySinceReset={prestigeEnergySinceReset}
-              prestigeNextThreshold={prestigeNextThreshold}
-              prestigeEnergyToNext={prestigeEnergyToNext}
-              prestigeGainAvailable={prestigeGainAvailable}
-              isPrestigeAvailable={isPrestigeAvailable}
-              isPrestigeLoading={isPrestigeLoading}
-              onPrestige={performPrestige}
-              onTap={handleTap}
-              onViewLeaderboard={handleOpenLeaderboardFromSocial}
-              socialPlayerCount={leaderboardTotal}
-              isSocialBlockLoading={!leaderboardLoaded && isLeaderboardLoading}
-              activeBoost={activeBoostSummary ?? undefined}
-              nextBoostAvailabilityMs={nextBoostAvailabilityMs}
-              onViewBoosts={() => onTabChange('boosts')}
-            />
+            <TabPageSurface
+              className="h-full gap-0 px-0"
+              insetTop={12}
+              insetBottom={TAB_BAR_RESERVE_PX}
+            >
+              <HomePanel
+                energy={energy}
+                level={level}
+                xpProgress={xpProgress}
+                xpIntoLevel={xpIntoLevel}
+                xpToNextLevel={xpToNextLevel}
+                xpRemaining={xpRemaining}
+                tapLevel={tapLevel}
+                tapIncomeDisplay={tapIncomeDisplay}
+                passiveIncomeLabel={passiveIncomeLabel}
+                multiplierLabel={multiplierLabel}
+                streakCount={streakCount}
+                bestStreak={bestStreak}
+                isCriticalStreak={isCriticalStreak}
+                purchaseInsight={purchaseInsight || undefined}
+                prestigeLevel={prestigeLevel}
+                prestigeMultiplier={prestigeMultiplier}
+                prestigeEnergySinceReset={prestigeEnergySinceReset}
+                prestigeNextThreshold={prestigeNextThreshold}
+                prestigeEnergyToNext={prestigeEnergyToNext}
+                prestigeGainAvailable={prestigeGainAvailable}
+                isPrestigeAvailable={isPrestigeAvailable}
+                isPrestigeLoading={isPrestigeLoading}
+                onPrestige={performPrestige}
+                onTap={handleTap}
+                onViewLeaderboard={handleOpenLeaderboardFromSocial}
+                socialPlayerCount={leaderboardTotal}
+                isSocialBlockLoading={!leaderboardLoaded && isLeaderboardLoading}
+                activeBoost={activeBoostSummary ?? undefined}
+                nextBoostAvailabilityMs={nextBoostAvailabilityMs}
+                onViewBoosts={() => onTabChange('boosts')}
+              />
+            </TabPageSurface>
           </ScreenTransition>
         );
       case 'shop':
