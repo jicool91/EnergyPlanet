@@ -2,7 +2,7 @@ import { apiClient } from './apiClient';
 
 type Severity = 'info' | 'warn' | 'error';
 
-const TELEMETRY_DISABLED = import.meta.env.VITE_DISABLE_TELEMETRY !== 'false';
+const TELEMETRY_DISABLED = import.meta.env.VITE_DISABLE_TELEMETRY === 'true';
 
 export async function logClientEvent(
   event: string,
