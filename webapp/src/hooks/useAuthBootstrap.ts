@@ -1,11 +1,7 @@
 import { useEffect, useRef } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../services/apiClient';
-import { getTelegramInitData } from '../services/telegram';
-import { isTmaFeatureEnabled } from '@/config/tmaFlags';
 import { getTmaInitData } from '@/services/tma/initData';
-
-const getInitData = isTmaFeatureEnabled('initData') ? getTmaInitData : getTelegramInitData;
 import { useAuthStore, authStore } from '../store/authStore';
 import { uiStore } from '../store/uiStore';
 import { logClientEvent } from '../services/telemetry';
@@ -64,7 +60,7 @@ export function useAuthBootstrap() {
     ): Promise<void> => {
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
-          const initData = getInitData();
+          const initData = getTmaInitData();
           if (!initData) {
             throw new Error('init_data_missing');
           }

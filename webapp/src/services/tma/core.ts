@@ -1,4 +1,4 @@
-import { init, isTMA, miniApp, themeParams, viewport } from '@tma.js/sdk';
+import { init, isTMA, miniApp, swipeBehavior, themeParams, viewport } from '@tma.js/sdk';
 
 type TmaSetupState =
   | { status: 'idle'; available: false }
@@ -41,6 +41,33 @@ function setup(): void {
     themeParams.mount();
     miniApp.mount();
     viewport.mount();
+    if (!swipeBehavior.isMounted()) {
+      swipeBehavior.mount();
+    }
+
+    try {
+      miniApp.ready();
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.debug('miniApp.ready() failed', error);
+      }
+    }
+
+    try {
+      void viewport.expand();
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.debug('viewport.expand() failed', error);
+      }
+    }
+
+    try {
+      swipeBehavior.disableVertical();
+    } catch (error) {
+      if (import.meta.env.DEV) {
+        console.debug('swipeBehavior.disableVertical() failed', error);
+      }
+    }
 
     state = { status: 'ready', available: true };
   } catch (error) {
@@ -76,6 +103,9 @@ export function disposeTmaSdk(): void {
   }
   if (miniApp.isMounted()) {
     miniApp.unmount();
+  }
+  if (swipeBehavior.isMounted()) {
+    swipeBehavior.unmount();
   }
   state = { status: 'idle', available: false };
 }

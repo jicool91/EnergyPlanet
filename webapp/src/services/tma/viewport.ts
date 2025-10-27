@@ -1,16 +1,82 @@
 import { viewport } from '@tma.js/sdk';
 import type { SafeAreaInsets } from '@tma.js/bridge';
-import type { SafeAreaSnapshot, ViewportMetrics } from '../telegram';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
 
+export type SafeAreaSnapshot = {
+  safe: SafeAreaInsets;
+  content: SafeAreaInsets;
+};
+
+export type ViewportMetrics = {
+  height: number | null;
+  stableHeight: number | null;
+  width: number | null;
+  isExpanded: boolean;
+  isStateStable: boolean;
+};
+
+type Listener<T> = (value: T) => void;
+
 const ZERO_INSETS: SafeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 };
+
+const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
+  height: typeof window !== 'undefined' ? window.innerHeight : null,
+  stableHeight: typeof window !== 'undefined' ? window.innerHeight : null,
+  width: typeof window !== 'undefined' ? window.innerWidth : null,
+  isExpanded: true,
+  isStateStable: true,
+};
+
+let currentSafeArea: SafeAreaSnapshot = { safe: ZERO_INSETS, content: ZERO_INSETS };
+let currentViewport: ViewportMetrics = { ...DEFAULT_VIEWPORT_METRICS };
+
+function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const root = document.documentElement;
+  const { safe, content } = snapshot;
+
+  root.style.setProperty('--tg-safe-area-inset-top', `${safe.top}px`);
+  root.style.setProperty('--tg-safe-area-inset-right', `${safe.right}px`);
+  root.style.setProperty('--tg-safe-area-inset-bottom', `${safe.bottom}px`);
+  root.style.setProperty('--tg-safe-area-inset-left', `${safe.left}px`);
+  root.style.setProperty('--tg-safe-area-top', `${safe.top}px`);
+  root.style.setProperty('--tg-safe-area-right', `${safe.right}px`);
+  root.style.setProperty('--tg-safe-area-bottom', `${safe.bottom}px`);
+  root.style.setProperty('--tg-safe-area-left', `${safe.left}px`);
+
+  root.style.setProperty('--tg-content-safe-area-inset-top', `${content.top}px`);
+  root.style.setProperty('--tg-content-safe-area-inset-right', `${content.right}px`);
+  root.style.setProperty('--tg-content-safe-area-inset-bottom', `${content.bottom}px`);
+  root.style.setProperty('--tg-content-safe-area-inset-left', `${content.left}px`);
+  root.style.setProperty('--tg-content-safe-area-top', `${content.top}px`);
+  root.style.setProperty('--tg-content-safe-area-right', `${content.right}px`);
+  root.style.setProperty('--tg-content-safe-area-bottom', `${content.bottom}px`);
+  root.style.setProperty('--tg-content-safe-area-left', `${content.left}px`);
+}
+
+function applyViewportCss(metrics: ViewportMetrics): void {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const root = document.documentElement;
+  if (typeof metrics.height === 'number') {
+    root.style.setProperty('--tg-viewport-height', `${metrics.height}px`);
+  }
+  if (typeof metrics.stableHeight === 'number') {
+    root.style.setProperty('--tg-viewport-stable-height', `${metrics.stableHeight}px`);
+  }
+}
 
 function readSafeAreaSnapshot(): SafeAreaSnapshot {
   const safe = viewport.safeAreaInsets();
   const content = viewport.contentSafeAreaInsets();
   return {
     safe: safe ?? ZERO_INSETS,
-    content: content ?? ZERO_INSETS,
+    content: content ?? safe ?? ZERO_INSETS,
   };
 }
 
@@ -29,37 +95,42 @@ function readViewportMetrics(): ViewportMetrics {
   };
 }
 
-type Listener<T> = (value: T) => void;
+function updateSafeArea(snapshot: SafeAreaSnapshot): SafeAreaSnapshot {
+  currentSafeArea = snapshot;
+  applySafeAreaCss(snapshot);
+  return snapshot;
+}
+
+function updateViewport(metrics: ViewportMetrics): ViewportMetrics {
+  currentViewport = metrics;
+  applyViewportCss(metrics);
+  return metrics;
+}
 
 export function getTmaSafeAreaSnapshot(): SafeAreaSnapshot {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
-    return { safe: ZERO_INSETS, content: ZERO_INSETS };
+    return updateSafeArea({ safe: ZERO_INSETS, content: ZERO_INSETS });
   }
-  return readSafeAreaSnapshot();
+  return updateSafeArea(readSafeAreaSnapshot());
 }
 
 export function getTmaViewportMetrics(): ViewportMetrics {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
-    return {
-      height: null,
-      stableHeight: null,
-      width: null,
-      isExpanded: true,
-      isStateStable: true,
-    };
+    return updateViewport({ ...DEFAULT_VIEWPORT_METRICS });
   }
-  return readViewportMetrics();
+  return updateViewport(readViewportMetrics());
 }
 
 export function onTmaSafeAreaChange(listener: Listener<SafeAreaSnapshot>): VoidFunction {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
+    listener(updateSafeArea({ safe: ZERO_INSETS, content: ZERO_INSETS }));
     return () => {};
   }
 
-  const notify = () => listener(readSafeAreaSnapshot());
+  const notify = () => listener(updateSafeArea(readSafeAreaSnapshot()));
   const unsubscribe = viewport.state.sub(notify);
   notify();
   return () => {
@@ -70,13 +141,22 @@ export function onTmaSafeAreaChange(listener: Listener<SafeAreaSnapshot>): VoidF
 export function onTmaViewportChange(listener: Listener<ViewportMetrics>): VoidFunction {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
+    listener(updateViewport({ ...DEFAULT_VIEWPORT_METRICS }));
     return () => {};
   }
 
-  const notify = () => listener(readViewportMetrics());
+  const notify = () => listener(updateViewport(readViewportMetrics()));
   const unsubscribe = viewport.state.sub(notify);
   notify();
   return () => {
     unsubscribe();
   };
+}
+
+export function getCachedSafeArea(): SafeAreaSnapshot {
+  return currentSafeArea;
+}
+
+export function getCachedViewportMetrics(): ViewportMetrics {
+  return currentViewport;
 }

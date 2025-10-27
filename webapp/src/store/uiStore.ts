@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import type { TelegramThemeParams } from '../services/telegram';
-import { DEFAULT_THEME } from '../services/telegram';
+import type { TelegramThemeParams } from '@/utils/telegramTheme';
+import { DEFAULT_THEME } from '@/utils/telegramTheme';
 
 export interface OfflineSummarySnapshot {
   energy: number;

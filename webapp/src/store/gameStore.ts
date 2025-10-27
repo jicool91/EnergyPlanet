@@ -9,7 +9,7 @@ import { apiClient, API_BASE_URL } from '../services/apiClient';
 import { postQueue } from '../services/requestQueue';
 import { logClientEvent } from '../services/telemetry';
 import { logger } from '../utils/logger';
-import { triggerHapticImpact } from '../services/telegram';
+import { triggerHapticImpact } from '@/services/tma/haptics';
 import { fetchLeaderboard, LeaderboardUserEntry } from '../services/leaderboard';
 import { fetchProfile, ProfileResponse } from '../services/profile';
 import { describeError } from './storeUtils';

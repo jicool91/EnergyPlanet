@@ -1,4 +1,8 @@
-import { cloudStorageGetItem, cloudStorageSetItem, isCloudStorageAvailable } from './telegram';
+import {
+  cloudStorageGetItem,
+  cloudStorageSetItem,
+  isCloudStorageAvailable,
+} from '@/services/tma/cloudStorage';
 import { usePreferencesStore } from '../store/preferencesStore';
 
 const CLOUD_PREFERENCES_KEY = 'preferences_v1';

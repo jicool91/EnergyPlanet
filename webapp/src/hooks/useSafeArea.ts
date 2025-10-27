@@ -1,18 +1,13 @@
 import { useEffect, useState } from 'react';
 import {
-  getCurrentSafeArea,
-  getViewportMetrics,
-  onTelegramSafeAreaChange,
-  onTelegramViewportChange,
-  type SafeAreaSnapshot,
-  type ViewportMetrics,
-} from '../services/telegram';
-import { isTmaFeatureEnabled } from '@/config/tmaFlags';
-import {
+  getCachedSafeArea,
+  getCachedViewportMetrics,
   getTmaSafeAreaSnapshot,
   getTmaViewportMetrics,
   onTmaSafeAreaChange,
   onTmaViewportChange,
+  type SafeAreaSnapshot,
+  type ViewportMetrics,
 } from '@/services/tma/viewport';
 
 type SafeAreaResult = {
@@ -20,29 +15,15 @@ type SafeAreaResult = {
   viewport: ViewportMetrics;
 };
 
-function useSafeAreaLegacy(): SafeAreaResult {
-  const [safeArea, setSafeArea] = useState<SafeAreaSnapshot>(() => getCurrentSafeArea());
-  const [viewport, setViewport] = useState<ViewportMetrics>(() => getViewportMetrics());
-
-  useEffect(() => {
-    const offSafe = onTelegramSafeAreaChange(setSafeArea);
-    const offViewport = onTelegramViewportChange(setViewport);
-
-    return () => {
-      offSafe();
-      offViewport();
-    };
-  }, []);
-
-  return {
-    safeArea,
-    viewport,
-  };
-}
-
-function useSafeAreaTma(): SafeAreaResult {
-  const [safeArea, setSafeArea] = useState<SafeAreaSnapshot>(() => getTmaSafeAreaSnapshot());
-  const [viewport, setViewport] = useState<ViewportMetrics>(() => getTmaViewportMetrics());
+export function useSafeArea(): SafeAreaResult {
+  const [safeArea, setSafeArea] = useState<SafeAreaSnapshot>(() => {
+    const cached = getCachedSafeArea();
+    return cached ?? getTmaSafeAreaSnapshot();
+  });
+  const [viewport, setViewport] = useState<ViewportMetrics>(() => {
+    const cached = getCachedViewportMetrics();
+    return cached ?? getTmaViewportMetrics();
+  });
 
   useEffect(() => {
     const offSafe = onTmaSafeAreaChange(setSafeArea);
@@ -58,10 +39,4 @@ function useSafeAreaTma(): SafeAreaResult {
     safeArea,
     viewport,
   };
-}
-
-const useSafeAreaImpl = isTmaFeatureEnabled('safeArea') ? useSafeAreaTma : useSafeAreaLegacy;
-
-export function useSafeArea(): SafeAreaResult {
-  return useSafeAreaImpl();
 }

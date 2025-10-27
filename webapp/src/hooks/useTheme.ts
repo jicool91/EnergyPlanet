@@ -1,11 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { onTelegramThemeChange } from '../services/telegram';
-import {
-  getResolvedTelegramTheme,
-  type TelegramThemeParams,
-} from '../utils/telegramTheme';
-import { isTmaFeatureEnabled } from '@/config/tmaFlags';
 import { getTmaThemeSnapshot, onTmaThemeChange } from '@/services/tma/theme';
+import type { TelegramThemeParams } from '@/utils/telegramTheme';
 
 type ColorScheme = 'light' | 'dark';
 
@@ -30,37 +25,7 @@ function getBrowserColorSchemeFallback(): ColorScheme {
   return window.matchMedia?.('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
 }
 
-function useThemeLegacy() {
-  const [theme, setTheme] = useState<TelegramThemeParams>(() => getInitialTheme());
-  const [colorScheme, setColorScheme] = useState<ColorScheme>(() =>
-    getBrowserColorSchemeFallback()
-  );
-
-  useEffect(() => {
-    const unsubscribe = onTelegramThemeChange(nextTheme => {
-      setTheme(nextTheme);
-      setColorScheme(getBrowserColorSchemeFallback());
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
-
-  const isDark = useMemo(() => colorScheme === 'dark', [colorScheme]);
-
-  return {
-    theme,
-    colorScheme,
-    isDark,
-  };
-}
-
-function getInitialTheme(): TelegramThemeParams {
-  return getResolvedTelegramTheme();
-}
-
-function useThemeTma() {
+export function useTheme() {
   const [theme, setTheme] = useState<TelegramThemeParams>(() => getTmaThemeSnapshot());
   const [colorScheme, setColorScheme] = useState<ColorScheme>(() =>
     getBrowserColorSchemeFallback()
@@ -84,10 +49,4 @@ function useThemeTma() {
     colorScheme,
     isDark,
   };
-}
-
-const useThemeImpl = isTmaFeatureEnabled('theme') ? useThemeTma : useThemeLegacy;
-
-export function useTheme() {
-  return useThemeImpl();
 }
