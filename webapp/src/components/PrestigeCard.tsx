@@ -48,10 +48,7 @@ export function PrestigeCard({
     [prestigeEnergyToNext]
   );
 
-  const multiplierLabel = useMemo(
-    () => prestigeMultiplier.toFixed(2),
-    [prestigeMultiplier]
-  );
+  const multiplierLabel = useMemo(() => prestigeMultiplier.toFixed(2), [prestigeMultiplier]);
 
   const gainLabel = useMemo(() => {
     if (prestigeGainAvailable <= 0) {

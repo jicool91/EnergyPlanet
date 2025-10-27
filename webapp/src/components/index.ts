@@ -21,6 +21,7 @@ export { TabBar, type TabBarItem } from './TabBar';
 export { MainScreenHeader } from './MainScreenHeader';
 export { TapSection } from './TapSection';
 export { LevelBar } from './LevelBar';
+export { TabPageSurface } from './layout/TabPageSurface';
 
 // Panels (Feature-specific)
 export { BuildingCard, type BuildingCardProps } from './BuildingCard';

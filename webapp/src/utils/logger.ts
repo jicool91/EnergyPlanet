@@ -161,4 +161,3 @@ class ClientLogger {
 }
 
 export const logger = new ClientLogger();
-

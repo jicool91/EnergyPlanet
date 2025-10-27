@@ -143,7 +143,7 @@ export function BoostHub({ showHeader = true }: BoostHubProps) {
   );
 
   return (
-    <div className="flex flex-col gap-4 p-0 text-token-primary">
+    <div className="flex flex-col gap-md text-token-primary">
       {showHeader ? (
         <div className="relative flex flex-col gap-1">
           <div className="flex justify-between items-start gap-3">

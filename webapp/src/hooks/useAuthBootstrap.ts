@@ -55,7 +55,9 @@ export function useAuthBootstrap() {
 
     const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
-    const authenticateWithTelegramWithRetry = async (maxRetries = MAX_AUTH_RETRIES): Promise<void> => {
+    const authenticateWithTelegramWithRetry = async (
+      maxRetries = MAX_AUTH_RETRIES
+    ): Promise<void> => {
       for (let attempt = 1; attempt <= maxRetries; attempt++) {
         try {
           const initData = getTelegramInitData();
@@ -260,7 +262,6 @@ export function useAuthBootstrap() {
     };
 
     bootstrap();
-
   }, [
     hydrated,
     authReady,

@@ -12,6 +12,7 @@ import {
   BuildingSkeleton,
   LeaderboardSkeleton,
   ProfileSkeleton,
+  TabPageSurface,
 } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
@@ -25,7 +26,6 @@ import { useCatalogStore } from '../store/catalogStore';
 import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
 
 const TAB_BAR_RESERVE_PX = 88;
-const HEADER_RESERVE_PX = 56;
 
 // Lazy load heavy components
 const ShopPanel = lazy(() =>
@@ -149,14 +149,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
   const authReady = useAuthStore(state => state.authReady);
   const { safeArea } = useSafeArea();
   const { bottom: safeBottom, left: safeLeft, right: safeRight } = safeArea.safe;
-  const { top: contentTop } = safeArea.content;
   const scrollPaddingBottom = useMemo(
     () => TAB_BAR_RESERVE_PX + Math.max(0, safeBottom),
     [safeBottom]
-  );
-  const nonHomePaddingTop = useMemo(
-    () => Math.max(0, contentTop) + HEADER_RESERVE_PX,
-    [contentTop]
   );
   const scrollContainerStyle = useMemo(() => {
     const style: Record<string, string> = {
@@ -492,7 +487,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             aria-labelledby="tab-shop"
           >
             <Suspense fallback={<ShopSkeleton />}>
-              <ShopPanel showHeader={false} />
+              <TabPageSurface>
+                <ShopPanel showHeader={false} />
+              </TabPageSurface>
             </Suspense>
           </ScreenTransition>
         );
@@ -507,7 +504,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             aria-labelledby="tab-boosts"
           >
             <Suspense fallback={<ShopSkeleton />}>
-              <BoostHub showHeader={false} />
+              <TabPageSurface>
+                <BoostHub showHeader={false} />
+              </TabPageSurface>
             </Suspense>
           </ScreenTransition>
         );
@@ -522,7 +521,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             aria-labelledby="tab-builds"
           >
             <Suspense fallback={<BuildingSkeleton />}>
-              <BuildingsPanel showHeader={false} />
+              <TabPageSurface>
+                <BuildingsPanel showHeader={false} />
+              </TabPageSurface>
             </Suspense>
           </ScreenTransition>
         );
@@ -537,7 +538,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             aria-labelledby="tab-leaderboard"
           >
             <Suspense fallback={<LeaderboardSkeleton />}>
-              <LeaderboardPanel />
+              <TabPageSurface>
+                <LeaderboardPanel />
+              </TabPageSurface>
             </Suspense>
           </ScreenTransition>
         );
@@ -552,7 +555,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             aria-labelledby="tab-profile"
           >
             <Suspense fallback={<ProfileSkeleton />}>
-              <ProfilePanel />
+              <TabPageSurface>
+                <ProfilePanel />
+              </TabPageSurface>
             </Suspense>
           </ScreenTransition>
         );
@@ -567,7 +572,9 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
             aria-labelledby="tab-settings"
           >
             <Suspense fallback={<div className="p-4">Загрузка...</div>}>
-              <SettingsScreen onClose={() => onTabChange('home')} />
+              <TabPageSurface>
+                <SettingsScreen onClose={() => onTabChange('home')} />
+              </TabPageSurface>
             </Suspense>
           </ScreenTransition>
         );
@@ -587,13 +594,7 @@ export function MainScreen({ activeTab, onTabChange }: MainScreenProps) {
           role="main"
           aria-label="Основной контент"
         >
-          {activeTab === 'home' ? (
-            renderActiveTab()
-          ) : (
-            <div className="px-4 pb-4" style={{ paddingTop: `${nonHomePaddingTop}px` }}>
-              {renderActiveTab()}
-            </div>
-          )}
+          {renderActiveTab()}
 
           {/* Back to Tap Button (floating) */}
           {activeTab !== 'home' && isScrolled && !isLoading && (

@@ -242,7 +242,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
-      className="flex flex-col gap-4 pb-6"
+      className="flex flex-col gap-md"
     >
       {/* Account Section */}
       <SettingsSection title="Аккаунт" icon="👤">

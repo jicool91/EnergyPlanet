@@ -11,7 +11,6 @@ import { OptimizedImage } from './OptimizedImage';
 import { useHaptic } from '../hooks/useHaptic';
 import { useNotification } from '../hooks/useNotification';
 import { describeError } from '../store/storeUtils';
-import { useSafeArea } from '../hooks';
 
 interface ShopPanelProps {
   showHeader?: boolean;
@@ -114,14 +113,6 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
   }, [categories, activeCategory]);
 
   const { success: hapticSuccess, error: hapticError } = useHaptic();
-  const { safeArea } = useSafeArea();
-  const { bottom: contentBottom } = safeArea.content;
-  const panelPadding = useMemo(() => {
-    return {
-      paddingBottom: `${Math.max(0, contentBottom) + 16}px`,
-    };
-  }, [contentBottom]);
-
   const handleSectionKeyDown = useCallback(
     (event: ReactKeyboardEvent<HTMLButtonElement>, index: number) => {
       const lastIndex = SECTION_TABS.length - 1;
@@ -279,7 +270,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
   const featuredPack = starPacks.find(pack => pack.featured);
 
   return (
-    <div className="flex flex-col gap-4 p-0" style={panelPadding}>
+    <div className="flex flex-col gap-md">
       {showHeader ? (
         <div className="flex flex-col gap-1">
           <h2 className="m-0 mb-1 text-heading font-bold bg-gradient-to-r from-gold to-orange bg-clip-text text-transparent">
@@ -298,7 +289,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
       ) : null}
 
       {/* Section Tabs */}
-      <div className="flex gap-2 p-0" role="tablist" aria-label="Разделы магазина">
+      <div className="flex gap-sm" role="tablist" aria-label="Разделы магазина">
         {SECTION_TABS.map((section, index) => {
           const isActive = activeSection === section.id;
           const tabId = getSectionTabId(section.id);
@@ -338,7 +329,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
 
       {activeSection === 'star_packs' && (
         <div
-          className="flex flex-col gap-4 p-0"
+          className="flex flex-col gap-md"
           id={getSectionPanelId('star_packs')}
           role="tabpanel"
           aria-labelledby={getSectionTabId('star_packs')}
@@ -572,12 +563,12 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
 
       {activeSection === 'cosmetics' && (
         <div
-          className="flex flex-col gap-4 p-0"
+          className="flex flex-col gap-md"
           id={getSectionPanelId('cosmetics')}
           role="tabpanel"
           aria-labelledby={getSectionTabId('cosmetics')}
         >
-          <div className="flex gap-2 flex-wrap p-0" role="tablist" aria-label="Категории косметики">
+          <div className="flex gap-sm flex-wrap" role="tablist" aria-label="Категории косметики">
             {categories.length === 0 && !isCosmeticsLoading && (
               <Card className="flex-1 text-sm text-token-secondary bg-token-surface-tertiary border-token-subtle">
                 Косметика откроется после уровня 5. Продолжайте улучшать здания и активируйте бусты,
@@ -610,7 +601,7 @@ export function ShopPanel({ showHeader = true }: ShopPanelProps) {
             })}
           </div>
 
-          <div id={COSMETICS_GRID_ID} className="flex flex-col gap-4 p-0">
+          <div id={COSMETICS_GRID_ID} className="flex flex-col gap-md">
             {isCosmeticsLoading && filteredCosmetics.length === 0 ? (
               <ErrorBoundary>
                 <ShopSkeleton count={4} />

@@ -89,7 +89,7 @@ export function LeaderboardPanel() {
   }
 
   return (
-    <div className="p-0 flex flex-col gap-4 text-token-primary">
+    <div className="flex flex-col gap-md text-token-primary">
       {/* Header */}
       <div className="flex items-center justify-between gap-3">
         <h3 className="m-0 text-heading font-semibold">Топ игроков</h3>

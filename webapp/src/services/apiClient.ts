@@ -73,7 +73,8 @@ apiClient.interceptors.response.use(
   async error => {
     const originalRequest = error.config;
     const requestUrl = (originalRequest?.url ?? '') as string;
-    const isTelemetryRequest = typeof requestUrl === 'string' && requestUrl.includes('/telemetry/client');
+    const isTelemetryRequest =
+      typeof requestUrl === 'string' && requestUrl.includes('/telemetry/client');
 
     // Handle token expiration
     if (isTelemetryRequest) {

@@ -1,4 +1,14 @@
 /** @type {import('tailwindcss').Config} */
+
+const spacingTokens = {
+  xs: 'var(--spacing-xs)',
+  sm: 'var(--spacing-sm)',
+  md: 'var(--spacing-md)',
+  lg: 'var(--spacing-lg)',
+  xl: 'var(--spacing-xl)',
+  '2xl': 'var(--spacing-2xl)',
+};
+
 export default {
   content: [
     "./index.html",
@@ -31,6 +41,7 @@ export default {
         'button-success': 'linear-gradient(135deg, #ffd362 0%, #ff8d4d 100%)',
       },
       spacing: {
+        ...spacingTokens,
         'safe-left': 'var(--safe-area-left, 0px)',
         'safe-right': 'var(--safe-area-right, 0px)',
         'safe-top': 'var(--safe-area-top, 0px)',

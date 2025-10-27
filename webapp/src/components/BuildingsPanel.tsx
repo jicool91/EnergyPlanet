@@ -62,11 +62,6 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
   const [selectedPurchaseId, setSelectedPurchaseId] = useState<PurchaseOptionId>('x1');
   const { safeArea } = useSafeArea();
   const { bottom: contentBottom } = safeArea.content;
-  const panelPadding = useMemo(() => {
-    return {
-      paddingBottom: `${Math.max(0, contentBottom) + 16}px`,
-    };
-  }, [contentBottom]);
   const energyDisplay = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
 
   const selectedOption: PurchaseOption = useMemo(
@@ -215,7 +210,7 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
   );
 
   return (
-    <div className="flex flex-col gap-4 p-0" style={panelPadding}>
+    <div className="flex flex-col gap-md">
       {showHeader ? (
         <div className="flex justify-between items-start gap-3">
           <div>

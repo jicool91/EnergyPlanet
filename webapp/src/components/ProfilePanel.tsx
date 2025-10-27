@@ -50,7 +50,7 @@ export function ProfilePanel() {
   }
 
   return (
-    <div className="p-0 flex flex-col gap-4">
+    <div className="flex flex-col gap-md">
       <header className="flex items-center gap-3">
         <div
           className="w-14 h-14 rounded-lg bg-cyan/[0.15] flex items-center justify-center text-heading"
