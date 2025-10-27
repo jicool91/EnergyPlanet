@@ -156,6 +156,7 @@ export function ShopPanel({
   const lastActiveSectionRef = useRef<ShopSection | null>(null);
   const starPackSectionSourceRef = useRef<'user' | 'programmatic'>('programmatic');
   const lastStarPackSectionRef = useRef<StarPackSubSection | null>(null);
+  const lastStarPackViewKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
     const previous = lastActiveSectionRef.current;
@@ -218,6 +219,7 @@ export function ShopPanel({
 
   useEffect(() => {
     if (activeSection !== 'star_packs') {
+      lastStarPackViewKeyRef.current = null;
       return;
     }
     const packIds: string[] = [];
@@ -230,6 +232,12 @@ export function ShopPanel({
     if (packIds.length === 0) {
       return;
     }
+
+    const packKey = `${activeStarPackSection}:${packIds.join('|')}`;
+    if (lastStarPackViewKeyRef.current === packKey) {
+      return;
+    }
+    lastStarPackViewKeyRef.current = packKey;
 
     void logClientEvent('star_pack_view', {
       sub_section: activeStarPackSection,
