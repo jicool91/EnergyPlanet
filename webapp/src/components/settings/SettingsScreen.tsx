@@ -11,6 +11,7 @@ import { Toggle } from './Toggle';
 import { SliderControl } from './SliderControl';
 import { SettingsSection } from './SettingsSection';
 import { logClientEvent } from '@/services/telemetry';
+import { useShallow } from 'zustand/react/shallow';
 
 const INTENSITY_OPTIONS = ['light', 'medium', 'strong'] as const;
 const THEME_OPTIONS: ThemeMode[] = ['light', 'dark', 'auto'];
@@ -25,12 +26,14 @@ interface SettingsScreenProps {
  * Displays game settings, preferences, and account information
  */
 export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
-  const { profile, userId, username, logoutSession } = useGameStore(state => ({
-    profile: state.profile,
-    userId: state.userId,
-    username: state.username,
-    logoutSession: state.logoutSession,
-  }));
+  const { profile, userId, username, logoutSession } = useGameStore(
+    useShallow(state => ({
+      profile: state.profile,
+      userId: state.userId,
+      username: state.username,
+      logoutSession: state.logoutSession,
+    }))
+  );
   const { success, warning } = useNotification();
   const { light } = useHaptic();
   const [confirmLogout, setConfirmLogout] = useState(false);

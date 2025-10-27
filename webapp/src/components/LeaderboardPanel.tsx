@@ -5,6 +5,7 @@ import { LeaderboardSkeleton, ErrorBoundary } from './skeletons';
 import { Card } from './Card';
 import { formatCompactNumber } from '../utils/number';
 import { logClientEvent } from '@/services/telemetry';
+import { useShallow } from 'zustand/react/shallow';
 
 // Medal emojis for top 3
 const MEDAL_MAP: Record<number, { icon: string; label: string }> = {
@@ -22,15 +23,17 @@ export function LeaderboardPanel() {
     leaderboardTotal,
     userLeaderboardEntry,
     userId,
-  } = useGameStore(state => ({
-    leaderboard: state.leaderboardEntries,
-    leaderboardLoaded: state.leaderboardLoaded,
-    isLeaderboardLoading: state.isLeaderboardLoading,
-    leaderboardError: state.leaderboardError,
-    leaderboardTotal: state.leaderboardTotal,
-    userLeaderboardEntry: state.userLeaderboardEntry,
-    userId: state.userId,
-  }));
+  } = useGameStore(
+    useShallow(state => ({
+      leaderboard: state.leaderboardEntries,
+      leaderboardLoaded: state.leaderboardLoaded,
+      isLeaderboardLoading: state.isLeaderboardLoading,
+      leaderboardError: state.leaderboardError,
+      leaderboardTotal: state.leaderboardTotal,
+      userLeaderboardEntry: state.userLeaderboardEntry,
+      userId: state.userId,
+    }))
+  );
 
   useEffect(() => {
     if (leaderboardError) {

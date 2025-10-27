@@ -5,16 +5,17 @@ import { Card } from './Card';
 import { Badge } from './Badge';
 import { formatCompactNumber } from '../utils/number';
 import { logClientEvent } from '@/services/telemetry';
+import { useShallow } from 'zustand/react/shallow';
 
 export function ProfilePanel() {
   const { isProfileLoading, profileError, profile, profileBoosts, userId } = useGameStore(
-    state => ({
+    useShallow(state => ({
       isProfileLoading: state.isProfileLoading,
       profileError: state.profileError,
       profile: state.profile,
       profileBoosts: state.profileBoosts,
       userId: state.userId,
-    })
+    }))
   );
 
   useEffect(() => {
