@@ -13,6 +13,7 @@ import { describeError } from '@/store/storeUtils';
 import { Button } from './Button';
 import { Card } from './Card';
 import { logClientEvent } from '@/services/telemetry';
+import { canShowCap, consumeCap } from '@/utils/frequencyCap';
 
 interface DailyRewardBannerProps {
   onClaim?: () => void;
@@ -69,6 +70,11 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
   const [localNow, setLocalNow] = useState(() => Date.now());
   const [showUpsell, setShowUpsell] = useState(false);
   const hasLoggedUpsellRef = useRef(false);
+  const [upsellCapRevision, setUpsellCapRevision] = useState(0);
+  const dailyUpsellAllowed = useMemo(
+    () => canShowCap('daily_reward_upsell', { limit: 2 }),
+    [upsellCapRevision]
+  );
 
   useEffect(() => {
     loadBoostHub();
@@ -77,6 +83,22 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
   useEffect(() => {
     const timer = window.setInterval(() => setLocalNow(Date.now()), 1000);
     return () => window.clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return;
+    }
+    const refreshCap = () => {
+      hasLoggedUpsellRef.current = false;
+      setUpsellCapRevision(prev => prev + 1);
+    };
+    document.addEventListener('visibilitychange', refreshCap);
+    window.addEventListener('focus', refreshCap);
+    return () => {
+      document.removeEventListener('visibilitychange', refreshCap);
+      window.removeEventListener('focus', refreshCap);
+    };
   }, []);
 
   const serverNow = boostHubTimeOffsetMs != null ? localNow + boostHubTimeOffsetMs : localNow;
@@ -201,8 +223,18 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
       void logClientEvent('daily_boost_claim_success', {
         source: 'daily_reward_banner',
       });
-      setShowUpsell(true);
-      hasLoggedUpsellRef.current = false;
+      if (dailyUpsellAllowed) {
+        const consumed = consumeCap('daily_reward_upsell', { limit: 2 });
+        setUpsellCapRevision(prev => prev + 1);
+        if (consumed) {
+          setShowUpsell(true);
+          hasLoggedUpsellRef.current = false;
+        } else {
+          setShowUpsell(false);
+        }
+      } else {
+        setShowUpsell(false);
+      }
       onClaim?.();
     } catch (err) {
       const { message } = describeError(err, 'Не удалось получить награду');
@@ -217,6 +249,13 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
       );
     }
   };
+
+  useEffect(() => {
+    if (!dailyUpsellAllowed && showUpsell) {
+      setShowUpsell(false);
+      hasLoggedUpsellRef.current = false;
+    }
+  }, [dailyUpsellAllowed, showUpsell]);
 
   return (
     <motion.div

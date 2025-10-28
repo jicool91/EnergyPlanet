@@ -24,6 +24,7 @@ import { Button } from './Button';
 import { logClientEvent } from '@/services/telemetry';
 import { useQuestStore, type QuestView } from '@/store/questStore';
 import { useShallow } from 'zustand/react/shallow';
+import { canShowCap, consumeCap } from '@/utils/frequencyCap';
 
 export interface HomePanelProps {
   // Game state
@@ -125,9 +126,32 @@ export function HomePanel({
     ? 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-12 -z-10'
     : 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-20 blur-xl -z-10';
   const hasLoggedMonetizationPromptRef = useRef(false);
+  const [monetizationCapRevision, setMonetizationCapRevision] = useState(0);
+  const monetizationCapAllowed = useMemo(
+    () => canShowCap('home_monetization_prompt', { limit: 3 }),
+    [monetizationCapRevision]
+  );
   const starsShort = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return;
+    }
+    const refreshCap = () => {
+      setMonetizationCapRevision(prev => prev + 1);
+    };
+    document.addEventListener('visibilitychange', refreshCap);
+    window.addEventListener('focus', refreshCap);
+    return () => {
+      document.removeEventListener('visibilitychange', refreshCap);
+      window.removeEventListener('focus', refreshCap);
+    };
+  }, []);
+
   const showMonetizationPrompt = useMemo(() => {
+    if (!monetizationCapAllowed) {
+      return false;
+    }
     if (!purchaseInsight || purchaseInsight.remaining == null) {
       return false;
     }
@@ -135,15 +159,19 @@ export function HomePanel({
       return false;
     }
     return stars < purchaseInsight.remaining;
-  }, [purchaseInsight, stars]);
+  }, [purchaseInsight, stars, monetizationCapAllowed]);
 
   useEffect(() => {
     if (showMonetizationPrompt && !hasLoggedMonetizationPromptRef.current) {
-      hasLoggedMonetizationPromptRef.current = true;
-      void logClientEvent('monetization_prompt_view', {
-        source: 'home_panel',
-        deficit: purchaseInsight ? purchaseInsight.remaining - stars : null,
-      });
+      const consumed = consumeCap('home_monetization_prompt', { limit: 3 });
+      setMonetizationCapRevision(prev => prev + 1);
+      if (consumed) {
+        hasLoggedMonetizationPromptRef.current = true;
+        void logClientEvent('monetization_prompt_view', {
+          source: 'home_panel',
+          deficit: purchaseInsight ? purchaseInsight.remaining - stars : null,
+        });
+      }
     }
     if (!showMonetizationPrompt) {
       hasLoggedMonetizationPromptRef.current = false;

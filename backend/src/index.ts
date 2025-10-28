@@ -10,6 +10,7 @@ import { migrateUp, closeMigrationPool } from './db/migrate';
 import { connectRedis, healthCheck as redisHealth } from './cache/redis';
 import { loadContent } from './services/ContentService';
 import { tapAggregator } from './services/TapAggregator';
+import { questResetScheduler } from './jobs/QuestResetScheduler';
 import apiRouter from './api/routes';
 import { rateLimiter } from './middleware/rateLimiter';
 import { register as metricsRegister, metricsEnabled } from './metrics';
@@ -136,6 +137,7 @@ export async function bootstrap() {
   await connectRedis();
   await loadContent();
   tapAggregator.start();
+  questResetScheduler.start();
 
   const port = config.server.port;
 
@@ -150,6 +152,7 @@ export async function bootstrap() {
   const shutdown = (signal: string) => {
     logger.warn(`${signal} received, shutting down gracefully`);
     tapAggregator.stop();
+    questResetScheduler.stop();
     server.close(() => {
       logger.info('HTTP server closed');
       process.exit(0);

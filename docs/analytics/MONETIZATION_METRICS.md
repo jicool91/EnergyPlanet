@@ -29,6 +29,98 @@ npm run report:monetization -- --days=30 --out=../docs/analytics/exports/monetiz
 Скрипт использует существующую БД (`DATABASE_URL`) — дополнительных сервисов не требуется.  
 Экспортированные CSV кладём в `docs/analytics/exports/` и коммитим как baseline/weekly snapshot (diff в git покажет тренд).
 
+## SQL для ручной выборки
+
+> Используем напрямую в psql/Metabase при отсутствии готового отчёта. Все запросы предполагают таймзону UTC.
+
+**Дневные метрики (14 дней)** — можно адаптировать окно, изменив `interval`.
+
+```sql
+WITH filtered_events AS (
+  SELECT
+    (created_at AT TIME ZONE 'UTC')::date AS day,
+    event_type,
+    event_data
+  FROM events
+  WHERE created_at >= NOW() - INTERVAL '14 days'
+)
+SELECT
+  day,
+  COUNT(*) FILTER (
+    WHERE event_type = 'tab_impression'
+      AND COALESCE(event_data ->> 'tab', '') = 'shop'
+  ) AS shop_tab_impressions,
+  COUNT(*) FILTER (WHERE event_type = 'shop_view') AS shop_views,
+  ROUND(
+    COUNT(*) FILTER (WHERE event_type = 'shop_view')::numeric /
+    NULLIF(
+      COUNT(*) FILTER (
+        WHERE event_type = 'tab_impression'
+          AND COALESCE(event_data ->> 'tab', '') = 'shop'
+      ),
+      0
+    ),
+    3
+  ) AS shop_visit_rate,
+  COUNT(*) FILTER (WHERE event_type = 'quest_claim_start') AS quest_claim_starts,
+  COUNT(*) FILTER (WHERE event_type = 'quest_claim_success') AS quest_claim_success,
+  ROUND(
+    COUNT(*) FILTER (WHERE event_type = 'quest_claim_success')::numeric /
+    NULLIF(COUNT(*) FILTER (WHERE event_type = 'quest_claim_start'), 0),
+    3
+  ) AS quest_claim_success_rate,
+  COUNT(*) FILTER (WHERE event_type = 'daily_boost_upsell_view') AS daily_boost_upsell_views,
+  COUNT(*) FILTER (WHERE event_type = 'daily_boost_upsell_click') AS daily_boost_upsell_clicks,
+  ROUND(
+    COUNT(*) FILTER (WHERE event_type = 'daily_boost_upsell_click')::numeric /
+    NULLIF(COUNT(*) FILTER (WHERE event_type = 'daily_boost_upsell_view'), 0),
+    3
+  ) AS daily_boost_upsell_ctr
+FROM filtered_events
+GROUP BY day
+ORDER BY day DESC;
+```
+
+**7‑дневный срез** — быстрый summary для апдейтов.
+
+```sql
+SELECT
+  DATE_TRUNC('day', NOW())::date - INTERVAL '7 days' AS window_start,
+  DATE_TRUNC('day', NOW())::date - INTERVAL '1 day' AS window_end,
+  COUNT(*) FILTER (
+    WHERE event_type = 'tab_impression'
+      AND COALESCE(event_data ->> 'tab', '') = 'shop'
+  ) AS shop_tab_impressions,
+  COUNT(*) FILTER (WHERE event_type = 'shop_view') AS shop_views,
+  ROUND(
+    COUNT(*) FILTER (WHERE event_type = 'shop_view')::numeric /
+    NULLIF(
+      COUNT(*) FILTER (
+        WHERE event_type = 'tab_impression'
+          AND COALESCE(event_data ->> 'tab', '') = 'shop'
+      ),
+      0
+    ),
+    3
+  ) AS shop_visit_rate,
+  COUNT(*) FILTER (WHERE event_type = 'quest_claim_start') AS quest_claim_starts,
+  COUNT(*) FILTER (WHERE event_type = 'quest_claim_success') AS quest_claim_success,
+  ROUND(
+    COUNT(*) FILTER (WHERE event_type = 'quest_claim_success')::numeric /
+    NULLIF(COUNT(*) FILTER (WHERE event_type = 'quest_claim_start'), 0),
+    3
+  ) AS quest_claim_success_rate,
+  COUNT(*) FILTER (WHERE event_type = 'daily_boost_upsell_view') AS daily_boost_upsell_views,
+  COUNT(*) FILTER (WHERE event_type = 'daily_boost_upsell_click') AS daily_boost_upsell_clicks,
+  ROUND(
+    COUNT(*) FILTER (WHERE event_type = 'daily_boost_upsell_click')::numeric /
+    NULLIF(COUNT(*) FILTER (WHERE event_type = 'daily_boost_upsell_view'), 0),
+    3
+  ) AS daily_boost_upsell_ctr
+FROM events
+WHERE created_at >= NOW() - INTERVAL '7 days';
+```
+
 ## Админский экран
 Backend отдаёт агрегаты через `GET /api/v1/admin/monetization/metrics`.  
 Формат ответа:

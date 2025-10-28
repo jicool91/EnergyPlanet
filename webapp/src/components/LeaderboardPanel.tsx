@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useCallback } from 'react';
+import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { LeaderboardSkeleton, ErrorBoundary } from './skeletons';
@@ -7,6 +7,7 @@ import { formatCompactNumber } from '../utils/number';
 import { logClientEvent } from '@/services/telemetry';
 import { useShallow } from 'zustand/react/shallow';
 import { Button } from './Button';
+import { canShowCap, consumeCap } from '@/utils/frequencyCap';
 
 // Medal emojis for top 3
 const MEDAL_MAP: Record<number, { icon: string; label: string }> = {
@@ -38,6 +39,11 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
       userLeaderboardEntry: state.userLeaderboardEntry,
       userId: state.userId,
     }))
+  );
+  const [leaderboardCapRevision, setLeaderboardCapRevision] = useState(0);
+  const leaderboardCtaAllowed = useMemo(
+    () => canShowCap('leaderboard_shop_cta', { limit: 2 }),
+    [leaderboardCapRevision]
   );
 
   useEffect(() => {
@@ -101,18 +107,39 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
     [userEnergyDiffToNext]
   );
   const hasLoggedShopCtaRef = useRef(false);
+  const showShopCta = leaderboardCtaAllowed && userEnergyDiffToNext > 0;
 
   useEffect(() => {
-    if (userEnergyDiffToNext > 0 && !hasLoggedShopCtaRef.current) {
-      hasLoggedShopCtaRef.current = true;
-      void logClientEvent('leaderboard_shop_cta_view', {
-        deficit: userEnergyDiffToNext,
-      });
+    if (typeof document === 'undefined' || typeof window === 'undefined') {
+      return;
+    }
+    const refreshCap = () => {
+      hasLoggedShopCtaRef.current = false;
+      setLeaderboardCapRevision(prev => prev + 1);
+    };
+    document.addEventListener('visibilitychange', refreshCap);
+    window.addEventListener('focus', refreshCap);
+    return () => {
+      document.removeEventListener('visibilitychange', refreshCap);
+      window.removeEventListener('focus', refreshCap);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (showShopCta && !hasLoggedShopCtaRef.current) {
+      const consumed = consumeCap('leaderboard_shop_cta', { limit: 2 });
+      setLeaderboardCapRevision(prev => prev + 1);
+      if (consumed) {
+        hasLoggedShopCtaRef.current = true;
+        void logClientEvent('leaderboard_shop_cta_view', {
+          deficit: userEnergyDiffToNext,
+        });
+      }
     }
     if (userEnergyDiffToNext === 0) {
       hasLoggedShopCtaRef.current = false;
     }
-  }, [userEnergyDiffToNext]);
+  }, [showShopCta, userEnergyDiffToNext]);
 
   const handleShopCtaClick = useCallback(() => {
     void logClientEvent('leaderboard_shop_cta_click', {
@@ -196,9 +223,11 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
               <span className="text-[var(--color-text-secondary)]">
                 До следующего места: {userEnergyDiffDisplay} E
               </span>
-              <Button size="sm" variant="primary" onClick={handleShopCtaClick}>
-                🚀 Усилить меня
-              </Button>
+              {showShopCta && (
+                <Button size="sm" variant="primary" onClick={handleShopCtaClick}>
+                  🚀 Усилить меня
+                </Button>
+              )}
             </div>
           )}
         </Card>
