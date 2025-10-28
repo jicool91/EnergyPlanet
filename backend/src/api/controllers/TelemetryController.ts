@@ -3,6 +3,7 @@ import { AuthRequest } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 import { logEvent } from '../../repositories/EventRepository';
 import { logger } from '../../utils/logger';
+import config from '../../config';
 
 interface ClientEventPayload {
   event: string;
@@ -35,12 +36,32 @@ export class TelemetryController {
         error: '❌',
       }[severity] || '📱';
 
-      logger.info(`${emoji} [CLIENT] ${event}`, {
-        userId,
-        severity,
-        timestamp,
-        ...context,
-      });
+      const shouldLogTelemetryEvent = () => {
+        if (config.server.env !== 'production') {
+          return true;
+        }
+
+        if (severity === 'warn' || severity === 'error') {
+          return true;
+        }
+
+        const rate = config.logging.telemetrySampleRate;
+        if (!rate) {
+          return false;
+        }
+
+        return Math.random() < rate;
+      };
+
+      if (shouldLogTelemetryEvent()) {
+        const level = severity === 'debug' ? 'debug' : severity;
+        logger.log(level, `${emoji} [CLIENT] ${event}`, {
+          userId,
+          severity,
+          timestamp,
+          ...context,
+        });
+      }
 
       // If user is authenticated, also save to database
       if (userId && (req as AuthRequest).user) {

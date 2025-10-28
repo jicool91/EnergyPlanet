@@ -13,6 +13,7 @@ import { tapAggregator } from './services/TapAggregator';
 import { questResetScheduler } from './jobs/QuestResetScheduler';
 import apiRouter from './api/routes';
 import { rateLimiter } from './middleware/rateLimiter';
+import { requestLogger } from './middleware/requestLogger';
 import { register as metricsRegister, metricsEnabled } from './metrics';
 
 const app: Application = express();
@@ -66,24 +67,17 @@ const shouldSampleTickLog = () => {
 };
 
 app.use((req, _res, next) => {
-  if (isTickRequest(req)) {
-    if (shouldSampleTickLog()) {
-      logger.debug('tick_request_sampled', {
-        origin: req.get('origin'),
-        host: req.get('host'),
-        userAgent: req.get('user-agent'),
-      });
-    }
-  } else {
-    logger.info('📨 Incoming request', {
-      method: req.method,
-      path: req.path,
+  if (isTickRequest(req) && shouldSampleTickLog()) {
+    logger.debug('tick_request_sampled', {
       origin: req.get('origin'),
       host: req.get('host'),
+      userAgent: req.get('user-agent'),
     });
   }
   next();
 });
+
+app.use(requestLogger);
 
 if (config.rateLimit.enabled) {
   app.use(config.server.apiPrefix, rateLimiter);

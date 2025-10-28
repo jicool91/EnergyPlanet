@@ -188,10 +188,27 @@ export const config = {
   },
 
   logging: {
-    level: process.env.LOG_LEVEL || 'info',
+    level:
+      process.env.LOG_LEVEL ||
+      (process.env.NODE_ENV === 'production' ? 'warn' : 'debug'),
     format: process.env.LOG_FORMAT || 'json',
     filePath: process.env.LOG_FILE_PATH || './logs/app.log',
     errorFilePath: process.env.LOG_ERROR_FILE_PATH || './logs/error.log',
+    enableFileTransports: process.env.LOG_ENABLE_FILE_TRANSPORTS === 'true',
+    requestSampleRate: (() => {
+      const raw = parseFloat(process.env.LOG_REQUEST_SAMPLE_RATE || '0.01');
+      if (!Number.isFinite(raw)) {
+        return 0;
+      }
+      return Math.min(Math.max(raw, 0), 1);
+    })(),
+    telemetrySampleRate: (() => {
+      const raw = parseFloat(process.env.LOG_TELEMETRY_SAMPLE_RATE || '0.05');
+      if (!Number.isFinite(raw)) {
+        return 0;
+      }
+      return Math.min(Math.max(raw, 0), 1);
+    })(),
     tickSampleRate: (() => {
       const raw = parseFloat(process.env.LOG_TICK_SAMPLE_RATE || '0');
       if (!Number.isFinite(raw)) {
