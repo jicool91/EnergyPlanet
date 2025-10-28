@@ -29,6 +29,7 @@ import { adjustStarsBalance } from '../repositories/ProgressRepository';
 import { addUserCosmetic } from '../repositories/UserCosmeticsRepository';
 import { logEvent } from '../repositories/EventRepository';
 import { findById } from '../repositories/UserRepository';
+import { invalidateProfileCache } from '../cache/invalidation';
 
 export interface ReferralRewardView {
   stars: number;
@@ -201,6 +202,9 @@ class ReferralService {
         { client }
       );
 
+      await invalidateProfileCache(userId);
+      await invalidateProfileCache(codeRecord.userId);
+
       return this.buildSummary(userId, config, client);
     });
   }
@@ -273,6 +277,8 @@ class ReferralService {
         },
         { client }
       );
+
+      await invalidateProfileCache(userId);
 
       return this.buildSummary(userId, config, client);
     });

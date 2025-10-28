@@ -46,6 +46,7 @@ export function ProfilePanel() {
     () => formatCompactNumber(Math.floor(totalEnergyValue)),
     [totalEnergyValue]
   );
+  const referralStats = profile?.referral ?? null;
 
   if (isProfileLoading && !profile) {
     return (
@@ -111,7 +112,33 @@ export function ProfilePanel() {
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">Тап lvl</span>
           <strong className="text-heading">{profile.progress.tap_level}</strong>
         </Card>
+        {referralStats && (
+          <Card className="flex flex-col gap-xs col-span-2 sm:col-span-1">
+            <span className="text-micro uppercase text-[var(--color-text-secondary)]">
+              Приглашено друзей
+            </span>
+            <strong className="text-heading">{referralStats.total_invites}</strong>
+            {referralStats.daily_invites_limit ? (
+              <span className="text-xs text-token-secondary">
+                Сегодня: {referralStats.daily_invites_used}/{referralStats.daily_invites_limit}
+              </span>
+            ) : (
+              <span className="text-xs text-token-secondary">Без лимита сегодня</span>
+            )}
+          </Card>
+        )}
       </section>
+
+      {referralStats?.referred_by && (
+        <Card className="flex flex-col gap-1 text-sm">
+          <span className="text-xs uppercase text-[var(--color-text-secondary)]">
+            Вас пригласил
+          </span>
+          <span className="text-token-primary font-medium">
+            {referralStats.referred_by.username || referralStats.referred_by.first_name || 'Друг'}
+          </span>
+        </Card>
+      )}
 
       {/* Bio Section */}
       {profile.profile.bio && (

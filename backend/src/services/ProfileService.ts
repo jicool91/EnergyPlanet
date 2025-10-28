@@ -6,6 +6,14 @@ import { loadPlayerContext } from './playerContext';
 import { buildBuildingDetails, computePassiveIncome } from './passiveIncome';
 import { calculateLevelProgress } from '../utils/level';
 import { tapEnergyForLevel } from '../utils/tap';
+import { contentService } from './ContentService';
+import {
+  countReferralRelations,
+  countReferralRelationsSince,
+  getReferralRelationByReferred,
+} from '../repositories/ReferralRepository';
+import { findById } from '../repositories/UserRepository';
+import { PoolClient } from 'pg';
 
 interface CachedProfile {
   user: {
@@ -51,6 +59,18 @@ interface CachedProfile {
     expires_at: string;
   }>;
   buildings: ReturnType<typeof buildBuildingDetails>;
+  referral: ReferralSnapshot | null;
+}
+
+interface ReferralSnapshot {
+  total_invites: number;
+  daily_invites_used: number;
+  daily_invites_limit: number;
+  referred_by: {
+    user_id: string;
+    username: string | null;
+    first_name: string | null;
+  } | null;
 }
 
 export class ProfileService {
@@ -62,7 +82,11 @@ export class ProfileService {
       }
     }
 
-    const context = await transaction(client => loadPlayerContext(userId, client));
+    const { context, referral } = await transaction(async client => {
+      const playerContext = await loadPlayerContext(userId, client);
+      const referralData = await this.buildReferralSnapshot(userId, client);
+      return { context: playerContext, referral: referralData };
+    });
 
     const buildingDetails = buildBuildingDetails(context.inventory, context.progress.level);
     const passiveIncome = computePassiveIncome(
@@ -119,6 +143,7 @@ export class ProfileService {
         expires_at: boost.expiresAt.toISOString(),
       })),
       buildings: buildingDetails,
+      referral,
     };
 
     if (config.cache.enabled) {
@@ -126,6 +151,44 @@ export class ProfileService {
     }
 
     return payload;
+  }
+
+  private async buildReferralSnapshot(
+    userId: string,
+    client: PoolClient
+  ): Promise<ReferralSnapshot | null> {
+    const referralConfig = contentService.getReferralConfig();
+    if (!referralConfig) {
+      return null;
+    }
+
+    const now = new Date();
+    const startOfDay = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+
+    const [totalInvites, dailyInvites] = await Promise.all([
+      countReferralRelations(userId, client),
+      countReferralRelationsSince(userId, startOfDay, client),
+    ]);
+
+    const relationAsInvitee = await getReferralRelationByReferred(userId, client);
+    let referredBy: ReferralSnapshot['referred_by'] = null;
+    if (relationAsInvitee) {
+      const refUser = await findById(relationAsInvitee.referrerId, client);
+      if (refUser) {
+        referredBy = {
+          user_id: refUser.id,
+          username: refUser.username,
+          first_name: refUser.firstName,
+        };
+      }
+    }
+
+    return {
+      total_invites: totalInvites,
+      daily_invites_used: dailyInvites,
+      daily_invites_limit: referralConfig.limits?.dailyActivations ?? 0,
+      referred_by: referredBy,
+    };
   }
 }
 

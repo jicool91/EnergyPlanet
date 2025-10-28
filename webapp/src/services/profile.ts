@@ -50,6 +50,16 @@ export interface ProfileResponse {
     level: number;
     incomePerSec: number;
   }>;
+  referral: {
+    total_invites: number;
+    daily_invites_used: number;
+    daily_invites_limit: number;
+    referred_by: {
+      user_id: string;
+      username: string | null;
+      first_name: string | null;
+    } | null;
+  } | null;
 }
 
 export async function fetchProfile(userId: string): Promise<ProfileResponse> {
