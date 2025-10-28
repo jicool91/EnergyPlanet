@@ -57,6 +57,23 @@ function parseRedisFromUrl(urlString: string) {
   }
 }
 
+const rawRuntimeEnv =
+  process.env.APP_ENV ||
+  process.env.NODE_ENV ||
+  (process.env.RAILWAY_ENVIRONMENT_NAME ? 'production' : undefined) ||
+  'development';
+
+const normalizedRuntimeEnv = (() => {
+  const value = rawRuntimeEnv.toLowerCase();
+  if (value === 'prod') {
+    return 'production';
+  }
+  if (value === 'dev') {
+    return 'development';
+  }
+  return value;
+})();
+
 const databaseDefaults = {
   host: process.env.DB_HOST || process.env.PGHOST || 'localhost',
   port: parseInt(process.env.DB_PORT || process.env.PGPORT || '5432', 10),
@@ -85,7 +102,7 @@ const redisFromUrl = parseRedisFromUrl(process.env.REDIS_URL || '');
 
 export const config = {
   server: {
-    env: process.env.NODE_ENV || 'development',
+    env: normalizedRuntimeEnv,
     port: parseInt(process.env.PORT || '3000', 10),
     host: process.env.HOST || '0.0.0.0',
     apiPrefix: process.env.API_PREFIX || '/api/v1',
@@ -180,7 +197,7 @@ export const config = {
 
   rateLimit: {
     enabled:
-      process.env.NODE_ENV === 'test'
+      normalizedRuntimeEnv === 'test'
         ? false
         : process.env.RATE_LIMIT_ENABLED !== 'false',
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
@@ -190,7 +207,7 @@ export const config = {
   logging: {
     level:
       process.env.LOG_LEVEL ||
-      (process.env.NODE_ENV === 'production' ? 'warn' : 'debug'),
+      (normalizedRuntimeEnv === 'production' ? 'warn' : 'debug'),
     format: process.env.LOG_FORMAT || 'json',
     filePath: process.env.LOG_FILE_PATH || './logs/app.log',
     errorFilePath: process.env.LOG_ERROR_FILE_PATH || './logs/error.log',
