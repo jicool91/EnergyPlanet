@@ -11,22 +11,34 @@ const requestContext = new AsyncLocalStorage<RequestContext>();
 
 const isProduction = config.server.env === 'production';
 
+let transport: LoggerOptions['transport'] | undefined;
+
+if (!isProduction) {
+  try {
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    require.resolve('pino-pretty');
+    transport = {
+      target: 'pino-pretty',
+      options: {
+        colorize: true,
+        translateTime: 'SYS:yyyy-mm-dd HH:MM:ss.l',
+        ignore: 'pid,hostname',
+      },
+    };
+  } catch (error) {
+    // В проде dev-зависимости могут отсутствовать — продолжаем без транспорта.
+    // eslint-disable-next-line no-console
+    console.warn('[logger] pino-pretty не найден, используется JSON логирование');
+  }
+}
+
 const options: LoggerOptions = {
   level: config.logging.level,
   base: {
     service: 'energy-planet-backend',
     environment: config.server.env,
   },
-  transport: !isProduction
-    ? {
-        target: 'pino-pretty',
-        options: {
-          colorize: true,
-          translateTime: 'SYS:yyyy-mm-dd HH:MM:ss.l',
-          ignore: 'pid,hostname',
-        },
-      }
-    : undefined,
+  transport,
   hooks: {
     logMethod(args, method) {
       const store = requestContext.getStore();
