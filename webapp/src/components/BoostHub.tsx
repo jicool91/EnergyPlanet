@@ -247,59 +247,79 @@ export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
                     ? 'Активация…'
                     : `Получить ×${item.multiplier.toFixed(1).replace(/\.0$/, '')}`;
 
+            const accentClass = item.requires_premium
+              ? 'from-[rgba(120,63,255,0.35)] to-[rgba(42,12,89,0.85)] border-[rgba(120,63,255,0.45)] shadow-glow-magenta'
+              : item.boost_type === 'ad_boost'
+                ? 'from-[rgba(0,217,255,0.25)] to-[rgba(0,114,255,0.65)] border-[rgba(0,217,255,0.35)] shadow-glow'
+                : 'from-[rgba(0,255,136,0.25)] to-[rgba(0,77,64,0.7)] border-[rgba(0,255,136,0.4)] shadow-glow-lime';
+
             return (
-              <Card key={item.boost_type} className="flex flex-col gap-md">
-                {/* Title + Multiplier */}
-                <div className="flex items-start justify-between gap-sm-plus">
-                  <div>
-                    <h3 className="m-0 text-body font-semibold">{label}</h3>
-                    <p className="m-0 text-caption text-token-secondary">{description}</p>
-                    {item.requires_premium && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          notifyWarning(
-                            'Премиум подписка в разработке. Оставьте заявку в поддержке, чтобы получить ранний доступ.'
-                          )
-                        }
-                        className="mt-2"
-                      >
-                        Узнать о премиуме
-                      </Button>
-                    )}
+              <Card
+                key={item.boost_type}
+                className={`relative overflow-hidden flex flex-col gap-md rounded-2xl border bg-gradient-to-br ${accentClass}`}
+              >
+                <div
+                  className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.18),_transparent_65%)]"
+                  aria-hidden
+                />
+
+                <div className="relative flex flex-col gap-md">
+                  {/* Title + Multiplier */}
+                  <div className="flex items-start justify-between gap-sm-plus">
+                    <div className="flex flex-col gap-xs">
+                      <span className="inline-flex items-center gap-xs rounded-full bg-[rgba(0,0,0,0.22)] px-sm py-xs text-label uppercase text-white/70">
+                        Boost
+                      </span>
+                      <h3 className="m-0 text-title font-bold text-white">{label}</h3>
+                      <p className="m-0 text-body-sm text-white/75">{description}</p>
+                      {item.requires_premium && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            notifyWarning(
+                              'Премиум подписка в разработке. Оставьте заявку в поддержке, чтобы получить ранний доступ.'
+                            )
+                          }
+                          className="mt-2 text-white"
+                        >
+                          Узнать о премиуме
+                        </Button>
+                      )}
+                    </div>
+                    <Badge variant="warning" size="sm">
+                      ×{item.multiplier}
+                    </Badge>
                   </div>
-                  <Badge variant="warning" size="sm">
-                    x{item.multiplier}
-                  </Badge>
-                </div>
 
-                {/* Duration + Cooldown */}
-                <div className="flex gap-md text-caption text-token-secondary">
-                  <span>
-                    Длительность:{' '}
-                    {item.duration_minutes >= 60
-                      ? `${Math.floor(item.duration_minutes / 60)}ч ${item.duration_minutes % 60}м`
-                      : `${item.duration_minutes}м`}
-                  </span>
-                  <span>
-                    Кулдаун:{' '}
-                    {item.cooldown_minutes >= 60
-                      ? `${Math.floor(item.cooldown_minutes / 60)}ч ${item.cooldown_minutes % 60}м`
-                      : `${item.cooldown_minutes}м`}
-                  </span>
-                </div>
+                  {/* Duration + Cooldown */}
+                  <div className="flex flex-wrap gap-md text-body-sm text-white/75">
+                    <span>
+                      Длительность:{' '}
+                      {item.duration_minutes >= 60
+                        ? `${Math.floor(item.duration_minutes / 60)}ч ${item.duration_minutes % 60}м`
+                        : `${item.duration_minutes}м`}
+                    </span>
+                    <span>
+                      Кулдаун:{' '}
+                      {item.cooldown_minutes >= 60
+                        ? `${Math.floor(item.cooldown_minutes / 60)}ч ${item.cooldown_minutes % 60}м`
+                        : `${item.cooldown_minutes}м`}
+                    </span>
+                  </div>
 
-                {/* Action Button */}
-                <Button
-                  variant="primary"
-                  size="md"
-                  loading={isClaimingBoostType === item.boost_type}
-                  onClick={() => handleClaimBoost(item.boost_type)}
-                  disabled={buttonDisabled}
-                >
-                  {buttonLabel}
-                </Button>
+                  {/* Action Button */}
+                  <Button
+                    variant="primary"
+                    size="md"
+                    loading={isClaimingBoostType === item.boost_type}
+                    onClick={() => handleClaimBoost(item.boost_type)}
+                    disabled={buttonDisabled}
+                    className="self-start shadow-elevation-2"
+                  >
+                    {buttonLabel}
+                  </Button>
+                </div>
               </Card>
             );
           })

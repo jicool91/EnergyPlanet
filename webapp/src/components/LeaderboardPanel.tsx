@@ -195,61 +195,84 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
 
       {/* User Rank Progress (if user exists) */}
       {userLeaderboardEntry && (
-        <Card className="bg-gradient-to-r from-cyan/20 to-lime/20 border-cyan/40">
-          <div className="mb-sm-plus flex items-center justify-between gap-sm-plus">
-            <div>
-              <p className="m-0 text-xs uppercase tracking-[0.5px] text-token-secondary">
-                Ваша позиция
-              </p>
-              <p className="m-0 text-sm font-bold">
-                #{userLeaderboardEntry.rank} из {leaderboardTotal}
-              </p>
+        <Card className="relative overflow-hidden rounded-2xl border border-[rgba(0,217,255,0.35)] bg-gradient-to-br from-[rgba(0,26,63,0.9)] via-[rgba(15,30,72,0.88)] to-[rgba(17,58,92,0.92)] shadow-glow">
+          <div
+            className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(0,217,255,0.24),_transparent_60%)]"
+            aria-hidden
+          />
+          <div className="relative flex flex-col gap-md">
+            <div className="flex flex-wrap items-start justify-between gap-sm-plus">
+              <div className="flex flex-col gap-xs">
+                <span className="inline-flex items-center gap-xs rounded-full bg-[rgba(0,0,0,0.22)] px-sm py-xs text-label uppercase text-white/70">
+                  Ваша позиция
+                </span>
+                <h3 className="m-0 text-title font-bold text-white">
+                  #{userLeaderboardEntry.rank} из {leaderboardTotal}
+                </h3>
+                <p className="m-0 text-body-sm text-white/75">
+                  {userEnergyDiffDisplay
+                    ? `До следующего места осталось ${userEnergyDiffDisplay} E`
+                    : 'Вы на вершине рейтинга — так держать!'}
+                </p>
+              </div>
+              <div className="text-right">
+                <span className="block text-label uppercase text-white/60">Top</span>
+                <span className="block text-heading font-bold text-white">
+                  {Math.round(userRankProgress)}%
+                </span>
+              </div>
             </div>
-            <div className="text-right">
-              <p className="m-0 text-xs text-token-secondary">Top</p>
-              <p className="m-0 text-sm font-bold text-lime">{Math.round(userRankProgress)}%</p>
+
+            <div className="flex flex-col gap-sm">
+              <div className="h-3 rounded-full bg-[rgba(255,255,255,0.12)] shadow-inner">
+                <motion.div
+                  className="h-full rounded-full bg-gradient-to-r from-[var(--color-cyan)] via-[var(--color-success)] to-[var(--color-gold)] shadow-glow"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.max(6, userRankProgress)}%` }}
+                  transition={{ duration: 0.8, ease: 'easeOut' }}
+                />
+              </div>
+              <div className="flex flex-wrap items-center justify-between gap-sm text-body-sm text-white/75">
+                <span>Всего игроков: {leaderboardTotal.toLocaleString()}</span>
+                <span>Текущая энергия: {userLeaderboardRow?.energyDisplay}</span>
+              </div>
             </div>
-          </div>
-          {/* Progress bar */}
-          <div className="w-full h-2 rounded-full bg-token-track overflow-hidden">
-            <motion.div
-              className="h-full bg-gradient-to-r from-cyan to-lime"
-              initial={{ width: 0 }}
-              animate={{ width: `${userRankProgress}%` }}
-              transition={{ duration: 0.8, ease: 'easeOut' }}
-            />
-          </div>
-          {userEnergyDiffDisplay && (
-            <div className="mt-sm flex flex-wrap items-center justify-between gap-sm-plus text-caption">
-              <span className="text-[var(--color-text-secondary)]">
-                До следующего места: {userEnergyDiffDisplay} E
-              </span>
-              {showShopCta && (
-                <Button size="sm" variant="primary" onClick={handleShopCtaClick}>
+
+            {showShopCta && (
+              <div className="flex flex-wrap items-center justify-between gap-sm">
+                <span className="text-body-sm text-white/70">
+                  Усилитесь, чтобы обойти соперников
+                </span>
+                <Button
+                  size="sm"
+                  variant="primary"
+                  className="shadow-glow"
+                  onClick={handleShopCtaClick}
+                >
                   🚀 Усилить меня
                 </Button>
-              )}
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </Card>
       )}
 
       {/* Table Container */}
-      <Card className="overflow-hidden p-0">
+      <Card className="overflow-hidden rounded-2xl border border-[rgba(0,217,255,0.2)] bg-[rgba(12,16,45,0.85)] shadow-elevation-2 p-0">
         <div className="hidden sm:block overflow-x-auto">
-          <table className="w-full min-w-[540px] border-collapse text-caption">
+          <table className="w-full min-w-[540px] border-collapse text-body-sm text-white/75">
             <thead>
               <tr>
-                <th className="px-sm-plus py-sm-plus text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
+                <th className="px-md py-sm-plus text-left border-b border-[rgba(255,255,255,0.08)] font-semibold text-white/60 text-label">
                   #
                 </th>
-                <th className="px-sm-plus py-sm-plus text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
+                <th className="px-md py-sm-plus text-left border-b border-[rgba(255,255,255,0.08)] font-semibold text-white/60 text-label">
                   Игрок
                 </th>
-                <th className="px-sm-plus py-sm-plus text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
+                <th className="px-md py-sm-plus text-left border-b border-[rgba(255,255,255,0.08)] font-semibold text-white/60 text-label">
                   Уровень
                 </th>
-                <th className="px-sm-plus py-sm-plus text-left border-b border-token-muted font-semibold text-token-secondary text-xs uppercase">
+                <th className="px-md py-sm-plus text-left border-b border-[rgba(255,255,255,0.08)] font-semibold text-white/60 text-label">
                   Энергия
                 </th>
               </tr>
@@ -263,13 +286,13 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                   <motion.tr
                     key={entry.user_id}
                     initial={false}
-                    animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
-                    className={`border-b border-token-muted hover:bg-cyan/[0.08] transition-colors ${
-                      isCurrentUser ? 'bg-cyan/[0.15] font-semibold' : ''
+                    animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.18)' } : {}}
+                    className={`border-b border-[rgba(255,255,255,0.05)] hover:bg-[rgba(0,217,255,0.08)] transition-colors ${
+                      isCurrentUser ? 'bg-[rgba(0,217,255,0.12)] font-semibold text-white' : ''
                     }`}
                   >
                     {/* Rank with Medal */}
-                    <td className="px-sm-plus py-sm-plus text-center">
+                    <td className="px-md py-sm-plus text-center text-[var(--color-text-primary)]">
                       <div className="flex items-center justify-center gap-xs">
                         {medal && (
                           <span className="text-lg" role="img" aria-label={medal.label}>
@@ -281,16 +304,20 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                     </td>
 
                     {/* Player Name */}
-                    <td className="px-sm-plus py-sm-plus text-left">
+                    <td className="px-md py-sm-plus text-left">
                       <div className="flex items-center gap-sm">
                         <div className="flex flex-col gap-[2px] flex-1">
                           <span
-                            className={`font-semibold ${isCurrentUser ? 'text-cyan' : 'text-token-primary'}`}
+                            className={`font-semibold ${
+                              isCurrentUser
+                                ? 'text-[var(--color-cyan)]'
+                                : 'text-[var(--color-text-primary)]'
+                            }`}
                           >
                             {entry.username || entry.first_name || 'Игрок'}
                             {isCurrentUser && ' ⭐'}
                           </span>
-                          <span className="text-micro text-[var(--color-text-secondary)]">
+                          <span className="text-micro text-white/60">
                             #{entry.user_id.slice(0, 6)}
                           </span>
                         </div>
@@ -298,15 +325,17 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                     </td>
 
                     {/* Level */}
-                    <td className="px-sm-plus py-sm-plus text-left font-semibold">{entry.level}</td>
+                    <td className="px-md py-sm-plus text-left font-semibold text-[var(--color-text-primary)]">
+                      {entry.level}
+                    </td>
 
                     {/* Energy + Diff */}
-                    <td className="px-sm-plus py-sm-plus text-left">
-                      <div className="flex flex-col gap-[2px]">
+                    <td className="px-md py-sm-plus text-left">
+                      <div className="flex flex-col gap-[2px] text-[var(--color-text-primary)]">
                         <span className="font-semibold">{entry.energyDisplay}</span>
                         {entry.energyDiffDisplay && (
-                          <span className="text-micro text-[var(--color-text-secondary)]">
-                            -{entry.energyDiffDisplay}
+                          <span className="text-micro text-white/60">
+                            До следующего: {entry.energyDiffDisplay}
                           </span>
                         )}
                       </div>
@@ -327,8 +356,10 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                 key={entry.user_id}
                 initial={false}
                 animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
-                className={`rounded-lg border border-token-muted backdrop-blur-sm px-md py-sm-plus flex flex-col gap-sm transition-colors max-[360px]:px-sm-plus max-[320px]:px-xs ${
-                  isCurrentUser ? 'bg-cyan/15 border-cyan/40' : 'bg-token-surface'
+                className={`rounded-xl border border-[rgba(255,255,255,0.12)] backdrop-blur-sm px-md py-sm-plus flex flex-col gap-sm transition-colors max-[360px]:px-sm-plus max-[320px]:px-xs ${
+                  isCurrentUser
+                    ? 'bg-[rgba(0,217,255,0.18)] text-white'
+                    : 'bg-[rgba(12,16,45,0.85)] text-white/80'
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-sm">
@@ -341,27 +372,27 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                     <div className="flex flex-col leading-tight">
                       <span
                         className={`font-semibold ${
-                          isCurrentUser ? 'text-cyan' : 'text-token-primary'
+                          isCurrentUser ? 'text-[var(--color-cyan)]' : 'text-white'
                         } max-[360px]:text-sm max-[320px]:text-xs`}
                       >
                         #{entry.rank} {entry.username || entry.first_name || 'Игрок'}
                       </span>
-                      <span className="text-micro text-[var(--color-text-secondary)]">
+                      <span className="text-micro text-white/60">
                         ID {entry.user_id.slice(0, 6)}
                       </span>
                     </div>
                   </div>
-                  <span className="text-heading font-semibold max-[360px]:text-base">
+                  <span className="text-title font-semibold max-[360px]:text-base text-white">
                     {entry.level}
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-xs text-sm text-token-secondary max-[360px]:text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-xs text-body-sm text-white/75 max-[360px]:text-xs">
                   <span>Энергия</span>
-                  <span className="font-medium text-token-primary">{entry.energyDisplay}</span>
+                  <span className="font-medium text-white">{entry.energyDisplay}</span>
                 </div>
                 {entry.energyDiffDisplay && (
-                  <div className="text-caption text-[var(--color-text-secondary)] max-[360px]:text-[10px]">
-                    До следующего: -{entry.energyDiffDisplay}
+                  <div className="text-micro text-white/60">
+                    До следующего: {entry.energyDiffDisplay}
                   </div>
                 )}
               </motion.div>

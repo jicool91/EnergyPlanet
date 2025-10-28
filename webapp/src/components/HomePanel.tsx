@@ -564,36 +564,65 @@ function QuestRow({ quest, onClaim, claiming }: QuestRowProps) {
   if (quest.stars > 0) rewardParts.push(`⭐ ${quest.stars}`);
   if (quest.energy > 0) rewardParts.push(`⚡ ${formatNumberWithSpaces(quest.energy)}`);
   if (quest.xp > 0) rewardParts.push(`XP ${formatNumberWithSpaces(quest.xp)}`);
+  const accentClass =
+    quest.type === 'daily'
+      ? 'from-[rgba(0,217,255,0.2)] to-[rgba(0,77,153,0.65)] border-[rgba(0,217,255,0.3)] shadow-glow'
+      : 'from-[rgba(255,163,255,0.22)] to-[rgba(80,34,120,0.7)] border-[rgba(255,163,255,0.35)] shadow-glow-magenta';
 
   return (
-    <div className="rounded-md border border-[var(--color-border-subtle)] bg-[var(--app-surface)] p-sm flex flex-col gap-xs">
-      <div className="flex items-start justify-between gap-sm">
-        <div>
-          <p className="m-0 text-sm font-semibold text-[var(--color-text-primary)]">
-            {quest.title}
-          </p>
+    <div
+      className={`relative overflow-hidden rounded-2xl border bg-gradient-to-br ${accentClass} px-md py-sm-plus flex flex-col gap-sm`}
+    >
+      <div
+        className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.16),_transparent_65%)]"
+        aria-hidden
+      />
+      <div className="relative flex items-start justify-between gap-sm">
+        <div className="flex flex-col gap-xs">
+          <span className="inline-flex items-center gap-xs rounded-full bg-[rgba(0,0,0,0.25)] px-sm py-xs text-label uppercase text-white/70">
+            {quest.type === 'daily' ? 'Ежедневное задание' : 'Еженедельное задание'}
+          </span>
+          <p className="m-0 text-body font-semibold text-white">{quest.title}</p>
           {quest.description && (
-            <p className="m-0 text-xs text-[var(--color-text-secondary)]">{quest.description}</p>
+            <p className="m-0 text-body-sm text-white/75">{quest.description}</p>
           )}
-          <p className="m-0 mt-xs text-[10px] uppercase tracking-[0.3px] text-[var(--color-text-tertiary)]">
-            До {quest.type === 'daily' ? 'конца дня' : 'понедельника'} · {expiresLabel}
+          <p className="m-0 text-micro uppercase tracking-[0.3px] text-white/55">
+            Дедлайн: {quest.type === 'daily' ? 'конец дня' : 'понедельник'} · {expiresLabel}
           </p>
         </div>
-        {quest.status === 'ready' && (
-          <Button size="sm" variant="primary" onClick={() => onClaim(quest.id)} loading={claiming}>
-            Забрать
-          </Button>
-        )}
+        <div className="flex flex-col items-end gap-xs min-w-[120px]">
+          <span className="text-label uppercase text-white/60">Прогресс</span>
+          <span className="text-title font-semibold text-white">{progressPercent}%</span>
+          {quest.status === 'ready' ? (
+            <Button
+              size="sm"
+              variant="primary"
+              className="shadow-glow"
+              onClick={() => onClaim(quest.id)}
+              loading={claiming}
+            >
+              Забрать
+            </Button>
+          ) : (
+            <span className="text-micro uppercase text-white/50">
+              {remaining > 0
+                ? `Осталось ${formatNumberWithSpaces(Math.floor(remaining))}`
+                : quest.status === 'claimed'
+                  ? 'Получено'
+                  : 'В процессе'}
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="flex flex-col gap-xs">
-        <div className="w-full h-2 rounded-full bg-[var(--color-border-subtle)] overflow-hidden">
+      <div className="relative flex flex-col gap-xs">
+        <div className="h-3 rounded-full bg-[rgba(255,255,255,0.18)] shadow-inner overflow-hidden">
           <div
-            className="h-full bg-gradient-to-r from-cyan to-lime"
-            style={{ width: `${Math.max(progressPercent, 2)}%` }}
+            className="h-full rounded-full bg-gradient-to-r from-[var(--color-cyan)] via-[var(--color-success)] to-[var(--color-gold)]"
+            style={{ width: `${Math.max(progressPercent, 4)}%` }}
           />
         </div>
-        <div className="flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
+        <div className="flex items-center justify-between text-body-sm text-white/75">
           <span>
             {formatNumberWithSpaces(Math.floor(quest.progress))} /{' '}
             {formatNumberWithSpaces(Math.floor(quest.target))}
@@ -602,10 +631,17 @@ function QuestRow({ quest, onClaim, claiming }: QuestRowProps) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-xs text-[10px] uppercase tracking-[0.3px] text-[var(--color-text-tertiary)]">
-        <span>{quest.type === 'daily' ? 'Ежедневное' : 'Еженедельное'}</span>
+      <div className="relative flex flex-wrap items-center gap-sm text-micro uppercase tracking-[0.3px] text-white/60">
+        <span>{quest.type === 'daily' ? 'Daily' : 'Weekly'}</span>
         {rewardParts.length > 0 && <span>· Награда: {rewardParts.join(' + ')}</span>}
-        {quest.status === 'claimed' && <span>· Получено</span>}
+        <span>
+          · Статус:{' '}
+          {quest.status === 'claimed'
+            ? 'Получено'
+            : quest.status === 'ready'
+              ? 'Готово'
+              : 'Активно'}
+        </span>
       </div>
     </div>
   );
