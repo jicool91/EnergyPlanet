@@ -31,19 +31,25 @@ export class PurchaseService {
       const existing = await findByPurchaseId(input.purchaseId, client);
       if (existing) {
         if (existing.userId !== userId) {
-          logger.warn('purchase_invoice_user_mismatch', {
-            userId,
-            existing_user_id: existing.userId,
-            purchase_id: existing.purchaseId,
-          });
+          logger.warn(
+            {
+              userId,
+              existing_user_id: existing.userId,
+              purchase_id: existing.purchaseId,
+            },
+            'purchase_invoice_user_mismatch'
+          );
           throw new AppError(409, 'purchase_conflict');
         }
 
-        logger.info('purchase_invoice_reused', {
-          userId,
-          purchase_id: existing.purchaseId,
-          status: existing.status,
-        });
+        logger.info(
+          {
+            userId,
+            purchase_id: existing.purchaseId,
+            status: existing.status,
+          },
+          'purchase_invoice_reused'
+        );
         return existing;
       }
 
@@ -57,13 +63,16 @@ export class PurchaseService {
         { client }
       );
 
-      logger.info('purchase_invoice_created', {
-        userId,
-        purchase_id: pending.purchaseId,
-        item_id: pending.itemId,
-        price_stars: pending.priceStars,
-        purchase_type: pending.purchaseType,
-      });
+      logger.info(
+        {
+          userId,
+          purchase_id: pending.purchaseId,
+          item_id: pending.itemId,
+          price_stars: pending.priceStars,
+          purchase_type: pending.purchaseType,
+        },
+        'purchase_invoice_created'
+      );
 
       await logEvent(
         userId,
@@ -90,21 +99,27 @@ export class PurchaseService {
       const existing = await findByPurchaseId(input.purchaseId, client);
       if (existing) {
         if (existing.userId !== userId) {
-          logger.warn('purchase_user_mismatch', {
-            userId,
-            existing_user_id: existing.userId,
-            purchase_id: existing.purchaseId,
-          });
+          logger.warn(
+            {
+              userId,
+              existing_user_id: existing.userId,
+              purchase_id: existing.purchaseId,
+            },
+            'purchase_user_mismatch'
+          );
           throw new AppError(409, 'purchase_conflict');
         }
 
         if (existing.status === 'succeeded') {
-          logger.info('purchase_succeeded_idempotent', {
-            userId,
-            purchase_id: existing.purchaseId,
-            item_id: existing.itemId,
-            purchase_type: existing.purchaseType,
-          });
+          logger.info(
+            {
+              userId,
+              purchase_id: existing.purchaseId,
+              item_id: existing.itemId,
+              purchase_type: existing.purchaseType,
+            },
+            'purchase_succeeded_idempotent'
+          );
           return existing;
         }
 
@@ -120,7 +135,7 @@ export class PurchaseService {
           metadata: input.metadata ?? {},
         };
 
-        logger.info('purchase_succeeded', { userId, ...payload });
+        logger.info({ userId, ...payload }, 'purchase_succeeded');
 
         await logEvent(userId, 'purchase_succeeded', payload, { client });
 
@@ -149,7 +164,7 @@ export class PurchaseService {
         metadata: input.metadata ?? {},
       };
 
-      logger.info('purchase_succeeded', { userId, ...payload });
+      logger.info({ userId, ...payload }, 'purchase_succeeded');
 
       await logEvent(userId, 'purchase_succeeded', payload, { client });
 
@@ -202,12 +217,15 @@ export class PurchaseService {
     const { baseStars, bonusStars, totalStars } = this.resolveStarPackCredit(input);
 
     if (!totalStars || totalStars <= 0) {
-      logger.warn('stars_pack_credit_skip', {
-        userId,
-        purchase_id: input.purchaseId,
-        item_id: input.itemId,
-        price_stars: input.priceStars,
-      });
+      logger.warn(
+        {
+          userId,
+          purchase_id: input.purchaseId,
+          item_id: input.itemId,
+          price_stars: input.priceStars,
+        },
+        'stars_pack_credit_skip'
+      );
       return;
     }
 
@@ -247,7 +265,7 @@ export class PurchaseService {
         previous_status: existing.status,
       };
 
-      logger.warn('purchase_failed', { userId: updated.userId, ...payload });
+      logger.warn({ userId: updated.userId, ...payload }, 'purchase_failed');
 
       await logEvent(updated.userId, 'purchase_failed', payload, { client });
 

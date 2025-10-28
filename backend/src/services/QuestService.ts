@@ -71,7 +71,7 @@ function resolveMetric(def: QuestDefinition, context: Awaited<ReturnType<typeof 
         )
       );
     default:
-      logger.warn('QuestService: unknown metric, defaulting to zero', { metric });
+      logger.warn({ metric }, 'quest_metric_unknown');
       return 0;
   }
 }
@@ -196,11 +196,14 @@ class QuestService {
         { client }
       );
 
-      logger.info('Quest reward granted', {
-        userId,
-        questId,
-        reward,
-      });
+      logger.info(
+        {
+          userId,
+          questId,
+          reward,
+        },
+        'quest_reward_granted'
+      );
 
       return this.toView(updated);
     });

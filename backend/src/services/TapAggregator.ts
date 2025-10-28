@@ -50,9 +50,12 @@ export class TapAggregator {
 
     this.intervalHandle = setInterval(() => {
       this.flushPending().catch(error => {
-        logger.error('TapAggregator periodic flush failed', {
-          error: error instanceof Error ? error.message : String(error),
-        });
+        logger.error(
+          {
+            error: error instanceof Error ? error.message : String(error),
+          },
+          'tap_aggregator_periodic_flush_failed'
+        );
       });
     }, this.flushIntervalMs);
   }
@@ -102,10 +105,13 @@ export class TapAggregator {
 
     if (tapCount >= this.flushThreshold) {
       this.flushUser(userId).catch(error => {
-        logger.error('TapAggregator threshold flush failed', {
-          userId,
-          error: error instanceof Error ? error.message : String(error),
-        });
+        logger.error(
+          {
+            userId,
+            error: error instanceof Error ? error.message : String(error),
+          },
+          'tap_aggregator_threshold_flush_failed'
+        );
       });
     }
 
@@ -146,10 +152,13 @@ export class TapAggregator {
     await Promise.all(
       pendingUsers.map(userId =>
         this.flushUser(userId).catch(error => {
-          logger.error('TapAggregator flush failed', {
-            userId,
-            error: error instanceof Error ? error.message : String(error),
-          });
+          logger.error(
+            {
+              userId,
+              error: error instanceof Error ? error.message : String(error),
+            },
+            'tap_aggregator_flush_failed'
+          );
         })
       )
     );
@@ -200,7 +209,7 @@ export class TapAggregator {
       await transaction(async client => {
         const progress = await getProgress(userId, client);
         if (!progress) {
-          logger.warn('TapAggregator flush skipped: progress missing', { userId });
+          logger.warn({ userId }, 'tap_aggregator_progress_missing');
           return;
         }
 
@@ -240,7 +249,7 @@ export class TapAggregator {
           leveled_up: leveledUp,
         };
 
-        logger.info('tap_batch_processed', { userId, ...payload });
+        logger.info({ userId, ...payload }, 'tap_batch_processed');
 
         await logEvent(userId, 'tap_batch_processed', payload, { client });
       });

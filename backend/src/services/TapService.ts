@@ -39,14 +39,19 @@ export class TapService {
           minute_total: minuteCount,
         };
         await logEvent(userId, 'tap_rate_limit', payload, { suspicious: true });
-        logger.warn('Tap rate limit triggered', { userId, ...payload });
+        logger.warn({ userId, ...payload }, 'tap_rate_limit_triggered');
         throw new AppError(429, 'tap_rate_limited');
       }
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
       }
-      logger.warn('Tap rate limit degraded, redis unavailable', { error });
+      logger.warn(
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'tap_rate_limit_degraded'
+      );
     }
   }
 

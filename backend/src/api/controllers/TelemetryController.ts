@@ -28,14 +28,6 @@ export class TelemetryController {
       // Get userId if authenticated, otherwise use null
       const userId = (req as AuthRequest).user?.id || null;
 
-      // Log to Winston with prominent emoji prefixes for client logs
-      const emoji = {
-        debug: '🔍',
-        info: 'ℹ️',
-        warn: '⚠️',
-        error: '❌',
-      }[severity] || '📱';
-
       const shouldLogTelemetryEvent = () => {
         if (config.server.env !== 'production') {
           return true;
@@ -54,13 +46,14 @@ export class TelemetryController {
       };
 
       if (shouldLogTelemetryEvent()) {
-        const level = severity === 'debug' ? 'debug' : severity;
-        logger.log(level, `${emoji} [CLIENT] ${event}`, {
+        const level: 'debug' | 'info' | 'warn' | 'error' =
+          severity === 'debug' ? 'debug' : severity;
+        logger[level]({
           userId,
           severity,
           timestamp,
           ...context,
-        });
+        }, 'client_event');
       }
 
       // If user is authenticated, also save to database
@@ -72,10 +65,13 @@ export class TelemetryController {
           timestamp,
         };
         await logEvent(userId, event, payload).catch(dbError => {
-          logger.warn('Failed to save client event to database', {
-            event,
-            error: dbError instanceof Error ? dbError.message : 'unknown',
-          });
+          logger.warn(
+            {
+              event,
+              error: dbError instanceof Error ? dbError.message : 'unknown',
+            },
+            'client_event_persist_failed'
+          );
         });
       }
 

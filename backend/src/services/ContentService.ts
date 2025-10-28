@@ -194,10 +194,13 @@ class ContentService {
 
   async load() {
     try {
-      logger.info('ContentService: Starting to load game content', {
-        contentPath: config.content.path,
-        __dirname: __dirname,
-      });
+      logger.info(
+        {
+          contentPath: config.content.path,
+          dirname: __dirname,
+        },
+        'content_loading_started'
+      );
 
       await Promise.all([
         this.loadBuildings().catch(error => this.handleLoadError('buildings', error)),
@@ -209,30 +212,43 @@ class ContentService {
         this.loadReferrals().catch(error => this.handleLoadError('referrals', error)),
       ]);
 
-      logger.info('Content loaded successfully', {
-        buildings: this.buildings.length,
-        cosmetics: this.cosmetics.length,
-        season: this.season?.season.name,
-        dailyQuests: this.questDefinitions.daily.length,
-        weeklyQuests: this.questDefinitions.weekly.length,
-        starPacks: this.starPacks.length,
-        referralMilestones: this.referralConfig?.milestones.length ?? 0,
-      });
+      logger.info(
+        {
+          buildings: this.buildings.length,
+          cosmetics: this.cosmetics.length,
+          season: this.season?.season.name,
+          dailyQuests: this.questDefinitions.daily.length,
+          weeklyQuests: this.questDefinitions.weekly.length,
+          starPacks: this.starPacks.length,
+          referralMilestones: this.referralConfig?.milestones.length ?? 0,
+        },
+        'content_loaded'
+      );
     } catch (error) {
-      logger.warn('Content loading completed with errors (this is OK for MVP)', {
-        error: error instanceof Error ? error.message : String(error),
-      });
+      logger.warn(
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'content_loaded_with_errors'
+      );
       // Don't throw - allow app to start even if content is missing
       // This handles Railway deployments where content might be in different location
     }
   }
 
   private handleLoadError(contentType: string, error: unknown) {
-    logger.warn(`Failed to load ${contentType}`, {
-      error: error instanceof Error ? error.message : String(error),
-      code: typeof error === 'object' && error !== null && 'code' in error ? (error as { code?: string }).code : undefined,
-      path: config.content.path,
-    });
+    logger.warn(
+      {
+        error: error instanceof Error ? error.message : String(error),
+        code:
+          typeof error === 'object' && error !== null && 'code' in error
+            ? (error as { code?: string }).code
+            : undefined,
+        path: config.content.path,
+        contentType,
+      },
+      'content_load_failed'
+    );
     // Silently continue - defaults will be used
   }
 

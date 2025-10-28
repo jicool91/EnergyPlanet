@@ -39,24 +39,32 @@ export async function connectDatabase(): Promise<Pool> {
 
   pool = new Pool(poolConfig);
 
-  pool.on('connect', () => {
-    logger.info('✅ PostgreSQL: Новое подключение к пулу');
-  });
-
   pool.on('error', err => {
-    logger.error('❌ PostgreSQL: Ошибка пула подключений', {
-      error: err instanceof Error ? err.message : String(err),
-    });
+    logger.error(
+      {
+        error: err instanceof Error ? err.message : String(err),
+      },
+      'postgres_pool_error'
+    );
   });
 
   // Test connection
   try {
     const result = await pool.query('SELECT NOW() as current_time');
-    logger.info('✅ PostgreSQL: Подключение установлено', result.rows[0]);
+    logger.info(
+      {
+        currentTime: result.rows[0]?.current_time,
+        pool: { min: poolConfig.min, max: poolConfig.max },
+      },
+      'postgres_connection_ready'
+    );
   } catch (err) {
-    logger.error('❌ PostgreSQL: Не удалось подключиться к БД', {
-      error: err instanceof Error ? err.message : String(err),
-    });
+    logger.error(
+      {
+        error: err instanceof Error ? err.message : String(err),
+      },
+      'postgres_connection_failed'
+    );
     throw err;
   }
 
@@ -74,7 +82,7 @@ export async function closeDatabase(): Promise<void> {
   if (pool) {
     await pool.end();
     pool = null;
-    logger.info('🔌 PostgreSQL: Все подключения закрыты');
+    logger.info({}, 'postgres_pool_closed');
   }
 }
 
@@ -92,16 +100,27 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
     const result = await db.query<T>(text, params);
     const duration = Date.now() - start;
 
-    if (config.logging.level === 'debug') {
-      logger.debug('🔍 DB Query', { text, duration, rows: result.rowCount });
+    if (duration >= config.logging.slowQueryThresholdMs) {
+      logger.warn(
+        {
+          text,
+          duration,
+          rows: result.rowCount,
+          thresholdMs: config.logging.slowQueryThresholdMs,
+        },
+        'postgres_slow_query'
+      );
     }
 
     return result;
   } catch (error) {
-    logger.error('❌ DB Query Error', {
-      text,
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error(
+      {
+        text,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      'postgres_query_failed'
+    );
     throw error;
   }
 }
@@ -123,9 +142,12 @@ export async function transaction<T>(
     return result;
   } catch (error) {
     await client.query('ROLLBACK');
-    logger.error('❌ Transaction Error', {
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+      'postgres_transaction_failed'
+    );
     throw error;
   } finally {
     client.release();
@@ -140,9 +162,12 @@ export async function healthCheck(): Promise<boolean> {
     const result = await query('SELECT 1 as health');
     return result.rows[0].health === 1;
   } catch (error) {
-    logger.error('❌ DB Health check failed', {
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+      'postgres_healthcheck_failed'
+    );
     return false;
   }
 }

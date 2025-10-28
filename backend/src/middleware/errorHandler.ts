@@ -24,12 +24,16 @@ export const errorHandler = (
   _next: NextFunction
 ) => {
   if (err instanceof AppError) {
-    logger.error(`AppError: ${err.message}`, {
-      statusCode: err.statusCode,
-      path: req.path,
-      method: req.method,
-      userId: req.user?.id,
-    });
+    logger.warn(
+      {
+        statusCode: err.statusCode,
+        path: req.path,
+        method: req.method,
+        userId: req.user?.id,
+        message: err.message,
+      },
+      'app_error'
+    );
 
     return res.status(err.statusCode).json({
       error: err.message,
@@ -38,12 +42,15 @@ export const errorHandler = (
   }
 
   // Unknown error
-  logger.error('Unexpected error', {
-    error: err.message,
-    stack: err.stack,
-    path: req.path,
-    method: req.method,
-  });
+  logger.error(
+    {
+      error: err.message,
+      stack: err.stack,
+      path: req.path,
+      method: req.method,
+    },
+    'unexpected_error'
+  );
 
   return res.status(500).json({
     error: 'internal_server_error',

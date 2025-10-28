@@ -19,7 +19,7 @@ export class QuestResetScheduler {
       return;
     }
 
-    logger.info('Quest reset scheduler starting', { intervalMs: this.intervalMs });
+    logger.info({ intervalMs: this.intervalMs }, 'quest_reset_scheduler_started');
 
     // fire-and-forget tick on boot
     void this.tick();
@@ -35,7 +35,7 @@ export class QuestResetScheduler {
     }
     clearInterval(this.intervalHandle);
     this.intervalHandle = null;
-    logger.info('Quest reset scheduler stopped');
+    logger.info({}, 'quest_reset_scheduler_stopped');
   }
 
   private async tick(now = new Date()): Promise<void> {
@@ -70,15 +70,21 @@ export class QuestResetScheduler {
       const weekly = row?.weekly_reset ? Number(row.weekly_reset) : 0;
 
       if (daily > 0 || weekly > 0) {
-        logger.info('Quest reset scheduler tick completed', {
-          dailyResets: daily,
-          weeklyResets: weekly,
-        });
+        logger.info(
+          {
+            dailyResets: daily,
+            weeklyResets: weekly,
+          },
+          'quest_reset_scheduler_tick'
+        );
       }
     } catch (error) {
-      logger.error('Quest reset scheduler tick failed', {
-        error: error instanceof Error ? error.message : error,
-      });
+      logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'quest_reset_scheduler_failed'
+      );
     }
   }
 }

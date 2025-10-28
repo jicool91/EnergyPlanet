@@ -151,20 +151,23 @@ export class TickService {
         energyGained: result.energyGained,
       });
 
-      logger.debug('tick_applied', {
-        userId,
-        duration_sec: result.accountedSeconds,
-        available_sec: result.availableSeconds,
-        carried_over_sec: result.carriedSeconds,
-        passive_income_per_sec: Math.round(result.passiveIncome.effectiveIncome),
-        energy_gained: result.energyGained,
-        xp_gained: result.xpGained,
-        level_before: result.previousLevel,
-        level_after: result.updatedProgress.level,
-        total_xp: result.totalXp,
-        xp_into_level: result.levelInfo.xpIntoLevel,
-        xp_to_next_level: result.levelInfo.xpToNextLevel,
-      });
+      logger.debug(
+        {
+          userId,
+          duration_sec: result.accountedSeconds,
+          available_sec: result.availableSeconds,
+          carried_over_sec: result.carriedSeconds,
+          passive_income_per_sec: Math.round(result.passiveIncome.effectiveIncome),
+          energy_gained: result.energyGained,
+          xp_gained: result.xpGained,
+          level_before: result.previousLevel,
+          level_after: result.updatedProgress.level,
+          total_xp: result.totalXp,
+          xp_into_level: result.levelInfo.xpIntoLevel,
+          xp_to_next_level: result.levelInfo.xpToNextLevel,
+        },
+        'tick_applied'
+      );
 
       return {
         energy: result.updatedProgress.energy,

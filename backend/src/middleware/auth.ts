@@ -70,45 +70,60 @@ const tryAuthenticateWithBearer = (req: AuthRequest, header: string | null): boo
 
   const token = header.trim().substring(7);
   if (!token) {
-    logger.warn('auth_missing_header', {
-      path: req.path,
-      origin: req.headers.origin,
-      ip: req.ip,
-    });
+    logger.warn(
+      {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+      },
+      'auth_missing_header'
+    );
     throw new AppError(401, 'unauthorized');
   }
 
   try {
     const decoded = jwt.verify(token, config.jwt.secret);
     if (!isAccessTokenPayload(decoded)) {
-      logger.warn('auth_invalid_payload', {
-        path: req.path,
-        origin: req.headers.origin,
-        ip: req.ip,
-      });
+      logger.warn(
+        {
+          path: req.path,
+          origin: req.headers.origin,
+          ip: req.ip,
+        },
+        'auth_invalid_payload'
+      );
       throw new AppError(401, 'invalid_token');
     }
     setUserFromDecodedToken(req, decoded);
     return true;
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      logger.warn('auth_token_expired', { path: req.path, origin: req.headers.origin, ip: req.ip });
+      logger.warn(
+        { path: req.path, origin: req.headers.origin, ip: req.ip },
+        'auth_token_expired'
+      );
       throw new AppError(401, 'token_expired');
     } else if (error instanceof jwt.JsonWebTokenError) {
-      logger.warn('auth_invalid_token', {
-        path: req.path,
-        origin: req.headers.origin,
-        ip: req.ip,
-        message: error.message,
-      });
+      logger.warn(
+        {
+          path: req.path,
+          origin: req.headers.origin,
+          ip: req.ip,
+          message: error.message,
+        },
+        'auth_invalid_token'
+      );
       throw new AppError(401, 'invalid_token');
     } else {
-      logger.error('auth_unexpected_error', {
-        path: req.path,
-        origin: req.headers.origin,
-        ip: req.ip,
-        error: error instanceof Error ? error.message : String(error),
-      });
+      logger.error(
+        {
+          path: req.path,
+          origin: req.headers.origin,
+          ip: req.ip,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'auth_unexpected_error'
+      );
       throw error;
     }
   }
@@ -119,11 +134,14 @@ export const authenticate = (req: AuthRequest, _res: Response, next: NextFunctio
     const header = normalizeAuthorizationHeader(req.headers.authorization);
 
     if (!header || !header.toLowerCase().startsWith('bearer ')) {
-      logger.warn('auth_missing_header', {
-        path: req.path,
-        origin: req.headers.origin,
-        ip: req.ip,
-      });
+      logger.warn(
+        {
+          path: req.path,
+          origin: req.headers.origin,
+          ip: req.ip,
+        },
+        'auth_missing_header'
+      );
       throw new AppError(401, 'unauthorized');
     }
 
@@ -154,11 +172,14 @@ export const authenticateTick = async (req: AuthRequest, _res: Response, next: N
     }
 
     if (!header) {
-      logger.warn('auth_missing_header', {
-        path: req.path,
-        origin: req.headers.origin,
-        ip: req.ip,
-      });
+      logger.warn(
+        {
+          path: req.path,
+          origin: req.headers.origin,
+          ip: req.ip,
+        },
+        'auth_missing_header'
+      );
       recordTickUnauthorized('missing_header');
       throw new AppError(401, 'authorization_header_missing');
     }
@@ -169,23 +190,29 @@ export const authenticateTick = async (req: AuthRequest, _res: Response, next: N
     const allowedSchemes = new Set(['tma', 'telegraminit']);
 
     if (!allowedSchemes.has(normalizedScheme)) {
-      logger.warn('auth_invalid_scheme', {
-        path: req.path,
-        origin: req.headers.origin,
-        ip: req.ip,
-        scheme,
-      });
+      logger.warn(
+        {
+          path: req.path,
+          origin: req.headers.origin,
+          ip: req.ip,
+          scheme,
+        },
+        'auth_invalid_scheme'
+      );
       recordTickUnauthorized('invalid_scheme');
       throw new AppError(400, 'authorization_scheme_invalid');
     }
 
     if (!payload) {
-      logger.warn('auth_invalid_header', {
-        path: req.path,
-        origin: req.headers.origin,
-        ip: req.ip,
-        scheme,
-      });
+      logger.warn(
+        {
+          path: req.path,
+          origin: req.headers.origin,
+          ip: req.ip,
+          scheme,
+        },
+        'auth_invalid_header'
+      );
       recordTickUnauthorized('malformed');
       throw new AppError(400, 'authorization_header_malformed');
     }

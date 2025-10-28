@@ -19,6 +19,9 @@ jest.mock('../../utils/logger', () => ({
     warn: jest.fn(),
     error: jest.fn(),
   },
+  createRequestId: jest.fn(id => id ?? 'test-request'),
+  runWithRequestContext: jest.fn((_id, fn) => fn()),
+  getRequestId: jest.fn(() => 'test-request'),
 }));
 
 jest.mock('../../repositories/PurchaseRepository', () => ({
@@ -128,8 +131,8 @@ describe('PurchaseService', () => {
     expect(updatePurchaseStatusMock).not.toHaveBeenCalled();
     expect(result.status).toBe('succeeded');
     expect(logger.info).toHaveBeenCalledWith(
-      'purchase_succeeded_idempotent',
-      expect.objectContaining({ purchase_id: 'purchase-1' })
+      expect.objectContaining({ purchase_id: 'purchase-1' }),
+      'purchase_succeeded_idempotent'
     );
   });
 
@@ -163,8 +166,8 @@ describe('PurchaseService', () => {
       expect.objectContaining({ client: {} })
     );
     expect(logger.warn).toHaveBeenCalledWith(
-      'purchase_failed',
-      expect.objectContaining({ purchase_id: 'purchase-1' })
+      expect.objectContaining({ purchase_id: 'purchase-1' }),
+      'purchase_failed'
     );
   });
 });

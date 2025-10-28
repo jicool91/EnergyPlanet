@@ -339,17 +339,14 @@ class ReferralService {
         return;
       } catch (error: unknown) {
         if (hasDatabaseErrorCode(error, '23505')) {
-          logger.warn('Referral code collision detected, retrying', {
-            userId,
-            attempt: attempts,
-          });
+          logger.warn({ userId, attempt: attempts }, 'referral_code_collision_retry');
           continue;
         }
         throw error;
       }
     }
 
-    logger.error('Failed to generate unique referral code after multiple attempts', { userId });
+    logger.error({ userId }, 'referral_code_generation_exhausted');
     throw new AppError(500, 'referral_code_generation_failed');
   }
 

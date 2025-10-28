@@ -3,27 +3,43 @@
  */
 
 import { Response, NextFunction } from 'express';
-import { logger } from '../utils/logger';
+import { logger, getRequestId } from '../utils/logger';
 import config from '../config';
 import { AuthRequest } from './auth';
 
-const shouldSample = () => {
+const SKIP_PATHS = new Set(['/health', config.prometheus.metricsPath]);
+const SKIP_PREFIXES = ['/static', '/assets', '/favicon', '/robots.txt'];
+
+const shouldSkip = (path: string) =>
+  SKIP_PATHS.has(path) || SKIP_PREFIXES.some(prefix => path.startsWith(prefix));
+
+const shouldSampleSuccess = () => {
   if (config.server.env !== 'production') {
     return true;
   }
-
   const rate = config.logging.requestSampleRate;
-  if (!rate) {
-    return false;
+  return rate > 0 && Math.random() < rate;
+};
+
+const shouldSampleClientError = () => {
+  if (config.server.env !== 'production') {
+    return true;
   }
-  return Math.random() < rate;
+  const rate = config.logging.clientErrorSampleRate;
+  return rate > 0 && Math.random() < rate;
 };
 
 export const requestLogger = (req: AuthRequest, res: Response, next: NextFunction) => {
   const start = Date.now();
 
+  if (shouldSkip(req.path)) {
+    next();
+    return;
+  }
+
   res.on('finish', () => {
     const duration = Date.now() - start;
+    const isSlow = duration >= config.logging.slowRequestThresholdMs;
     const meta = {
       method: req.method,
       path: req.path,
@@ -31,20 +47,32 @@ export const requestLogger = (req: AuthRequest, res: Response, next: NextFunctio
       durationMs: duration,
       userAgent: req.get('user-agent'),
       userId: req.user?.id,
+      requestId: getRequestId(),
+      slow: isSlow || undefined,
     };
 
     if (res.statusCode >= 500) {
-      logger.error('HTTP Request', meta);
+      logger.error(meta, 'http_request_failed');
       return;
     }
 
     if (res.statusCode >= 400) {
-      logger.warn('HTTP Request', meta);
+      if (shouldSampleClientError()) {
+        logger.warn(meta, 'http_request_client_error');
+      }
       return;
     }
 
-    if (shouldSample()) {
-      logger.info('HTTP Request', meta);
+    if (isSlow) {
+      logger.warn(
+        { ...meta, thresholdMs: config.logging.slowRequestThresholdMs },
+        'http_request_slow'
+      );
+      return;
+    }
+
+    if (shouldSampleSuccess()) {
+      logger.info(meta, 'http_request_success');
     }
   });
 

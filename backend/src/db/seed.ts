@@ -28,7 +28,7 @@ async function seedCosmetics(client: PoolClient) {
     const cosmetics = parsed.cosmetics ?? [];
 
     if (!cosmetics.length) {
-      logger.warn('No cosmetics found in content payload');
+      logger.warn({}, 'cosmetics_payload_empty');
       return;
     }
 
@@ -59,10 +59,10 @@ async function seedCosmetics(client: PoolClient) {
       );
     }
 
-    logger.info('Seeded cosmetics', { count: cosmetics.length });
+    logger.info({ count: cosmetics.length }, 'cosmetics_seeded');
   } catch (error: unknown) {
     if (typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === '42P01') {
-      logger.warn('Skipping cosmetics seeding: table not found');
+      logger.warn({}, 'cosmetics_seeding_skipped_table_missing');
       return;
     }
     throw error;
@@ -80,13 +80,16 @@ export async function seedDatabase() {
 if (require.main === module) {
   seedDatabase()
     .then(() => {
-      logger.info('✅ Database seed completed');
+      logger.info({}, 'database_seed_completed');
       process.exit(0);
     })
     .catch(error => {
-      logger.error('❌ Database seed failed', {
-        error: error instanceof Error ? error.message : String(error),
-      });
+      logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'database_seed_failed'
+      );
       process.exit(1);
     });
 }

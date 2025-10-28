@@ -79,10 +79,13 @@ export class AuthService {
         if (!parsed.id) {
           throw new Error('id is required');
         }
-        logger.debug('Bypass auth using provided JSON payload', {
-          userId: parsed.id,
-          username: parsed.username,
-        });
+        logger.debug(
+          {
+            userId: parsed.id,
+            username: parsed.username,
+          },
+          'bypass_auth_payload_used'
+        );
         return {
           telegramUser: {
             id: parsed.id,
@@ -96,7 +99,12 @@ export class AuthService {
           matchedBotToken: null,
         };
       } catch (error) {
-        logger.warn('Bypass auth JSON parse failed, using fallback profile', error);
+        logger.warn(
+          {
+            error: error instanceof Error ? error.message : String(error),
+          },
+          'bypass_auth_payload_parse_failed'
+        );
         return {
           telegramUser: {
             id: Math.floor(Math.random() * 1_000_000),
@@ -145,35 +153,44 @@ export class AuthService {
       const status = await registerInitDataHash(initDataHash, ttlSeconds);
 
       if (status === 'replay') {
-        logger.warn('Telegram init data replay detected', {
-          initDataHash,
-          ttlSeconds,
-          telegramUserId: context.telegramUserId,
-          matchedBotToken: context.matchedBotToken
-            ? `${context.matchedBotToken.slice(0, 6)}...${context.matchedBotToken.slice(-4)}`
-            : null,
-        });
+        logger.warn(
+          {
+            initDataHash,
+            ttlSeconds,
+            telegramUserId: context.telegramUserId,
+            matchedBotToken: context.matchedBotToken
+              ? `${context.matchedBotToken.slice(0, 6)}...${context.matchedBotToken.slice(-4)}`
+              : null,
+          },
+          'telegram_initdata_replay_detected'
+        );
         throw new AppError(409, 'telegram_initdata_replayed');
       }
 
       if (status === 'skipped') {
-        logger.debug('Telegram init data replay protection skipped', {
-          reason: 'cache_disabled_or_unavailable',
-          ttlSeconds,
-          initDataLength: context.initDataLength,
-          telegramUserId: context.telegramUserId,
-        });
+        logger.debug(
+          {
+            reason: 'cache_disabled_or_unavailable',
+            ttlSeconds,
+            initDataLength: context.initDataLength,
+            telegramUserId: context.telegramUserId,
+          },
+          'telegram_initdata_replay_skip'
+        );
       }
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
       }
-      logger.warn('Telegram init data replay protection degraded', {
-        error: (error as Error).message,
-        initDataHash,
-        telegramUserId: context.telegramUserId,
-        initDataLength: context.initDataLength,
-      });
+      logger.warn(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          initDataHash,
+          telegramUserId: context.telegramUserId,
+          initDataLength: context.initDataLength,
+        },
+        'telegram_initdata_replay_degraded'
+      );
     }
   }
 
@@ -269,15 +286,18 @@ export class AuthService {
         return { user, progress, isNewUser, tokens };
       });
 
-      logger.info('User authenticated', {
-        userId: result.user.id,
-        telegramId: result.user.telegramId,
-        isNewUser: result.isNewUser,
-        initDataLength,
-        botToken: matchedBotToken
-          ? `${matchedBotToken.slice(0, 6)}...${matchedBotToken.slice(-4)}`
-          : null,
-      });
+      logger.info(
+        {
+          userId: result.user.id,
+          telegramId: result.user.telegramId,
+          isNewUser: result.isNewUser,
+          initDataLength,
+          botToken: matchedBotToken
+            ? `${matchedBotToken.slice(0, 6)}...${matchedBotToken.slice(-4)}`
+            : null,
+        },
+        'user_authenticated'
+      );
 
       return {
         access_token: result.tokens.accessToken,
@@ -294,14 +314,17 @@ export class AuthService {
       };
     } catch (error) {
       const reason = error instanceof AppError ? error.message : 'unexpected_error';
-      logger.warn('Telegram authentication failed', {
-        reason,
-        initDataLength,
-        telegramUserId,
-        botToken: matchedBotToken
-          ? `${matchedBotToken.slice(0, 6)}...${matchedBotToken.slice(-4)}`
-          : null,
-      });
+      logger.warn(
+        {
+          reason,
+          initDataLength,
+          telegramUserId,
+          botToken: matchedBotToken
+            ? `${matchedBotToken.slice(0, 6)}...${matchedBotToken.slice(-4)}`
+            : null,
+        },
+        'telegram_authentication_failed'
+      );
       throw error;
     }
   }
@@ -312,7 +335,12 @@ export class AuthService {
     try {
       decoded = jwt.verify(refreshToken, this.jwtSecret);
     } catch (error) {
-      logger.warn('Invalid refresh token', error);
+      logger.warn(
+        {
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'refresh_token_verification_failed'
+      );
       throw new AppError(401, 'invalid_refresh_token');
     }
 

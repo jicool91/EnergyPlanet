@@ -12,7 +12,7 @@ export async function registerInitDataHash(
   ttlSeconds: number
 ): Promise<InitReplayStatus> {
   if (ttlSeconds <= 0) {
-    logger.debug('telegram_initdata_replay_skip_ttl_disabled', { ttlSeconds });
+    logger.debug({ ttlSeconds }, 'telegram_initdata_replay_skip_ttl_disabled');
     return 'skipped';
   }
 
@@ -29,9 +29,12 @@ export async function registerInitDataHash(
 
     return 'fresh';
   } catch (error) {
-    logger.warn('telegram_initdata_replay_cache_unavailable', {
-      error: (error as Error).message,
-    });
+    logger.warn(
+      {
+        error: (error as Error).message,
+      },
+      'telegram_initdata_replay_cache_unavailable'
+    );
     return 'skipped';
   }
 }

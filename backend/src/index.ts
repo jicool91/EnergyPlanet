@@ -13,6 +13,7 @@ import { tapAggregator } from './services/TapAggregator';
 import { questResetScheduler } from './jobs/QuestResetScheduler';
 import apiRouter from './api/routes';
 import { rateLimiter } from './middleware/rateLimiter';
+import { requestContext as requestContextMiddleware } from './middleware/requestContext';
 import { requestLogger } from './middleware/requestLogger';
 import { register as metricsRegister, metricsEnabled } from './metrics';
 
@@ -20,18 +21,24 @@ const app: Application = express();
 
 async function ensureMigrations() {
   try {
-    logger.info('Running database migrations');
+    logger.info({}, 'database_migrations_starting');
     await migrateUp();
   } catch (error) {
-    logger.error('Failed to apply database migrations', {
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+      'database_migrations_failed'
+    );
     throw error;
   } finally {
     await closeMigrationPool().catch(poolError => {
-      logger.warn('Failed to close migration pool', {
-        error: poolError instanceof Error ? poolError.message : String(poolError),
-      });
+      logger.warn(
+        {
+          error: poolError instanceof Error ? poolError.message : String(poolError),
+        },
+        'migration_pool_close_failed'
+      );
     });
   }
 }
@@ -72,15 +79,19 @@ const shouldSampleTickLog = () => {
 
 app.use((req, _res, next) => {
   if (isTickRequest(req) && shouldSampleTickLog()) {
-    logger.debug('tick_request_sampled', {
-      origin: req.get('origin'),
-      host: req.get('host'),
-      userAgent: req.get('user-agent'),
-    });
+    logger.debug(
+      {
+        origin: req.get('origin'),
+        host: req.get('host'),
+        userAgent: req.get('user-agent'),
+      },
+      'tick_request_sampled'
+    );
   }
   next();
 });
 
+app.use(requestContextMiddleware);
 app.use(requestLogger);
 
 if (config.rateLimit.enabled) {
@@ -140,19 +151,22 @@ export async function bootstrap() {
   const port = config.server.port;
 
   const server = app.listen(port, config.server.host, () => {
-    logger.info('Energy Planet API started', {
-      port,
-      host: config.server.host,
-      apiPrefix: config.server.apiPrefix,
-    });
+    logger.info(
+      {
+        port,
+        host: config.server.host,
+        apiPrefix: config.server.apiPrefix,
+      },
+      'api_started'
+    );
   });
 
   const shutdown = (signal: string) => {
-    logger.warn(`${signal} received, shutting down gracefully`);
+    logger.warn({ signal }, 'shutdown_initiated');
     tapAggregator.stop();
     questResetScheduler.stop();
     server.close(() => {
-      logger.info('HTTP server closed');
+      logger.info({}, 'http_server_closed');
       process.exit(0);
     });
   };
@@ -165,9 +179,12 @@ export async function bootstrap() {
 
 if (require.main === module) {
   bootstrap().catch(error => {
-    logger.error('Failed to start server', {
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+      'api_start_failed'
+    );
     process.exit(1);
   });
 }

@@ -1,6 +1,5 @@
 import { hashToken } from '../../utils/token';
 import { AuthService } from '../AuthService';
-import { logger } from '../../utils/logger';
 
 const findByRefreshTokenHashMock = jest.fn();
 const rotateSessionTokenMock = jest.fn();
@@ -46,7 +45,12 @@ jest.mock('../../utils/logger', () => ({
     error: jest.fn(),
     debug: jest.fn(),
   },
+  createRequestId: jest.fn(id => id ?? 'test-request'),
+  runWithRequestContext: jest.fn((_id, fn) => fn()),
+  getRequestId: jest.fn(() => 'test-request'),
 }));
+
+const { logger } = require('../../utils/logger');
 
 describe('AuthService.refreshAccessToken', () => {
   beforeEach(() => {

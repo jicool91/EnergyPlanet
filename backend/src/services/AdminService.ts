@@ -136,9 +136,7 @@ export class AdminService {
       entries = await fs.readdir(MIGRATIONS_DIR);
     } catch (error: unknown) {
       if (hasErrorCode(error, 'ENOENT')) {
-        logger.warn('Migrations directory not found when building status report', {
-          directory: MIGRATIONS_DIR,
-        });
+        logger.warn({ directory: MIGRATIONS_DIR }, 'migrations_directory_missing');
         return [];
       }
       throw error;
@@ -148,7 +146,7 @@ export class AdminService {
       .map(file => {
         const match = file.match(/^(\d{3})_(.+)\.sql$/);
         if (!match) {
-          logger.warn('Ignoring unexpected migration file', { file });
+          logger.warn({ file }, 'migrations_file_unexpected');
           return null;
         }
         return { version: match[1], name: match[2] };
@@ -165,7 +163,7 @@ export class AdminService {
       return result.rows;
     } catch (error: unknown) {
       if (hasErrorCode(error, '42P01')) {
-        logger.warn('schema_migrations table missing during status check');
+        logger.warn({ table: 'schema_migrations' }, 'schema_migrations_missing_during_status');
         return [];
       }
       throw error;
@@ -181,10 +179,13 @@ export class AdminService {
       const success = await checkFn();
       return { success, latencyMs: Date.now() - start };
     } catch (error) {
-      logger.error('Health check failed', {
-        error: error instanceof Error ? error.message : String(error),
-        source: checkFn.name || 'unknown',
-      });
+      logger.error(
+        {
+          error: error instanceof Error ? error.message : String(error),
+          source: checkFn.name || 'unknown',
+        },
+        'admin_healthcheck_failed'
+      );
       return { success: false, latencyMs: null };
     }
   }

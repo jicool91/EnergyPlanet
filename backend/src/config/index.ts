@@ -196,14 +196,14 @@ export const config = {
     errorFilePath: process.env.LOG_ERROR_FILE_PATH || './logs/error.log',
     enableFileTransports: process.env.LOG_ENABLE_FILE_TRANSPORTS === 'true',
     requestSampleRate: (() => {
-      const raw = parseFloat(process.env.LOG_REQUEST_SAMPLE_RATE || '0.01');
+      const raw = parseFloat(process.env.LOG_REQUEST_SAMPLE_RATE || '0.005');
       if (!Number.isFinite(raw)) {
         return 0;
       }
       return Math.min(Math.max(raw, 0), 1);
     })(),
     telemetrySampleRate: (() => {
-      const raw = parseFloat(process.env.LOG_TELEMETRY_SAMPLE_RATE || '0.05');
+      const raw = parseFloat(process.env.LOG_TELEMETRY_SAMPLE_RATE || '0.01');
       if (!Number.isFinite(raw)) {
         return 0;
       }
@@ -216,6 +216,15 @@ export const config = {
       }
       return Math.min(Math.max(raw, 0), 1);
     })(),
+    clientErrorSampleRate: (() => {
+      const raw = parseFloat(process.env.LOG_CLIENT_ERROR_SAMPLE_RATE || '0.1');
+      if (!Number.isFinite(raw)) {
+        return 0;
+      }
+      return Math.min(Math.max(raw, 0), 1);
+    })(),
+    slowRequestThresholdMs: parseInt(process.env.LOG_SLOW_REQUEST_THRESHOLD_MS || '500', 10),
+    slowQueryThresholdMs: parseInt(process.env.LOG_SLOW_QUERY_THRESHOLD_MS || '500', 10),
   },
 
   session: {

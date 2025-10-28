@@ -30,23 +30,18 @@ export async function connectRedis(): Promise<RedisClientType> {
     });
   }
 
-  redisClient.on('error', (err) => {
-    logger.error('❌ Redis error', err);
-  });
-
-  redisClient.on('connect', () => {
-    logger.info('✅ Redis подключен');
-  });
-
-  redisClient.on('ready', () => {
-    logger.info('✅ Redis готов к работе');
+  redisClient.on('error', err => {
+    logger.error(
+      {
+        error: err instanceof Error ? err.message : String(err),
+      },
+      'redis_error'
+    );
   });
 
   await redisClient.connect();
 
-  // Тест подключения
-  await redisClient.ping();
-  logger.info('✅ Redis: PING успешен');
+  logger.info({ host: config.redis.host, port: config.redis.port }, 'redis_connection_ready');
 
   return redisClient;
 }
@@ -62,7 +57,7 @@ export async function closeRedis(): Promise<void> {
   if (redisClient) {
     await redisClient.quit();
     redisClient = null;
-    logger.info('🔌 Redis: Подключение закрыто');
+    logger.info({}, 'redis_connection_closed');
   }
 }
 
@@ -100,10 +95,13 @@ export async function getCache<T>(key: string): Promise<T | null> {
   try {
     return JSON.parse(value) as T;
   } catch (error) {
-    logger.error('❌ Redis: Ошибка парсинга JSON', {
-      key,
-      error: error instanceof Error ? error.message : String(error),
-    });
+    logger.error(
+      {
+        key,
+        error: error instanceof Error ? error.message : String(error),
+      },
+      'redis_cache_parse_failed'
+    );
     return null;
   }
 }
@@ -128,7 +126,12 @@ export async function healthCheck(): Promise<boolean> {
     const pong = await client.ping();
     return pong === 'PONG';
   } catch (error) {
-    logger.error('❌ Redis health check failed', error);
+    logger.error(
+      {
+        error: error instanceof Error ? error.message : String(error),
+      },
+      'redis_healthcheck_failed'
+    );
     return false;
   }
 }
@@ -139,5 +142,5 @@ export async function healthCheck(): Promise<boolean> {
 export async function flushCache(): Promise<void> {
   const client = getRedis();
   await client.flushDb();
-  logger.warn('⚠️ Redis: Весь кеш очищен');
+  logger.warn({}, 'redis_cache_flushed');
 }

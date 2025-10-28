@@ -41,12 +41,15 @@ export class AuthController {
       const initDataRaw = req.body?.initData;
 
       if (typeof initDataRaw !== 'string' || initDataRaw.trim().length === 0) {
-        logger.warn('Telegram authentication failed', {
-          reason: 'init_data_missing',
-          initDataLength: 0,
-          telegramUserId: null,
-          botToken: null,
-        });
+        logger.warn(
+          {
+            reason: 'init_data_missing',
+            initDataLength: 0,
+            telegramUserId: null,
+            botToken: null,
+          },
+          'telegram_authentication_failed'
+        );
         throw new AppError(400, 'initData is required');
       }
 
@@ -64,11 +67,14 @@ export class AuthController {
       const authorization = getSingleHeader(req.headers.authorization);
 
       if (!authorization) {
-        logger.warn('Telegram header authentication failed', {
-          reason: 'authorization_missing',
-          origin: req.headers.origin,
-          ip: req.ip,
-        });
+        logger.warn(
+          {
+            reason: 'authorization_missing',
+            origin: req.headers.origin,
+            ip: req.ip,
+          },
+          'telegram_header_auth_failed'
+        );
         throw new AppError(400, 'authorization_header_missing');
       }
 
@@ -80,21 +86,27 @@ export class AuthController {
       const allowedSchemes = new Set(['tma', 'telegraminit']);
 
       if (!scheme || !payload) {
-        logger.warn('Telegram header authentication failed', {
-          reason: 'authorization_malformed',
-          origin: req.headers.origin,
-          ip: req.ip,
-        });
+        logger.warn(
+          {
+            reason: 'authorization_malformed',
+            origin: req.headers.origin,
+            ip: req.ip,
+          },
+          'telegram_header_auth_failed'
+        );
         throw new AppError(400, 'authorization_header_malformed');
       }
 
       if (!allowedSchemes.has(normalizedScheme)) {
-        logger.warn('Telegram header authentication failed', {
-          reason: 'authorization_scheme_invalid',
-          scheme,
-          origin: req.headers.origin,
-          ip: req.ip,
-        });
+        logger.warn(
+          {
+            reason: 'authorization_scheme_invalid',
+            scheme,
+            origin: req.headers.origin,
+            ip: req.ip,
+          },
+          'telegram_header_auth_failed'
+        );
         throw new AppError(400, 'authorization_scheme_invalid');
       }
 

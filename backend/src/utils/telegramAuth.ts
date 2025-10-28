@@ -59,18 +59,24 @@ export function validateTelegramInitData(
   const urlParams = new URLSearchParams(initData);
   const hash = urlParams.get('hash');
 
-  logger.debug('Telegram init data received', {
-    initDataLength: initData.length,
-    keys: Array.from(urlParams.keys()),
-    hashPresent: Boolean(hash),
-    botTokenSnippets: botTokens.map(maskSensitive),
-  });
-
-  if (!hash) {
-    logger.warn('Telegram init data missing hash', {
+  logger.debug(
+    {
       initDataLength: initData.length,
       keys: Array.from(urlParams.keys()),
-    });
+      hashPresent: Boolean(hash),
+      botTokenSnippets: botTokens.map(maskSensitive),
+    },
+    'telegram_init_data_received'
+  );
+
+  if (!hash) {
+    logger.warn(
+      {
+        initDataLength: initData.length,
+        keys: Array.from(urlParams.keys()),
+      },
+      'telegram_init_data_missing_hash'
+    );
     throw new AppError(401, 'missing_telegram_hash');
   }
 
@@ -84,10 +90,13 @@ export function validateTelegramInitData(
   const defaultSummary = summarizePayload(defaultDataCheckString);
   const withoutSignatureSummary = summarizePayload(withoutSignatureDataCheckString);
 
-  logger.debug('Telegram data_check_string prepared', {
-    default: defaultSummary,
-    withoutSignature: withoutSignatureSummary,
-  });
+  logger.debug(
+    {
+      default: defaultSummary,
+      withoutSignature: withoutSignatureSummary,
+    },
+    'telegram_data_check_string_prepared'
+  );
 
   let matchedVariant: 'default' | 'no_signature' | null = null;
   let matchedBotToken: string | null = null;
@@ -118,49 +127,64 @@ export function validateTelegramInitData(
       break;
     }
 
-    logger.debug('Telegram hash mismatch for candidate token', {
-      providedHash: maskSensitive(hash),
-      expectedHashDefault: maskSensitive(calculatedHashDefault),
-      expectedHashWithoutSignature: maskSensitive(calculatedHashWithoutSignature),
-      candidateToken: maskSensitive(candidateToken),
-    });
+    logger.debug(
+      {
+        providedHash: maskSensitive(hash),
+        expectedHashDefault: maskSensitive(calculatedHashDefault),
+        expectedHashWithoutSignature: maskSensitive(calculatedHashWithoutSignature),
+        candidateToken: maskSensitive(candidateToken),
+      },
+      'telegram_hash_mismatch_candidate'
+    );
   }
 
   if (!matchedVariant || !matchedBotToken) {
-    logger.error('Telegram hash validation failed', {
-      providedHash: maskSensitive(hash),
-      expectedHashDefault: maskSensitive(lastExpectedDefault),
-      expectedHashWithoutSignature: maskSensitive(lastExpectedWithoutSignature),
-      initDataLength: initData.length,
-      keys: Array.from(urlParams.keys()),
-      botTokenCandidates: botTokens.map(maskSensitive),
-      defaultDataCheck: defaultSummary,
-      withoutSignatureDataCheck: withoutSignatureSummary,
-    });
+    logger.error(
+      {
+        providedHash: maskSensitive(hash),
+        expectedHashDefault: maskSensitive(lastExpectedDefault),
+        expectedHashWithoutSignature: maskSensitive(lastExpectedWithoutSignature),
+        initDataLength: initData.length,
+        keys: Array.from(urlParams.keys()),
+        botTokenCandidates: botTokens.map(maskSensitive),
+        defaultDataCheck: defaultSummary,
+        withoutSignatureDataCheck: withoutSignatureSummary,
+      },
+      'telegram_hash_validation_failed'
+    );
     throw new AppError(401, 'invalid_telegram_hash');
   }
 
   if (matchedVariant === 'no_signature') {
-    logger.info('Telegram hash matched after removing signature key', {
-      initDataLength: initData.length,
-      keys: Array.from(urlParams.keys()),
-      botTokenUsed: maskSensitive(matchedBotToken),
-      variant: matchedVariant,
-    });
+    logger.info(
+      {
+        initDataLength: initData.length,
+        keys: Array.from(urlParams.keys()),
+        botTokenUsed: maskSensitive(matchedBotToken),
+        variant: matchedVariant,
+      },
+      'telegram_hash_matched_without_signature'
+    );
   } else {
-    logger.debug('Telegram hash matched with default payload', {
-      initDataLength: initData.length,
-      keys: Array.from(urlParams.keys()),
-      botTokenUsed: maskSensitive(matchedBotToken),
-      variant: matchedVariant,
-    });
+    logger.debug(
+      {
+        initDataLength: initData.length,
+        keys: Array.from(urlParams.keys()),
+        botTokenUsed: maskSensitive(matchedBotToken),
+        variant: matchedVariant,
+      },
+      'telegram_hash_matched_default'
+    );
   }
 
   const userParam = urlParams.get('user');
   if (!userParam) {
-    logger.warn('Telegram init data missing user payload', {
-      keys: Array.from(urlParams.keys()),
-    });
+    logger.warn(
+      {
+        keys: Array.from(urlParams.keys()),
+      },
+      'telegram_init_data_missing_user_payload'
+    );
     throw new AppError(401, 'missing_user_data');
   }
 
@@ -173,21 +197,27 @@ export function validateTelegramInitData(
   const ageSeconds = now - authDate;
 
   if (Number.isNaN(authDate) || authDate <= 0) {
-    logger.warn('Telegram auth data has invalid auth_date', {
-      authDate: authDateRaw,
-      now,
-      maxAgeSec,
-    });
+    logger.warn(
+      {
+        authDate: authDateRaw,
+        now,
+        maxAgeSec,
+      },
+      'telegram_auth_date_invalid'
+    );
     throw new AppError(401, 'auth_data_invalid');
   }
 
   if (ageSeconds > maxAgeSec) {
-    logger.warn('Telegram auth data expired', {
-      authDate,
-      now,
-      ageSeconds,
-      maxAgeSec,
-    });
+    logger.warn(
+      {
+        authDate,
+        now,
+        ageSeconds,
+        maxAgeSec,
+      },
+      'telegram_auth_data_expired'
+    );
     throw new AppError(401, 'auth_data_expired');
   }
 
