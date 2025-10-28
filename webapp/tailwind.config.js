@@ -19,28 +19,40 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Brand Colors
+        // Brand Colors (2025 palette)
         cyan: '#00d9ff',
+        lime: '#00ff88',
         gold: '#ffd700',
-        lime: '#48ffad',
         orange: '#ff8d4d',
+        'gold-metallic': '#ffd700',
+        'silver-metallic': '#e8e8e8',
+        'magenta-neon': '#ff00ff',
 
-        // Status Colors
-        'red-error': '#ff5a5a',
-        'success': '#48ffad',
-        'warning': '#ffc957',
+        // Status Colors (brighter for AAA contrast)
+        success: '#00ff88',
+        warning: '#ff8d4d',
+        error: '#ff3333',
+        'red-error': '#ff3333',
+        info: '#00d9ff',
 
         // Background Colors
         'dark-bg': '#0a0e27',
         'dark-secondary': '#101328',
         'dark-tertiary': '#1a2540',
+        'dark-elevated': '#141836',
 
         // Component Colors (preset combinations)
         'card-dark': 'rgba(10, 14, 32, 0.9)',
         'card-dark-secondary': 'rgba(16, 19, 40, 0.6)',
-        'button-primary': 'linear-gradient(135deg, rgba(0,217,255,0.25) 0%, rgba(38,127,255,0.35) 100%)',
+        'button-primary': 'linear-gradient(135deg, rgba(0,217,255,0.3) 0%, rgba(0,255,136,0.4) 100%)',
         'button-secondary': 'rgba(0, 217, 255, 0.22)',
-        'button-success': 'linear-gradient(135deg, #ffd362 0%, #ff8d4d 100%)',
+        'button-success': 'linear-gradient(135deg, #ffd700 0%, #ff8d4d 100%)',
+      },
+      backgroundImage: {
+        'gradient-hero': 'linear-gradient(135deg, #001a3f 0%, #0a0e27 100%)',
+        'gradient-accent': 'linear-gradient(90deg, #00d9ff 0%, #00ff88 100%)',
+        'gradient-premium': 'linear-gradient(135deg, #ffd700 0%, #ff8d4d 100%)',
+        'gradient-holographic': 'linear-gradient(135deg, #00d9ff 0%, #ff00ff 50%, #ffd700 100%)',
       },
       spacing: {
         ...spacingTokens,
@@ -50,12 +62,15 @@ export default {
         'safe-bottom': 'var(--safe-area-bottom, 0px)',
       },
       fontSize: {
-        'display': ['48px', { lineHeight: '56px', fontWeight: '700' }],
-        'heading': ['24px', { lineHeight: '32px', fontWeight: '600' }],
-        'subheading': ['16px', { lineHeight: '24px', fontWeight: '600' }],
-        'body': ['14px', { lineHeight: '20px', fontWeight: '400' }],
-        'caption': ['12px', { lineHeight: '16px', fontWeight: '400' }],
-        'micro': ['11px', { lineHeight: '14px', fontWeight: '600' }],
+        display: ['48px', { lineHeight: '56px', fontWeight: '700' }],
+        heading: ['24px', { lineHeight: '32px', fontWeight: '600' }],
+        title: ['20px', { lineHeight: '28px', fontWeight: '700' }],
+        subheading: ['16px', { lineHeight: '24px', fontWeight: '600' }],
+        body: ['14px', { lineHeight: '20px', fontWeight: '400' }],
+        'body-sm': ['13px', { lineHeight: '18px', fontWeight: '400' }],
+        caption: ['12px', { lineHeight: '16px', fontWeight: '400' }],
+        micro: ['11px', { lineHeight: '14px', fontWeight: '600' }],
+        label: ['11px', { lineHeight: '14px', fontWeight: '700' }],
         // Legacy sizes for backwards compatibility
         'xs': ['12px', { lineHeight: '16px' }],
         'sm': ['14px', { lineHeight: '20px' }],
@@ -74,14 +89,20 @@ export default {
         '2xl': '32px',
       },
       boxShadow: {
-        'sm': '0 4px 12px rgba(0, 0, 0, 0.15)',
-        'md': '0 12px 24px rgba(0, 0, 0, 0.25)',
-        'lg': '0 20px 48px rgba(0, 0, 0, 0.35)',
-        'xl': '0 24px 60px rgba(0, 0, 0, 0.45)',
-        // Cyan glows
-        'card': '0 2px 8px rgba(0, 217, 255, 0.1)',
+        sm: '0 4px 12px rgba(0, 0, 0, 0.15)',
+        md: '0 12px 24px rgba(0, 0, 0, 0.25)',
+        lg: '0 20px 48px rgba(0, 0, 0, 0.35)',
+        xl: '0 24px 60px rgba(0, 0, 0, 0.45)',
+        card: '0 2px 8px rgba(0, 217, 255, 0.1)',
         'card-hover': '0 4px 16px rgba(0, 217, 255, 0.2)',
-        'glow': '0 0 20px rgba(0, 217, 255, 0.3)',
+        glow: '0 0 20px rgba(0, 217, 255, 0.3)',
+        'glow-lime': '0 0 18px rgba(0, 255, 136, 0.35)',
+        'glow-gold': '0 0 18px rgba(255, 215, 0, 0.35)',
+        'glow-magenta': '0 0 18px rgba(255, 0, 255, 0.35)',
+        'elevation-1': '0 1px 2px rgba(0,0,0,0.08)',
+        'elevation-2': '0 4px 12px rgba(0,0,0,0.12)',
+        'elevation-3': '0 12px 24px rgba(0,0,0,0.16)',
+        'elevation-4': '0 20px 40px rgba(0,0,0,0.2)',
       },
       animation: {
         'pulse': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',

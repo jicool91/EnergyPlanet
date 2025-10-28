@@ -97,7 +97,7 @@ function MainScreenHeaderComponent({
           </div>
 
           {/* Stars + Quick Top-Up */}
-          <div className="flex items-center gap-xs-plus min-w-0">
+          <div className="flex items-center gap-sm min-w-0">
             <span className="text-subheading flex-shrink-0" role="img" aria-label="Stars">
               ⭐
             </span>
@@ -111,20 +111,26 @@ function MainScreenHeaderComponent({
             {onShopClick && (
               <motion.button
                 onClick={onShopClick}
-                className="flex-shrink-0 ml-1 w-6 h-6 rounded-full flex items-center justify-center border border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)] text-[var(--color-text-accent)] hover:shadow-glow-card transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
+                className="flex-shrink-0 ml-1 w-11 h-11 rounded-full flex items-center justify-center bg-gradient-to-br from-[var(--color-cyan)] to-[var(--color-success)] text-[var(--color-surface-primary)] font-bold shadow-glow transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
                 title="Quick Top-Up Stars"
                 type="button"
                 aria-label="Quick Top-Up Stars"
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.85 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 animate={{
-                  opacity: [0.8, 1, 0.8],
+                  opacity: [0.7, 1, 0.7],
+                  boxShadow: [
+                    '0 0 16px rgba(0, 217, 255, 0.35)',
+                    '0 0 24px rgba(0, 255, 136, 0.45)',
+                    '0 0 16px rgba(0, 217, 255, 0.35)',
+                  ],
                 }}
                 transition={{
                   opacity: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+                  boxShadow: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
                 }}
               >
-                <span className="text-caption font-bold" aria-hidden="true">
+                <span className="text-title" aria-hidden="true">
                   +
                 </span>
               </motion.button>
@@ -133,17 +139,17 @@ function MainScreenHeaderComponent({
         </div>
 
         {/* Right: Quick Actions */}
-        <div className="flex items-center gap-2 flex-shrink-0">
+        <div className="flex items-center gap-sm flex-shrink-0">
           {/* Shop/Top-up Button */}
           {onShopClick && (
             <button
               onClick={onShopClick}
-              className="flex-shrink-0 px-3 py-2 rounded-md border border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)] text-body font-medium text-[var(--color-text-accent)] hover:shadow-glow-card transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
+              className="flex-shrink-0 h-11 px-sm-plus rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)] text-body font-semibold text-[var(--color-text-accent)] hover:shadow-glow transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
               title="Top-up Stars"
               type="button"
               aria-label="Top-up Stars"
             >
-              <span className="text-subheading" aria-hidden="true">
+              <span className="text-title" aria-hidden="true">
                 🛍️
               </span>
             </button>
@@ -153,12 +159,12 @@ function MainScreenHeaderComponent({
           {onSettingsClick && (
             <button
               onClick={onSettingsClick}
-              className="flex-shrink-0 p-2 rounded-md transition-colors duration-150 text-[var(--color-text-secondary)] hover:text-[var(--color-text-accent)] hover:bg-[var(--color-surface-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
+              className="flex-shrink-0 h-11 w-11 rounded-xl transition-colors duration-150 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)] flex items-center justify-center shadow-elevation-1 hover:shadow-glow"
               title="Settings"
               aria-label="Settings"
               type="button"
             >
-              <span className="text-subheading" aria-hidden="true">
+              <span className="text-title" aria-hidden="true">
                 ⚙️
               </span>
             </button>

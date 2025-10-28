@@ -11,7 +11,7 @@ import clsx from 'clsx';
 
 const buttonVariants = cva(
   // Base classes: flex, center, text, cursor, transition
-  'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-120 ease-in-out cursor-pointer disabled:opacity-60 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--app-accent)] focus-visible:ring-offset-[var(--app-bg)]',
+  'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-120 ease-in-out cursor-pointer disabled:opacity-60 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-[var(--app-bg)]',
   {
     variants: {
       variant: {
@@ -38,13 +38,13 @@ const buttonVariants = cva(
 
       size: {
         // Small: compact button
-        sm: 'px-sm-plus py-xs-plus text-caption rounded-sm',
+        sm: 'px-sm-plus py-xs-plus text-caption rounded-lg min-h-[44px]',
 
         // Medium: default button
-        md: 'px-md py-sm text-caption rounded-md',
+        md: 'px-md py-sm text-caption rounded-xl min-h-[44px]',
 
         // Large: prominent button
-        lg: 'px-lg py-sm-plus text-body rounded-lg',
+        lg: 'px-lg py-sm-plus text-body rounded-2xl min-h-[48px]',
       },
 
       fullWidth: {

@@ -83,15 +83,19 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
       >
         {tabs.map(tab => {
           const isActive = active === tab.id;
+          const buttonClasses = `flex flex-col gap-1 items-center justify-center flex-shrink-0 px-sm-plus py-sm min-w-[68px] min-h-[48px] cursor-pointer transition-colors border-none bg-none text-xs tracking-wide ${
+            isActive
+              ? 'text-[var(--color-text-accent)] font-semibold bg-gradient-to-br from-[rgba(0,217,255,0.18)] to-[rgba(0,255,136,0.18)] rounded-xl shadow-glow'
+              : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-secondary)] rounded-xl'
+          } focus-ring`;
+          const labelClasses = `text-label uppercase ${
+            isActive ? 'text-[var(--color-text-accent)]' : 'text-[var(--color-text-secondary)]'
+          }`;
           return (
             <button
               key={tab.id}
               ref={isActive ? activeTabRef : null}
-              className={`flex flex-col gap-1 items-center justify-center flex-shrink-0 px-3 py-2 min-w-[60px] cursor-pointer transition-colors border-none bg-none text-sm ${
-                isActive
-                  ? 'text-[var(--color-text-accent)] font-semibold'
-                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-secondary)]'
-              } focus-ring`}
+              className={buttonClasses}
               type="button"
               onClick={() => onChange(tab.id)}
               title={tab.title || tab.label}
@@ -101,10 +105,10 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
               id={`tab-${tab.id}`}
               aria-controls={`tab-panel-${tab.id}`}
             >
-              <span className="text-lg" aria-hidden="true">
+              <span className="text-title" aria-hidden="true">
                 {tab.icon}
               </span>
-              <span className="text-xs whitespace-nowrap">{tab.label}</span>
+              <span className={labelClasses}>{tab.label}</span>
             </button>
           );
         })}

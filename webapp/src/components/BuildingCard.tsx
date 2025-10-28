@@ -176,13 +176,15 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
       : `${formatNumberWithSpaces(building.nextCost ?? 0)} E`;
   const purchaseDisabled = processing || !canPurchase || purchasePlan.quantity <= 0 || isLocked;
 
-  // Design System: Base card styles using tokens
+  // Design System: Base card styles using 2025 layering
   const baseCardClass =
-    'flex flex-col gap-3 p-4 max-[420px]:p-3 max-[360px]:p-2 rounded-lg border shadow-lg';
+    'relative flex flex-col gap-md p-md max-[420px]:p-sm-plus max-[360px]:p-sm rounded-2xl border shadow-elevation-2 bg-gradient-to-br from-[rgba(0,26,63,0.95)] to-[rgba(16,19,56,0.92)] backdrop-blur-sm';
   const cardVariant = isBestPayback
-    ? 'border-lime/60 bg-dark-secondary/70 shadow-lg relative'
-    : 'border-cyan/[0.14] bg-dark-secondary/60';
-  const lockedClass = isLocked ? 'border-warning/45 bg-dark-tertiary/50 opacity-70' : '';
+    ? 'border-[rgba(0,255,136,0.55)] shadow-glow-lime'
+    : 'border-[var(--color-border-subtle)]';
+  const lockedClass = isLocked
+    ? 'border-[rgba(255,141,77,0.5)] bg-[rgba(26,20,55,0.8)] opacity-80'
+    : '';
 
   return (
     <motion.div
@@ -202,62 +204,94 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
         />
       )}
 
-      {/* Header: Building name + count */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between max-[420px]:gap-1">
-        <h3 className="m-0 text-subheading font-semibold text-token-primary text-base sm:text-subheading max-[360px]:text-sm">
-          {building.name}
-        </h3>
-        <motion.span
-          className="text-caption text-[var(--color-text-secondary)] font-semibold"
-          animate={showUnlockAnim ? { scale: [1, 1.2, 1] } : { scale: 1 }}
-          transition={{ duration: 0.6 }}
-        >
-          ×{building.count}
-        </motion.span>
-      </div>
-
-      {/* Stats: Level, Income, Payback, ROI */}
-      <div className="grid gap-2 text-caption text-[var(--color-text-secondary)] sm:flex sm:flex-wrap sm:gap-4 max-[420px]:text-xs max-[360px]:grid-cols-2">
-        <span className="font-medium text-token-secondary">Уровень: {building.level}</span>
-        <span className="font-medium text-token-secondary">
-          Доход: {building.incomePerSec.toLocaleString()} /с
-        </span>
-        <span>Окупаемость: {payback}</span>
-        {roiRank && <span className="text-lime/85 font-semibold">ROI #{roiRank}</span>}
-      </div>
-
-      {/* Unlock requirement */}
-      {isLocked && building.unlock_level && (
-        <div className="text-caption text-warning">Требуется уровень {building.unlock_level}</div>
-      )}
-
-      {/* Purchase info: Quantity, Cost, Income gain */}
-      <div className="flex flex-col gap-2 text-micro text-[var(--color-text-secondary)] sm:flex-row sm:flex-wrap sm:gap-3 max-[420px]:text-[11px]">
-        <span>Пакет: {purchaseQuantityLabel}</span>
-        <span>Стоимость: {purchaseCostLabel}</span>
-        {purchasePlan.incomeGain > 0 && (
-          <span className="text-lime/90">
-            +{formatNumberWithSpaces(purchasePlan.incomeGain)} E/с
+      {/* Layer 1: Hero */}
+      <div className="flex items-start justify-between gap-sm">
+        <div className="flex flex-col gap-xs-plus">
+          <h3 className="m-0 text-title text-[var(--color-text-primary)] font-bold">
+            {building.name}
+          </h3>
+          <motion.span
+            className="inline-flex items-center gap-xs-plus rounded-xl px-sm-plus py-xs-plus bg-[rgba(0,217,255,0.16)] text-label text-[var(--color-text-accent)]"
+            animate={showUnlockAnim ? { scale: [1, 1.1, 1] } : { scale: 1 }}
+            transition={{ duration: 0.6 }}
+          >
+            ×{building.count} юнитов
+          </motion.span>
+        </div>
+        <div className="flex flex-col items-end gap-xs">
+          <span className="text-label text-[var(--color-text-secondary)]">LV</span>
+          <span className="text-heading font-bold text-[var(--color-text-primary)]">
+            {building.level}
           </span>
+          {isBestPayback && (
+            <span className="mt-xs inline-flex items-center gap-xs-plus rounded-full bg-[rgba(0,255,136,0.15)] px-sm py-xs text-label text-[var(--color-success)] shadow-glow-lime">
+              🔥 Лучший ROI
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* Layer 2: Primary metric */}
+      <div className="flex flex-col gap-xs">
+        <span className="text-label text-[var(--color-text-secondary)] uppercase">Доход</span>
+        <span className="text-heading font-bold text-[var(--color-text-primary)]">
+          +{formatNumberWithSpaces(Math.round(building.incomePerSec))} E/сек
+        </span>
+      </div>
+
+      {/* Layer 3: Secondary metrics */}
+      <div className="flex flex-wrap items-center gap-sm text-body-sm text-[var(--color-text-secondary)]">
+        {roiRank && (
+          <span className="font-semibold text-[var(--color-text-primary)]">ROI #{roiRank}</span>
+        )}
+        <span>Окупаемость: {payback}</span>
+        {building.base_income && (
+          <span>Базовый доход: {formatNumberWithSpaces(building.base_income)} E</span>
         )}
       </div>
 
-      {/* Purchase warnings */}
-      {purchasePlan.partial && !isLocked && (
-        <div className="text-micro text-warning">
-          Энергии хватит на ×{purchasePlan.quantity} из {purchasePlan.requestedValue}
+      {/* Layer 4: Next purchase info */}
+      <div className="rounded-xl border border-[rgba(0,217,255,0.28)] bg-[rgba(10,19,48,0.75)] px-md py-sm flex flex-col gap-xs">
+        <div className="flex items-center justify-between gap-sm">
+          <span className="text-label text-[var(--color-text-secondary)] uppercase">
+            Следующая покупка
+          </span>
+          <span className="text-body font-semibold text-[var(--color-text-primary)]">
+            {purchaseQuantityLabel}
+          </span>
         </div>
-      )}
-      {purchasePlan.limitedByCap && !isLocked && (
-        <div className="text-micro text-warning">Достигнут лимит построек для уровня</div>
-      )}
-      {purchasePlan.insufficientEnergy && !isLocked && (
-        <div className="text-micro text-red-error">Недостаточно энергии для выбранного пакета</div>
-      )}
+        <div className="flex flex-wrap items-center gap-sm text-body text-[var(--color-text-secondary)]">
+          <span>Стоимость: {purchaseCostLabel}</span>
+          {purchasePlan.incomeGain > 0 && (
+            <span className="text-[var(--color-success)] font-semibold">
+              +{formatNumberWithSpaces(purchasePlan.incomeGain)} E/сек
+            </span>
+          )}
+        </div>
+        {!isLocked && purchasePlan.limitedByCap && (
+          <div className="rounded-lg bg-[rgba(255,215,0,0.08)] px-sm py-xs text-label text-[var(--color-warning)]">
+            Достигнут лимит построек для уровня
+          </div>
+        )}
+        {!isLocked && purchasePlan.partial && (
+          <div className="rounded-lg bg-[rgba(255,215,0,0.08)] px-sm py-xs text-label text-[var(--color-warning)]">
+            Энергии хватит на ×{purchasePlan.quantity} из {purchasePlan.requestedValue}
+          </div>
+        )}
+        {!isLocked && purchasePlan.insufficientEnergy && (
+          <div className="rounded-lg bg-[rgba(255,51,51,0.12)] px-sm py-xs text-label text-[var(--color-error)]">
+            Недостаточно энергии для выбранного пакета
+          </div>
+        )}
+        {isLocked && building.unlock_level && (
+          <div className="rounded-lg bg-[rgba(255,141,77,0.12)] px-sm py-xs text-label text-[var(--color-warning)]">
+            Требуется уровень {building.unlock_level}
+          </div>
+        )}
+      </div>
 
-      {/* Action buttons: Purchase + Upgrade */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
-        {/* Purchase button with micro-interactions */}
+      {/* Layer 5: Actions */}
+      <div className="flex flex-col gap-sm sm:flex-row sm:flex-wrap">
         <Button
           variant="primary"
           size="md"
@@ -268,11 +302,11 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
           error={buttonStates.purchase.error}
           successText="Куплено!"
           onClick={handlePurchase}
+          className="shadow-glow"
         >
           {isLocked ? 'Недоступно' : `Купить ${purchaseQuantityLabel}`}
         </Button>
 
-        {/* Upgrade button with micro-interactions */}
         <Button
           variant="secondary"
           size="md"
@@ -283,6 +317,7 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
           error={buttonStates.upgrade.error}
           successText="Апгрейдено!"
           onClick={handleUpgrade}
+          className="shadow-elevation-1"
         >
           Апгрейд
         </Button>
