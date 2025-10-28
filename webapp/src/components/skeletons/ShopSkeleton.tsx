@@ -7,11 +7,11 @@ interface ShopSkeletonProps {
 
 export const ShopSkeleton: React.FC<ShopSkeletonProps> = ({ count = 4 }) => {
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid grid-cols-2 gap-sm-plus">
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="flex flex-col gap-2 p-3 rounded-lg bg-dark-secondary border border-cyan/[0.14]"
+          className="flex flex-col gap-sm rounded-2xl border border-[rgba(0,217,255,0.22)] bg-[rgba(12,18,40,0.84)] p-md shadow-elevation-2"
         >
           {/* Item Image/Icon */}
           <Skeleton width="100%" height={80} variant="rect" />

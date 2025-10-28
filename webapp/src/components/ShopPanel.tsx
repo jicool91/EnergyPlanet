@@ -572,7 +572,7 @@ export function ShopPanel({
 
       {/* Section Tabs */}
       <nav
-        className="flex gap-1 rounded-xl bg-[var(--color-surface-secondary)]/70 p-1"
+        className="flex gap-xs rounded-2xl border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.78)] p-xs"
         role="tablist"
         aria-label="Разделы магазина"
       >
@@ -592,10 +592,10 @@ export function ShopPanel({
               tabIndex={isActive ? 0 : -1}
               onKeyDown={event => handleSectionKeyDown(event, index)}
               type="button"
-              className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 focus-ring ${
+              className={`flex-1 rounded-2xl px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
                 isActive
-                  ? 'bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)] shadow-glow'
-                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                  ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
+                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
               }`}
             >
               {section.label}
@@ -624,7 +624,7 @@ export function ShopPanel({
           aria-labelledby={getSectionTabId('star_packs')}
         >
           <nav
-            className="flex flex-wrap gap-1 rounded-xl bg-[var(--color-surface-secondary)]/70 p-1"
+            className="flex flex-wrap gap-xs rounded-2xl border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.78)] p-xs"
             aria-label="Категории паков"
             role="tablist"
           >
@@ -637,10 +637,10 @@ export function ShopPanel({
                   onClick={() => handleStarPackSectionChange(tab.id)}
                   role="tab"
                   aria-selected={isActive}
-                  className={`flex-1 sm:flex-none min-w-[120px] text-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 focus-ring ${
+                  className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-2xl px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
                     isActive
-                      ? 'bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)] shadow-glow'
-                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                      ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
                   }`}
                 >
                   {tab.label}
@@ -953,7 +953,7 @@ export function ShopPanel({
           aria-labelledby={getSectionTabId('boosts')}
         >
           <nav
-            className="flex flex-wrap gap-1 rounded-xl bg-[var(--color-surface-secondary)]/70 p-1"
+            className="flex flex-wrap gap-xs rounded-2xl border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.78)] p-xs"
             aria-label="Категории бустов"
             role="tablist"
           >
@@ -966,10 +966,10 @@ export function ShopPanel({
                   onClick={() => handleBoostSectionChange(tab.id)}
                   role="tab"
                   aria-selected={isActive}
-                  className={`flex-1 sm:flex-none min-w-[120px] text-center rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 focus-ring ${
+                  className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-2xl px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
                     isActive
-                      ? 'bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)] shadow-glow'
-                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                      ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
+                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
                   }`}
                 >
                   {tab.label}
@@ -992,7 +992,7 @@ export function ShopPanel({
           aria-labelledby={getSectionTabId('cosmetics')}
         >
           <nav
-            className="flex flex-wrap gap-1 rounded-xl bg-[var(--color-surface-secondary)]/70 p-1"
+            className="flex flex-wrap gap-xs rounded-2xl border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.78)] p-xs"
             role="tablist"
             aria-label="Категории косметики"
           >
@@ -1019,12 +1019,12 @@ export function ShopPanel({
                   tabIndex={isActiveCategory ? 0 : -1}
                   onKeyDown={event => handleCategoryKeyDown(event, index)}
                   type="button"
-                  className={`rounded-lg px-3 py-2 text-sm font-medium transition-all duration-150 focus-ring flex-1 sm:flex-none min-w-[120px] text-center ${
+                  className={`flex-1 sm:flex-none min-w-[140px] rounded-2xl px-sm-plus py-xs-plus text-center text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
                     isDisabled
-                      ? 'opacity-60 cursor-not-allowed'
+                      ? 'cursor-not-allowed opacity-60'
                       : isActiveCategory
-                        ? 'bg-[var(--color-surface-secondary)] text-[var(--color-text-primary)] shadow-glow'
-                        : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                        ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
+                        : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
                   }`}
                 >
                   {category.label}

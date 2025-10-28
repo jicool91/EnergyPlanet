@@ -23,7 +23,7 @@ interface Particle {
   color: string;
 }
 
-const colors = ['#00d9ff', '#48ffad', '#ffd700', '#ff8d4d'];
+const colors = ['#00d9ff', '#00ff88', '#ffd700', '#ff8d4d'];
 
 const createPseudoRandom = (seed: number) => {
   let state = seed >>> 0;

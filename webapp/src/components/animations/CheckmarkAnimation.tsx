@@ -18,7 +18,7 @@ interface CheckmarkAnimationProps {
  */
 export const CheckmarkAnimation: React.FC<CheckmarkAnimationProps> = ({
   size = 80,
-  color = '#48ffad', // lime
+  color = '#00ff88', // lime neon (2025 palette)
   duration = 0.6,
 }) => {
   return (

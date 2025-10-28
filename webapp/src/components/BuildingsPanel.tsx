@@ -1,5 +1,6 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
+import clsx from 'clsx';
 import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../store/gameStore';
 import { useCatalogStore } from '../store/catalogStore';
@@ -229,15 +230,18 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
         >
           {PURCHASE_OPTIONS.map((option, index) => {
             const isActive = option.id === selectedPurchaseId;
+            const baseClasses =
+              'px-sm-plus py-xs-plus rounded-2xl border text-caption font-semibold transition-all duration-150 focus-ring min-h-[40px] min-w-[72px]';
             return (
               <button
                 key={option.id}
                 type="button"
-                className={`px-3 py-1.5 rounded-full border text-caption font-semibold transition-all duration-150 ${
+                className={clsx(
+                  baseClasses,
                   isActive
-                    ? 'border-cyan/60 bg-cyan/20 text-token-primary'
-                    : 'border-cyan/15 bg-dark-secondary/40 text-token-secondary hover:text-token-primary'
-                }`}
+                    ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(0,217,255,0.28)] border-[rgba(0,255,136,0.55)] text-[var(--color-text-primary)] shadow-glow-lime'
+                    : 'bg-[rgba(12,18,40,0.68)] border-[rgba(0,217,255,0.18)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[rgba(0,217,255,0.4)]'
+                )}
                 onClick={() => setSelectedPurchaseId(option.id)}
                 onKeyDown={event => handlePurchaseOptionKeyDown(event, index)}
                 role="radio"
@@ -254,7 +258,9 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
                     : `Пакетная покупка ${option.label}`
                 }
               >
-                {option.label}
+                <span className="flex items-center justify-center gap-xs text-label uppercase tracking-[0.08em]">
+                  {option.label}
+                </span>
               </button>
             );
           })}
@@ -265,11 +271,11 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
       </div>
 
       {buildingsError && (
-        <div className="flex items-center justify-between rounded-md border border-red-error/40 bg-red-error/[0.15] px-md py-sm-plus text-body text-[#ffb8b8]">
+        <div className="flex items-center justify-between rounded-2xl border border-[rgba(255,51,51,0.45)] bg-[rgba(58,16,24,0.82)] px-md py-sm-plus text-body text-[var(--color-text-primary)] shadow-elevation-2">
           <span>{buildingsError}</span>
           <button
             onClick={() => loadBuildingCatalog()}
-            className="text-xs px-2 py-1 bg-red-error/20 hover:bg-red-error/30 rounded transition-colors"
+            className="text-xs px-sm py-xs-plus rounded-xl border border-[rgba(255,51,51,0.45)] bg-[rgba(255,51,51,0.16)] text-[var(--color-text-primary)] font-semibold transition-all duration-150 focus-ring hover:bg-[rgba(255,51,51,0.24)]"
           >
             Перезагрузить
           </button>

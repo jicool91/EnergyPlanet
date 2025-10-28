@@ -38,7 +38,7 @@ const buttonVariants = cva(
 
       size: {
         // Small: compact button
-        sm: 'px-sm-plus py-xs-plus text-caption rounded-lg min-h-[44px]',
+        sm: 'px-sm-plus py-xs-plus text-caption rounded-xl min-h-[44px]',
 
         // Medium: default button
         md: 'px-md py-sm text-caption rounded-xl min-h-[44px]',

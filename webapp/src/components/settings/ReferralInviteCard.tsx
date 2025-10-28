@@ -227,7 +227,7 @@ export const ReferralInviteCard: React.FC = () => {
             {activeEvents.map(event => (
               <div
                 key={event.id}
-                className="flex flex-col gap-1 rounded-lg border border-amber-400/40 bg-amber-500/10 p-2"
+                className="flex flex-col gap-xs rounded-2xl border border-[rgba(255,215,0,0.35)] bg-[rgba(255,215,0,0.12)] p-sm"
               >
                 <div className="flex items-center justify-between gap-sm">
                   <span className="font-medium text-token-primary">{event.label}</span>

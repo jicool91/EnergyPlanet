@@ -79,47 +79,48 @@ export function ProfilePanel() {
 
   return (
     <div className="flex flex-col gap-md">
-      <header className="flex items-center gap-sm-plus">
-        <div
-          className="w-14 h-14 rounded-lg bg-cyan/[0.15] flex items-center justify-center text-heading"
-          aria-hidden
-        >
+      <Card className="flex items-center gap-md border-[rgba(0,217,255,0.35)] bg-gradient-to-r from-[rgba(0,217,255,0.22)] via-[rgba(0,255,136,0.18)] to-[rgba(120,63,255,0.18)] shadow-elevation-2">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-[rgba(0,217,255,0.45)] bg-[rgba(12,18,40,0.82)] text-heading">
           {profile.profile.equipped_avatar_frame ? '🛡️' : '🙂'}
         </div>
-        <div>
-          <h3 className="m-0">{profile.user.username || profile.user.first_name || 'Игрок'}</h3>
-          <span className="text-xs text-[var(--color-text-secondary)]">
+        <div className="min-w-0">
+          <h3 className="m-0 text-subheading font-bold text-[var(--color-text-primary)] truncate">
+            {profile.user.username || profile.user.first_name || 'Игрок'}
+          </h3>
+          <span className="text-caption text-[var(--color-text-secondary)]">
             ID: {profile.user.id.slice(0, 8)}
           </span>
         </div>
-      </header>
+      </Card>
 
       {/* Stats Grid */}
       <section className="grid grid-cols-2 gap-sm-plus">
-        <Card className="flex flex-col gap-sm">
+        <Card className="flex flex-col gap-xs">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">Уровень</span>
-          <strong className="text-heading">{profile.progress.level}</strong>
+          <strong className="text-title font-bold">{profile.progress.level}</strong>
         </Card>
-        <Card className="flex flex-col gap-sm">
+        <Card className="flex flex-col gap-xs">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">Энергия</span>
-          <strong className="text-heading">{energyCompact}</strong>
+          <strong className="text-title font-bold">{energyCompact}</strong>
         </Card>
-        <Card className="flex flex-col gap-sm">
+        <Card className="flex flex-col gap-xs">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">
             Всего энергии
           </span>
-          <strong className="text-heading">{totalEnergyCompact}</strong>
+          <strong className="text-title font-bold">{totalEnergyCompact}</strong>
         </Card>
-        <Card className="flex flex-col gap-sm">
+        <Card className="flex flex-col gap-xs">
           <span className="text-micro uppercase text-[var(--color-text-secondary)]">Тап lvl</span>
-          <strong className="text-heading">{profile.progress.tap_level}</strong>
+          <strong className="text-title font-bold">{profile.progress.tap_level}</strong>
         </Card>
         {referralStats && (
-          <Card className="flex flex-col gap-xs col-span-2 sm:col-span-1">
+          <Card className="col-span-2 flex flex-col gap-xs bg-gradient-to-br from-[rgba(0,217,255,0.14)] via-[rgba(0,255,136,0.18)] to-[rgba(0,217,255,0.24)] border-[rgba(0,217,255,0.35)] sm:col-span-1">
             <span className="text-micro uppercase text-[var(--color-text-secondary)]">
               Приглашено друзей
             </span>
-            <strong className="text-heading">{referralStats.total_invites}</strong>
+            <strong className="text-title font-bold text-[var(--color-text-primary)]">
+              {referralStats.total_invites}
+            </strong>
             {referralStats.daily_invites_limit ? (
               <span className="text-xs text-token-secondary">
                 Сегодня: {referralStats.daily_invites_used}/{referralStats.daily_invites_limit}
@@ -132,8 +133,8 @@ export function ProfilePanel() {
       </section>
 
       {referralStats?.referred_by && (
-        <Card className="flex flex-col gap-1 text-sm">
-          <span className="text-xs uppercase text-[var(--color-text-secondary)]">
+        <Card className="flex flex-col gap-xs text-sm bg-gradient-to-r from-[rgba(120,63,255,0.24)] via-[rgba(38,16,76,0.6)] to-[rgba(0,217,255,0.18)] border-[rgba(120,63,255,0.45)]">
+          <span className="text-xs uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
             Вас пригласил
           </span>
           <span className="text-token-primary font-medium">
@@ -144,19 +145,26 @@ export function ProfilePanel() {
 
       {/* Bio Section */}
       {profile.profile.bio && (
-        <Card>
-          <h4 className="mb-sm text-body uppercase font-semibold">О себе</h4>
-          <p className="m-0 text-caption text-token-secondary">{profile.profile.bio}</p>
+        <Card className="flex flex-col gap-sm">
+          <h4 className="m-0 text-caption uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+            О себе
+          </h4>
+          <p className="m-0 text-body text-[var(--color-text-secondary)]">{profile.profile.bio}</p>
         </Card>
       )}
 
       {/* Active Boosts Section */}
       {boosts.length > 0 && (
-        <Card>
-          <h4 className="mb-sm-plus text-body uppercase font-semibold">Активные бусты</h4>
-          <ul className="list-none m-0 flex flex-col gap-sm p-0">
+        <Card className="flex flex-col gap-sm">
+          <h4 className="m-0 text-caption uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+            Активные бусты
+          </h4>
+          <ul className="m-0 flex list-none flex-col gap-sm p-0">
             {boosts.map(boost => (
-              <li key={boost.id} className="flex justify-between items-center text-caption">
+              <li
+                key={boost.id}
+                className="flex items-center justify-between rounded-2xl border border-[rgba(0,217,255,0.2)] bg-[rgba(10,16,38,0.72)] px-sm-plus py-xs text-caption text-[var(--color-text-secondary)]"
+              >
                 <span className="text-token-primary">{boost.boost_type}</span>
                 <Badge variant="success" size="sm">
                   x{boost.multiplier}

@@ -58,17 +58,20 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     const baseStyles =
-      'relative rounded-lg p-4 transition-all duration-150 ease-out text-[var(--color-text-primary)]';
+      'relative overflow-hidden rounded-2xl p-md transition-all duration-200 ease-out text-[var(--color-text-primary)] backdrop-blur-sm';
 
     const variantStyles = {
       default:
-        'bg-[var(--color-surface-secondary)] border border-[var(--color-border-subtle)] shadow-card',
+        'bg-[rgba(10,16,38,0.88)] border border-[var(--color-border-subtle)] shadow-elevation-2',
       elevated:
-        'bg-[var(--color-surface-secondary)] border border-[var(--color-border-subtle)] shadow-lg',
-      outlined: 'bg-transparent border border-[var(--color-border-strong)] shadow-none',
+        'bg-[rgba(12,20,48,0.92)] border border-[color-mix(in srgb,_var(--color-border-subtle)_70%,_transparent)] shadow-elevation-3',
+      outlined:
+        'bg-[rgba(8,12,26,0.65)] border border-[color-mix(in srgb,_var(--color-border-subtle)_55%,_transparent)] shadow-none',
     };
 
-    const highlightStyles = highlighted ? 'ring-2 ring-[var(--color-success)] shadow-lg' : '';
+    const highlightStyles = highlighted
+      ? 'ring-[3px] ring-[rgba(0,255,136,0.45)] shadow-glow-lime'
+      : '';
     const isInteractive =
       typeof props.onClick === 'function' ||
       props.role === 'button' ||
@@ -81,13 +84,13 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
           baseStyles,
           variantStyles[variant],
           highlightStyles,
-          isInteractive && 'card-interactive',
+          isInteractive && 'card-interactive hover:-translate-y-0.5',
           className
         )}
         {...props}
       >
         {highlighted && (
-          <span className="absolute -top-2 right-4 rounded-full bg-[var(--color-success)] px-3 py-1.5 text-[var(--color-surface-primary)] text-micro font-bold shadow-md">
+          <span className="absolute top-3 right-3 rounded-full bg-[rgba(0,255,136,0.18)] px-sm-plus py-xs text-label font-bold text-[var(--color-success)] border border-[rgba(0,255,136,0.45)] shadow-glow-lime">
             {highlightBadge}
           </span>
         )}

@@ -135,9 +135,9 @@ export function AchievementsModal({
               return (
                 <div
                   key={item.slug}
-                  className="rounded-lg border border-[var(--color-border-subtle)] bg-[var(--app-surface)] p-sm-plus flex flex-col gap-sm"
+                  className="flex flex-col gap-sm rounded-2xl border border-[rgba(0,217,255,0.24)] bg-[rgba(12,18,40,0.82)] p-md shadow-elevation-2"
                 >
-                  <div className="flex items-start justify-between gap-sm">
+                  <div className="flex items-start justify-between gap-sm-plus">
                     <div className="flex items-start gap-sm">
                       <div className="text-xl" aria-hidden="true">
                         {item.icon ?? '⭐'}
@@ -172,7 +172,7 @@ export function AchievementsModal({
 
                   {tierMeta ? (
                     <>
-                      <div className="rounded-md border border-[var(--color-border-subtle)] bg-[var(--app-card-bg)] px-sm py-xs">
+                      <div className="rounded-2xl border border-[rgba(0,217,255,0.24)] bg-[rgba(10,16,40,0.72)] px-sm-plus py-sm">
                         {claimableTier ? (
                           <p className="text-caption text-[var(--color-text-primary)] font-medium">
                             Готово к получению: +{rewardPercent}% навсегда
@@ -187,9 +187,9 @@ export function AchievementsModal({
 
                       {!claimableTier && (
                         <div className="flex flex-col gap-xs">
-                          <div className="w-full h-2 rounded-full bg-[var(--color-border-subtle)] overflow-hidden">
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-[rgba(0,217,255,0.18)]">
                             <div
-                              className="h-full bg-[var(--color-accent)]"
+                              className="h-full rounded-full bg-gradient-to-r from-[var(--color-cyan)] via-[var(--color-success)] to-[var(--color-gold)] shadow-glow"
                               style={{ width: `${progressPercent}%` }}
                             />
                           </div>

@@ -65,11 +65,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     };
 
     const baseStyles =
-      'w-full border rounded-md text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]/80 transition-colors duration-150 focus:outline-none focus:border-[var(--color-text-accent)] focus:bg-[var(--color-surface-tertiary)] bg-[var(--color-surface-secondary)] disabled:opacity-50 disabled:cursor-not-allowed';
+      'w-full border rounded-2xl bg-[rgba(12,18,40,0.82)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]/75 transition-colors duration-150 focus:outline-none focus:border-[var(--color-text-accent)] focus:bg-[rgba(18,24,52,0.92)] disabled:opacity-50 disabled:cursor-not-allowed shadow-elevation-1';
 
     const borderStyles = error
-      ? 'border-[var(--color-text-destructive)]/60 focus:border-[var(--color-text-destructive)]'
-      : 'border-[var(--color-border-subtle)] focus:border-[var(--color-text-accent)]';
+      ? 'border-[rgba(255,51,51,0.55)] focus:border-[var(--color-text-destructive)]'
+      : 'border-[rgba(0,217,255,0.22)] focus:border-[var(--color-text-accent)]';
 
     return (
       <div className="flex flex-col gap-xs">

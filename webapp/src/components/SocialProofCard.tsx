@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { Card } from './Card';
+import { Button } from './Button';
 
 interface SocialProofCardProps {
   friendsCount?: number;
@@ -19,12 +20,12 @@ export const SocialProofCard: React.FC<SocialProofCardProps> = ({
 }) => {
   if (isLoading) {
     return (
-      <Card className="flex items-center justify-between gap-md bg-gradient-to-r from-cyan/10 to-lime/10 border-cyan/30 animate-pulse">
+      <Card className="flex items-center justify-between gap-md bg-[rgba(12,20,48,0.64)] border-[rgba(0,217,255,0.28)] animate-pulse">
         <div className="flex flex-col gap-xs">
           <p className="m-0 text-caption font-semibold text-[var(--color-text-secondary)]">
             Синхронизируем комьюнити…
           </p>
-          <p className="m-0 text-sm text-[var(--color-text-secondary)] opacity-70">
+          <p className="m-0 text-caption text-[var(--color-text-secondary)] opacity-70">
             Обновляем рейтинг друзей
           </p>
         </div>
@@ -40,7 +41,7 @@ export const SocialProofCard: React.FC<SocialProofCardProps> = ({
   const isActionEnabled = typeof onViewLeaderboard === 'function';
 
   return (
-    <Card className="flex items-center justify-between gap-md bg-gradient-to-r from-cyan/20 to-lime/20 border-cyan/40">
+    <Card className="flex flex-col gap-sm md:flex-row md:items-center md:justify-between bg-gradient-to-r from-[rgba(0,217,255,0.22)] via-[rgba(0,255,136,0.18)] to-[rgba(120,63,255,0.22)] border-[rgba(0,217,255,0.35)] shadow-elevation-2">
       {/* Content */}
       <div className="flex flex-col gap-xs">
         <p className="m-0 text-caption font-semibold text-[var(--color-text-primary)]">
@@ -49,25 +50,22 @@ export const SocialProofCard: React.FC<SocialProofCardProps> = ({
         <p className="m-0 text-sm text-[var(--color-text-secondary)]">
           {formattedCount} игроков активировали бусты сегодня
         </p>
-        <p className="m-0 text-xs text-[var(--color-text-secondary)] opacity-80">
+        <p className="m-0 text-caption text-[var(--color-text-secondary)] opacity-80">
           Откройте рейтинг и пригласите друга — оба получите бонусные Stars.
         </p>
       </div>
 
       {/* Action Button */}
-      <button
+      <Button
+        size="sm"
+        variant="secondary"
         onClick={isActionEnabled ? onViewLeaderboard : undefined}
-        className={`flex-shrink-0 rounded-lg bg-gradient-to-br from-cyan/40 to-lime/40 px-md py-sm text-[var(--color-text-primary)] font-medium text-caption transition-all duration-200 focus-ring ${
-          isActionEnabled
-            ? 'hover:from-cyan/60 hover:to-lime/60 active:scale-95'
-            : 'opacity-50 cursor-not-allowed'
-        }`}
-        type="button"
-        aria-label="Открыть лидерборд"
         disabled={!isActionEnabled}
+        className={`min-w-[160px] ${isActionEnabled ? 'shadow-glow' : 'opacity-60 cursor-not-allowed'}`}
+        aria-label="Открыть лидерборд"
       >
         Посмотреть друзей
-      </button>
+      </Button>
     </Card>
   );
 };

@@ -197,7 +197,7 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
       {/* Unlock animation pulse */}
       {showUnlockAnim && (
         <motion.div
-          className="absolute inset-0 rounded-lg pointer-events-none border-2 border-lime"
+          className="pointer-events-none absolute inset-0 rounded-2xl border-2 border-lime"
           initial={{ scale: 1, opacity: 0.6 }}
           animate={{ scale: 1.1, opacity: 0 }}
           transition={{ duration: 1, ease: 'easeOut' }}
@@ -269,22 +269,22 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
           )}
         </div>
         {!isLocked && purchasePlan.limitedByCap && (
-          <div className="rounded-lg bg-[rgba(255,215,0,0.08)] px-sm py-xs text-label text-[var(--color-warning)]">
+          <div className="rounded-xl border border-[rgba(255,215,0,0.35)] bg-[rgba(255,215,0,0.12)] px-sm-plus py-xs text-label text-[var(--color-warning)]">
             Достигнут лимит построек для уровня
           </div>
         )}
         {!isLocked && purchasePlan.partial && (
-          <div className="rounded-lg bg-[rgba(255,215,0,0.08)] px-sm py-xs text-label text-[var(--color-warning)]">
+          <div className="rounded-xl border border-[rgba(255,215,0,0.35)] bg-[rgba(255,215,0,0.12)] px-sm-plus py-xs text-label text-[var(--color-warning)]">
             Энергии хватит на ×{purchasePlan.quantity} из {purchasePlan.requestedValue}
           </div>
         )}
         {!isLocked && purchasePlan.insufficientEnergy && (
-          <div className="rounded-lg bg-[rgba(255,51,51,0.12)] px-sm py-xs text-label text-[var(--color-error)]">
+          <div className="rounded-xl border border-[rgba(255,51,51,0.35)] bg-[rgba(255,51,51,0.12)] px-sm-plus py-xs text-label text-[var(--color-error)]">
             Недостаточно энергии для выбранного пакета
           </div>
         )}
         {isLocked && building.unlock_level && (
-          <div className="rounded-lg bg-[rgba(255,141,77,0.12)] px-sm py-xs text-label text-[var(--color-warning)]">
+          <div className="rounded-xl border border-[rgba(255,141,77,0.32)] bg-[rgba(255,141,77,0.12)] px-sm-plus py-xs text-label text-[var(--color-warning)]">
             Требуется уровень {building.unlock_level}
           </div>
         )}

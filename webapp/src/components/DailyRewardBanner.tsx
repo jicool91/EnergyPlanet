@@ -251,11 +251,11 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="relative overflow-hidden rounded-xl border border-amber-400/60 bg-gradient-to-r from-amber-200/90 via-amber-100/95 to-yellow-100/95 p-4 shadow-lg text-amber-900"
+      className="relative overflow-hidden rounded-2xl border border-[rgba(0,255,136,0.45)] bg-gradient-to-r from-[rgba(0,217,255,0.22)] via-[rgba(0,255,136,0.18)] to-[rgba(255,215,0,0.25)] p-md shadow-elevation-2 text-[var(--color-text-primary)]"
     >
       {!prefersReducedMotion && !isLowPerformance && (
         <motion.div
-          className="absolute inset-0 bg-gradient-to-r from-amber-300/35 to-transparent opacity-60"
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.22),_transparent_65%)] opacity-70"
           animate={{
             x: ['-100%', '100%'],
           }}
@@ -267,8 +267,8 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
         />
       )}
 
-      <div className="relative flex flex-wrap items-center justify-between gap-4 z-10">
-        <div className="flex items-center gap-3 min-w-[220px] flex-1">
+      <div className="relative z-10 flex flex-wrap items-center justify-between gap-md">
+        <div className="flex items-center gap-md min-w-[220px] flex-1">
           <span
             className={`text-4xl ${isLowPerformance || prefersReducedMotion ? '' : 'animate-bounce'}`}
             role="img"
@@ -277,15 +277,18 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
             🎁
           </span>
           <div className="flex-1 min-w-[160px]">
-            <p className="m-0 text-sm font-bold">{rewardHeadline}</p>
-            <p className="m-0 text-xs text-amber-800/80">
+            <p className="m-0 text-body font-semibold">{rewardHeadline}</p>
+            <p className="m-0 text-caption text-[var(--color-text-secondary)]">
               {visualCountdown}
               <span className="sr-only" aria-live="polite" aria-atomic="true">
                 {accessibleStatus}
               </span>
             </p>
             {boostHubError && (
-              <p className="m-0 mt-1 text-xs text-[var(--color-text-destructive)]" role="status">
+              <p
+                className="m-0 mt-xs text-caption text-[var(--color-text-destructive)]"
+                role="status"
+              >
                 {boostHubError}
               </p>
             )}
@@ -296,8 +299,8 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
           whileHover={!buttonDisabled ? { scale: 1.05 } : undefined}
           whileTap={!buttonDisabled ? { scale: 0.95 } : undefined}
           onClick={handleClaim}
-          className={`flex-shrink-0 px-4 py-2 rounded-lg bg-amber-500 text-amber-950 font-bold text-sm transition-all duration-200 shadow-md focus-ring ${
-            buttonDisabled ? 'opacity-60 cursor-not-allowed' : 'hover:bg-amber-400'
+          className={`flex-shrink-0 min-h-[44px] rounded-2xl px-md py-xs-plus bg-gradient-to-r from-[rgba(0,217,255,0.85)] via-[rgba(0,255,136,0.9)] to-[rgba(255,215,0,0.95)] text-[var(--color-surface-primary)] text-caption font-semibold tracking-[0.08em] transition-all duration-200 focus-ring ${
+            buttonDisabled ? 'opacity-60 cursor-not-allowed' : 'shadow-glow hover:brightness-105'
           }`}
           type="button"
           disabled={buttonDisabled}
@@ -308,15 +311,17 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
       </div>
 
       {isUpsellVisible && (
-        <Card className="mt-3 flex flex-col gap-sm bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border-purple-500/30 text-[var(--color-text-primary)]">
+        <Card className="mt-sm-plus flex flex-col gap-sm bg-gradient-to-r from-[rgba(120,63,255,0.28)] via-[rgba(42,12,89,0.75)] to-[rgba(0,217,255,0.22)] border-[rgba(120,63,255,0.45)] text-[var(--color-text-primary)]">
           <div>
-            <p className="m-0 text-sm font-semibold text-purple-100">Продли ускорение</p>
-            <p className="m-0 mt-1 text-caption text-purple-100/80">
+            <p className="m-0 text-body font-semibold text-[var(--color-text-primary)]">
+              Продли ускорение
+            </p>
+            <p className="m-0 mt-xs text-caption text-[color-mix(in srgb,_var(--color-text-primary)_75%,_transparent)]">
               Активируй премиум буст или докупи Stars, чтобы удержать множитель дольше.
             </p>
           </div>
           <div className="flex flex-wrap gap-sm">
-            <Button size="sm" variant="primary" onClick={handleBoostUpsell}>
+            <Button size="sm" variant="primary" onClick={handleBoostUpsell} className="shadow-glow">
               ⚡ Премиум буст
             </Button>
             <Button size="sm" variant="secondary" onClick={handleShopUpsell}>

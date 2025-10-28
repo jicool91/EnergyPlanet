@@ -7,11 +7,11 @@ interface LeaderboardSkeletonProps {
 
 export const LeaderboardSkeleton: React.FC<LeaderboardSkeletonProps> = ({ count = 5 }) => {
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-sm-plus">
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-3 p-3 rounded-lg bg-dark-secondary border border-cyan/[0.14]"
+          className="flex items-center gap-sm-plus rounded-2xl border border-[rgba(0,217,255,0.22)] bg-[rgba(12,18,40,0.84)] p-md shadow-elevation-2"
         >
           {/* Rank Badge */}
           <Skeleton width={32} height={32} variant="circle" />

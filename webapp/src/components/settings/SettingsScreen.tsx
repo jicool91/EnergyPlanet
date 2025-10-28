@@ -267,10 +267,10 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       role="radio"
       aria-checked={selected}
       tabIndex={selected ? 0 : -1}
-      className={`py-2 rounded-lg font-medium transition-all border focus-ring ${
+      className={`px-sm-plus py-xs-plus rounded-2xl font-semibold uppercase tracking-[0.08em] transition-all border focus-ring ${
         selected
-          ? 'bg-lime/90 text-slate-900 border-lime-400 shadow-lg'
-          : 'bg-token-surface-tertiary border-token-subtle text-token-secondary hover:bg-token-surface'
+          ? 'bg-gradient-to-r from-[rgba(0,255,136,0.82)] via-[rgba(0,217,255,0.82)] to-[rgba(120,63,255,0.82)] text-[var(--color-surface-primary)] border-[rgba(0,255,136,0.55)] shadow-glow-lime'
+          : 'bg-[rgba(12,18,40,0.72)] border-[rgba(0,217,255,0.18)] text-token-secondary hover:bg-[rgba(12,22,48,0.88)] hover:text-token-primary'
       }`}
     >
       {label}

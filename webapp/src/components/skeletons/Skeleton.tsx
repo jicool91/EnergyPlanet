@@ -16,17 +16,17 @@ export const Skeleton: React.FC<SkeletonProps> = ({
   count = 1,
 }) => {
   const baseClass =
-    'animate-shimmer bg-gradient-to-r from-gray-700 via-gray-600 to-gray-700 bg-[length:200%_100%]';
+    'animate-shimmer bg-gradient-to-r from-[rgba(12,22,48,0.65)] via-[rgba(20,40,88,0.85)] to-[rgba(12,22,48,0.65)] bg-[length:200%_100%]';
 
   const getVariantClass = () => {
     switch (variant) {
       case 'text':
-        return `h-4 rounded ${baseClass}`;
+        return `h-3 rounded-full ${baseClass}`;
       case 'circle':
         return `rounded-full ${baseClass}`;
       case 'rect':
       default:
-        return `rounded-lg ${baseClass}`;
+        return `rounded-2xl ${baseClass}`;
     }
   };
 

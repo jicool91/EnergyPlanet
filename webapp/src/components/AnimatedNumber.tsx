@@ -63,7 +63,7 @@ export const AnimatedNumber: React.FC<AnimatedNumberProps> = ({
       {isAnimating && deltaValue > 0 && (
         <motion.div
           className={`absolute inset-0 ${className}`}
-          style={{ color: '#48ffad' }} // lime color
+          style={{ color: '#00ff88' }} // neon lime (Phase 2 palette)
           initial={{ opacity: 0 }}
           animate={{ opacity: [0, 1, 0] }}
           transition={{ duration: 0.4, times: [0, 0.5, 1] }}
