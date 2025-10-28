@@ -18,6 +18,8 @@ export function ProfilePanel() {
     }))
   );
 
+  const safeProfileBoosts = Array.isArray(profileBoosts) ? profileBoosts : [];
+
   useEffect(() => {
     if (isProfileLoading) {
       return;
@@ -34,11 +36,11 @@ export function ProfilePanel() {
       userId,
       level: profile.progress.level,
       energy: profile.progress.energy,
-      boosts: profileBoosts.length,
+      boosts: safeProfileBoosts.length,
     });
-  }, [isProfileLoading, profile, profileBoosts.length, profileError, userId]);
+  }, [isProfileLoading, profile, safeProfileBoosts.length, profileError, userId]);
 
-  const boosts = useMemo(() => profileBoosts, [profileBoosts]);
+  const boosts = useMemo(() => safeProfileBoosts, [safeProfileBoosts]);
   const energyValue = profile?.progress.energy ?? 0;
   const totalEnergyValue = profile?.progress.total_energy_produced ?? 0;
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energyValue)), [energyValue]);

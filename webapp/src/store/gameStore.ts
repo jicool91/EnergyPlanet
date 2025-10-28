@@ -987,7 +987,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       const response = await fetchProfile(userId);
       set({
         profile: response,
-        profileBoosts: response.boosts,
+        profileBoosts: Array.isArray(response.boosts) ? response.boosts : [],
         isProfileLoading: false,
       });
     } catch (error) {
