@@ -88,9 +88,18 @@ class ClientLogger {
     }
   }
 
+  private shouldSendToBackend(level: LogLevel): boolean {
+    if (import.meta.env.DEV) {
+      return true;
+    }
+    // In production send only warnings and errors to avoid hitting rate limits.
+    return level === 'warn' || level === 'error';
+  }
+
   private async sendToBackend(level: LogLevel, message: string, context?: Record<string, unknown>) {
-    // Send ALL logs to backend (including info/debug for auth flow debugging)
-    // This is a Telegram Mini App - we can't use browser DevTools!
+    if (!this.shouldSendToBackend(level)) {
+      return;
+    }
     try {
       // Non-blocking send to telemetry endpoint
       // Don't await to avoid blocking logger calls
@@ -131,7 +140,6 @@ class ClientLogger {
       console[method](formatted);
     }
 
-    // Send ALL logs to backend (no filtering - Telegram Mini App needs full visibility)
     this.sendToBackend(level, message, context);
   }
 

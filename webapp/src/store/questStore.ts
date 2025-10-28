@@ -27,7 +27,7 @@ interface QuestStoreState {
   isLoading: boolean;
   error: string | null;
   lastLoadedAt: number | null;
-  loadQuests: () => Promise<void>;
+  loadQuests: (force?: boolean) => Promise<void>;
   claimQuest: (questId: string) => Promise<void>;
 }
 
@@ -38,9 +38,14 @@ export const useQuestStore = create<QuestStoreState>()(
     error: null,
     lastLoadedAt: null,
 
-    loadQuests: async () => {
+    loadQuests: async (force = false) => {
       const state = get();
+      const now = Date.now();
+      const cooldownMs = 30_000; // 30s cooldown between fetch attempts
       if (state.isLoading) {
+        return;
+      }
+      if (!force && state.lastLoadedAt && now - state.lastLoadedAt < cooldownMs) {
         return;
       }
 
@@ -51,7 +56,7 @@ export const useQuestStore = create<QuestStoreState>()(
         set({ quests, isLoading: false, error: null, lastLoadedAt: Date.now() });
       } catch (error) {
         const { message } = describeError(error, 'Не удалось загрузить задания');
-        set({ error: message, isLoading: false });
+        set({ error: message, isLoading: false, lastLoadedAt: Date.now() });
         void logClientEvent('quests_load_error', { message }, 'warn');
       }
     },
