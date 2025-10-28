@@ -25,6 +25,7 @@ import {
   TabPageSurface,
   ClanComingSoon,
   AchievementsModal,
+  ErrorBoundary,
 } from '../components';
 import { useHaptic } from '../hooks/useHaptic';
 import { useScrollToTop } from '../hooks/useScrollToTop';
@@ -695,10 +696,28 @@ export function MainScreen({
           >
             <Suspense fallback={<ProfileSkeleton />}>
               <TabPageSurface>
-                <ProfileSettingsScreen
-                  onClose={() => onTabChange('home')}
-                  onShowAdminPanel={onOpenAdminMetrics}
-                />
+                <ErrorBoundary
+                  fallback={
+                    <div className="flex flex-col items-center gap-md text-token-secondary">
+                      <p className="m-0">Не удалось загрузить страницу аккаунта.</p>
+                      <button
+                        type="button"
+                        className="rounded-lg bg-cyan/20 px-4 py-2 text-sm focus-ring"
+                        onClick={() => {
+                          onTabChange('home');
+                          setTimeout(() => onTabChange('account'), 120);
+                        }}
+                      >
+                        Повторить
+                      </button>
+                    </div>
+                  }
+                >
+                  <ProfileSettingsScreen
+                    onClose={() => onTabChange('home')}
+                    onShowAdminPanel={onOpenAdminMetrics}
+                  />
+                </ErrorBoundary>
               </TabPageSurface>
             </Suspense>
           </ScreenTransition>
