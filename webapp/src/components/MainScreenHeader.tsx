@@ -73,23 +73,27 @@ function MainScreenHeaderComponent({
       }}
     >
       <div className="flex h-14 items-center justify-between gap-md px-md py-md">
-        {/* Left: Level & Energy */}
-        <div className="flex items-center gap-md min-w-0">
+        {/* Left: Level & Resources */}
+        <div className="flex items-stretch gap-sm-plus min-w-0 divide-x divide-[rgba(255,255,255,0.08)]">
           {/* Level Badge */}
-          <div className="flex-shrink-0 flex flex-col items-center">
-            <span className="text-caption text-[var(--color-text-secondary)]">LV</span>
+          <div className="flex flex-col items-center justify-center px-sm-plus">
+            <span className="text-caption text-[var(--color-text-secondary)] uppercase tracking-[0.18em]">
+              Lv
+            </span>
             <span className="text-subheading font-bold text-[var(--color-text-accent)]">
               {level}
             </span>
           </div>
 
           {/* Energy */}
-          <div className="flex items-center gap-sm min-w-0">
-            <span className="text-subheading flex-shrink-0" role="img" aria-label="Energy">
+          <div className="flex items-center gap-sm min-w-0 px-sm-plus">
+            <span className="text-title flex-shrink-0" role="img" aria-label="Energy">
               ⚡
             </span>
             <div className="min-w-0">
-              <p className="m-0 text-caption text-[var(--color-text-secondary)] truncate">Energy</p>
+              <p className="m-0 text-caption text-[var(--color-text-secondary)] uppercase tracking-[0.16em]">
+                Energy
+              </p>
               <p className="m-0 text-body font-semibold text-[var(--color-text-primary)] truncate">
                 {energyCompact}
               </p>
@@ -97,42 +101,44 @@ function MainScreenHeaderComponent({
           </div>
 
           {/* Stars + Quick Top-Up */}
-          <div className="flex items-center gap-sm min-w-0">
-            <span className="text-subheading flex-shrink-0" role="img" aria-label="Stars">
+          <div className="flex items-center gap-sm min-w-0 px-sm-plus">
+            <span className="text-title flex-shrink-0" role="img" aria-label="Stars">
               ⭐
             </span>
             <div className="min-w-0">
-              <p className="m-0 text-caption text-[var(--color-text-secondary)] truncate">Stars</p>
+              <p className="m-0 text-caption text-[var(--color-text-secondary)] uppercase tracking-[0.16em]">
+                Stars
+              </p>
               <p className="m-0 text-body font-semibold text-[var(--color-text-accent)] truncate">
                 {starsCompact}
               </p>
             </div>
-            {/* Quick Top-Up Button */}
             {onShopClick && (
               <motion.button
                 onClick={onShopClick}
-                className="flex-shrink-0 ml-1 w-11 h-11 rounded-full flex items-center justify-center bg-gradient-to-br from-[var(--color-cyan)] to-[var(--color-success)] text-[var(--color-surface-primary)] font-bold shadow-glow transition-all duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
-                title="Quick Top-Up Stars"
+                className="flex items-center gap-xs rounded-xl bg-gradient-to-br from-[var(--color-cyan)] to-[var(--color-success)] px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.12em] text-[var(--color-surface-primary)] shadow-glow transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
+                title="Пополнить Stars"
                 type="button"
-                aria-label="Quick Top-Up Stars"
+                aria-label="Пополнить Stars"
                 whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.96 }}
                 animate={{
-                  opacity: [0.7, 1, 0.7],
+                  opacity: [0.85, 1, 0.85],
                   boxShadow: [
-                    '0 0 16px rgba(0, 217, 255, 0.35)',
-                    '0 0 24px rgba(0, 255, 136, 0.45)',
-                    '0 0 16px rgba(0, 217, 255, 0.35)',
+                    '0 0 20px rgba(0, 217, 255, 0.45)',
+                    '0 0 24px rgba(0, 255, 136, 0.55)',
+                    '0 0 20px rgba(0, 217, 255, 0.45)',
                   ],
                 }}
                 transition={{
-                  opacity: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
-                  boxShadow: { duration: 2, repeat: Infinity, ease: 'easeInOut' },
+                  opacity: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' },
+                  boxShadow: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' },
                 }}
               >
-                <span className="text-title" aria-hidden="true">
+                <span aria-hidden="true" className="text-title leading-none">
                   +
                 </span>
+                <span className="leading-none">Пополнить</span>
               </motion.button>
             )}
           </div>
@@ -144,14 +150,15 @@ function MainScreenHeaderComponent({
           {onShopClick && (
             <button
               onClick={onShopClick}
-              className="flex-shrink-0 h-11 px-sm-plus rounded-xl border border-[var(--color-border-subtle)] bg-[var(--color-surface-secondary)] text-body font-semibold text-[var(--color-text-accent)] hover:shadow-glow transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
-              title="Top-up Stars"
+              className="flex-shrink-0 h-11 px-md rounded-xl border border-[var(--color-border-subtle)] bg-[rgba(0,217,255,0.12)] text-caption font-semibold uppercase tracking-[0.14em] text-[var(--color-text-accent)] hover:shadow-glow transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
+              title="Открыть магазин Stars"
               type="button"
-              aria-label="Top-up Stars"
+              aria-label="Открыть магазин Stars"
             >
               <span className="text-title" aria-hidden="true">
                 🛍️
               </span>
+              <span className="ml-xs hidden sm:inline">Магазин</span>
             </button>
           )}
 

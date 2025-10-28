@@ -131,33 +131,37 @@ export function HomePanel({
   }, [multiplierLabel, multiplierParts]);
   const heroCardDetails = useMemo(() => {
     const progressPercent = Math.round(Math.max(0, Math.min(1, xpProgress)) * 100);
-    const displayPercent = progressPercent === 0 && xpRemaining > 0 ? 4 : progressPercent;
+    const safePercent = Math.max(progressPercent > 0 ? progressPercent : 4, 4);
     const totalForLevel = xpIntoLevel + xpRemaining;
+    const xpNeededLabel =
+      xpRemaining > 0
+        ? `До уровня: ${formatCompactNumber(Math.max(0, xpRemaining))} XP`
+        : 'Можно повышать уровень';
+    const xpSummary =
+      totalForLevel > 0
+        ? `Пройдено: ${formatCompactNumber(Math.max(0, xpIntoLevel))} / ${formatCompactNumber(Math.max(0, totalForLevel))} XP`
+        : null;
+
     return (
       <div className="flex flex-col gap-xs">
-        <div className="flex items-center justify-between text-caption text-[var(--color-text-secondary)]">
-          <span>Уровень {level}</span>
-          <span>{progressPercent}%</span>
+        <div className="flex items-center justify-between">
+          <span className="inline-flex items-center gap-xs rounded-full bg-[rgba(255,255,255,0.12)] px-sm py-xs text-label uppercase tracking-[0.18em] text-[var(--color-text-primary)]">
+            Уровень {level}
+          </span>
+          <span className="inline-flex items-center rounded-full border border-[rgba(255,255,255,0.16)] bg-[rgba(0,0,0,0.32)] px-sm py-xs text-label uppercase tracking-[0.18em] text-[var(--color-text-accent)]">
+            {progressPercent}%
+          </span>
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[rgba(255,255,255,0.12)]">
+        <div className="h-[6px] w-full overflow-hidden rounded-full bg-[rgba(255,255,255,0.12)]">
           <div
             className="h-full rounded-full bg-gradient-to-r from-[var(--color-cyan)] via-[var(--color-success)] to-[var(--color-gold)] shadow-glow"
-            style={{ width: `${Math.min(100, Math.max(displayPercent, 6))}%` }}
+            style={{ width: `${Math.min(100, safePercent)}%` }}
           />
         </div>
-        <div className="flex items-center justify-between text-caption text-[var(--color-text-secondary)]">
-          <span>
-            {xpRemaining > 0
-              ? `До апгрейда: ${formatNumberWithSpaces(xpRemaining)} XP`
-              : 'Можно повышать уровень'}
-          </span>
-          {totalForLevel > 0 && (
-            <span>
-              {formatNumberWithSpaces(Math.max(0, Math.floor(xpIntoLevel)))} /
-              {` ${formatNumberWithSpaces(Math.max(0, Math.floor(totalForLevel)))}`} XP
-            </span>
-          )}
-        </div>
+        <p className="m-0 text-caption text-[var(--color-text-secondary)]">{xpNeededLabel}</p>
+        {xpSummary && (
+          <p className="m-0 text-caption text-[var(--color-text-secondary)]/80">{xpSummary}</p>
+        )}
       </div>
     );
   }, [level, xpIntoLevel, xpProgress, xpRemaining]);
@@ -165,10 +169,7 @@ export function HomePanel({
     if (passiveIncomePerSec <= 0) {
       return passiveIncomeLabel;
     }
-    if (passiveIncomePerSec >= 10) {
-      return `${formatCompactNumber(passiveIncomePerSec)} E/с`;
-    }
-    return `${passiveIncomePerSec.toFixed(2)} E/с`;
+    return `${formatCompactNumber(passiveIncomePerSec)} E/с`;
   }, [passiveIncomeLabel, passiveIncomePerSec]);
   const passiveCardDetails = useMemo(() => {
     if (passiveIncomePerSec <= 0) {
@@ -177,8 +178,8 @@ export function HomePanel({
     const perMinute = passiveIncomePerSec * 60;
     const perHour = passiveIncomePerSec * 3600;
     return (
-      <>
-        <div className="flex flex-wrap items-baseline gap-sm text-caption text-[var(--color-text-secondary)] opacity-90">
+      <div className="flex flex-col gap-xs">
+        <div className="flex flex-wrap items-baseline gap-sm text-caption text-[var(--color-text-secondary)]/90">
           <span>≈ {formatCompactNumber(perMinute)} E/мин</span>
           <span className="opacity-60">·</span>
           <span>≈ {formatCompactNumber(perHour)} E/час</span>
@@ -188,14 +189,14 @@ export function HomePanel({
             {effectiveMultiplierParts.map(part => (
               <span
                 key={part}
-                className="rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(12,18,40,0.58)] px-xs-plus py-1 text-micro uppercase tracking-[0.14em] text-[var(--color-text-secondary)]"
+                className="inline-flex items-center gap-xs rounded-full border border-[rgba(0,217,255,0.22)] bg-[rgba(12,18,40,0.64)] px-sm py-xs text-micro uppercase tracking-[0.14em] text-[var(--color-text-secondary)]"
               >
                 {part}
               </span>
             ))}
           </div>
         )}
-      </>
+      </div>
     );
   }, [effectiveMultiplierParts, passiveIncomePerSec]);
   const performance = useDevicePerformance();
@@ -210,6 +211,13 @@ export function HomePanel({
   const [, setMonetizationCapRevision] = useState(0);
   const monetizationCapAllowed = canShowCap('home_monetization_prompt', { limit: 3 });
   const starsShort = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
+  const hasStreakRewards = claimableAchievements > 0;
+  const streakCtaLabel = useMemo(() => {
+    if (hasStreakRewards) {
+      return `Забрать +${claimableAchievements}`;
+    }
+    return streakCount > 0 ? 'Продолжить серию' : 'Начать серию';
+  }, [claimableAchievements, hasStreakRewards, streakCount]);
 
   useEffect(() => {
     if (typeof document === 'undefined' || typeof window === 'undefined') {
@@ -327,6 +335,8 @@ export function HomePanel({
     () => quests.filter(quest => quest.status === 'ready').length,
     [quests]
   );
+  const hasClaimableQuests = claimableQuests > 0;
+  const questCtaLabel = hasClaimableQuests ? 'Забрать награды' : 'Смотреть задания';
 
   const formatMsToReadable = (ms: number) => {
     const totalSeconds = Math.max(0, Math.round(ms / 1000));
@@ -345,7 +355,7 @@ export function HomePanel({
 
   return (
     <>
-      <div className="flex h-full flex-col lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-lg lg:px-lg lg:py-md">
+      <div className="flex h-full flex-col lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-stretch lg:gap-lg lg:px-lg lg:py-md">
         {/* Left column: stats + tap CTA */}
         <div className="flex flex-col h-full gap-sm">
           {/* Top: Essential Stats (responsive grid) */}
@@ -359,7 +369,7 @@ export function HomePanel({
               size="hero"
             />
 
-            <div className="grid grid-cols-1 gap-sm">
+            <div className="grid grid-rows-[minmax(0,1fr)_auto] gap-sm h-full">
               <StatCard
                 icon="💤"
                 label="Пассивный доход"
@@ -373,14 +383,14 @@ export function HomePanel({
                   icon="🪐"
                   label="Тап-уровень"
                   value={`Ур. ${tapLevel}`}
-                  subLabel={`+${tapIncomeDisplay} E за тап`}
+                  subLabel={`За тап: +${tapIncomeDisplay} E`}
                   size="compact"
                 />
                 <StatCard
                   icon="⭐"
                   label="Stars"
                   value={`${starsShort}`}
-                  subLabel="Для ускорений"
+                  subLabel="Используйте для ускорений"
                   size="compact"
                 />
               </div>
@@ -388,7 +398,7 @@ export function HomePanel({
           </div>
 
           {onViewAchievements && (
-            <Card className="mx-md mt-sm flex items-center justify-between gap-sm bg-gradient-to-r from-[rgba(0,217,255,0.22)] via-[rgba(0,255,136,0.18)] to-[rgba(120,63,255,0.22)] border-[rgba(0,217,255,0.28)] shadow-elevation-2">
+            <Card className="mx-md mt-sm flex items-center justify-between gap-sm bg-gradient-to-br from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.22)] to-[rgba(120,63,255,0.3)] border-[rgba(0,217,255,0.35)] shadow-glow">
               <div className="flex flex-col gap-xs">
                 <span className="text-caption uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
                   Серия входов
@@ -396,18 +406,19 @@ export function HomePanel({
                 <span className="text-body font-semibold text-[var(--color-text-primary)]">
                   {streakCount > 0 ? `Текущая серия ×${streakCount}` : 'Начните серию сегодня'}
                 </span>
-                <span className="text-caption text-[var(--color-text-secondary)] opacity-80">
-                  Лучший результат: ×{bestStreak}
+                <span className="inline-flex w-fit items-center gap-xs rounded-full border border-[rgba(255,255,255,0.12)] bg-[rgba(0,0,0,0.28)] px-sm py-xs text-caption text-[var(--color-text-secondary)]">
+                  <span aria-hidden="true">🔥</span>
+                  Лучший результат ×{bestStreak}
                 </span>
               </div>
               <Button
-                variant={claimableAchievements > 0 ? 'primary' : 'secondary'}
+                variant={hasStreakRewards ? 'primary' : 'secondary'}
                 size="sm"
                 onClick={onViewAchievements}
                 className="flex items-center gap-xs shadow-glow"
               >
                 <span aria-hidden="true">🏆</span>
-                {claimableAchievements > 0 ? `Забрать +${claimableAchievements}` : 'Открыть'}
+                {streakCtaLabel}
               </Button>
             </Card>
           )}
@@ -437,7 +448,7 @@ export function HomePanel({
             </Card>
           )}
 
-          <Card className="mx-md mt-sm flex flex-col gap-sm bg-gradient-to-r from-[rgba(0,217,255,0.18)] via-[rgba(0,255,136,0.16)] to-[rgba(120,63,255,0.18)] border-[rgba(0,217,255,0.28)] shadow-elevation-2">
+          <Card className="mx-md mt-sm flex flex-col gap-sm bg-gradient-to-br from-[rgba(0,217,255,0.2)] via-[rgba(0,255,136,0.18)] to-[rgba(120,63,255,0.2)] border-[rgba(0,217,255,0.32)] shadow-elevation-2">
             <div className="flex items-start justify-between gap-sm">
               <div className="flex flex-col gap-xs">
                 <span className="text-caption uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
@@ -455,12 +466,14 @@ export function HomePanel({
                 </span>
               </div>
               <div className="flex flex-col items-end gap-xs min-w-[140px]">
-                <span className="text-caption text-[var(--color-text-secondary)]">
-                  Ежедневные: {availableDaily}
-                </span>
-                <span className="text-caption text-[var(--color-text-secondary)]">
-                  Еженедельные: {availableWeekly}
-                </span>
+                <div className="flex flex-wrap justify-end gap-xs">
+                  <span className="inline-flex items-center gap-xs rounded-full border border-[rgba(0,217,255,0.22)] bg-[rgba(0,217,255,0.12)] px-sm py-xs text-caption text-[var(--color-text-secondary)]">
+                    Дневных {availableDaily}
+                  </span>
+                  <span className="inline-flex items-center gap-xs rounded-full border border-[rgba(120,63,255,0.28)] bg-[rgba(120,63,255,0.18)] px-sm py-xs text-caption text-[var(--color-text-secondary)]">
+                    Недельных {availableWeekly}
+                  </span>
+                </div>
                 {questsError ? (
                   <span className="text-caption text-[var(--color-text-destructive)]">
                     {questsError}
@@ -473,18 +486,19 @@ export function HomePanel({
               <span className="text-caption text-[var(--color-text-secondary)]">
                 {questWidgetLoading
                   ? 'Загружаем задания…'
-                  : claimableQuests > 0
-                    ? 'Награды ждут вашего клика'
+                  : hasClaimableQuests
+                    ? 'Награды готовы к сбору'
                     : 'Ежедневные задания обновляются каждые 24 часа'}
               </span>
               <Button
                 size="sm"
-                variant={claimableQuests > 0 ? 'primary' : 'secondary'}
+                variant={hasClaimableQuests ? 'primary' : 'secondary'}
                 disabled={questWidgetLoading || quests.length === 0}
                 onClick={() => setQuestModalOpen(true)}
                 className="shadow-glow"
               >
-                {claimableQuests > 0 ? 'Забрать награды' : 'Открыть задания'}
+                <span aria-hidden="true">📋</span>
+                {questCtaLabel}
               </Button>
             </div>
           </Card>

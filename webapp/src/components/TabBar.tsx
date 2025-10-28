@@ -83,9 +83,9 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
       >
         {tabs.map(tab => {
           const isActive = active === tab.id;
-          const buttonClasses = `flex flex-col gap-1 items-center justify-center flex-shrink-0 px-sm-plus py-sm min-w-[68px] min-h-[48px] cursor-pointer transition-colors border-none bg-none text-xs tracking-wide ${
+          const buttonClasses = `relative flex flex-col gap-1 items-center justify-center flex-shrink-0 px-sm-plus py-sm min-w-[68px] min-h-[48px] cursor-pointer transition-colors border-none bg-none text-xs tracking-wide ${
             isActive
-              ? 'text-[var(--color-text-accent)] font-semibold bg-gradient-to-br from-[rgba(0,217,255,0.18)] to-[rgba(0,255,136,0.18)] rounded-xl shadow-glow'
+              ? 'text-[var(--color-text-accent)] font-semibold bg-gradient-to-br from-[rgba(0,217,255,0.22)] to-[rgba(0,255,136,0.24)] rounded-xl shadow-glow after:content-[""] after:absolute after:bottom-1 after:left-1/2 after:h-1 after:w-2/3 after:-translate-x-1/2 after:rounded-full after:bg-[var(--color-text-accent)] after:opacity-90'
               : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-secondary)] rounded-xl'
           } focus-ring`;
           const labelClasses = `text-label uppercase ${

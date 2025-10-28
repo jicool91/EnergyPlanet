@@ -34,8 +34,8 @@ function StatCardComponent({
   onClick,
 }: StatCardProps) {
   const sizeStyles: Record<NonNullable<StatCardProps['size']>, string> = {
-    compact: 'min-h-[104px] px-md py-sm-plus rounded-2xl gap-sm',
-    standard: 'min-h-[122px] px-md py-md rounded-2xl gap-sm-plus',
+    compact: 'min-h-[120px] px-md py-sm-plus rounded-2xl gap-sm',
+    standard: 'min-h-[156px] px-md py-md rounded-2xl gap-md',
     hero: 'min-h-[168px] px-lg py-lg rounded-3xl gap-md',
   };
 
@@ -45,7 +45,7 @@ function StatCardComponent({
     hero: 'text-heading font-bold',
   };
 
-  const base = 'flex flex-col transition-transform duration-150 ease-out min-w-0';
+  const base = 'flex flex-col h-full transition-transform duration-150 ease-out min-w-0';
   const toneClass = toneStyles[tone];
   const sizeClass = sizeStyles[size];
   const labelTextClass =
