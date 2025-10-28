@@ -54,6 +54,18 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
     void logClientEvent('settings_panel_missing_profile', { userId }, 'warn');
   }, [profile, userId]);
 
+  useEffect(() => {
+    void logClientEvent('settings_panel_mount', {
+      hasProfile: !!profile,
+      userId,
+    });
+    return () => {
+      void logClientEvent('settings_panel_unmount', {
+        userId,
+      });
+    };
+  }, [profile, userId]);
+
   // Preferences
   const {
     soundEnabled,

@@ -1,7 +1,8 @@
-import { memo, useMemo, useState } from 'react';
+import { memo, useMemo, useState, useEffect } from 'react';
 import { Button } from './Button';
 import { ProfilePanel } from './ProfilePanel';
 import { SettingsScreen } from './settings';
+import { logClientEvent } from '@/services/telemetry';
 
 type AccountSection = 'settings' | 'profile';
 
@@ -26,6 +27,13 @@ const ProfileSettingsScreenComponent: React.FC<ProfileSettingsScreenProps> = ({
   onShowAdminPanel,
 }) => {
   const [section, setSection] = useState<AccountSection>(defaultSection);
+
+  useEffect(() => {
+    void logClientEvent('profile_settings_screen_render', {
+      section,
+      defaultSection,
+    });
+  }, [section, defaultSection]);
 
   const activeLabel = useMemo(
     () => SECTIONS.find(tab => tab.id === section)?.label ?? '',

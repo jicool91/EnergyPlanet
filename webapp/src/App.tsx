@@ -162,9 +162,16 @@ function App() {
           source: 'app',
         });
       }
+      if (nextTab === 'account') {
+        void logClientEvent('account_tab_open', {
+          isInitialized,
+          authReady,
+          hasAccessToken: !!authStore.accessToken,
+        });
+      }
       setActiveTab(nextTab);
     },
-    [activeTab, isInitialized]
+    [activeTab, isInitialized, authReady]
   );
 
   useEffect(() => {
