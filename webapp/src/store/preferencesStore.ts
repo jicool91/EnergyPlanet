@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type ThemeMode = 'light' | 'dark' | 'auto';
 export type Language = 'ru' | 'en';
@@ -68,6 +68,38 @@ export const usePreferencesStore = create<PreferencesState>()(
     {
       name: 'energyplanet-preferences',
       version: 1,
+      storage: createJSONStorage(() => {
+        const createMemoryStorage = () => {
+          const memory: Record<string, string> = {};
+          return {
+            getItem: (key: string) => memory[key] ?? null,
+            setItem: (key: string, value: string) => {
+              memory[key] = value;
+            },
+            removeItem: (key: string) => {
+              delete memory[key];
+            },
+          };
+        };
+
+        if (typeof window === 'undefined') {
+          return createMemoryStorage();
+        }
+
+        try {
+          const storage = window.localStorage;
+          const testKey = '__energyplanet_pref_probe__';
+          storage.setItem(testKey, 'true');
+          storage.removeItem(testKey);
+          return storage;
+        } catch (error) {
+          console.warn(
+            '[preferencesStore] localStorage unavailable, falling back to in-memory storage',
+            error
+          );
+          return createMemoryStorage();
+        }
+      }),
     }
   )
 );
