@@ -85,6 +85,49 @@ interface QuestDefinition {
   };
 }
 
+export interface ReferralRewardConfig {
+  stars?: number;
+  cosmeticId?: string;
+  title?: string;
+  description?: string;
+}
+
+export interface ReferralMilestoneConfig {
+  id: string;
+  title: string;
+  description?: string;
+  threshold: number;
+  rewards: ReferralRewardConfig;
+}
+
+export interface ReferralEventConfig {
+  id: string;
+  label: string;
+  description?: string;
+  start: string;
+  end: string;
+  inviteeRewardMultiplier?: number;
+  referrerRewardMultiplier?: number;
+  milestoneRewardMultiplier?: number;
+}
+
+export interface ReferralLimitsConfig {
+  dailyActivations: number;
+  dailyRewardClaims: number;
+}
+
+export interface ReferralConfig {
+  inviteeReward: ReferralRewardConfig;
+  referrerReward: ReferralRewardConfig;
+  milestones: ReferralMilestoneConfig[];
+  limits: ReferralLimitsConfig;
+  events?: ReferralEventConfig[];
+  share?: {
+    headline?: string;
+    message?: string;
+  };
+}
+
 class ContentService {
   private buildings: Building[] = [];
   private cosmetics: Cosmetic[] = [];
@@ -96,6 +139,7 @@ class ContentService {
     daily: [],
     weekly: [],
   };
+  private referralConfig: ReferralConfig | null = null;
 
   async load() {
     try {
@@ -111,6 +155,7 @@ class ContentService {
         this.loadFeatureFlags().catch(e => this.handleLoadError('featureFlags', e)),
         this.loadStarPacks().catch(e => this.handleLoadError('starPacks', e)),
         this.loadQuests().catch(e => this.handleLoadError('quests', e)),
+        this.loadReferrals().catch(e => this.handleLoadError('referrals', e)),
       ]);
 
       logger.info('Content loaded successfully', {
@@ -120,6 +165,7 @@ class ContentService {
         dailyQuests: this.questDefinitions.daily.length,
         weeklyQuests: this.questDefinitions.weekly.length,
         starPacks: this.starPacks.length,
+        referralMilestones: this.referralConfig?.milestones.length ?? 0,
       });
     } catch (error) {
       logger.warn('Content loading completed with errors (this is OK for MVP)', error);
@@ -181,6 +227,20 @@ class ContentService {
     };
   }
 
+  private async loadReferrals() {
+    const filePath = path.join(config.content.path, 'referrals.json');
+    const data = await fs.readFile(filePath, 'utf-8');
+    const parsed = JSON.parse(data) as ReferralConfig;
+    this.referralConfig = {
+      inviteeReward: parsed.inviteeReward ?? {},
+      referrerReward: parsed.referrerReward ?? {},
+      milestones: Array.isArray(parsed.milestones) ? parsed.milestones : [],
+      limits: parsed.limits ?? { dailyActivations: 10, dailyRewardClaims: 5 },
+      events: parsed.events ?? [],
+      share: parsed.share,
+    };
+  }
+
   getBuildings(): Building[] {
     return this.buildings;
   }
@@ -210,10 +270,14 @@ class ContentService {
   }
 
   getQuestDefinitions(type?: QuestType): QuestDefinition[] {
-    if (!type) {
-      return [...this.questDefinitions.daily, ...this.questDefinitions.weekly];
-    }
-    return this.questDefinitions[type] ?? [];
+   if (!type) {
+     return [...this.questDefinitions.daily, ...this.questDefinitions.weekly];
+   }
+   return this.questDefinitions[type] ?? [];
+ }
+
+  getReferralConfig(): ReferralConfig | null {
+    return this.referralConfig;
   }
 
   isFeatureEnabled(featureName: string): boolean {

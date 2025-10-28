@@ -10,6 +10,7 @@ import { Card } from '../Card';
 import { Toggle } from './Toggle';
 import { SliderControl } from './SliderControl';
 import { SettingsSection } from './SettingsSection';
+import { ReferralInviteCard } from './ReferralInviteCard';
 import { logClientEvent } from '@/services/telemetry';
 import { useShallow } from 'zustand/react/shallow';
 
@@ -324,6 +325,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
           </Button>
         </Card>
       )}
+
+      <SettingsSection
+        title="Друзья и награды"
+        icon="🤝"
+        description="Приглашайте друзей и получайте бонусы."
+      >
+        <ReferralInviteCard />
+      </SettingsSection>
 
       {/* Audio & Sound Section */}
       <SettingsSection title="Звук" icon="🔊" description="Звуковые эффекты игры">

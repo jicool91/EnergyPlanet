@@ -1,0 +1,91 @@
+{
+  "inviteeReward": {
+    "stars": 300,
+    "title": "Стартовый бонус",
+    "description": "Получите Stars для ускоренного старта."
+  },
+  "referrerReward": {
+    "stars": 350,
+    "title": "Бонус за приглашение",
+    "description": "Вознаграждение за каждого активированного друга."
+  },
+  "milestones": [
+    {
+      "id": "starter_pack",
+      "title": "Первый экипаж",
+      "description": "1 друг активировал приглашение.",
+      "threshold": 1,
+      "rewards": {
+        "stars": 500,
+        "cosmeticId": "frame_starlight",
+        "title": "Сияющая рамка",
+        "description": "Эксклюзивная рамка профиля за первый реферал."
+      }
+    },
+    {
+      "id": "growth_stage",
+      "title": "Запуск экспедиции",
+      "description": "5 активных друзей.",
+      "threshold": 5,
+      "rewards": {
+        "stars": 1500,
+        "title": "Заряд энергии",
+        "description": "Щедрый бонус Stars для усиления прогресса."
+      }
+    },
+    {
+      "id": "galaxy_club",
+      "title": "Галактический клуб",
+      "description": "15 приглашённых друзей.",
+      "threshold": 15,
+      "rewards": {
+        "stars": 3500,
+        "cosmeticId": "aura_galactic_trail",
+        "title": "Галактическое сияние",
+        "description": "Редкая аура для лидеров по рефералам."
+      }
+    },
+    {
+      "id": "legend_circle",
+      "title": "Круг легенд",
+      "description": "30 активных приглашений.",
+      "threshold": 30,
+      "rewards": {
+        "stars": 8000,
+        "cosmeticId": "badge_referral_champion",
+        "title": "Значок Чемпиона",
+        "description": "Докажите, что вы — легенда Energy Planet."
+      }
+    }
+  ],
+  "limits": {
+    "dailyActivations": 10,
+    "dailyRewardClaims": 5
+  },
+  "events": [
+    {
+      "id": "double_weekend",
+      "label": "Уикенд X2",
+      "description": "Удвоенные бонусы за приглашения в выходные.",
+      "start": "2025-11-01T00:00:00.000Z",
+      "end": "2025-11-03T00:00:00.000Z",
+      "inviteeRewardMultiplier": 2,
+      "referrerRewardMultiplier": 2,
+      "milestoneRewardMultiplier": 1.5
+    },
+    {
+      "id": "year_end_push",
+      "label": "Финальный рывок года",
+      "description": "Полуторакратные награды за рефералов до конца года.",
+      "start": "2025-12-20T00:00:00.000Z",
+      "end": "2026-01-05T00:00:00.000Z",
+      "inviteeRewardMultiplier": 1.5,
+      "referrerRewardMultiplier": 1.5,
+      "milestoneRewardMultiplier": 1.5
+    }
+  ],
+  "share": {
+    "headline": "Собери свой отряд в Energy Planet!",
+    "message": "Каждый новый друг ускоряет наш прогресс и приносит бонусные Stars."
+  }
+}

@@ -14,6 +14,7 @@ import contentRoutes from './content';
 import prestigeRoutes from './prestige';
 import achievementsRoutes from './achievements';
 import questsRoutes from './quests';
+import referralRoutes from './referrals';
 
 const router = Router();
 
@@ -24,6 +25,7 @@ router.use('/', prestigeRoutes); // /prestige
 router.use('/', socialRoutes); // /leaderboard, /profile
 router.use('/', monetizationRoutes); // /cosmetics, /purchase, /boost
 router.use('/', questsRoutes); // /quests
+router.use('/', referralRoutes); // /referrals
 router.use('/achievements', achievementsRoutes);
 router.use('/telemetry', telemetryRoutes);
 router.use('/', contentRoutes); // /buildings
