@@ -7,6 +7,7 @@ export interface StatCardProps {
   value: ReactNode;
   subLabel?: ReactNode;
   tone?: 'default' | 'positive' | 'warning';
+  size?: 'compact' | 'standard' | 'hero';
   onClick?: () => void;
 }
 
@@ -16,11 +17,11 @@ export interface StatCardProps {
  */
 const toneStyles: Record<NonNullable<StatCardProps['tone']>, string> = {
   default:
-    'bg-[var(--color-surface-secondary)] border border-[var(--color-border-subtle)] text-[var(--color-text-primary)] shadow-elevation-1',
+    'bg-[rgba(12,18,40,0.82)] border border-[rgba(0,217,255,0.22)] text-[var(--color-text-primary)] shadow-elevation-2',
   positive:
-    'bg-[rgba(0,255,136,0.18)] border border-[rgba(0,255,136,0.5)] text-[var(--color-success)] shadow-glow-lime',
+    'bg-gradient-to-br from-[rgba(0,255,136,0.22)] to-[rgba(0,77,64,0.6)] border border-[rgba(0,255,136,0.45)] text-[var(--color-success)] shadow-glow-lime',
   warning:
-    'bg-[rgba(255,141,77,0.18)] border border-[rgba(255,141,77,0.5)] text-[var(--color-warning)] shadow-glow-gold',
+    'bg-gradient-to-br from-[rgba(255,141,77,0.22)] to-[rgba(80,34,12,0.55)] border border-[rgba(255,141,77,0.45)] text-[var(--color-warning)] shadow-glow-gold',
 };
 
 function StatCardComponent({
@@ -29,12 +30,24 @@ function StatCardComponent({
   value,
   subLabel,
   tone = 'default',
+  size = 'standard',
   onClick,
 }: StatCardProps) {
-  // Base: flex + gap + rounded + border + padding + transition
-  const base =
-    'flex flex-col gap-sm rounded-xl px-md py-md transition-transform duration-150 ease-out min-w-0 min-h-[116px]';
+  const sizeStyles: Record<NonNullable<StatCardProps['size']>, string> = {
+    compact: 'min-h-[88px] px-sm-plus py-sm rounded-2xl gap-xs',
+    standard: 'min-h-[116px] px-md py-md rounded-2xl gap-sm',
+    hero: 'min-h-[156px] px-lg py-lg rounded-3xl gap-sm-plus',
+  };
+
+  const typography: Record<NonNullable<StatCardProps['size']>, string> = {
+    compact: 'text-title font-semibold',
+    standard: 'stat-display font-bold',
+    hero: 'text-heading font-bold',
+  };
+
+  const base = 'flex flex-col transition-transform duration-150 ease-out min-w-0';
   const toneClass = toneStyles[tone];
+  const sizeClass = sizeStyles[size];
 
   const content = (
     <>
@@ -47,7 +60,7 @@ function StatCardComponent({
       </div>
 
       {/* Value: large, bold, white */}
-      <div className="stat-display text-[var(--color-text-primary)] font-bold">{value}</div>
+      <div className={`${typography[size]} text-[var(--color-text-primary)]`}>{value}</div>
 
       {/* Optional subLabel: small, muted */}
       {subLabel && (
@@ -60,7 +73,7 @@ function StatCardComponent({
     return (
       <button
         type="button"
-        className={`${base} ${toneClass} text-left hover:-translate-y-0.5 focus-ring`}
+        className={`${base} ${sizeClass} ${toneClass} text-left hover:-translate-y-0.5 focus-ring`}
         onClick={onClick}
       >
         {content}
@@ -68,7 +81,7 @@ function StatCardComponent({
     );
   }
 
-  return <div className={`${base} ${toneClass}`}>{content}</div>;
+  return <div className={`${base} ${sizeClass} ${toneClass}`}>{content}</div>;
 }
 
 export const StatCard = memo(StatCardComponent);

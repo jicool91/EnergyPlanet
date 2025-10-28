@@ -21,6 +21,7 @@ import { useDevicePerformance } from '../hooks';
 import { formatNumberWithSpaces, formatCompactNumber } from '../utils/number';
 import { PrestigeCard } from './PrestigeCard';
 import { Button } from './Button';
+import { ModalBase } from './ModalBase';
 import { logClientEvent } from '@/services/telemetry';
 import { useQuestStore, type QuestView } from '@/store/questStore';
 import { useShallow } from 'zustand/react/shallow';
@@ -117,6 +118,18 @@ export function HomePanel({
   claimableAchievements = 0,
 }: HomePanelProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
+  const heroEnergyValue = useMemo(() => `${energyCompact} E`, [energyCompact]);
+  const heroXpLabel = useMemo(
+    () =>
+      xpRemaining > 0
+        ? `До уровня: +${formatNumberWithSpaces(xpRemaining)} XP`
+        : 'Уровень готов к апгрейду',
+    [xpRemaining]
+  );
+  const passiveSummary = useMemo(
+    () => `${passiveIncomeLabel} · ${multiplierLabel}`,
+    [passiveIncomeLabel, multiplierLabel]
+  );
   const performance = useDevicePerformance();
   const isLowPerformance = performance === 'low';
   const isMediumPerformance = performance === 'medium';
@@ -184,6 +197,7 @@ export function HomePanel({
 
   const hasLoggedQuestWidgetRef = useRef(false);
   const [claimingQuestId, setClaimingQuestId] = useState<string | null>(null);
+  const [isQuestModalOpen, setQuestModalOpen] = useState(false);
 
   const {
     quests,
@@ -239,6 +253,12 @@ export function HomePanel({
   );
 
   const questWidgetLoading = questsLoading && quests.length === 0;
+  const availableDaily = useMemo(() => dailyQuests.length, [dailyQuests.length]);
+  const availableWeekly = useMemo(() => weeklyQuests.length, [weeklyQuests.length]);
+  const claimableQuests = useMemo(
+    () => quests.filter(quest => quest.status === 'ready').length,
+    [quests]
+  );
 
   const formatMsToReadable = (ms: number) => {
     const totalSeconds = Math.max(0, Math.round(ms / 1000));
@@ -256,290 +276,398 @@ export function HomePanel({
   };
 
   return (
-    <div className="flex h-full flex-col lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-lg lg:px-lg lg:py-md">
-      {/* Left column: stats + tap CTA */}
-      <div className="flex flex-col h-full">
-        {/* Top: Essential Stats (responsive grid) */}
-        <div className="grid grid-cols-2 gap-sm px-md py-sm lg:px-0 lg:grid-cols-2 xl:grid-cols-4">
-          {/* Essential Stats */}
-          <StatCard icon="⚡" label="Энергия" value={`${energyCompact} E`} subLabel="Баланс" />
-          <StatCard
-            icon="🪐"
-            label="Уровень тапа"
-            value={`Ур. ${tapLevel}`}
-            subLabel={`${tapIncomeDisplay} E`}
-          />
-          <StatCard
-            icon="💤"
-            label="Пассив"
-            value={passiveIncomeLabel}
-            subLabel={multiplierLabel}
-          />
-          <StatCard
-            icon="🎯"
-            label="Прогресс уровня"
-            value={`${Math.round(xpProgress * 100)}%`}
-            subLabel={xpRemaining > 0 ? `+${formatNumberWithSpaces(xpRemaining)} XP` : 'Готов'}
-          />
-          <StatCard icon="⭐" label="Stars" value={`${starsShort} ⭐`} subLabel="Для ускорений" />
-        </div>
-
-        {onViewAchievements && (
-          <div className="flex justify-end px-md -mt-sm">
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={onViewAchievements}
-              className="flex items-center gap-xs"
-            >
-              <span aria-hidden="true">🏆</span>
-              Достижения
-              {claimableAchievements > 0 && (
-                <span className="ml-xs px-xs-plus py-0.5 rounded-full bg-[var(--color-accent)] text-black text-xs font-semibold">
-                  +{claimableAchievements}
-                </span>
-              )}
-            </Button>
-          </div>
-        )}
-
-        {showMonetizationPrompt && purchaseInsight && (
-          <Card className="mx-md mt-sm bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)]">
-            <div className="flex flex-col gap-xs">
-              <p className="m-0 text-sm font-semibold text-[var(--color-text-primary)]">
-                Ускорь {purchaseInsight.name}
-              </p>
-              <p className="m-0 text-xs text-[var(--color-text-secondary)]">
-                Осталось{' '}
-                {formatNumberWithSpaces(Math.max(0, Math.ceil(purchaseInsight.remaining ?? 0)))} E.
-                У тебя ⭐ {formatNumberWithSpaces(Math.max(0, Math.floor(stars)))} — докупи Stars,
-                чтобы закончить быстрее.
-              </p>
-              <Button size="sm" variant="primary" onClick={handleMonetizationClick}>
-                🛍️ Перейти в магазин
-              </Button>
-            </div>
-          </Card>
-        )}
-
-        <Card className="mx-md mt-sm bg-[var(--color-surface-secondary)] border-[var(--color-border-subtle)]">
-          <div className="flex items-center justify-between gap-sm">
-            <div>
-              <p className="m-0 text-sm font-semibold text-[var(--color-text-primary)]">Задания</p>
-              <p className="m-0 text-xs text-[var(--color-text-secondary)]">
-                Выполни квесты и получи дополнительные бонусы
-              </p>
-            </div>
-            {questsError && (
-              <span className="text-xs text-[var(--color-text-destructive)]">{questsError}</span>
-            )}
-          </div>
-          {questWidgetLoading ? (
-            <div className="mt-sm text-xs text-[var(--color-text-secondary)]">
-              Загружаем задания…
-            </div>
-          ) : (
-            <div className="mt-sm flex flex-col gap-sm">
-              {dailyQuests.slice(0, 2).map(quest => (
-                <QuestRow
-                  key={quest.id}
-                  quest={quest}
-                  onClaim={handleQuestClaim}
-                  claiming={claimingQuestId === quest.id}
-                />
-              ))}
-              {weeklyQuests.slice(0, 1).map(quest => (
-                <QuestRow
-                  key={quest.id}
-                  quest={quest}
-                  onClaim={handleQuestClaim}
-                  claiming={claimingQuestId === quest.id}
-                />
-              ))}
-              {dailyQuests.length + weeklyQuests.length === 0 && !questsLoading && (
-                <p className="m-0 text-xs text-[var(--color-text-secondary)]">
-                  Новые задания появятся в ближайшее время.
-                </p>
-              )}
-            </div>
-          )}
-        </Card>
-
-        {/* Center: BIG TAP BUTTON */}
-        <div className="relative flex flex-1 items-center justify-center px-md py-sm-plus lg:px-0">
-          {streakCount > 0 && (
-            <motion.div
-              className={`pointer-events-none absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 flex items-center gap-sm rounded-full px-sm-plus py-xs-plus border shadow-lg backdrop-blur bg-gradient-to-r ${
-                isCriticalStreak
-                  ? 'from-red-500/85 to-orange-400/85 border-red-400/70'
-                  : 'from-cyan/80 to-lime/70 border-cyan/60'
-              }`}
-              animate={{ opacity: [0.8, 1, 0.8], scale: [1, 1.05, 1] }}
-              transition={{ duration: isCriticalStreak ? 1.2 : 1.8, repeat: Infinity }}
-            >
-              <span className="text-lg" aria-hidden="true">
-                🔥
-              </span>
-              <span className="text-sm font-semibold text-black drop-shadow">×{streakCount}</span>
-              <span className="text-[11px] font-medium text-black/80 drop-shadow">
-                Лучшее {bestStreak}
-              </span>
-            </motion.div>
-          )}
-          <motion.button
-            onClick={onTap}
-            whileTap={tapAnimation}
-            whileHover={hoverAnimation}
-            className="relative w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-cyan via-lime to-gold text-black font-bold text-4xl md:text-5xl shadow-2xl border-2 border-cyan/50 hover:border-cyan transition-all duration-300 active:scale-95 focus-ring"
-            aria-label="Tap to generate energy"
-            data-test-id="tap-button"
-          >
-            {/* Glow effect */}
-            <motion.div
-              className={glowClassName}
-              animate={
-                isLowPerformance
-                  ? undefined
-                  : {
-                      scale: [1, isMediumPerformance ? 1.1 : 1.2, 1],
-                      opacity: [0.15, 0.28, 0.15],
-                    }
-              }
-              transition={
-                isLowPerformance
-                  ? undefined
-                  : {
-                      duration: isMediumPerformance ? 2.4 : 2,
-                      repeat: Infinity,
-                    }
-              }
+    <>
+      <div className="flex h-full flex-col lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:gap-lg lg:px-lg lg:py-md">
+        {/* Left column: stats + tap CTA */}
+        <div className="flex flex-col h-full gap-sm">
+          {/* Top: Essential Stats (responsive grid) */}
+          <div className="grid grid-cols-2 gap-sm px-md py-sm lg:px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)]">
+            <StatCard
+              icon="⚡"
+              label="Баланс энергии"
+              value={heroEnergyValue}
+              subLabel={heroXpLabel}
+              tone="positive"
+              size="hero"
             />
 
-            {/* Tap indicator */}
-            <span role="img" aria-label="Tap planet to generate energy">
-              🌍
-            </span>
-          </motion.button>
-        </div>
-      </div>
-
-      {/* Right column: Progress & social blocks */}
-      <div className="flex flex-col gap-sm px-md py-sm lg:px-0 lg:py-0">
-        <div className="px-xs lg:px-0">
-          <h2 className="m-0 text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-[0.12em]">
-            Возвращайтесь каждый день
-          </h2>
-          <p className="m-0 mt-1 text-xs text-[var(--color-text-secondary)]">
-            Заберите ежедневную награду и откройте Boost Hub, чтобы ускорить следующее повышение
-            уровня.
-          </p>
-        </div>
-        {/* Daily Reward Banner */}
-        <DailyRewardBanner onOpenBoosts={onViewBoosts} onOpenShop={onOpenShop} />
-        {activeBoost ? (
-          <Card className="flex items-center justify-between gap-sm-plus bg-lime/15 border-lime/40">
-            <div>
-              <p className="m-0 text-xs uppercase tracking-[0.3em] text-lime-600">Активный буст</p>
-              <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
-                ×{activeBoost.multiplier.toFixed(1)} к доходу
-              </p>
-              <p className="m-0 text-xs text-[var(--color-text-secondary)]">
-                Осталось {formatMsToReadable(activeBoost.remainingMs)}
-              </p>
-            </div>
-            {onViewBoosts && (
-              <Button variant="ghost" size="sm" onClick={onViewBoosts}>
-                Управлять
-              </Button>
-            )}
-          </Card>
-        ) : typeof nextBoostAvailabilityMs !== 'undefined' ? (
-          <Card className="flex items-center justify-between gap-sm-plus bg-cyan/10 border-cyan/30">
-            <div>
-              <p className="m-0 text-xs uppercase tracking-[0.3em] text-cyan-600">
-                {nextBoostAvailabilityMs === 0 ? 'Буст доступен' : 'Следующий буст'}
-              </p>
-              <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
-                {nextBoostAvailabilityMs === 0
-                  ? 'Свободный буст ждёт вас в Boost Hub'
-                  : `Откройте Boost Hub через ${formatMsToReadable(nextBoostAvailabilityMs)}`}
-              </p>
-              <p className="m-0 text-xs text-[var(--color-text-secondary)]">
-                Бусты удваивают пассивный доход и ускоряют новые постройки.
-              </p>
-            </div>
-            {onViewBoosts && (
-              <Button variant="secondary" size="sm" onClick={onViewBoosts}>
-                Открыть Boost Hub
-              </Button>
-            )}
-          </Card>
-        ) : null}
-
-        {/* XP Progress Card */}
-        <XPProgressCard
-          level={level}
-          xpProgress={xpProgress}
-          xpCurrent={xpIntoLevel}
-          xpTotal={xpIntoLevel + xpToNextLevel}
-          xpRemaining={xpRemaining}
-        />
-
-        <PrestigeCard
-          prestigeLevel={prestigeLevel}
-          prestigeMultiplier={prestigeMultiplier}
-          prestigeEnergySinceReset={prestigeEnergySinceReset}
-          prestigeNextThreshold={prestigeNextThreshold}
-          prestigeEnergyToNext={prestigeEnergyToNext}
-          prestigeGainAvailable={prestigeGainAvailable}
-          isPrestigeAvailable={isPrestigeAvailable}
-          isLoading={isPrestigeLoading}
-          onPrestige={onPrestige}
-        />
-
-        {/* Social Proof (Friends Playing) */}
-        <SocialProofCard
-          friendsCount={socialPlayerCount}
-          isLoading={isSocialBlockLoading}
-          onViewLeaderboard={onViewLeaderboard}
-        />
-
-        {/* Next Goal Card */}
-        {purchaseInsight && (
-          <Card highlighted={purchaseInsight.affordable}>
-            <div className="mb-sm-plus flex items-center justify-between gap-sm-plus">
-              <div>
-                <p className="m-0 text-xs uppercase tracking-[0.6px] text-[var(--color-text-secondary)]">
-                  Следующая цель
-                </p>
-                <h3 className="m-0 text-lg text-[var(--color-text-primary)] font-semibold">
-                  {purchaseInsight.name}
-                </h3>
+            <div className="grid grid-cols-1 gap-sm">
+              <StatCard
+                icon="💤"
+                label="Пассивный доход"
+                value={passiveIncomeLabel}
+                subLabel={passiveSummary}
+                tone="default"
+                size="standard"
+              />
+              <div className="grid grid-cols-2 gap-sm">
+                <StatCard
+                  icon="🪐"
+                  label="Уровень тапа"
+                  value={`Ур. ${tapLevel}`}
+                  subLabel={`+${tapIncomeDisplay} за тап`}
+                  size="compact"
+                />
+                <StatCard
+                  icon="⭐"
+                  label="Stars"
+                  value={`${starsShort}`}
+                  subLabel="Для ускорений"
+                  size="compact"
+                />
               </div>
-              {purchaseInsight.roiRank && (
-                <span className="text-xs text-lime/80 font-semibold">
-                  ROI #{purchaseInsight.roiRank}
+            </div>
+          </div>
+
+          {onViewAchievements && (
+            <Card className="mx-md mt-sm flex items-center justify-between gap-sm bg-gradient-to-r from-[rgba(0,217,255,0.22)] via-[rgba(0,255,136,0.18)] to-[rgba(120,63,255,0.22)] border-[rgba(0,217,255,0.28)] shadow-elevation-2">
+              <div className="flex flex-col gap-xs">
+                <span className="text-caption uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+                  Серия входов
                 </span>
-              )}
-            </div>
-            <div className="text-sm text-[var(--color-text-secondary)]">
-              Стоимость: {formatNumberWithSpaces(Math.floor(purchaseInsight.cost))} E
-            </div>
-            {purchaseInsight.remaining > 0 && (
-              <div className="text-sm text-[var(--color-text-secondary)] mt-1">
-                Осталось: {formatNumberWithSpaces(Math.floor(purchaseInsight.remaining))} E
+                <span className="text-body font-semibold text-[var(--color-text-primary)]">
+                  {streakCount > 0 ? `Текущая серия ×${streakCount}` : 'Начните серию сегодня'}
+                </span>
+                <span className="text-caption text-[var(--color-text-secondary)] opacity-80">
+                  Лучший результат: ×{bestStreak}
+                </span>
               </div>
+              <Button
+                variant={claimableAchievements > 0 ? 'primary' : 'secondary'}
+                size="sm"
+                onClick={onViewAchievements}
+                className="flex items-center gap-xs shadow-glow"
+              >
+                <span aria-hidden="true">🏆</span>
+                {claimableAchievements > 0 ? `Забрать +${claimableAchievements}` : 'Открыть'}
+              </Button>
+            </Card>
+          )}
+
+          {showMonetizationPrompt && purchaseInsight && (
+            <Card className="mx-md mt-sm flex items-center gap-sm bg-gradient-to-r from-[rgba(255,215,0,0.18)] via-[rgba(255,163,0,0.12)] to-[rgba(0,217,255,0.18)] border-[rgba(255,215,0,0.35)]">
+              <div className="flex flex-col gap-xs flex-1">
+                <p className="m-0 text-body font-semibold text-[var(--color-text-primary)]">
+                  Ускорьте {purchaseInsight.name}
+                </p>
+                <p className="m-0 text-caption text-[var(--color-text-secondary)]">
+                  Нужно ещё{' '}
+                  {formatNumberWithSpaces(Math.max(0, Math.ceil(purchaseInsight.remaining ?? 0)))}{' '}
+                  E. У вас
+                  {` ⭐ ${formatNumberWithSpaces(Math.max(0, Math.floor(stars)))}`} — докупите
+                  Stars, чтобы закрыть цель быстрее.
+                </p>
+              </div>
+              <Button
+                size="sm"
+                variant="primary"
+                onClick={handleMonetizationClick}
+                className="shadow-glow"
+              >
+                🛍️ В магазин
+              </Button>
+            </Card>
+          )}
+
+          <Card className="mx-md mt-sm flex flex-col gap-sm bg-gradient-to-r from-[rgba(0,217,255,0.18)] via-[rgba(0,255,136,0.16)] to-[rgba(120,63,255,0.18)] border-[rgba(0,217,255,0.28)] shadow-elevation-2">
+            <div className="flex items-start justify-between gap-sm">
+              <div className="flex flex-col gap-xs">
+                <span className="text-caption uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+                  Ежедневные задания
+                </span>
+                <span className="text-body font-semibold text-[var(--color-text-primary)]">
+                  {availableDaily + availableWeekly > 0
+                    ? `Активно ${availableDaily + availableWeekly} заданий`
+                    : 'Нет доступных заданий'}
+                </span>
+                <span className="text-caption text-[var(--color-text-secondary)] opacity-80">
+                  {claimableQuests > 0
+                    ? `Готово к получению: ${claimableQuests} наград`
+                    : 'Выполняйте квесты, чтобы получить бонусы'}
+                </span>
+              </div>
+              <div className="flex flex-col items-end gap-xs min-w-[140px]">
+                <span className="text-caption text-[var(--color-text-secondary)]">
+                  Ежедневные: {availableDaily}
+                </span>
+                <span className="text-caption text-[var(--color-text-secondary)]">
+                  Еженедельные: {availableWeekly}
+                </span>
+                {questsError ? (
+                  <span className="text-caption text-[var(--color-text-destructive)]">
+                    {questsError}
+                  </span>
+                ) : null}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between gap-sm">
+              <span className="text-caption text-[var(--color-text-secondary)]">
+                {questWidgetLoading
+                  ? 'Загружаем задания…'
+                  : claimableQuests > 0
+                    ? 'Награды ждут вашего клика'
+                    : 'Ежедневные задания обновляются каждые 24 часа'}
+              </span>
+              <Button
+                size="sm"
+                variant={claimableQuests > 0 ? 'primary' : 'secondary'}
+                disabled={questWidgetLoading || quests.length === 0}
+                onClick={() => setQuestModalOpen(true)}
+                className="shadow-glow"
+              >
+                {claimableQuests > 0 ? 'Забрать награды' : 'Открыть задания'}
+              </Button>
+            </div>
+          </Card>
+
+          {/* Center: BIG TAP BUTTON */}
+          <div className="relative flex flex-1 items-center justify-center px-md py-sm-plus lg:px-0">
+            {streakCount > 0 && (
+              <motion.div
+                className={`pointer-events-none absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 flex items-center gap-sm rounded-full px-sm-plus py-xs-plus border shadow-lg backdrop-blur bg-gradient-to-r ${
+                  isCriticalStreak
+                    ? 'from-red-500/85 to-orange-400/85 border-red-400/70'
+                    : 'from-cyan/80 to-lime/70 border-cyan/60'
+                }`}
+                animate={{ opacity: [0.8, 1, 0.8], scale: [1, 1.05, 1] }}
+                transition={{ duration: isCriticalStreak ? 1.2 : 1.8, repeat: Infinity }}
+              >
+                <span className="text-lg" aria-hidden="true">
+                  🔥
+                </span>
+                <span className="text-sm font-semibold text-black drop-shadow">×{streakCount}</span>
+                <span className="text-[11px] font-medium text-black/80 drop-shadow">
+                  Лучшее {bestStreak}
+                </span>
+              </motion.div>
             )}
-            {purchaseInsight.paybackSeconds !== undefined &&
-              purchaseInsight.paybackSeconds !== null && (
-                <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-                  Окупаемость: {(purchaseInsight.paybackSeconds / 3600).toFixed(1)} часов
+            <motion.button
+              onClick={onTap}
+              whileTap={tapAnimation}
+              whileHover={hoverAnimation}
+              className="relative w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-cyan via-lime to-gold text-black font-bold text-4xl md:text-5xl shadow-2xl border-2 border-cyan/50 hover:border-cyan transition-all duration-300 active:scale-95 focus-ring"
+              aria-label="Tap to generate energy"
+              data-test-id="tap-button"
+            >
+              {/* Glow effect */}
+              <motion.div
+                className={glowClassName}
+                animate={
+                  isLowPerformance
+                    ? undefined
+                    : {
+                        scale: [1, isMediumPerformance ? 1.1 : 1.2, 1],
+                        opacity: [0.15, 0.28, 0.15],
+                      }
+                }
+                transition={
+                  isLowPerformance
+                    ? undefined
+                    : {
+                        duration: isMediumPerformance ? 2.4 : 2,
+                        repeat: Infinity,
+                      }
+                }
+              />
+
+              {/* Tap indicator */}
+              <span role="img" aria-label="Tap planet to generate energy">
+                🌍
+              </span>
+            </motion.button>
+          </div>
+        </div>
+
+        {/* Right column: Progress & social blocks */}
+        <div className="flex flex-col gap-sm-plus px-md py-sm lg:px-0 lg:py-0">
+          <div className="px-xs lg:px-0">
+            <h2 className="m-0 text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-[0.12em]">
+              Возвращайтесь каждый день
+            </h2>
+            <p className="m-0 mt-1 text-xs text-[var(--color-text-secondary)]">
+              Заберите ежедневную награду и откройте Boost Hub, чтобы ускорить следующее повышение
+              уровня.
+            </p>
+          </div>
+          {/* Daily Reward Banner */}
+          <DailyRewardBanner onOpenBoosts={onViewBoosts} onOpenShop={onOpenShop} />
+          {activeBoost ? (
+            <Card className="flex items-center justify-between gap-sm-plus bg-lime/15 border-lime/40">
+              <div>
+                <p className="m-0 text-xs uppercase tracking-[0.3em] text-lime-600">
+                  Активный буст
+                </p>
+                <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
+                  ×{activeBoost.multiplier.toFixed(1)} к доходу
+                </p>
+                <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                  Осталось {formatMsToReadable(activeBoost.remainingMs)}
+                </p>
+              </div>
+              {onViewBoosts && (
+                <Button variant="ghost" size="sm" onClick={onViewBoosts}>
+                  Управлять
+                </Button>
+              )}
+            </Card>
+          ) : typeof nextBoostAvailabilityMs !== 'undefined' ? (
+            <Card className="flex items-center justify-between gap-sm-plus bg-cyan/10 border-cyan/30">
+              <div>
+                <p className="m-0 text-xs uppercase tracking-[0.3em] text-cyan-600">
+                  {nextBoostAvailabilityMs === 0 ? 'Буст доступен' : 'Следующий буст'}
+                </p>
+                <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
+                  {nextBoostAvailabilityMs === 0
+                    ? 'Свободный буст ждёт вас в Boost Hub'
+                    : `Откройте Boost Hub через ${formatMsToReadable(nextBoostAvailabilityMs)}`}
+                </p>
+                <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                  Бусты удваивают пассивный доход и ускоряют новые постройки.
+                </p>
+              </div>
+              {onViewBoosts && (
+                <Button variant="secondary" size="sm" onClick={onViewBoosts}>
+                  Открыть Boost Hub
+                </Button>
+              )}
+            </Card>
+          ) : null}
+
+          {/* XP Progress Card */}
+          <XPProgressCard
+            level={level}
+            xpProgress={xpProgress}
+            xpCurrent={xpIntoLevel}
+            xpTotal={xpIntoLevel + xpToNextLevel}
+            xpRemaining={xpRemaining}
+          />
+
+          <PrestigeCard
+            prestigeLevel={prestigeLevel}
+            prestigeMultiplier={prestigeMultiplier}
+            prestigeEnergySinceReset={prestigeEnergySinceReset}
+            prestigeNextThreshold={prestigeNextThreshold}
+            prestigeEnergyToNext={prestigeEnergyToNext}
+            prestigeGainAvailable={prestigeGainAvailable}
+            isPrestigeAvailable={isPrestigeAvailable}
+            isLoading={isPrestigeLoading}
+            onPrestige={onPrestige}
+          />
+
+          {/* Social Proof (Friends Playing) */}
+          <SocialProofCard
+            friendsCount={socialPlayerCount}
+            isLoading={isSocialBlockLoading}
+            onViewLeaderboard={onViewLeaderboard}
+          />
+
+          {/* Next Goal Card */}
+          {purchaseInsight && (
+            <Card highlighted={purchaseInsight.affordable}>
+              <div className="mb-sm-plus flex items-center justify-between gap-sm-plus">
+                <div>
+                  <p className="m-0 text-xs uppercase tracking-[0.6px] text-[var(--color-text-secondary)]">
+                    Следующая цель
+                  </p>
+                  <h3 className="m-0 text-lg text-[var(--color-text-primary)] font-semibold">
+                    {purchaseInsight.name}
+                  </h3>
+                </div>
+                {purchaseInsight.roiRank && (
+                  <span className="text-xs text-lime/80 font-semibold">
+                    ROI #{purchaseInsight.roiRank}
+                  </span>
+                )}
+              </div>
+              <div className="text-sm text-[var(--color-text-secondary)]">
+                Стоимость: {formatNumberWithSpaces(Math.floor(purchaseInsight.cost))} E
+              </div>
+              {purchaseInsight.remaining > 0 && (
+                <div className="text-sm text-[var(--color-text-secondary)] mt-1">
+                  Осталось: {formatNumberWithSpaces(Math.floor(purchaseInsight.remaining))} E
                 </div>
               )}
-          </Card>
-        )}
+              {purchaseInsight.paybackSeconds !== undefined &&
+                purchaseInsight.paybackSeconds !== null && (
+                  <div className="text-xs text-[var(--color-text-secondary)] mt-1">
+                    Окупаемость: {(purchaseInsight.paybackSeconds / 3600).toFixed(1)} часов
+                  </div>
+                )}
+            </Card>
+          )}
+        </div>
       </div>
-    </div>
+
+      <ModalBase
+        isOpen={isQuestModalOpen}
+        onClose={() => setQuestModalOpen(false)}
+        title="Задания"
+        size="lg"
+        actions={[
+          {
+            label: questsLoading ? 'Обновляем…' : 'Обновить',
+            variant: 'secondary',
+            onClick: () => {
+              void loadQuests();
+            },
+            disabled: questsLoading,
+          },
+        ]}
+      >
+        <div className="flex flex-col gap-sm-plus">
+          {questsError && (
+            <Card className="border-[rgba(255,51,51,0.35)] bg-[rgba(58,16,24,0.82)] text-[var(--color-text-primary)]">
+              {questsError}
+            </Card>
+          )}
+
+          {questWidgetLoading ? (
+            <p className="text-caption text-[var(--color-text-secondary)]">
+              Загружаем список заданий…
+            </p>
+          ) : quests.length === 0 ? (
+            <p className="text-caption text-[var(--color-text-secondary)]">
+              Новые задания появятся в ближайшее время.
+            </p>
+          ) : (
+            <>
+              {dailyQuests.length > 0 && (
+                <div className="flex flex-col gap-sm">
+                  <h3 className="m-0 text-caption uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+                    Ежедневные
+                  </h3>
+                  {dailyQuests.map(quest => (
+                    <QuestRow
+                      key={quest.id}
+                      quest={quest}
+                      onClaim={handleQuestClaim}
+                      claiming={claimingQuestId === quest.id}
+                    />
+                  ))}
+                </div>
+              )}
+
+              {weeklyQuests.length > 0 && (
+                <div className="flex flex-col gap-sm">
+                  <h3 className="m-0 text-caption uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+                    Еженедельные
+                  </h3>
+                  {weeklyQuests.map(quest => (
+                    <QuestRow
+                      key={quest.id}
+                      quest={quest}
+                      onClaim={handleQuestClaim}
+                      claiming={claimingQuestId === quest.id}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </div>
+      </ModalBase>
+    </>
   );
 }
 
