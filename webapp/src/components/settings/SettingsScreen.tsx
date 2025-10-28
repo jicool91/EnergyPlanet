@@ -19,19 +19,21 @@ const LANGUAGE_OPTIONS: Language[] = ['ru', 'en'];
 
 interface SettingsScreenProps {
   onClose?: () => void;
+  onShowAdminPanel?: () => void;
 }
 
 /**
  * SettingsScreen Component
  * Displays game settings, preferences, and account information
  */
-export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
-  const { profile, userId, username, logoutSession } = useGameStore(
+export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowAdminPanel }) => {
+  const { profile, userId, username, logoutSession, isAdmin } = useGameStore(
     useShallow(state => ({
       profile: state.profile,
       userId: state.userId,
       username: state.username,
       logoutSession: state.logoutSession,
+      isAdmin: state.isAdmin,
     }))
   );
   const { success, warning } = useNotification();
@@ -225,6 +227,14 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
     }
   };
 
+  const handleOpenAdminPanel = useCallback(() => {
+    if (!isAdmin) {
+      return;
+    }
+    void logClientEvent('admin_monetization_open', { source: 'settings' });
+    onShowAdminPanel?.();
+  }, [isAdmin, onShowAdminPanel]);
+
   const SelectButton = ({
     label,
     selected,
@@ -295,6 +305,25 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose }) => {
           </div>
         )}
       </SettingsSection>
+
+      {isAdmin && (
+        <Card className="flex flex-col gap-3 border-cyan/40 bg-cyan/5 text-sm">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-token-primary">Админ-панель</span>
+              <span className="text-xs text-token-secondary">
+                Следите за конверсией upsell, квестов и магазина.
+              </span>
+            </div>
+            <span className="text-lg" aria-hidden="true">
+              📊
+            </span>
+          </div>
+          <Button variant="primary" size="md" fullWidth onClick={handleOpenAdminPanel}>
+            📈 Монетизация
+          </Button>
+        </Card>
+      )}
 
       {/* Audio & Sound Section */}
       <SettingsSection title="Звук" icon="🔊" description="Звуковые эффекты игры">

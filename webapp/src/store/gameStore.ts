@@ -129,6 +129,7 @@ interface GameState {
   // User data
   userId: string | null;
   username: string | null;
+  isAdmin: boolean;
   level: number;
   xp: number;
   xpIntoLevel: number;
@@ -227,6 +228,7 @@ export const useGameStore = create<GameState>((set, get) => ({
   // Initial state
   userId: null,
   username: null,
+  isAdmin: false,
   level: 1,
   xp: 0,
   xpIntoLevel: 0,
@@ -397,6 +399,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({
         userId: user.id,
         username: user.username,
+        isAdmin: Boolean(user.is_admin),
         level: progress.level,
         xp: progress.xp,
         xpIntoLevel,
@@ -668,6 +671,7 @@ export const useGameStore = create<GameState>((set, get) => ({
       set({
         userId: user.id,
         username: user.username,
+        isAdmin: Boolean(user.is_admin),
         level: progress.level,
         xp: progress.xp,
         xpIntoLevel,
@@ -939,7 +943,7 @@ export const useGameStore = create<GameState>((set, get) => ({
     } catch (error) {
       console.warn('Failed to send logout event', error);
     } finally {
-      set({ pendingPassiveSeconds: 0, pendingPassiveEnergy: 0 });
+      set({ pendingPassiveSeconds: 0, pendingPassiveEnergy: 0, isAdmin: false });
     }
   },
 

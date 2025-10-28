@@ -13,6 +13,7 @@ const SECTIONS: Array<{ id: AccountSection; label: string; icon: string }> = [
 interface ProfileSettingsScreenProps {
   defaultSection?: AccountSection;
   onClose?: () => void;
+  onShowAdminPanel?: () => void;
 }
 
 /**
@@ -22,6 +23,7 @@ interface ProfileSettingsScreenProps {
 const ProfileSettingsScreenComponent: React.FC<ProfileSettingsScreenProps> = ({
   defaultSection = 'profile',
   onClose,
+  onShowAdminPanel,
 }) => {
   const [section, setSection] = useState<AccountSection>(defaultSection);
 
@@ -79,7 +81,11 @@ const ProfileSettingsScreenComponent: React.FC<ProfileSettingsScreenProps> = ({
         aria-live="polite"
         aria-label={`Раздел ${activeLabel}`}
       >
-        {section === 'profile' ? <ProfilePanel /> : <SettingsScreen onClose={onClose} />}
+        {section === 'profile' ? (
+          <ProfilePanel />
+        ) : (
+          <SettingsScreen onClose={onClose} onShowAdminPanel={onShowAdminPanel} />
+        )}
       </section>
     </div>
   );

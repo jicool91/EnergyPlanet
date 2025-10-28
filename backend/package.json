@@ -19,6 +19,7 @@
     "seed": "node dist/db/seed.js",
     "seed:dev": "ts-node src/db/seed.ts",
     "bootstrap:db": "ts-node scripts/bootstrap-db.ts",
+    "report:monetization": "ts-node scripts/generate-monetization-report.ts",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [

@@ -7,6 +7,7 @@ import { OfflineSummaryModal } from './components/OfflineSummaryModal';
 import { LevelUpScreen } from './components/LevelUpScreen';
 import { NotificationContainer } from './components/notifications/NotificationContainer';
 import { TabBar, MainScreenHeader, type TabBarItem } from './components';
+import { ModalBase } from './components/ModalBase';
 import { useNotification } from './hooks/useNotification';
 import { useTelegramBackButton } from './hooks/useTelegramBackButton';
 import { logClientEvent } from './services/telemetry';
@@ -16,6 +17,7 @@ import { useAuthStore, authStore } from './store/authStore';
 import { logger } from './utils/logger';
 import { HEADER_BUFFER_PX, HEADER_RESERVE_PX } from './constants/layout';
 import type { ShopSection } from './components/ShopPanel';
+import { AdminMonetizationScreen } from './screens/AdminMonetizationScreen';
 
 type TabKey = 'home' | 'shop' | 'builds' | 'leaderboard' | 'account' | 'clan';
 
@@ -58,6 +60,7 @@ function App() {
   const stars = useGameStore(state => state.stars);
   const xpIntoLevel = useGameStore(state => state.xpIntoLevel);
   const xpToNextLevel = useGameStore(state => state.xpToNextLevel);
+  const isAdmin = useGameStore(state => state.isAdmin);
   const previousLevelRef = useRef(1);
   const hasBootstrappedLevelRef = useRef(false);
   const { toast } = useNotification();
@@ -76,6 +79,7 @@ function App() {
   const [shopSection, setShopSection] = useState<ShopSection>('star_packs');
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [overlayLevel, setOverlayLevel] = useState<number | null>(null);
+  const [isAdminMetricsOpen, setAdminMetricsOpen] = useState(false);
   const { safeArea } = useSafeArea();
   const safeTop = Math.max(0, safeArea.safe.top ?? 0);
   const contentTopInset = Math.max(0, safeArea.content.top ?? 0);
@@ -112,6 +116,27 @@ function App() {
   }, [contentPaddingTopPx, safeBottom, safeLeft, safeRight]);
 
   const previousTabRef = useRef<TabKey | null>(null);
+
+  useEffect(() => {
+    if (!isAdmin && isAdminMetricsOpen) {
+      // Closing the admin modal immediately keeps it from reopening automatically
+      // when admin access is restored. The lint rule is suppressed deliberately here.
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setAdminMetricsOpen(false);
+    }
+  }, [isAdmin, isAdminMetricsOpen]);
+
+  const handleOpenAdminMetrics = useCallback(() => {
+    if (!isAdmin) {
+      return;
+    }
+    setAdminMetricsOpen(true);
+  }, [isAdmin]);
+
+  const handleCloseAdminMetrics = useCallback(() => {
+    setAdminMetricsOpen(false);
+    void logClientEvent('admin_monetization_close', {});
+  }, []);
 
   const handleTabBarChange = useCallback(
     (tabId: string) => {
@@ -283,6 +308,7 @@ function App() {
         onTabChange={handleProgrammaticTabChange}
         shopSection={shopSection}
         onShopSectionChange={setShopSection}
+        onOpenAdminMetrics={handleOpenAdminMetrics}
       />
 
       {/* Global Navigation Footer */}
@@ -326,6 +352,14 @@ function App() {
           setOverlayLevel(null);
         }}
       />
+      <ModalBase
+        isOpen={isAdminMetricsOpen && isAdmin}
+        title="Монетизация (админ)"
+        onClose={handleCloseAdminMetrics}
+        size="lg"
+      >
+        <AdminMonetizationScreen />
+      </ModalBase>
       <NotificationContainer />
     </div>
   );

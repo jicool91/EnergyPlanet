@@ -2,7 +2,7 @@ import { migrateUp, closeMigrationPool } from '../src/db/migrate';
 import { seedDatabase } from '../src/db/seed';
 import { connectDatabase, closeDatabase, transaction } from '../src/db/connection';
 import { logger } from '../src/utils/logger';
-import { findByTelegramId, createUser } from '../src/repositories/UserRepository';
+import { findByTelegramId, updateUser } from '../src/repositories/UserRepository';
 import {
   getProgress,
   createDefaultProgress,
@@ -18,6 +18,40 @@ const DEMO_DEFAULTS = {
   energy: parseInt(process.env.BOOTSTRAP_DEMO_ENERGY ?? '15000', 10),
   xp: parseInt(process.env.BOOTSTRAP_DEMO_XP ?? '1800', 10),
 };
+
+const ADMIN_TELEGRAM_IDS: number[] = [6082666805];
+
+async function ensureAdminUsers() {
+  if (ADMIN_TELEGRAM_IDS.length === 0) {
+    return;
+  }
+
+  await transaction(async client => {
+    for (const telegramId of ADMIN_TELEGRAM_IDS) {
+      const user = await findByTelegramId(telegramId, client);
+
+      if (!user) {
+        logger.warn('Admin telegram ID not found, skipping', { telegramId });
+        continue;
+      }
+
+      if (!user.isAdmin) {
+        logger.info('Granting admin privileges', { telegramId, userId: user.id });
+        await updateUser(user.id, { isAdmin: true }, client);
+      } else {
+        logger.info('Admin privileges already active', { telegramId, userId: user.id });
+      }
+
+      await ensureProfile(user.id, client);
+
+      const progress = await getProgress(user.id, client);
+      if (!progress) {
+        await createDefaultProgress(user.id, client);
+        logger.info('Created default progress for admin user', { telegramId, userId: user.id });
+      }
+    }
+  });
+}
 
 async function ensureDemoPlayer() {
   logger.info('Ensuring demo player exists', {
@@ -99,6 +133,7 @@ async function main() {
     logger.info('Running seeders');
     await seedDatabase();
     logger.info('Seeders finished successfully');
+    await ensureAdminUsers();
     await ensureDemoPlayer();
   } finally {
     await closeDatabase().catch(dbError => {

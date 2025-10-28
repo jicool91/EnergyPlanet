@@ -62,6 +62,7 @@ interface MainScreenProps {
   onTabChange: (tab: TabKey) => void;
   shopSection: ShopSection;
   onShopSectionChange: (section: ShopSection) => void;
+  onOpenAdminMetrics: () => void;
 }
 
 export function MainScreen({
@@ -69,6 +70,7 @@ export function MainScreen({
   onTabChange,
   shopSection,
   onShopSectionChange,
+  onOpenAdminMetrics,
 }: MainScreenProps) {
   const {
     energy,
@@ -693,7 +695,10 @@ export function MainScreen({
           >
             <Suspense fallback={<ProfileSkeleton />}>
               <TabPageSurface>
-                <ProfileSettingsScreen onClose={() => onTabChange('home')} />
+                <ProfileSettingsScreen
+                  onClose={() => onTabChange('home')}
+                  onShowAdminPanel={onOpenAdminMetrics}
+                />
               </TabPageSurface>
             </Suspense>
           </ScreenTransition>

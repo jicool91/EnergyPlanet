@@ -1,12 +1,27 @@
 import request from 'supertest';
 
 const mockGetMigrationStatus = jest.fn();
+const mockGetDailyMetrics = jest.fn();
+
+jest.mock('../../../middleware/auth', () => ({
+  authenticate: (_req: any, _res: any, next: any) => next(),
+  authenticateTick: (_req: any, _res: any, next: any) => next(),
+  requireAdmin: (_req: any, _res: any, next: any) => next(),
+}));
 
 jest.mock('../../../services/AdminService', () => {
   return {
     AdminService: jest.fn().mockImplementation(() => ({
       getMigrationStatus: mockGetMigrationStatus,
       getFullHealthStatus: jest.fn(),
+    })),
+  };
+});
+
+jest.mock('../../../services/MonetizationAnalyticsService', () => {
+  return {
+    MonetizationAnalyticsService: jest.fn().mockImplementation(() => ({
+      getDailyMetrics: mockGetDailyMetrics,
     })),
   };
 });
@@ -41,5 +56,42 @@ describe('GET /api/v1/admin/migrations/status', () => {
     expect(response.status).toBe(200);
     expect(response.body).toEqual(payload);
     expect(mockGetMigrationStatus).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('GET /api/v1/admin/monetization/metrics', () => {
+  beforeEach(() => {
+    mockGetDailyMetrics.mockReset();
+  });
+
+  it('returns monetization metrics payload', async () => {
+    const payload = {
+      generatedAt: '2025-10-28T09:00:00.000Z',
+      windowStart: '2025-10-15T00:00:00.000Z',
+      windowEnd: '2025-10-28T09:00:00.000Z',
+      days: 14,
+      daily: [
+        {
+          date: '2025-10-15',
+          shopTabImpressions: 120,
+          shopViews: 45,
+          shopVisitRate: 0.375,
+          questClaimStarts: 80,
+          questClaimSuccess: 72,
+          questClaimSuccessRate: 0.9,
+          dailyBoostUpsellViews: 30,
+          dailyBoostUpsellClicks: 6,
+          dailyBoostUpsellCtr: 0.2,
+        },
+      ],
+    };
+
+    mockGetDailyMetrics.mockResolvedValue(payload);
+
+    const response = await request(app).get('/api/v1/admin/monetization/metrics?days=7');
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual(payload);
+    expect(mockGetDailyMetrics).toHaveBeenCalledWith(7);
   });
 });
