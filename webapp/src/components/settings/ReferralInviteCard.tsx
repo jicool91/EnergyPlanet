@@ -42,6 +42,13 @@ export const ReferralInviteCard: React.FC = () => {
     }
   }, [referral, isLoading, loadSummary]);
 
+  const nextMilestone = useMemo(() => {
+    if (!referral) {
+      return null;
+    }
+    return referral.milestones.find(milestone => !milestone.claimed) ?? null;
+  }, [referral]);
+
   if (isLoading && !referral) {
     return (
       <Card className="flex flex-col gap-sm border-token-subtle bg-token-surface-secondary/60 animate-pulse">
@@ -62,7 +69,7 @@ export const ReferralInviteCard: React.FC = () => {
       await navigator.clipboard.writeText(referral.code);
       success('Код скопирован');
       void logClientEvent('referral_code_copied', {});
-    } catch (err) {
+    } catch {
       notifyError('Не удалось скопировать код');
     }
   };
@@ -73,11 +80,13 @@ export const ReferralInviteCard: React.FC = () => {
     }
     const link = referral.shareUrl;
     const text = `Присоединяйся ко мне в Energy Planet! Мой код: ${referral.code}`;
-    const canNativeShare = typeof (navigator as any).share === 'function';
+    type ShareCapableNavigator = Navigator & { share?: (data: ShareData) => Promise<void> };
+    const shareCapableNavigator: ShareCapableNavigator = navigator as ShareCapableNavigator;
+    const canNativeShare = typeof shareCapableNavigator.share === 'function';
     try {
       setSharing(true);
       if (canNativeShare && link) {
-        await (navigator as any).share({
+        await shareCapableNavigator.share({
           title: 'Energy Planet',
           text,
           url: link,
@@ -102,8 +111,9 @@ export const ReferralInviteCard: React.FC = () => {
       await activateCode(codeInput);
       success('Реферальный код активирован!');
       setCodeInput('');
-    } catch (err: any) {
-      notifyError(err?.message ?? 'Не удалось активировать код');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Не удалось активировать код';
+      notifyError(message);
     }
   };
 
@@ -115,17 +125,11 @@ export const ReferralInviteCard: React.FC = () => {
     try {
       await claimMilestone(milestone);
       success('Награда получена!');
-    } catch (err: any) {
-      notifyError(err?.message ?? 'Не удалось получить награду');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Не удалось получить награду';
+      notifyError(message);
     }
   };
-
-  const nextMilestone = useMemo(() => {
-    if (!referral) {
-      return null;
-    }
-    return referral.milestones.find(m => !m.claimed);
-  }, [referral]);
 
   return (
     <div className="flex flex-col gap-md">

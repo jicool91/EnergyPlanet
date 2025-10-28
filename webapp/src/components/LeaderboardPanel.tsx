@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useCallback, useState } from 'react';
+import { useEffect, useMemo, useRef, useCallback, useReducer } from 'react';
 import { motion } from 'framer-motion';
 import { useGameStore } from '../store/gameStore';
 import { LeaderboardSkeleton, ErrorBoundary } from './skeletons';
@@ -40,11 +40,8 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
       userId: state.userId,
     }))
   );
-  const [leaderboardCapRevision, setLeaderboardCapRevision] = useState(0);
-  const leaderboardCtaAllowed = useMemo(
-    () => canShowCap('leaderboard_shop_cta', { limit: 2 }),
-    [leaderboardCapRevision]
-  );
+  const [, forceLeaderboardCapRefresh] = useReducer((state: number) => state + 1, 0);
+  const leaderboardCtaAllowed = canShowCap('leaderboard_shop_cta', { limit: 2 });
 
   useEffect(() => {
     if (leaderboardError) {
@@ -115,7 +112,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
     }
     const refreshCap = () => {
       hasLoggedShopCtaRef.current = false;
-      setLeaderboardCapRevision(prev => prev + 1);
+      forceLeaderboardCapRefresh();
     };
     document.addEventListener('visibilitychange', refreshCap);
     window.addEventListener('focus', refreshCap);
@@ -126,18 +123,22 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
   }, []);
 
   useEffect(() => {
-    if (showShopCta && !hasLoggedShopCtaRef.current) {
+    if (!showShopCta) {
+      if (userEnergyDiffToNext === 0) {
+        hasLoggedShopCtaRef.current = false;
+      }
+      return;
+    }
+
+    if (!hasLoggedShopCtaRef.current) {
       const consumed = consumeCap('leaderboard_shop_cta', { limit: 2 });
-      setLeaderboardCapRevision(prev => prev + 1);
       if (consumed) {
         hasLoggedShopCtaRef.current = true;
+        forceLeaderboardCapRefresh();
         void logClientEvent('leaderboard_shop_cta_view', {
           deficit: userEnergyDiffToNext,
         });
       }
-    }
-    if (userEnergyDiffToNext === 0) {
-      hasLoggedShopCtaRef.current = false;
     }
   }, [showShopCta, userEnergyDiffToNext]);
 

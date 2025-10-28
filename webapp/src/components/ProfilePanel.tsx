@@ -40,7 +40,7 @@ export function ProfilePanel() {
     });
   }, [isProfileLoading, profile, safeProfileBoosts.length, profileError, userId]);
 
-  const boosts = useMemo(() => safeProfileBoosts, [safeProfileBoosts]);
+  const boosts = safeProfileBoosts;
   const energyValue = profile?.progress.energy ?? 0;
   const totalEnergyValue = profile?.progress.total_energy_produced ?? 0;
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energyValue)), [energyValue]);

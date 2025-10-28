@@ -126,11 +126,8 @@ export function HomePanel({
     ? 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-12 -z-10'
     : 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-20 blur-xl -z-10';
   const hasLoggedMonetizationPromptRef = useRef(false);
-  const [monetizationCapRevision, setMonetizationCapRevision] = useState(0);
-  const monetizationCapAllowed = useMemo(
-    () => canShowCap('home_monetization_prompt', { limit: 3 }),
-    [monetizationCapRevision]
-  );
+  const [, setMonetizationCapRevision] = useState(0);
+  const monetizationCapAllowed = canShowCap('home_monetization_prompt', { limit: 3 });
   const starsShort = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
 
   useEffect(() => {

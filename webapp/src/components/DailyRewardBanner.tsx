@@ -70,11 +70,7 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
   const [localNow, setLocalNow] = useState(() => Date.now());
   const [showUpsell, setShowUpsell] = useState(false);
   const hasLoggedUpsellRef = useRef(false);
-  const [upsellCapRevision, setUpsellCapRevision] = useState(0);
-  const dailyUpsellAllowed = useMemo(
-    () => canShowCap('daily_reward_upsell', { limit: 2 }),
-    [upsellCapRevision]
-  );
+  const [, setUpsellCapRevision] = useState(0);
 
   useEffect(() => {
     loadBoostHub();
@@ -119,22 +115,23 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
   const isAvailable =
     hasData && remainingToAvailabilityMs <= 0 && (activeRemainingMs <= 0 || !dailyBoost?.active);
   const buttonDisabled = !isAvailable || isClaiming || isLoading;
+  const dailyUpsellAllowed = canShowCap('daily_reward_upsell', { limit: 2 });
+
+  const isUpsellVisible = showUpsell && dailyUpsellAllowed && isAvailable;
 
   useEffect(() => {
-    if (!isAvailable && remainingToAvailabilityMs > 0) {
-      setShowUpsell(false);
-      hasLoggedUpsellRef.current = false;
-    }
-  }, [isAvailable, remainingToAvailabilityMs]);
-
-  useEffect(() => {
-    if (showUpsell && !hasLoggedUpsellRef.current) {
+    if (isUpsellVisible && !hasLoggedUpsellRef.current) {
       hasLoggedUpsellRef.current = true;
       void logClientEvent('daily_boost_upsell_view', {
         source: 'daily_reward_banner',
       });
+      return;
     }
-  }, [showUpsell]);
+
+    if (!isUpsellVisible) {
+      hasLoggedUpsellRef.current = false;
+    }
+  }, [isUpsellVisible]);
 
   const handleBoostUpsell = useCallback(() => {
     void logClientEvent('daily_boost_upsell_click', {
@@ -250,13 +247,6 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
     }
   };
 
-  useEffect(() => {
-    if (!dailyUpsellAllowed && showUpsell) {
-      setShowUpsell(false);
-      hasLoggedUpsellRef.current = false;
-    }
-  }, [dailyUpsellAllowed, showUpsell]);
-
   return (
     <motion.div
       initial={{ opacity: 0, y: -10 }}
@@ -317,7 +307,7 @@ export const DailyRewardBanner: React.FC<DailyRewardBannerProps> = ({
         </motion.button>
       </div>
 
-      {showUpsell && (
+      {isUpsellVisible && (
         <Card className="mt-3 flex flex-col gap-sm bg-gradient-to-r from-purple-500/20 to-indigo-500/20 border-purple-500/30 text-[var(--color-text-primary)]">
           <div>
             <p className="m-0 text-sm font-semibold text-purple-100">Продли ускорение</p>
