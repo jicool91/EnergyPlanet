@@ -7,6 +7,18 @@ import { AuthService } from '../../services/AuthService';
 import { AppError } from '../../middleware/errorHandler';
 import { logger } from '../../utils/logger';
 
+interface TelegramInitBody {
+  initData?: unknown;
+}
+
+interface RefreshBody {
+  refresh_token?: unknown;
+}
+
+type TelegramHeaderRequest = Request<Record<string, never>, unknown, TelegramInitBody>;
+type RefreshRequest = Request<Record<string, never>, unknown, RefreshBody>;
+type HttpRequest = Request<Record<string, never>, unknown, Record<string, unknown>>;
+
 export class AuthController {
   private authService: AuthService;
 
@@ -14,12 +26,9 @@ export class AuthController {
     this.authService = new AuthService();
   }
 
-  authenticateWithTelegram = async (req: Request, res: Response, next: NextFunction) => {
+  authenticateWithTelegram = async (req: TelegramHeaderRequest, res: Response, next: NextFunction) => {
     try {
-      const initDataRaw =
-        typeof req.body === 'object' && req.body !== null && 'initData' in req.body
-          ? (req.body as { initData?: unknown }).initData
-          : undefined;
+      const initDataRaw = req.body?.initData;
 
       if (typeof initDataRaw !== 'string' || initDataRaw.trim().length === 0) {
         logger.warn('Telegram authentication failed', {
@@ -40,7 +49,7 @@ export class AuthController {
     }
   };
 
-  authenticateWithTelegramHeader = async (req: Request, res: Response, next: NextFunction) => {
+  authenticateWithTelegramHeader = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
       const header = req.headers.authorization;
       const authorization = Array.isArray(header) ? header[0] : header;
@@ -54,9 +63,11 @@ export class AuthController {
         throw new AppError(400, 'authorization_header_missing');
       }
 
-      const [scheme, ...rest] = authorization.trim().split(/\s+/);
+      const trimmedAuthorization = authorization.trim();
+      const [schemeRaw, ...rest] = trimmedAuthorization.split(/\s+/);
       const initData = rest.join(' ').trim();
-      const normalizedScheme = (scheme || '').toLowerCase();
+      const normalizedScheme = (schemeRaw || '').toLowerCase();
+      const scheme = schemeRaw ?? '';
       const allowedSchemes = new Set(['tma', 'telegraminit']);
 
       if (!scheme || !initData) {
@@ -88,12 +99,9 @@ export class AuthController {
     }
   };
 
-  refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+  refreshToken = async (req: RefreshRequest, res: Response, next: NextFunction) => {
     try {
-      const refreshTokenRaw =
-        typeof req.body === 'object' && req.body !== null && 'refresh_token' in req.body
-          ? (req.body as { refresh_token?: unknown }).refresh_token
-          : undefined;
+      const refreshTokenRaw = req.body?.refresh_token;
 
       if (typeof refreshTokenRaw !== 'string' || refreshTokenRaw.trim().length === 0) {
         throw new AppError(400, 'refresh_token is required');

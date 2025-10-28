@@ -4,8 +4,18 @@ import { AppError } from '../../middleware/errorHandler';
 import { purchaseService } from '../../services/PurchaseService';
 import { contentService } from '../../services/ContentService';
 
+type InvoiceBody = {
+  purchase_id?: unknown;
+  item_id?: unknown;
+  price_stars?: unknown;
+  purchase_type?: unknown;
+  metadata?: unknown;
+};
+
+type InvoiceRequest = AuthRequest & { body: InvoiceBody };
+
 export class PurchaseController {
-  invoice = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  invoice = async (req: InvoiceRequest, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new AppError(401, 'unauthorized');
@@ -13,7 +23,7 @@ export class PurchaseController {
 
       const { purchase_id, item_id, price_stars, purchase_type, metadata } = req.body;
 
-      if (!purchase_id || !item_id || typeof price_stars !== 'number') {
+      if (typeof purchase_id !== 'string' || typeof item_id !== 'string' || typeof price_stars !== 'number') {
         throw new AppError(400, 'invalid_purchase_payload');
       }
 
@@ -22,7 +32,7 @@ export class PurchaseController {
         itemId: item_id,
         priceStars: price_stars,
         purchaseType: purchase_type ?? 'unknown',
-        metadata,
+        metadata: metadata && typeof metadata === 'object' ? metadata : undefined,
       });
 
       res.status(200).json({
@@ -42,7 +52,7 @@ export class PurchaseController {
     }
   };
 
-  create = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  create = async (req: InvoiceRequest, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new AppError(401, 'unauthorized');
@@ -50,7 +60,7 @@ export class PurchaseController {
 
       const { purchase_id, item_id, price_stars, purchase_type, metadata } = req.body;
 
-      if (!purchase_id || !item_id || typeof price_stars !== 'number') {
+      if (typeof purchase_id !== 'string' || typeof item_id !== 'string' || typeof price_stars !== 'number') {
         throw new AppError(400, 'invalid_purchase_payload');
       }
 
@@ -59,7 +69,7 @@ export class PurchaseController {
         itemId: item_id,
         priceStars: price_stars,
         purchaseType: purchase_type ?? 'unknown',
-        metadata,
+        metadata: metadata && typeof metadata === 'object' ? metadata : undefined,
       });
 
       res.status(200).json({
@@ -78,12 +88,12 @@ export class PurchaseController {
     }
   };
 
-  webhook = async (_req: Request, res: Response) => {
+  webhook = (_req: Request, res: Response) => {
     // TODO: verify Telegram signature, update purchases, grant rewards
     res.status(202).json({ success: true, message: 'webhook_stub' });
   };
 
-  packs = async (_req: AuthRequest, res: Response, next: NextFunction) => {
+  packs = (_req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       const packs = contentService.getStarPacks();
       res.status(200).json({ packs });

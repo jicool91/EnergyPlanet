@@ -3,6 +3,12 @@ import { AuthRequest } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 import { referralService } from '../../services/ReferralService';
 
+type ReferralActivateBody = {
+  code?: unknown;
+};
+
+type ReferralActivateRequest = AuthRequest & { body: ReferralActivateBody };
+
 class ReferralController {
   summary = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
@@ -17,14 +23,18 @@ class ReferralController {
     }
   };
 
-  activate = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  activate = async (req: ReferralActivateRequest, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new AppError(401, 'unauthorized');
       }
 
-      const { code } = req.body;
-      const summary = await referralService.activateCode(req.user.id, String(code ?? '').trim());
+      const codeRaw = req.body?.code;
+      const code = typeof codeRaw === 'string' ? codeRaw.trim() : String(codeRaw ?? '').trim();
+      if (!code) {
+        throw new AppError(400, 'referral_code_required');
+      }
+      const summary = await referralService.activateCode(req.user.id, code);
       res.status(200).json({ referral: summary });
     } catch (error) {
       next(error);
