@@ -8,8 +8,14 @@ import config from '../config';
 const { combine, timestamp, errors, json, printf, colorize } = winston.format;
 
 // Custom format for development
-const devFormat = printf(({ level, message, timestamp, ...meta }) => {
-  return `${timestamp} [${level}]: ${message} ${Object.keys(meta).length ? JSON.stringify(meta, null, 2) : ''}`;
+const devFormat = printf(info => {
+  const { level, message, timestamp, ...rest } = info as winston.Logform.TransformableInfo & {
+    timestamp?: string;
+  };
+  const meta = rest as Record<string, unknown>;
+  const metaPart = Object.keys(meta).length ? ` ${JSON.stringify(meta, null, 2)}` : '';
+  const renderedTimestamp = timestamp ?? new Date().toISOString();
+  return `${renderedTimestamp} [${String(level)}]: ${String(message)}${metaPart}`;
 });
 
 const isProduction = config.server.env === 'production';
@@ -17,7 +23,7 @@ const consoleTransport = new winston.transports.Console({
   level: config.logging.level,
 });
 
-const transports = [consoleTransport];
+const transports: winston.transport[] = [consoleTransport];
 
 if (!isProduction && config.logging.enableFileTransports) {
   transports.push(

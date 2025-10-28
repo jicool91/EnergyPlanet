@@ -52,6 +52,10 @@ export interface HealthStatus {
 
 const MIGRATIONS_DIR = path.join(__dirname, '../../migrations');
 
+const hasErrorCode = (error: unknown, code: string): boolean => {
+  return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === code;
+};
+
 export class AdminService {
   async getMigrationStatus(): Promise<MigrationStatus> {
     const migrationFiles = await this.readMigrationFiles();
@@ -130,8 +134,8 @@ export class AdminService {
     let entries: string[];
     try {
       entries = await fs.readdir(MIGRATIONS_DIR);
-    } catch (error: any) {
-      if (error?.code === 'ENOENT') {
+    } catch (error: unknown) {
+      if (hasErrorCode(error, 'ENOENT')) {
         logger.warn('Migrations directory not found when building status report', {
           directory: MIGRATIONS_DIR,
         });
@@ -159,8 +163,8 @@ export class AdminService {
         'SELECT version, name, applied_at FROM schema_migrations ORDER BY applied_at DESC'
       );
       return result.rows;
-    } catch (error: any) {
-      if (error?.code === '42P01') {
+    } catch (error: unknown) {
+      if (hasErrorCode(error, '42P01')) {
         logger.warn('schema_migrations table missing during status check');
         return [];
       }

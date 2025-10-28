@@ -2,8 +2,9 @@
  * Global Error Handler Middleware
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
+import { AuthRequest } from './auth';
 
 export class AppError extends Error {
   constructor(
@@ -18,7 +19,7 @@ export class AppError extends Error {
 
 export const errorHandler = (
   err: Error | AppError,
-  req: Request,
+  req: AuthRequest,
   res: Response,
   _next: NextFunction
 ) => {
@@ -27,7 +28,7 @@ export const errorHandler = (
       statusCode: err.statusCode,
       path: req.path,
       method: req.method,
-      userId: (req as any).user?.id,
+      userId: req.user?.id,
     });
 
     return res.status(err.statusCode).json({

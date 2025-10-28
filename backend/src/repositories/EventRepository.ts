@@ -14,7 +14,7 @@ interface EventRow {
   id: string;
   user_id: string;
   event_type: string;
-  event_data: any;
+  event_data: Record<string, unknown> | null;
   is_suspicious: boolean;
   created_at: string;
 }

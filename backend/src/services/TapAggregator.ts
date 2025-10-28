@@ -51,7 +51,7 @@ export class TapAggregator {
     this.intervalHandle = setInterval(() => {
       this.flushPending().catch(error => {
         logger.error('TapAggregator periodic flush failed', {
-          error: error instanceof Error ? error.message : error,
+          error: error instanceof Error ? error.message : String(error),
         });
       });
     }, this.flushIntervalMs);
@@ -104,7 +104,7 @@ export class TapAggregator {
       this.flushUser(userId).catch(error => {
         logger.error('TapAggregator threshold flush failed', {
           userId,
-          error: error instanceof Error ? error.message : error,
+          error: error instanceof Error ? error.message : String(error),
         });
       });
     }
@@ -148,7 +148,7 @@ export class TapAggregator {
         this.flushUser(userId).catch(error => {
           logger.error('TapAggregator flush failed', {
             userId,
-            error: error instanceof Error ? error.message : error,
+            error: error instanceof Error ? error.message : String(error),
           });
         })
       )

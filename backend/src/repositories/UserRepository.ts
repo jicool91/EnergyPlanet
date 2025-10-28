@@ -113,7 +113,7 @@ export async function createUser(data: CreateUserInput, client?: PoolClient): Pr
 
 export async function updateUser(id: string, data: UpdateUserInput, client?: PoolClient): Promise<UserRecord> {
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: unknown[] = [];
 
   if (data.username !== undefined) {
     fields.push(`username = $${fields.length + 1}`);

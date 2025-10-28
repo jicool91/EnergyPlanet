@@ -22,6 +22,31 @@ interface BoostDefinition {
   requiresPremium?: boolean;
 }
 
+type BoostOverrides = Partial<{
+  ad_boost: {
+    enabled?: boolean;
+    duration_sec?: number;
+    multiplier?: number;
+    cooldown_sec?: number;
+  };
+  daily_boost: {
+    enabled?: boolean;
+    duration_sec?: number;
+    multiplier?: number;
+    cooldown_sec?: number;
+  };
+  premium_boosts: {
+    enabled?: boolean;
+    cooldown_sec?: number;
+    items?: Array<{
+      id?: string;
+      duration_sec?: number;
+      multiplier?: number;
+      price_stars?: number;
+    }>;
+  };
+}>;
+
 function fromSeconds(value: number | undefined, fallbackMinutes: number): number {
   if (!value || value <= 0) {
     return fallbackMinutes;
@@ -30,7 +55,7 @@ function fromSeconds(value: number | undefined, fallbackMinutes: number): number
 }
 
 function resolveBoostDefinitions(): Record<BoostType, BoostDefinition> {
-  const overrides = contentService.getFeatureFlags()?.boosts ?? {};
+  const overrides = (contentService.getFeatureFlags()?.boosts ?? {}) as BoostOverrides;
 
   const defaults: Record<BoostType, BoostDefinition> = {
     ad_boost: {

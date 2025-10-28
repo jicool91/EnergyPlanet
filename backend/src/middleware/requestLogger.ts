@@ -2,9 +2,10 @@
  * Request Logger Middleware
  */
 
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 import config from '../config';
+import { AuthRequest } from './auth';
 
 const shouldSample = () => {
   if (config.server.env !== 'production') {
@@ -18,7 +19,7 @@ const shouldSample = () => {
   return Math.random() < rate;
 };
 
-export const requestLogger = (req: Request, res: Response, next: NextFunction) => {
+export const requestLogger = (req: AuthRequest, res: Response, next: NextFunction) => {
   const start = Date.now();
 
   res.on('finish', () => {
@@ -29,7 +30,7 @@ export const requestLogger = (req: Request, res: Response, next: NextFunction) =
       statusCode: res.statusCode,
       durationMs: duration,
       userAgent: req.get('user-agent'),
-      userId: (req as any).user?.id,
+      userId: req.user?.id,
     };
 
     if (res.statusCode >= 500) {

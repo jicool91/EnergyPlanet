@@ -82,7 +82,7 @@ export async function updatePlayerSession(
   client?: PoolClient
 ): Promise<PlayerSessionRecord> {
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: unknown[] = [];
 
   if (data.authSessionId !== undefined) {
     fields.push(`auth_session_id = $${fields.length + 1}`);

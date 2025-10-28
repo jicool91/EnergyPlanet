@@ -168,9 +168,9 @@ export class PurchaseService {
       stars?: unknown;
       bonus_stars?: unknown;
     };
-    const metadataBase = typeof metadata.stars === 'number' ? (metadata.stars as number) : undefined;
+    const metadataBase = typeof metadata.stars === 'number' ? metadata.stars : undefined;
     const metadataBonus =
-      typeof metadata.bonus_stars === 'number' ? (metadata.bonus_stars as number) : undefined;
+      typeof metadata.bonus_stars === 'number' ? metadata.bonus_stars : undefined;
 
     const pack = contentService.getStarPacks().find(item => item.id === input.itemId);
     const baseStars =

@@ -1,4 +1,5 @@
 import { BoostRecord } from '../../repositories/BoostRepository';
+import { boostService } from '../BoostService';
 
 const getActiveBoostsMock = jest.fn();
 const getLastBoostClaimMock = jest.fn();
@@ -48,8 +49,6 @@ jest.mock('../ContentService', () => ({
   },
 }));
 
-const { boostService } = require('../BoostService');
-
 describe('BoostService.getBoostHub', () => {
   beforeEach(() => {
     getActiveBoostsMock.mockReset();
@@ -86,16 +85,28 @@ describe('BoostService.getBoostHub', () => {
     expect(hub.server_time).toEqual(now.toISOString());
     expect(hub.boosts).toHaveLength(3);
 
-    const daily = hub.boosts.find((it: any) => it.boost_type === 'daily_boost');
+    const daily = hub.boosts.find(it => it.boost_type === 'daily_boost');
+    expect(daily).toBeDefined();
+    if (!daily) {
+      throw new Error('daily boost not found in hub');
+    }
     expect(daily.active).toMatchObject({ id: 'active-1' });
     expect(daily.available_at).toBe('2025-10-22T10:00:00.000Z');
     expect(daily.cooldown_remaining_seconds).toBe(0);
 
-    const ad = hub.boosts.find((it: any) => it.boost_type === 'ad_boost');
+    const ad = hub.boosts.find(it => it.boost_type === 'ad_boost');
+    expect(ad).toBeDefined();
+    if (!ad) {
+      throw new Error('ad boost not found in hub');
+    }
     expect(ad.cooldown_remaining_seconds).toBeGreaterThan(0);
     expect(new Date(ad.available_at).getTime()).toBeGreaterThan(now.getTime());
 
-    const premium = hub.boosts.find((it: any) => it.boost_type === 'premium_boost');
+    const premium = hub.boosts.find(it => it.boost_type === 'premium_boost');
+    expect(premium).toBeDefined();
+    if (!premium) {
+      throw new Error('premium boost not found in hub');
+    }
     expect(premium.requires_premium).toBe(true);
 
     jest.useRealTimers();

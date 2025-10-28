@@ -4,7 +4,7 @@ import { AppError } from '../../middleware/errorHandler';
 import { contentService } from '../../services/ContentService';
 
 export class BuildingController {
-  list = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  list = (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
       if (!req.user) {
         throw new AppError(401, 'unauthorized');
@@ -38,8 +38,10 @@ export class BuildingController {
       });
 
       const sortedByPayback = enriched
-        .filter(b => typeof b.payback_seconds === 'number' && b.payback_seconds! > 0)
-        .sort((a, b) => (a.payback_seconds! - b.payback_seconds!));
+        .filter((b): b is typeof b & { payback_seconds: number } =>
+          typeof b.payback_seconds === 'number' && b.payback_seconds > 0
+        )
+        .sort((a, b) => a.payback_seconds - b.payback_seconds);
 
       const roiRankMap = new Map<string, number>();
       sortedByPayback.forEach((building, index) => {

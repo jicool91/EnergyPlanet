@@ -1,11 +1,9 @@
 import { RedisClientType } from 'redis';
-import type { TapAggregator as TapAggregatorClass } from '../TapAggregator';
+import { TapAggregator } from '../TapAggregator';
+import type { UpdateProgressInput } from '../../repositories/ProgressRepository';
 
 process.env.DATABASE_URL = process.env.DATABASE_URL ?? 'postgres://test:test@localhost:5432/energy_planet';
 process.env.REDIS_URL = process.env.REDIS_URL ?? 'redis://localhost:6379';
-
-// eslint-disable-next-line @typescript-eslint/no-var-requires
-const { TapAggregator } = require('../TapAggregator') as { TapAggregator: typeof TapAggregatorClass };
 
 const mockProgress = {
   userId: 'user-1',
@@ -40,7 +38,7 @@ const createTapEventSpy = jest.fn();
 
 jest.mock('../../repositories/ProgressRepository', () => ({
   getProgress: jest.fn(async () => ({ ...mockProgress, ...currentState })),
-  updateProgress: jest.fn(async (_userId: string, data: any) => {
+  updateProgress: jest.fn(async (_userId: string, data: UpdateProgressInput) => {
     currentState = {
       energy: data.energy ?? currentState.energy,
       xp: data.xp ?? currentState.xp,
@@ -56,13 +54,13 @@ jest.mock('../../repositories/TapEventRepository', () => ({
 }));
 
 jest.mock('../../repositories/EventRepository', () => ({
-  logEvent: jest.fn(async (_userId: string, type: string, payload: any) => {
+  logEvent: jest.fn(async (_userId: string, type: string, payload: Record<string, unknown>) => {
     logEventSpy({ type, payload });
   }),
 }));
 
 jest.mock('../../db/connection', () => ({
-  transaction: jest.fn(async (fn: any) => {
+  transaction: jest.fn(async (fn: (client: unknown) => Promise<unknown>) => {
     const fakeClient = {};
     return fn(fakeClient);
   }),
@@ -80,10 +78,7 @@ class InMemoryRedis {
     return this.hashes.get(key)!;
   }
 
-  async hIncrBy(...args: any[]): Promise<number> {
-    const key = args[0] as string;
-    const field = args[1] as string;
-    const value = Number(args[2] ?? 0);
+  async hIncrBy(key: string, field: string, value: number): Promise<number> {
     const hash = this.ensureHash(key);
     const current = Number(hash[field] ?? 0);
     const result = current + value;
@@ -91,25 +86,22 @@ class InMemoryRedis {
     return result;
   }
 
-  async hIncrByFloat(...args: any[]): Promise<number> {
-    return this.hIncrBy(args[0], args[1], args[2]);
+  async hIncrByFloat(key: string, field: string, value: number): Promise<number> {
+    return this.hIncrBy(key, field, value);
   }
 
-  async hSet(...args: any[]): Promise<number> {
-    const key = args[0] as string;
+  async hSet(key: string, fieldOrMap: string | Record<string, string>, value?: string): Promise<number> {
     const hash = this.ensureHash(key);
-    if (typeof args[1] === 'string') {
-      const field = args[1] as string;
-      const value = String(args[2] ?? '');
-      hash[field] = value;
+    if (typeof fieldOrMap === 'string') {
+      const normalized = value ?? '';
+      hash[fieldOrMap] = String(normalized);
       return 1;
     }
-    const values = args[1] as Record<string, string>;
-    Object.assign(hash, values);
-    return Object.keys(values).length;
+    Object.assign(hash, fieldOrMap);
+    return Object.keys(fieldOrMap).length;
   }
 
-  async expire(..._args: any[]): Promise<number> {
+  async expire(_key: string, _ttl: number): Promise<number> {
     return 1;
   }
 
@@ -123,7 +115,7 @@ class InMemoryRedis {
     return set.size - before;
   }
 
-  async hmGet(key: string, fieldsOrField: any, ...rest: string[]): Promise<(string | null)[]> {
+  async hmGet(key: string, fieldsOrField: string | string[], ...rest: string[]): Promise<(string | null)[]> {
     const hash = this.hashes.get(key);
     const list = (Array.isArray(fieldsOrField) ? fieldsOrField : [fieldsOrField, ...rest])
       .filter(Boolean)
@@ -170,7 +162,19 @@ class InMemoryRedis {
   multi() {
     const commands: Array<() => Promise<unknown>> = [];
 
-    const chain: any = {
+    interface RedisMultiChain {
+      hIncrBy(key: string, field: string, value: number): RedisMultiChain;
+      hIncrByFloat(key: string, field: string, value: number): RedisMultiChain;
+      hSet(key: string, field: string, value: string): RedisMultiChain;
+      expire(key: string, ttl: number): RedisMultiChain;
+      sAdd(key: string, member: string): RedisMultiChain;
+      hGetAll(key: string): RedisMultiChain;
+      del(key: string): RedisMultiChain;
+      sRem(key: string, member: string): RedisMultiChain;
+      exec(): Promise<unknown[]>;
+    }
+
+    const chain: RedisMultiChain = {
       hIncrBy: (key: string, field: string, value: number) => {
         commands.push(() => this.hIncrBy(key, field, value));
         return chain;

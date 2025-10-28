@@ -4,7 +4,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
-import jwt from 'jsonwebtoken';
+import jwt, { JwtPayload } from 'jsonwebtoken';
 import { config } from '../config';
 import { AppError } from './errorHandler';
 import { AuthService } from '../services/AuthService';
@@ -37,7 +37,23 @@ const normalizeAuthorizationHeader = (header?: string | string[] | undefined): s
   return Array.isArray(header) ? header[0] : header;
 };
 
-const setUserFromDecodedToken = (req: AuthRequest, decoded: any) => {
+interface AccessTokenPayload extends JwtPayload {
+  userId: string;
+  telegramId: number;
+  username?: string;
+  isAdmin?: boolean;
+}
+
+const isAccessTokenPayload = (decoded: JwtPayload | string): decoded is AccessTokenPayload => {
+  return (
+    typeof decoded === 'object' &&
+    decoded !== null &&
+    'userId' in decoded &&
+    'telegramId' in decoded
+  );
+};
+
+const setUserFromDecodedToken = (req: AuthRequest, decoded: AccessTokenPayload) => {
   req.user = {
     id: decoded.userId,
     telegramId: decoded.telegramId,
@@ -63,7 +79,15 @@ const tryAuthenticateWithBearer = (req: AuthRequest, header: string | null): boo
     }
 
   try {
-    const decoded = jwt.verify(token, config.jwt.secret) as any;
+    const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload | string;
+    if (!isAccessTokenPayload(decoded)) {
+      logger.warn('auth_invalid_payload', {
+        path: req.path,
+        origin: req.headers.origin,
+        ip: req.ip,
+      });
+      throw new AppError(401, 'invalid_token');
+    }
     setUserFromDecodedToken(req, decoded);
     return true;
   } catch (error) {

@@ -1,7 +1,7 @@
 import { AppError } from '../middleware/errorHandler';
 import { contentService } from './ContentService';
 import { transaction } from '../db/connection';
-import { loadPlayerContext } from './playerContext';
+import { loadPlayerContext, PlayerContext } from './playerContext';
 import {
   addUserCosmetic,
   listUserCosmetics,
@@ -19,7 +19,7 @@ interface CosmeticUnlockRequirement {
   level?: number;
   price_stars?: number;
   event_id?: string;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 interface CosmeticListItem {
@@ -45,6 +45,21 @@ const CATEGORY_TO_PROFILE_FIELD: Record<string, keyof UpdateEquipmentInput> = {
   background: 'background',
 };
 
+const CATEGORY_TO_PROFILE_RECORD_FIELD: Record<string, keyof PlayerContext['profile']> = {
+  avatar_frame: 'equippedAvatarFrame',
+  planet_skin: 'equippedPlanetSkin',
+  tap_effect: 'equippedTapEffect',
+  background: 'equippedBackground',
+};
+
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return typeof value === 'object' && value !== null;
+};
+
+const toOptionalString = (value: unknown): string | null => {
+  return typeof value === 'string' ? value : null;
+};
+
 let cosmeticsSeedPromise: Promise<void> | null = null;
 
 async function ensureCosmeticsSeeded(): Promise<void> {
@@ -60,12 +75,12 @@ async function ensureCosmeticsSeeded(): Promise<void> {
           cosmetics.map(cosmetic => ({
             id: cosmetic.id,
             name: cosmetic.name,
-            description: cosmetic.description ?? null,
+            description: toOptionalString(cosmetic.description),
             category: cosmetic.category,
             rarity: cosmetic.rarity,
             unlockType: cosmetic.unlock_type ?? 'free',
-            unlockRequirement: cosmetic.unlock_requirement ?? {},
-            assetUrl: cosmetic.asset_url ?? null,
+            unlockRequirement: isRecord(cosmetic.unlock_requirement) ? cosmetic.unlock_requirement : {},
+            assetUrl: toOptionalString(cosmetic.asset_url),
           })),
           client
         );
@@ -166,22 +181,24 @@ export class CosmeticService {
 
       return cosmetics.map<CosmeticListItem>(cosmetic => {
         const unlockType = (cosmetic.unlock_type ?? 'free') as UnlockType;
-        const requirement = (cosmetic.unlock_requirement ?? {}) as CosmeticUnlockRequirement;
+        const requirement = isRecord(cosmetic.unlock_requirement)
+          ? (cosmetic.unlock_requirement as CosmeticUnlockRequirement)
+          : {};
         const owned = ownedLatest.has(cosmetic.id) || shouldAutoUnlock(unlockType, requirement, context.progress.level);
-        const equippedField = CATEGORY_TO_PROFILE_FIELD[cosmetic.category];
-        const equippedValue = equippedField ? (context.profile as any)[CATEGORY_TO_PROFILE_FIELD[cosmetic.category]] : null;
+        const profileField = CATEGORY_TO_PROFILE_RECORD_FIELD[cosmetic.category];
+        const equippedValue = profileField ? context.profile[profileField] : null;
         const priceStars = extractPrice(requirement);
 
         return {
           id: cosmetic.id,
           name: cosmetic.name,
-          description: cosmetic.description,
+          description: typeof cosmetic.description === 'string' ? cosmetic.description : '',
           category: cosmetic.category,
           rarity: cosmetic.rarity,
           unlock_type: unlockType,
           unlock_requirement: requirement,
-          asset_url: cosmetic.asset_url,
-          preview_url: cosmetic.preview_url,
+          asset_url: toOptionalString(cosmetic.asset_url) ?? undefined,
+          preview_url: toOptionalString(cosmetic.preview_url) ?? undefined,
           owned,
           equipped: equippedValue === cosmetic.id,
           status: determineStatus(unlockType, owned),

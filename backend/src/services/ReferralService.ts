@@ -31,6 +31,10 @@ import { logEvent } from '../repositories/EventRepository';
 import { findById } from '../repositories/UserRepository';
 import { invalidateProfileCache } from '../cache/invalidation';
 
+const hasDatabaseErrorCode = (error: unknown, code: string): boolean => {
+  return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === code;
+};
+
 export interface ReferralRewardView {
   stars: number;
   effectiveStars: number;
@@ -333,8 +337,8 @@ class ReferralService {
           { client }
         );
         return;
-      } catch (error: any) {
-        if (error?.code === '23505') {
+      } catch (error: unknown) {
+        if (hasDatabaseErrorCode(error, '23505')) {
           logger.warn('Referral code collision detected, retrying', {
             userId,
             attempt: attempts,

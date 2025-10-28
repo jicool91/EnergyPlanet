@@ -16,9 +16,12 @@ export class AuthController {
 
   authenticateWithTelegram = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { initData } = req.body;
+      const initDataRaw =
+        typeof req.body === 'object' && req.body !== null && 'initData' in req.body
+          ? (req.body as { initData?: unknown }).initData
+          : undefined;
 
-      if (!initData) {
+      if (typeof initDataRaw !== 'string' || initDataRaw.trim().length === 0) {
         logger.warn('Telegram authentication failed', {
           reason: 'init_data_missing',
           initDataLength: 0,
@@ -28,6 +31,7 @@ export class AuthController {
         throw new AppError(400, 'initData is required');
       }
 
+      const initData = initDataRaw.trim();
       const result = await this.authService.authenticateWithTelegram(initData);
 
       res.status(200).json(result);
@@ -86,13 +90,16 @@ export class AuthController {
 
   refreshToken = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { refresh_token } = req.body;
+      const refreshTokenRaw =
+        typeof req.body === 'object' && req.body !== null && 'refresh_token' in req.body
+          ? (req.body as { refresh_token?: unknown }).refresh_token
+          : undefined;
 
-      if (!refresh_token) {
+      if (typeof refreshTokenRaw !== 'string' || refreshTokenRaw.trim().length === 0) {
         throw new AppError(400, 'refresh_token is required');
       }
 
-      const result = await this.authService.refreshAccessToken(refresh_token);
+      const result = await this.authService.refreshAccessToken(refreshTokenRaw.trim());
 
       res.status(200).json(result);
     } catch (error) {

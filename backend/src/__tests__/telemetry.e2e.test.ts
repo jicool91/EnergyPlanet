@@ -1,10 +1,11 @@
+import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import app from '../index';
 
 const logEventMock = jest.fn();
 
 jest.mock('../middleware/auth', () => ({
-  authenticate: (req: any, _res: any, next: any) => {
+  authenticate: (req: Request, _res: Response, next: NextFunction) => {
     req.user = {
       id: 'telemetry-user',
       telegramId: 987654,
@@ -14,7 +15,7 @@ jest.mock('../middleware/auth', () => ({
     req.authContext = { strategy: 'bearer' };
     next();
   },
-  authenticateTick: (req: any, _res: any, next: any) => {
+  authenticateTick: (req: Request, _res: Response, next: NextFunction) => {
     req.user = {
       id: 'telemetry-user',
       telegramId: 987654,
@@ -24,7 +25,7 @@ jest.mock('../middleware/auth', () => ({
     req.authContext = { strategy: 'bearer' };
     next();
   },
-  requireAdmin: (_req: any, _res: any, next: any) => next(),
+  requireAdmin: (_req: Request, _res: Response, next: NextFunction) => next(),
 }));
 
 jest.mock('../repositories/EventRepository', () => ({

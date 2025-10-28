@@ -69,11 +69,7 @@ export async function closeRedis(): Promise<void> {
 /**
  * Кешировать значение
  */
-export async function setCache(
-  key: string,
-  value: any,
-  expirySeconds?: number
-): Promise<void> {
+export async function setCache<T>(key: string, value: T, expirySeconds?: number): Promise<void> {
   if (!config.cache.enabled) {
     return;
   }
@@ -90,7 +86,7 @@ export async function setCache(
 /**
  * Получить значение из кеша
  */
-export async function getCache<T = any>(key: string): Promise<T | null> {
+export async function getCache<T>(key: string): Promise<T | null> {
   if (!config.cache.enabled) {
     return null;
   }
@@ -104,7 +100,10 @@ export async function getCache<T = any>(key: string): Promise<T | null> {
   try {
     return JSON.parse(value) as T;
   } catch (error) {
-    logger.error('❌ Redis: Ошибка парсинга JSON', { key, error });
+    logger.error('❌ Redis: Ошибка парсинга JSON', {
+      key,
+      error: error instanceof Error ? error.message : String(error),
+    });
     return null;
   }
 }

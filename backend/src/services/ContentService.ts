@@ -12,9 +12,13 @@ import { logger } from '../utils/logger';
 interface Building {
   id: string;
   name: string;
+  description?: string;
   base_income: number;
   base_cost: number;
   unlock_level: number;
+  tier?: number;
+  category?: string;
+  rarity?: string;
   cost_multiplier?: number;
   upgrade_cost_multiplier?: number;
   upgrade_income_bonus?: number;
@@ -22,16 +26,18 @@ interface Building {
   upgrade_post_soft_cap_multiplier?: number;
   max_count?: number;
   feature_flag?: string;
-  [key: string]: any;
 }
 
 interface Cosmetic {
   id: string;
   name: string;
+  description?: string;
   category: string;
   rarity: string;
-  unlock_type: string;
-  [key: string]: any;
+  unlock_type?: string;
+  unlock_requirement?: Record<string, unknown>;
+  asset_url?: string;
+  preview_url?: string;
 }
 
 interface Season {
@@ -39,14 +45,13 @@ interface Season {
     id: string;
     number: number;
     name: string;
-    [key: string]: any;
   };
 }
 
 interface FeatureFlags {
   features: Record<string, boolean>;
-  experiments: Record<string, any>;
-  [key: string]: any;
+  experiments: Record<string, unknown>;
+  boosts?: Record<string, unknown>;
 }
 
 interface BuildingFormulas {
@@ -174,10 +179,10 @@ class ContentService {
     }
   }
 
-  private async handleLoadError(contentType: string, error: any) {
+  private async handleLoadError(contentType: string, error: unknown) {
     logger.warn(`Failed to load ${contentType}`, {
-      error: error.message,
-      code: error.code,
+      error: error instanceof Error ? error.message : String(error),
+      code: typeof error === 'object' && error !== null && 'code' in error ? (error as { code?: string }).code : undefined,
       path: config.content.path,
     });
     // Silently continue - defaults will be used

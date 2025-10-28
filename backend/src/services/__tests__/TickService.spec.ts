@@ -48,7 +48,7 @@ jest.mock('../../repositories/EventRepository', () => ({
 }));
 
 jest.mock('../../db/connection', () => ({
-  transaction: jest.fn(async (cb: any) => cb({})),
+  transaction: jest.fn(async (cb: (client: unknown) => Promise<unknown>) => cb({})),
 }));
 
 jest.mock('../../metrics/tick', () => ({

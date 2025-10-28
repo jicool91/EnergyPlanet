@@ -16,7 +16,13 @@ export class GameplayController {
         throw new AppError(401, 'unauthorized');
       }
 
-      const tapCount = Number(req.body.tap_count ?? req.body.tapCount ?? 1);
+      const body =
+        typeof req.body === 'object' && req.body !== null
+          ? (req.body as Record<string, unknown>)
+          : {};
+
+      const tapCountValue = (body.tap_count ?? body.tapCount) as unknown;
+      const tapCount = Number(tapCountValue ?? 1);
       const result = await this.tapService.processTap(req.user.id, tapCount);
       res.status(200).json(result);
     } catch (error) {
@@ -30,7 +36,13 @@ export class GameplayController {
         throw new AppError(401, 'unauthorized');
       }
 
-      const timeDelta = Number(req.body.time_delta ?? req.body.timeDelta ?? 0);
+      const body =
+        typeof req.body === 'object' && req.body !== null
+          ? (req.body as Record<string, unknown>)
+          : {};
+
+      const timeDeltaValue = (body.time_delta ?? body.timeDelta) as unknown;
+      const timeDelta = Number(timeDeltaValue ?? 0);
       const result = await this.tickService.applyTick(req.user.id, timeDelta);
 
       const issuedTokens = req.authContext?.issuedTokens;
@@ -60,17 +72,25 @@ export class GameplayController {
         throw new AppError(401, 'unauthorized');
       }
 
-      const buildingId = (req.body.building_id ?? req.body.buildingId) as string;
-      const action = (req.body.action ?? 'purchase') as 'purchase' | 'upgrade';
-      const quantityInput =
-        action === 'purchase'
-          ? Number(req.body.quantity ?? req.body.count ?? 1)
-          : 1;
+      const body =
+        typeof req.body === 'object' && req.body !== null
+          ? (req.body as Record<string, unknown>)
+          : {};
+
+      const buildingIdRaw = (body.building_id ?? body.buildingId) as unknown;
+      if (typeof buildingIdRaw !== 'string' || buildingIdRaw.trim().length === 0) {
+        throw new AppError(400, 'building_id_required');
+      }
+
+      const actionRaw = (body.action ?? 'purchase') as unknown;
+      const action = actionRaw === 'upgrade' ? 'upgrade' : 'purchase';
+      const quantitySource = action === 'purchase' ? (body.quantity ?? body.count) : 1;
+      const quantity = Number(quantitySource ?? 1);
 
       const result = await this.upgradeService.processUpgrade(req.user.id, {
-        buildingId,
+        buildingId: buildingIdRaw.trim(),
         action,
-        quantity: quantityInput,
+        quantity,
       });
 
       res.status(200).json(result);

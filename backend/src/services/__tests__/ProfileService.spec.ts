@@ -1,10 +1,11 @@
 import { cacheKeys } from '../../cache/cacheKeys';
+import { ProfileService } from '../ProfileService';
 
 const getCacheMock = jest.fn();
 const setCacheMock = jest.fn();
-const transactionMock = jest.fn<Promise<any>, [(client: unknown) => Promise<any>]>(async handler => {
-  return handler({});
-});
+const transactionMock = jest.fn<Promise<unknown>, [(client: unknown) => Promise<unknown>]>(
+  async handler => handler({})
+);
 const loadPlayerContextMock = jest.fn();
 
 jest.mock('../../config', () => ({
@@ -27,7 +28,7 @@ jest.mock('../../cache/redis', () => ({
 }));
 
 jest.mock('../../db/connection', () => ({
-  transaction: jest.fn((handler: (client: unknown) => Promise<any>) => transactionMock(handler)),
+  transaction: jest.fn((handler: (client: unknown) => Promise<unknown>) => transactionMock(handler)),
 }));
 
 jest.mock('../playerContext', () => ({
@@ -56,8 +57,6 @@ jest.mock('../../utils/level', () => ({
 jest.mock('../../utils/tap', () => ({
   tapEnergyForLevel: jest.fn(() => 5),
 }));
-
-const { ProfileService } = require('../ProfileService');
 
 describe('ProfileService caching', () => {
   const service = new ProfileService();

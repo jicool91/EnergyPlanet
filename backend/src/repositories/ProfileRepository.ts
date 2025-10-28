@@ -84,7 +84,7 @@ export async function updateEquipment(
   client?: PoolClient
 ): Promise<UserProfileRecord> {
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: Array<string | null> = [];
 
   if (equipment.avatarFrame !== undefined) {
     fields.push(`equipped_avatar_frame = $${fields.length + 1}`);

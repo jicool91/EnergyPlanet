@@ -43,8 +43,10 @@ export async function connectDatabase(): Promise<Pool> {
     logger.info('✅ PostgreSQL: Новое подключение к пулу');
   });
 
-  pool.on('error', (err) => {
-    logger.error('❌ PostgreSQL: Ошибка пула подключений', err);
+  pool.on('error', err => {
+    logger.error('❌ PostgreSQL: Ошибка пула подключений', {
+      error: err instanceof Error ? err.message : String(err),
+    });
   });
 
   // Test connection
@@ -52,7 +54,9 @@ export async function connectDatabase(): Promise<Pool> {
     const result = await pool.query('SELECT NOW() as current_time');
     logger.info('✅ PostgreSQL: Подключение установлено', result.rows[0]);
   } catch (err) {
-    logger.error('❌ PostgreSQL: Не удалось подключиться к БД', err);
+    logger.error('❌ PostgreSQL: Не удалось подключиться к БД', {
+      error: err instanceof Error ? err.message : String(err),
+    });
     throw err;
   }
 
@@ -79,7 +83,7 @@ export async function closeDatabase(): Promise<void> {
  */
 export async function query<T extends QueryResultRow = QueryResultRow>(
   text: string,
-  params?: any[]
+  params?: unknown[]
 ): Promise<QueryResult<T>> {
   const db = getDatabase();
   const start = Date.now();
@@ -94,7 +98,10 @@ export async function query<T extends QueryResultRow = QueryResultRow>(
 
     return result;
   } catch (error) {
-    logger.error('❌ DB Query Error', { text, error });
+    logger.error('❌ DB Query Error', {
+      text,
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   }
 }
@@ -116,7 +123,9 @@ export async function transaction<T>(
     return result;
   } catch (error) {
     await client.query('ROLLBACK');
-    logger.error('❌ Transaction Error', error);
+    logger.error('❌ Transaction Error', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   } finally {
     client.release();
@@ -131,7 +140,9 @@ export async function healthCheck(): Promise<boolean> {
     const result = await query('SELECT 1 as health');
     return result.rows[0].health === 1;
   } catch (error) {
-    logger.error('❌ DB Health check failed', error);
+    logger.error('❌ DB Health check failed', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     return false;
   }
 }

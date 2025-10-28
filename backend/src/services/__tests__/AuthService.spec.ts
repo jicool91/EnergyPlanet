@@ -1,4 +1,6 @@
 import { hashToken } from '../../utils/token';
+import { AuthService } from '../AuthService';
+import { logger } from '../../utils/logger';
 
 const findByRefreshTokenHashMock = jest.fn();
 const rotateSessionTokenMock = jest.fn();
@@ -46,9 +48,6 @@ jest.mock('../../utils/logger', () => ({
   },
 }));
 
-const { AuthService } = require('../AuthService');
-const { logger } = require('../../utils/logger');
-
 describe('AuthService.refreshAccessToken', () => {
   beforeEach(() => {
     findByRefreshTokenHashMock.mockReset();
@@ -84,7 +83,14 @@ describe('AuthService.refreshAccessToken', () => {
       isAdmin: false,
     };
 
-    const initialTokens = (authService as any).generateTokens(user);
+    const tokenGenerator = authService as unknown as {
+      generateTokens(params: typeof user): {
+        accessToken: string;
+        refreshToken: string;
+        refreshExpiresAt: Date;
+      };
+    };
+    const initialTokens = tokenGenerator.generateTokens(user);
     const sessionRecord = {
       id: 'session-1',
       userId: user.id,
@@ -117,14 +123,26 @@ describe('AuthService.refreshAccessToken', () => {
 
   it('deletes session when refresh token expired', async () => {
     const authService = new AuthService();
-    const expiredRefresh = (authService as any).generateTokens({
+    const expiredTokens = (authService as unknown as {
+      generateTokens(params: {
+        id: string;
+        telegramId: number;
+        username: string;
+        firstName: string;
+        lastName: string;
+        isAdmin: boolean;
+      }): {
+        refreshToken: string;
+      };
+    }).generateTokens({
       id: 'user-expired',
       telegramId: 999,
       username: 'expired',
       firstName: 'Ex',
       lastName: 'Pired',
       isAdmin: false,
-    }).refreshToken;
+    });
+    const expiredRefresh = expiredTokens.refreshToken;
 
     const expiredSession = {
       id: 'session-expired',

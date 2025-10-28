@@ -35,7 +35,7 @@ interface QuestProgressRow {
   reward_xp: string;
   status: QuestStatus;
   expires_at: string;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
   last_progress_at: string | null;
   created_at: string;
   updated_at: string;

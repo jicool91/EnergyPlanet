@@ -1,7 +1,7 @@
 import { PoolClient, QueryResult, QueryResultRow } from 'pg';
 import { query } from '../db/connection';
 
-type QueryParams = any[] | undefined;
+type QueryParams = unknown[] | undefined;
 
 export async function runQuery<T extends QueryResultRow = QueryResultRow>(
   text: string,
@@ -14,6 +14,4 @@ export async function runQuery<T extends QueryResultRow = QueryResultRow>(
   return query<T>(text, params);
 }
 
-export interface RepositoryRecord {
-  [key: string]: any;
-}
+export type RepositoryRecord = Record<string, unknown>;

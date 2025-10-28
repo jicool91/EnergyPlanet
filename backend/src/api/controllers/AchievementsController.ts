@@ -23,7 +23,7 @@ export class AchievementsController {
         throw new AppError(401, 'unauthorized');
       }
 
-      const slug = req.params.slug as string;
+      const slug = req.params.slug;
       if (!slug) {
         throw new AppError(400, 'achievement_slug_required');
       }

@@ -1,12 +1,13 @@
+import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 
 const mockGetMigrationStatus = jest.fn();
 const mockGetDailyMetrics = jest.fn();
 
 jest.mock('../../../middleware/auth', () => ({
-  authenticate: (_req: any, _res: any, next: any) => next(),
-  authenticateTick: (_req: any, _res: any, next: any) => next(),
-  requireAdmin: (_req: any, _res: any, next: any) => next(),
+  authenticate: (_req: Request, _res: Response, next: NextFunction) => next(),
+  authenticateTick: (_req: Request, _res: Response, next: NextFunction) => next(),
+  requireAdmin: (_req: Request, _res: Response, next: NextFunction) => next(),
 }));
 
 jest.mock('../../../services/AdminService', () => {

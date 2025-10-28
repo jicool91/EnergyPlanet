@@ -22,7 +22,7 @@ interface ReferralRelationRow {
   status: string;
   activated_at: string;
   first_purchase_at: string | null;
-  metadata: any;
+  metadata: Record<string, unknown> | null;
 }
 
 export interface ReferralRelationRecord {
@@ -39,7 +39,7 @@ interface ReferralRewardRow {
   id: string;
   referrer_id: string;
   milestone_id: string;
-  reward_payload: any;
+  reward_payload: Record<string, unknown> | null;
   granted_at: string;
 }
 

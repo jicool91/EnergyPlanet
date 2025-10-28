@@ -10,16 +10,20 @@ const createResponse = () => {
   return res as unknown as Response;
 };
 
+type AuthServiceMock = {
+  authenticateWithTelegram: jest.Mock;
+};
+
 describe('AuthController.authenticateWithTelegramHeader', () => {
   let controller: AuthController;
-  let authServiceMock: { authenticateWithTelegram: jest.Mock };
+  let authServiceMock: AuthServiceMock;
 
   beforeEach(() => {
     controller = new AuthController();
     authServiceMock = {
       authenticateWithTelegram: jest.fn().mockResolvedValue({ ok: true }),
-    } as any;
-    (controller as any).authService = authServiceMock;
+    };
+    Reflect.set(controller as unknown, 'authService', authServiceMock);
   });
 
   it('authenticates using tma authorization header', async () => {

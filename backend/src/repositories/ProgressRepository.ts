@@ -124,7 +124,7 @@ export async function updateProgress(
   client?: PoolClient
 ): Promise<ProgressRecord> {
   const fields: string[] = [];
-  const values: any[] = [];
+  const values: unknown[] = [];
 
   if (data.level !== undefined) {
     fields.push(`level = $${fields.length + 1}`);

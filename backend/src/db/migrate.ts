@@ -10,6 +10,10 @@ import config from '../config';
 
 const migrationsDir = path.join(__dirname, '../../migrations');
 
+const hasFsErrorCode = (error: unknown, code: string): boolean => {
+  return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === code;
+};
+
 // Создаем отдельное подключение для миграций
 const pool = new Pool({
   host: config.database.host,
@@ -142,8 +146,8 @@ async function rollbackLastMigration(): Promise<void> {
     } finally {
       client.release();
     }
-  } catch (error: any) {
-    if (error.code === 'ENOENT') {
+  } catch (error: unknown) {
+    if (hasFsErrorCode(error, 'ENOENT')) {
       console.error(`❌ Файл отката не найден: ${rollbackPath}`);
       console.log('ℹ️ Нужно вручную откатить миграцию или создать rollback файл');
     } else {

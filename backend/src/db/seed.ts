@@ -60,8 +60,8 @@ async function seedCosmetics(client: PoolClient) {
     }
 
     logger.info('Seeded cosmetics', { count: cosmetics.length });
-  } catch (error: any) {
-    if (error?.code === '42P01') {
+  } catch (error: unknown) {
+    if (typeof error === 'object' && error !== null && 'code' in error && (error as { code?: string }).code === '42P01') {
       logger.warn('Skipping cosmetics seeding: table not found');
       return;
     }
@@ -84,7 +84,9 @@ if (require.main === module) {
       process.exit(0);
     })
     .catch(error => {
-      logger.error('❌ Database seed failed', { error: error instanceof Error ? error.message : error });
+      logger.error('❌ Database seed failed', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       process.exit(1);
     });
 }

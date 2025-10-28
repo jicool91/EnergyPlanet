@@ -1,8 +1,9 @@
+import type { NextFunction, Request, Response } from 'express';
 import request from 'supertest';
 import app from '../index';
 
 jest.mock('../middleware/auth', () => ({
-  authenticate: (req: any, _res: any, next: any) => {
+  authenticate: (req: Request, _res: Response, next: NextFunction) => {
     req.user = {
       id: 'test-user-id',
       telegramId: 123,
@@ -12,7 +13,7 @@ jest.mock('../middleware/auth', () => ({
     req.authContext = { strategy: 'bearer' };
     next();
   },
-  authenticateTick: (req: any, _res: any, next: any) => {
+  authenticateTick: (req: Request, _res: Response, next: NextFunction) => {
     req.user = {
       id: 'test-user-id',
       telegramId: 123,
@@ -22,7 +23,7 @@ jest.mock('../middleware/auth', () => ({
     req.authContext = { strategy: 'bearer' };
     next();
   },
-  requireAdmin: (_req: any, _res: any, next: any) => next(),
+  requireAdmin: (_req: Request, _res: Response, next: NextFunction) => next(),
 }));
 
 const mockBuildings = [
