@@ -75,6 +75,7 @@ export function AchievementsModal({
       title="Достижения"
       onClose={onClose}
       size="lg"
+      showClose={false}
       actions={[{ label: 'Закрыть', onClick: onClose, variant: 'secondary' }]}
     >
       <div className="flex flex-col gap-sm-plus">

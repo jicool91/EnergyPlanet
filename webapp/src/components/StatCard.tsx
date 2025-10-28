@@ -34,9 +34,9 @@ function StatCardComponent({
   onClick,
 }: StatCardProps) {
   const sizeStyles: Record<NonNullable<StatCardProps['size']>, string> = {
-    compact: 'min-h-[88px] px-sm-plus py-sm rounded-2xl gap-xs',
-    standard: 'min-h-[116px] px-md py-md rounded-2xl gap-sm',
-    hero: 'min-h-[156px] px-lg py-lg rounded-3xl gap-sm-plus',
+    compact: 'min-h-[104px] px-md py-sm-plus rounded-2xl gap-sm',
+    standard: 'min-h-[122px] px-md py-md rounded-2xl gap-sm-plus',
+    hero: 'min-h-[168px] px-lg py-lg rounded-3xl gap-md',
   };
 
   const typography: Record<NonNullable<StatCardProps['size']>, string> = {
@@ -48,23 +48,32 @@ function StatCardComponent({
   const base = 'flex flex-col transition-transform duration-150 ease-out min-w-0';
   const toneClass = toneStyles[tone];
   const sizeClass = sizeStyles[size];
+  const labelTextClass =
+    size === 'compact'
+      ? 'text-caption font-medium leading-tight tracking-[0.04em] text-[var(--color-text-secondary)]'
+      : 'text-label uppercase tracking-[0.16em] text-[var(--color-text-secondary)]';
+  const labelRowGap = size === 'compact' ? 'gap-xs' : 'gap-sm';
+  const iconClass = size === 'compact' ? 'text-lg' : size === 'hero' ? 'text-2xl' : 'text-xl';
+  const valueClass = `${typography[size]} text-[var(--color-text-primary)] leading-tight`;
 
   const content = (
     <>
       {/* Label row: icon + text label */}
-      <div className="flex items-center gap-sm text-[var(--color-text-secondary)]">
-        <span className="text-title" aria-hidden>
+      <div className={`flex items-center ${labelRowGap}`}>
+        <span className={iconClass} aria-hidden>
           {icon}
         </span>
-        <span className="text-label uppercase text-[var(--color-text-secondary)]">{label}</span>
+        <span className={labelTextClass}>{label}</span>
       </div>
 
       {/* Value: large, bold, white */}
-      <div className={`${typography[size]} text-[var(--color-text-primary)]`}>{value}</div>
+      <div className={valueClass}>{value}</div>
 
       {/* Optional subLabel: small, muted */}
       {subLabel && (
-        <div className="text-body-sm text-[var(--color-text-secondary)]">{subLabel}</div>
+        <div className="flex flex-col gap-xs text-body-sm text-[var(--color-text-secondary)]">
+          {subLabel}
+        </div>
       )}
     </>
   );

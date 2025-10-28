@@ -346,6 +346,18 @@ export function MainScreen({
             : passiveIncomePerSec.toFixed(1)
         } E/с`
       : '—';
+  const multiplierParts = useMemo(() => {
+    const prestigePart = Math.max(1, prestigeMultiplier);
+    const boostPart = Math.max(1, boostMultiplier);
+    const parts: string[] = [`Престиж ×${prestigePart.toFixed(2)}`];
+    if (boostPart > 1.001) {
+      parts.push(`Буст ×${boostPart.toFixed(2)}`);
+    }
+    if (achievementMultiplier > 1.001) {
+      parts.push(`Достижения +${Math.round((achievementMultiplier - 1) * 100)}%`);
+    }
+    return parts;
+  }, [prestigeMultiplier, boostMultiplier, achievementMultiplier]);
   const multiplierLabel = useMemo(() => {
     const prestigePart = Math.max(1, prestigeMultiplier);
     const boostPart = Math.max(1, boostMultiplier);
@@ -600,7 +612,9 @@ export function MainScreen({
                 tapLevel={tapLevel}
                 tapIncomeDisplay={tapIncomeDisplay}
                 passiveIncomeLabel={passiveIncomeLabel}
+                passiveIncomePerSec={passiveIncomePerSec}
                 multiplierLabel={multiplierLabel}
+                multiplierParts={multiplierParts}
                 stars={stars}
                 streakCount={streakCount}
                 bestStreak={bestStreak}

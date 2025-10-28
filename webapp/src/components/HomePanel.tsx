@@ -39,6 +39,8 @@ export interface HomePanelProps {
   tapIncomeDisplay: string;
   passiveIncomeLabel: string;
   multiplierLabel: string;
+  passiveIncomePerSec: number;
+  multiplierParts?: string[];
   stars: number;
   streakCount: number;
   bestStreak: number;
@@ -116,20 +118,86 @@ export function HomePanel({
   onViewAchievements,
   onOpenShop,
   claimableAchievements = 0,
+  passiveIncomePerSec,
+  multiplierParts,
 }: HomePanelProps) {
   const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
   const heroEnergyValue = useMemo(() => `${energyCompact} E`, [energyCompact]);
-  const heroXpLabel = useMemo(
-    () =>
-      xpRemaining > 0
-        ? `До уровня: +${formatNumberWithSpaces(xpRemaining)} XP`
-        : 'Уровень готов к апгрейду',
-    [xpRemaining]
-  );
-  const passiveSummary = useMemo(
-    () => `${passiveIncomeLabel} · ${multiplierLabel}`,
-    [passiveIncomeLabel, multiplierLabel]
-  );
+  const effectiveMultiplierParts = useMemo(() => {
+    if (Array.isArray(multiplierParts) && multiplierParts.length > 0) {
+      return multiplierParts;
+    }
+    return multiplierLabel.split(' · ').filter(Boolean);
+  }, [multiplierLabel, multiplierParts]);
+  const heroCardDetails = useMemo(() => {
+    const progressPercent = Math.round(Math.max(0, Math.min(1, xpProgress)) * 100);
+    const displayPercent = progressPercent === 0 && xpRemaining > 0 ? 4 : progressPercent;
+    const totalForLevel = xpIntoLevel + xpRemaining;
+    return (
+      <div className="flex flex-col gap-xs">
+        <div className="flex items-center justify-between text-caption text-[var(--color-text-secondary)]">
+          <span>Уровень {level}</span>
+          <span>{progressPercent}%</span>
+        </div>
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[rgba(255,255,255,0.12)]">
+          <div
+            className="h-full rounded-full bg-gradient-to-r from-[var(--color-cyan)] via-[var(--color-success)] to-[var(--color-gold)] shadow-glow"
+            style={{ width: `${Math.min(100, Math.max(displayPercent, 6))}%` }}
+          />
+        </div>
+        <div className="flex items-center justify-between text-caption text-[var(--color-text-secondary)]">
+          <span>
+            {xpRemaining > 0
+              ? `До апгрейда: ${formatNumberWithSpaces(xpRemaining)} XP`
+              : 'Можно повышать уровень'}
+          </span>
+          {totalForLevel > 0 && (
+            <span>
+              {formatNumberWithSpaces(Math.max(0, Math.floor(xpIntoLevel)))} /
+              {` ${formatNumberWithSpaces(Math.max(0, Math.floor(totalForLevel)))}`} XP
+            </span>
+          )}
+        </div>
+      </div>
+    );
+  }, [level, xpIntoLevel, xpProgress, xpRemaining]);
+  const passivePrimaryDisplay = useMemo(() => {
+    if (passiveIncomePerSec <= 0) {
+      return passiveIncomeLabel;
+    }
+    if (passiveIncomePerSec >= 10) {
+      return `${formatCompactNumber(passiveIncomePerSec)} E/с`;
+    }
+    return `${passiveIncomePerSec.toFixed(2)} E/с`;
+  }, [passiveIncomeLabel, passiveIncomePerSec]);
+  const passiveCardDetails = useMemo(() => {
+    if (passiveIncomePerSec <= 0) {
+      return 'Постройте здания, чтобы получать доход даже офлайн';
+    }
+    const perMinute = passiveIncomePerSec * 60;
+    const perHour = passiveIncomePerSec * 3600;
+    return (
+      <>
+        <div className="flex flex-wrap items-baseline gap-sm text-caption text-[var(--color-text-secondary)] opacity-90">
+          <span>≈ {formatCompactNumber(perMinute)} E/мин</span>
+          <span className="opacity-60">·</span>
+          <span>≈ {formatCompactNumber(perHour)} E/час</span>
+        </div>
+        {effectiveMultiplierParts.length > 0 && (
+          <div className="flex flex-wrap gap-xs">
+            {effectiveMultiplierParts.map(part => (
+              <span
+                key={part}
+                className="rounded-full border border-[rgba(255,255,255,0.08)] bg-[rgba(12,18,40,0.58)] px-xs-plus py-1 text-micro uppercase tracking-[0.14em] text-[var(--color-text-secondary)]"
+              >
+                {part}
+              </span>
+            ))}
+          </div>
+        )}
+      </>
+    );
+  }, [effectiveMultiplierParts, passiveIncomePerSec]);
   const performance = useDevicePerformance();
   const isLowPerformance = performance === 'low';
   const isMediumPerformance = performance === 'medium';
@@ -286,7 +354,7 @@ export function HomePanel({
               icon="⚡"
               label="Баланс энергии"
               value={heroEnergyValue}
-              subLabel={heroXpLabel}
+              subLabel={heroCardDetails}
               tone="positive"
               size="hero"
             />
@@ -295,17 +363,17 @@ export function HomePanel({
               <StatCard
                 icon="💤"
                 label="Пассивный доход"
-                value={passiveIncomeLabel}
-                subLabel={passiveSummary}
+                value={passivePrimaryDisplay}
+                subLabel={passiveCardDetails}
                 tone="default"
                 size="standard"
               />
               <div className="grid grid-cols-2 gap-sm">
                 <StatCard
                   icon="🪐"
-                  label="Уровень тапа"
+                  label="Тап-уровень"
                   value={`Ур. ${tapLevel}`}
-                  subLabel={`+${tapIncomeDisplay} за тап`}
+                  subLabel={`+${tapIncomeDisplay} E за тап`}
                   size="compact"
                 />
                 <StatCard
@@ -604,18 +672,36 @@ export function HomePanel({
         onClose={() => setQuestModalOpen(false)}
         title="Задания"
         size="lg"
+        showClose={false}
         actions={[
           {
-            label: questsLoading ? 'Обновляем…' : 'Обновить',
+            label: 'Закрыть',
             variant: 'secondary',
-            onClick: () => {
-              void loadQuests();
-            },
-            disabled: questsLoading,
+            onClick: () => setQuestModalOpen(false),
           },
         ]}
       >
         <div className="flex flex-col gap-sm-plus">
+          <div className="flex items-center justify-between gap-sm text-caption text-[var(--color-text-secondary)]">
+            <span>
+              {questWidgetLoading
+                ? 'Обновляем список…'
+                : 'Прогресс обновляем автоматически — при необходимости обновите вручную'}
+            </span>
+            <button
+              type="button"
+              className="inline-flex items-center gap-xs rounded-full border border-[rgba(0,217,255,0.35)] bg-[rgba(0,217,255,0.08)] px-sm py-xs text-label uppercase tracking-[0.08em] text-[var(--color-text-accent)] transition-all duration-150 focus-ring disabled:opacity-60"
+              onClick={() => {
+                if (!questsLoading) {
+                  void loadQuests();
+                }
+              }}
+              disabled={questsLoading}
+            >
+              {questsLoading ? 'Обновляем…' : 'Обновить'}
+            </button>
+          </div>
+
           {questsError && (
             <Card className="border-[rgba(255,51,51,0.35)] bg-[rgba(58,16,24,0.82)] text-[var(--color-text-primary)]">
               {questsError}
