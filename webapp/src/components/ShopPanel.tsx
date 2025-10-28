@@ -652,119 +652,124 @@ export function ShopPanel({
           <Card className="bg-cyan/10 border-cyan/20 text-sm text-token-secondary">
             <strong className="text-token-primary">Совет:</strong> {starPackBannerText}
           </Card>
+          <Card className="rounded-2xl border border-[rgba(0,217,255,0.25)] bg-gradient-to-br from-[rgba(0,26,63,0.85)] to-[rgba(10,12,36,0.9)] text-body text-[var(--color-text-secondary)]">
+            <strong className="text-[var(--color-text-primary)]">Совет:</strong>{' '}
+            {starPackBannerText}
+          </Card>
           {featuredVisiblePack && !isStarPacksLoading && (
-            <div className="relative">
-              <div className="absolute -inset-px bg-gradient-to-r from-gold via-orange to-gold opacity-20 rounded-2xl blur-lg pointer-events-none" />
-              <Card
-                highlighted
-                highlightBadge="✨ ЛУЧШИЙ ВЫБОР"
-                className="relative flex gap-4 bg-gradient-to-br from-dark-secondary/80 to-dark-tertiary/80 border-gold/30"
-              >
-                <div className="w-[80px] h-[80px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden border-2 border-gold/40 flex-shrink-0">
+            <Card className="relative flex flex-col md:flex-row gap-4 overflow-hidden rounded-2xl border border-[rgba(255,215,0,0.4)] bg-gradient-to-br from-[rgba(28,22,64,0.94)] via-[rgba(38,16,76,0.92)] to-[rgba(72,18,102,0.95)] shadow-glow-gold">
+              <div
+                className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,215,0,0.32),_transparent_60%)]"
+                aria-hidden
+              />
+              <div className="relative flex items-center justify-center md:justify-start">
+                <div className="w-[88px] h-[88px] rounded-2xl border border-[rgba(255,215,0,0.55)] bg-[rgba(12,16,45,0.6)] flex items-center justify-center overflow-hidden">
                   {featuredVisiblePack.icon_url ? (
                     <OptimizedImage
                       src={featuredVisiblePack.icon_url}
                       alt={featuredVisiblePack.title}
-                      width={80}
-                      height={80}
-                      className="w-full h-full object-cover"
+                      width={88}
+                      height={88}
+                      className="h-full w-full object-cover"
                     />
                   ) : (
-                    <span className="text-icon-lg" aria-hidden="true">
+                    <span className="text-display" aria-hidden>
                       ⭐
                     </span>
                   )}
                 </div>
+              </div>
 
-                <div className="flex-1 flex flex-col gap-3">
-                  <div className="flex justify-between items-center gap-2">
-                    <h3 className="m-0 text-body font-bold text-[var(--color-gold)]">
-                      {featuredVisiblePack.title}
-                    </h3>
-                    <Badge variant="warning" size="sm">
-                      {featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0)} ⭐ всего
-                    </Badge>
-                  </div>
-                  <p className="m-0 text-caption text-token-secondary">
-                    {featuredVisiblePack.description ?? `Получите максимум Stars`}
-                  </p>
+              <div className="relative flex-1 flex flex-col gap-md">
+                <div className="flex flex-wrap items-center gap-sm">
+                  <Badge variant="warning" size="sm">
+                    ЛУЧШИЙ ВЫБОР
+                  </Badge>
+                  <Badge variant="success" size="sm">
+                    {featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0)} ⭐
+                  </Badge>
+                </div>
+                <h3 className="m-0 text-heading font-bold text-[var(--color-text-primary)]">
+                  {featuredVisiblePack.title}
+                </h3>
+                <p className="m-0 text-body text-[var(--color-text-secondary)]">
+                  {featuredVisiblePack.description ??
+                    'Получите максимум Stars и премиальные бонусы'}
+                </p>
 
-                  <div className="bg-dark-tertiary/40 rounded-lg p-3 border border-gold/20 flex flex-col gap-2">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg" aria-hidden="true">
-                          ⭐
-                        </span>
-                        <span className="text-sm text-token-secondary">Базовых</span>
-                      </div>
-                      <span className="text-sm font-bold text-gold">
-                        {featuredVisiblePack.stars}
+                <div className="grid gap-sm rounded-2xl border border-[rgba(255,215,0,0.32)] bg-[rgba(12,16,45,0.72)] p-md">
+                  <div className="flex items-center justify-between text-body text-[var(--color-text-secondary)]">
+                    <span className="flex items-center gap-sm">
+                      <span className="text-title" aria-hidden>
+                        ⭐
                       </span>
-                    </div>
-                    {(featuredVisiblePack.bonus_stars ?? 0) > 0 && (
-                      <>
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg" aria-hidden="true">
-                              ✨
-                            </span>
-                            <span className="text-sm text-token-secondary">Бонус</span>
-                          </div>
-                          <span className="text-sm font-bold text-lime">
-                            +{featuredVisiblePack.bonus_stars}
-                          </span>
-                        </div>
-                        <div className="border-t border-white/10 pt-2 flex items-center justify-between gap-3">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg" aria-hidden="true">
-                              🚀
-                            </span>
-                            <span className="text-sm text-token-secondary">Буст</span>
-                          </div>
-                          <span className="text-sm font-bold text-lime">
-                            +
-                            {calculateBonusPercentage(
-                              featuredVisiblePack.stars,
-                              featuredVisiblePack.bonus_stars ?? 0
-                            )}
-                            %
-                          </span>
-                        </div>
-                      </>
-                    )}
+                      Базовых Stars
+                    </span>
+                    <span className="text-title font-bold text-[var(--color-gold)]">
+                      {featuredVisiblePack.stars}
+                    </span>
                   </div>
-
-                  <div className="flex gap-3 items-center">
-                    <div className="text-caption text-gold/80 font-semibold flex-1">
-                      {formatPriceLabel(
-                        featuredVisiblePack.price_rub,
-                        featuredVisiblePack.price_usd
-                      )}
-                    </div>
-                    {featuredVisiblePack.price_rub && (
-                      <div className="text-caption text-gold/70 px-2 py-1 rounded bg-gold/10 border border-gold/20 whitespace-nowrap">
-                        {(
-                          featuredVisiblePack.price_rub /
-                          (featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0))
-                        ).toFixed(1)}{' '}
-                        ₽/⭐
+                  {(featuredVisiblePack.bonus_stars ?? 0) > 0 && (
+                    <>
+                      <div className="flex items-center justify-between text-body text-[var(--color-text-secondary)]">
+                        <span className="flex items-center gap-sm">
+                          <span className="text-title" aria-hidden>
+                            ✨
+                          </span>
+                          Бонусные Stars
+                        </span>
+                        <span className="text-title font-bold text-[var(--color-success)]">
+                          +{featuredVisiblePack.bonus_stars}
+                        </span>
                       </div>
-                    )}
-                  </div>
+                      <div className="flex items-center justify-between border-t border-white/10 pt-sm text-body text-[var(--color-text-secondary)]">
+                        <span className="flex items-center gap-sm">
+                          <span className="text-title" aria-hidden>
+                            🚀
+                          </span>
+                          Буст к доходу
+                        </span>
+                        <span className="text-title font-bold text-[var(--color-success)]">
+                          +
+                          {calculateBonusPercentage(
+                            featuredVisiblePack.stars,
+                            featuredVisiblePack.bonus_stars ?? 0
+                          )}
+                          %
+                        </span>
+                      </div>
+                    </>
+                  )}
                 </div>
 
-                <div className="flex items-center flex-shrink-0">
-                  <Button
-                    variant="success"
-                    size="lg"
-                    loading={isProcessingStarPackId === featuredVisiblePack.id}
-                    onClick={() => handlePurchaseStarPack(featuredVisiblePack.id)}
-                  >
-                    Купить
-                  </Button>
+                <div className="flex flex-wrap items-center gap-sm">
+                  <div className="text-title font-semibold text-[var(--color-gold)] flex-1">
+                    {formatPriceLabel(featuredVisiblePack.price_rub, featuredVisiblePack.price_usd)}
+                  </div>
+                  {featuredVisiblePack.price_rub && (
+                    <div className="text-label rounded-full border border-[rgba(255,215,0,0.35)] bg-[rgba(255,215,0,0.12)] px-sm-plus py-xs text-[var(--color-gold)]">
+                      {(
+                        featuredVisiblePack.price_rub /
+                        (featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0))
+                      ).toFixed(1)}{' '}
+                      ₽/⭐
+                    </div>
+                  )}
                 </div>
-              </Card>
-            </div>
+              </div>
+
+              <div className="relative flex items-center justify-center">
+                <Button
+                  variant="success"
+                  size="lg"
+                  className="min-w-[160px] shadow-glow-gold"
+                  loading={isProcessingStarPackId === featuredVisiblePack.id}
+                  onClick={() => handlePurchaseStarPack(featuredVisiblePack.id)}
+                >
+                  Купить пакет
+                </Button>
+              </div>
+            </Card>
           )}
 
           {isStarPacksLoading && visibleStarPacks.length === 0 ? (
@@ -825,32 +830,42 @@ export function ShopPanel({
               return (
                 <Card
                   key={pack.id}
-                  highlighted={isBestValue}
-                  highlightBadge={isBestValue ? '💰 BEST VALUE' : undefined}
-                  className={`flex gap-4 ${isBestValue ? 'bg-gradient-to-br from-dark-secondary/60 to-dark-tertiary/60 border-lime/30' : ''}`}
+                  className={`relative flex flex-col sm:flex-row gap-4 rounded-2xl border ${
+                    isBestValue
+                      ? 'border-[rgba(0,255,136,0.45)] bg-gradient-to-br from-[rgba(16,32,64,0.92)] via-[rgba(13,40,58,0.9)] to-[rgba(17,54,68,0.92)] shadow-glow-lime'
+                      : 'border-[rgba(0,217,255,0.25)] bg-[rgba(12,16,45,0.85)] shadow-elevation-2'
+                  } overflow-hidden`}
                 >
-                  <div
-                    className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isBestValue ? 'border-2 border-lime/40' : 'border border-cyan/10'}`}
-                  >
-                    {pack.icon_url ? (
-                      <OptimizedImage
-                        src={pack.icon_url}
-                        alt={pack.title}
-                        width={72}
-                        height={72}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-icon-md" aria-hidden="true">
-                        ⭐
-                      </span>
-                    )}
+                  <div className="relative flex-shrink-0">
+                    <div
+                      className={`w-[72px] h-[72px] rounded-2xl border ${
+                        isBestValue
+                          ? 'border-[rgba(0,255,136,0.5)] bg-[rgba(0,255,136,0.08)]'
+                          : 'border-[rgba(0,217,255,0.3)] bg-[rgba(0,217,255,0.08)]'
+                      } flex items-center justify-center overflow-hidden`}
+                    >
+                      {pack.icon_url ? (
+                        <OptimizedImage
+                          src={pack.icon_url}
+                          alt={pack.title}
+                          width={72}
+                          height={72}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-title" aria-hidden>
+                          ⭐
+                        </span>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex-1 flex flex-col gap-2">
-                    <div className="flex justify-between items-center gap-2">
+                  <div className="flex-1 flex flex-col gap-sm">
+                    <div className="flex flex-wrap items-center justify-between gap-sm">
                       <h3
-                        className={`m-0 text-body font-semibold ${isBestValue ? 'text-lime' : 'text-token-primary'}`}
+                        className={`m-0 text-title font-semibold text-[var(--color-text-primary)] ${
+                          isBestValue ? 'text-[var(--color-success)]' : ''
+                        }`}
                       >
                         {pack.title}
                       </h3>
@@ -858,28 +873,30 @@ export function ShopPanel({
                         {totalStars} ⭐
                       </Badge>
                     </div>
-                    <p className="m-0 text-caption text-token-secondary">
+                    <p className="m-0 text-body-sm text-[var(--color-text-secondary)]">
                       {pack.description ?? `Получите ${totalStars} Stars`}
                     </p>
 
-                    <div
-                      className={`text-xs space-y-1 rounded px-2 py-1.5 ${isBestValue ? 'bg-lime/10 border border-lime/20' : 'bg-white/5 border border-white/10'}`}
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-token-secondary">⭐ Базовых:</span>
-                        <span className={`font-bold ${isBestValue ? 'text-lime' : 'text-gold'}`}>
+                    <div className="grid gap-xs rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] px-sm-plus py-sm">
+                      <div className="flex items-center justify-between text-body-sm text-[var(--color-text-secondary)]">
+                        <span>⭐ Базовых</span>
+                        <span
+                          className={`font-semibold ${isBestValue ? 'text-[var(--color-success)]' : 'text-[var(--color-gold)]'}`}
+                        >
                           {pack.stars}
                         </span>
                       </div>
                       {bonus > 0 && (
                         <>
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="text-token-secondary">✨ Бонус:</span>
-                            <span className="font-bold text-lime">+{bonus}</span>
+                          <div className="flex items-center justify-between text-body-sm text-[var(--color-text-secondary)]">
+                            <span>✨ Бонус</span>
+                            <span className="font-semibold text-[var(--color-success)]">
+                              +{bonus}
+                            </span>
                           </div>
-                          <div className="flex items-center justify-between gap-2 border-t border-white/10 pt-1">
-                            <span className="text-token-secondary">🚀 Буст:</span>
-                            <span className="font-bold text-lime">
+                          <div className="flex items-center justify-between border-t border-white/10 pt-xs text-body-sm text-[var(--color-text-secondary)]">
+                            <span>🚀 Буст</span>
+                            <span className="font-semibold text-[var(--color-success)]">
                               +{calculateBonusPercentage(pack.stars, bonus)}%
                             </span>
                           </div>
@@ -887,15 +904,23 @@ export function ShopPanel({
                       )}
                     </div>
 
-                    <div className="flex gap-2 items-center">
+                    <div className="flex items-center gap-sm">
                       <div
-                        className={`text-caption flex-1 ${isBestValue ? 'text-lime/80 font-semibold' : 'text-token-secondary'}`}
+                        className={`text-body-sm flex-1 ${
+                          isBestValue
+                            ? 'text-[var(--color-success)] font-semibold'
+                            : 'text-[var(--color-text-secondary)]'
+                        }`}
                       >
                         {priceLabel}
                       </div>
                       {pack.price_rub && (
                         <div
-                          className={`text-xs px-2 py-0.5 rounded whitespace-nowrap ${isBestValue ? 'bg-lime/20 border border-lime/30 text-lime font-bold' : 'bg-cyan/10 border border-cyan/20 text-cyan/80'}`}
+                          className={`text-label rounded-full border px-sm-plus py-xs whitespace-nowrap ${
+                            isBestValue
+                              ? 'border-[rgba(0,255,136,0.4)] bg-[rgba(0,255,136,0.12)] text-[var(--color-success)]'
+                              : 'border-[rgba(0,217,255,0.35)] bg-[rgba(0,217,255,0.12)] text-[var(--color-cyan)]'
+                          }`}
                         >
                           {(pack.price_rub / totalStars).toFixed(1)} ₽/⭐
                         </div>
@@ -903,10 +928,11 @@ export function ShopPanel({
                     </div>
                   </div>
 
-                  <div className="flex items-center flex-shrink-0">
+                  <div className="flex items-center justify-end">
                     <Button
                       variant="success"
                       size="md"
+                      className={isBestValue ? 'shadow-glow-lime' : 'shadow-elevation-1'}
                       loading={processing}
                       onClick={() => handlePurchaseStarPack(pack.id)}
                     >

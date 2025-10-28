@@ -85,49 +85,78 @@ export function PrestigeCard({
   }, [onPrestige, prestigeGainAvailable, prestigeLevel, prestigeMultiplier]);
 
   return (
-    <Card>
-      <div className="flex flex-col gap-3">
-        <div className="flex items-center justify-between gap-4">
-          <div>
-            <h3 className="m-0 text-base font-semibold">Престиж</h3>
-            <p className="m-0 text-caption text-token-secondary">
-              Уровень {prestigeLevel}, множитель ×{multiplierLabel}
+    <Card className="relative overflow-hidden rounded-2xl border border-[rgba(255,215,0,0.35)] bg-gradient-to-br from-[rgba(16,19,56,0.92)] via-[rgba(27,13,72,0.9)] to-[rgba(56,16,94,0.95)] shadow-glow-gold">
+      <div
+        className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(255,215,0,0.18),_transparent_55%)]"
+        aria-hidden
+      />
+
+      <div className="relative flex flex-col gap-md">
+        <header className="flex items-start justify-between gap-md">
+          <div className="flex flex-col gap-xs">
+            <span className="inline-flex items-center gap-xs-plus rounded-full border border-[rgba(255,215,0,0.45)] bg-[rgba(255,215,0,0.08)] px-sm-plus py-xs text-label text-[var(--color-warning)] uppercase">
+              Prestige
+            </span>
+            <h3 className="m-0 text-heading font-bold text-[var(--color-text-primary)]">
+              Уровень {prestigeLevel}
+            </h3>
+            <p className="m-0 text-body text-[var(--color-text-secondary)]">
+              Текущий множитель{' '}
+              <span className="font-semibold text-[var(--color-text-primary)]">
+                ×{multiplierLabel}
+              </span>
             </p>
           </div>
+
           <Button
             variant={isPrestigeAvailable ? 'primary' : 'secondary'}
-            size="sm"
+            size="md"
             disabled={!isPrestigeAvailable}
             loading={isLoading}
             onClick={handlePrestigeClick}
+            className={isPrestigeAvailable ? 'shadow-glow' : 'shadow-elevation-1'}
           >
-            {isPrestigeAvailable ? 'Престиж' : 'Не готово'}
+            {isPrestigeAvailable ? 'Активировать' : 'Недоступно'}
           </Button>
+        </header>
+
+        <div className="flex flex-col gap-sm">
+          <div className="flex items-center justify-between text-label text-[var(--color-text-secondary)] uppercase">
+            <span>Прогресс</span>
+            <span>{Math.round(progress * 100)}%</span>
+          </div>
+          <div className="h-3 rounded-full bg-[rgba(255,255,255,0.08)] shadow-inner relative">
+            <div
+              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-[var(--color-cyan)] via-[var(--color-success)] to-[var(--color-gold)] shadow-glow"
+              style={{ width: `${Math.max(6, progress * 100)}%` }}
+            />
+          </div>
         </div>
 
-        <div className="w-full h-2 rounded-full bg-token-surface border border-token-border">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-cyan via-lime to-gold"
-            style={{ width: `${Math.max(4, progress * 100)}%` }}
-          />
-        </div>
-
-        <div className="grid grid-cols-2 gap-2 text-xs text-token-secondary">
-          <div>
-            <span className="block text-token-primary text-sm font-semibold">
+        <div className="grid grid-cols-2 gap-sm text-body-sm text-[var(--color-text-secondary)]">
+          <div className="rounded-xl bg-[rgba(0,217,255,0.08)] px-md py-sm border border-[rgba(0,217,255,0.25)]">
+            <span className="block text-label text-[var(--color-text-secondary)] uppercase">
+              Накоплено
+            </span>
+            <span className="text-title font-bold text-[var(--color-text-primary)]">
               {energyCurrentLabel} E
             </span>
-            <span>С момента последнего престижа</span>
+            <span>С момента последнего сброса</span>
           </div>
-          <div className="text-right">
-            <span className="block text-token-primary text-sm font-semibold">
+          <div className="rounded-xl bg-[rgba(255,215,0,0.1)] px-md py-sm border border-[rgba(255,215,0,0.3)] text-right">
+            <span className="block text-label text-[var(--color-text-secondary)] uppercase">
+              Следующая цель
+            </span>
+            <span className="text-title font-bold text-[var(--color-text-primary)]">
               {energyTargetLabel} E
             </span>
-            <span>Следующий порог</span>
+            <span>Чтобы усилить множитель</span>
           </div>
         </div>
 
-        <div className="text-caption text-token-primary">{gainLabel}</div>
+        <footer className="rounded-xl bg-[rgba(255,255,255,0.08)] px-md py-sm text-body font-semibold text-[var(--color-text-primary)]">
+          {gainLabel}
+        </footer>
       </div>
     </Card>
   );
