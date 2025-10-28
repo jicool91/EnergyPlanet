@@ -23,11 +23,15 @@ async function ensureMigrations() {
     logger.info('Running database migrations');
     await migrateUp();
   } catch (error) {
-    logger.error('Failed to apply database migrations', { error });
+    logger.error('Failed to apply database migrations', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     throw error;
   } finally {
     await closeMigrationPool().catch(poolError => {
-      logger.warn('Failed to close migration pool', { error: poolError });
+      logger.warn('Failed to close migration pool', {
+        error: poolError instanceof Error ? poolError.message : String(poolError),
+      });
     });
   }
 }
@@ -161,7 +165,9 @@ export async function bootstrap() {
 
 if (require.main === module) {
   bootstrap().catch(error => {
-    logger.error('Failed to start server', { error });
+    logger.error('Failed to start server', {
+      error: error instanceof Error ? error.message : String(error),
+    });
     process.exit(1);
   });
 }

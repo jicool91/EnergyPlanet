@@ -4,6 +4,18 @@ import { AppError } from '../../middleware/errorHandler';
 import { purchaseService } from '../../services/PurchaseService';
 import { contentService } from '../../services/ContentService';
 
+type PurchaseType = 'stars_pack' | 'cosmetic' | 'boost' | 'unknown';
+
+const normalizePurchaseType = (value: unknown): PurchaseType => {
+  if (value === 'stars_pack' || value === 'cosmetic' || value === 'boost') {
+    return value;
+  }
+  return 'unknown';
+};
+
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 type InvoiceBody = {
   purchase_id?: unknown;
   item_id?: unknown;
@@ -21,18 +33,27 @@ export class PurchaseController {
         throw new AppError(401, 'unauthorized');
       }
 
-      const { purchase_id, item_id, price_stars, purchase_type, metadata } = req.body;
+      const rawBody: unknown = req.body;
+      if (!isPlainObject(rawBody)) {
+        throw new AppError(400, 'invalid_purchase_payload');
+      }
 
-      if (typeof purchase_id !== 'string' || typeof item_id !== 'string' || typeof price_stars !== 'number') {
+      const purchaseIdRaw = rawBody.purchase_id;
+      const itemIdRaw = rawBody.item_id;
+      const priceStarsRaw = rawBody.price_stars;
+      const purchaseTypeRaw = rawBody.purchase_type;
+      const metadataRaw = rawBody.metadata;
+
+      if (typeof purchaseIdRaw !== 'string' || typeof itemIdRaw !== 'string' || typeof priceStarsRaw !== 'number') {
         throw new AppError(400, 'invalid_purchase_payload');
       }
 
       const invoice = await purchaseService.createInvoice(req.user.id, {
-        purchaseId: purchase_id,
-        itemId: item_id,
-        priceStars: price_stars,
-        purchaseType: purchase_type ?? 'unknown',
-        metadata: metadata && typeof metadata === 'object' ? metadata : undefined,
+        purchaseId: purchaseIdRaw,
+        itemId: itemIdRaw,
+        priceStars: priceStarsRaw,
+        purchaseType: normalizePurchaseType(purchaseTypeRaw),
+        metadata: typeof metadataRaw === 'object' && metadataRaw !== null ? (metadataRaw as Record<string, unknown>) : undefined,
       });
 
       res.status(200).json({
@@ -58,18 +79,27 @@ export class PurchaseController {
         throw new AppError(401, 'unauthorized');
       }
 
-      const { purchase_id, item_id, price_stars, purchase_type, metadata } = req.body;
+      const rawBody: unknown = req.body;
+      if (!isPlainObject(rawBody)) {
+        throw new AppError(400, 'invalid_purchase_payload');
+      }
 
-      if (typeof purchase_id !== 'string' || typeof item_id !== 'string' || typeof price_stars !== 'number') {
+      const purchaseIdRaw = rawBody.purchase_id;
+      const itemIdRaw = rawBody.item_id;
+      const priceStarsRaw = rawBody.price_stars;
+      const purchaseTypeRaw = rawBody.purchase_type;
+      const metadataRaw = rawBody.metadata;
+
+      if (typeof purchaseIdRaw !== 'string' || typeof itemIdRaw !== 'string' || typeof priceStarsRaw !== 'number') {
         throw new AppError(400, 'invalid_purchase_payload');
       }
 
       const purchase = await purchaseService.recordMockPurchase(req.user.id, {
-        purchaseId: purchase_id,
-        itemId: item_id,
-        priceStars: price_stars,
-        purchaseType: purchase_type ?? 'unknown',
-        metadata: metadata && typeof metadata === 'object' ? metadata : undefined,
+        purchaseId: purchaseIdRaw,
+        itemId: itemIdRaw,
+        priceStars: priceStarsRaw,
+        purchaseType: normalizePurchaseType(purchaseTypeRaw),
+        metadata: typeof metadataRaw === 'object' && metadataRaw !== null ? (metadataRaw as Record<string, unknown>) : undefined,
       });
 
       res.status(200).json({

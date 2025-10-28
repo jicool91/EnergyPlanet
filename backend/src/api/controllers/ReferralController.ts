@@ -9,6 +9,9 @@ type ReferralActivateBody = {
 
 type ReferralActivateRequest = AuthRequest & { body: ReferralActivateBody };
 
+const isPlainObject = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
 class ReferralController {
   summary = async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
@@ -29,7 +32,8 @@ class ReferralController {
         throw new AppError(401, 'unauthorized');
       }
 
-      const codeRaw = req.body?.code;
+      const rawBody: unknown = req.body;
+      const codeRaw = isPlainObject(rawBody) ? rawBody.code : undefined;
       const code = typeof codeRaw === 'string' ? codeRaw.trim() : String(codeRaw ?? '').trim();
       if (!code) {
         throw new AppError(400, 'referral_code_required');

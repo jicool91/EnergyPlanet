@@ -64,22 +64,22 @@ const setUserFromDecodedToken = (req: AuthRequest, decoded: AccessTokenPayload) 
 };
 
 const tryAuthenticateWithBearer = (req: AuthRequest, header: string | null): boolean => {
-    if (!header || !header.trim().toLowerCase().startsWith('bearer ')) {
-      return false;
-    }
+  if (!header || !header.trim().toLowerCase().startsWith('bearer ')) {
+    return false;
+  }
 
-    const token = header.trim().substring(7);
-    if (!token) {
-      logger.warn('auth_missing_header', {
-        path: req.path,
-        origin: req.headers.origin,
-        ip: req.ip,
-      });
-      throw new AppError(401, 'unauthorized');
-    }
+  const token = header.trim().substring(7);
+  if (!token) {
+    logger.warn('auth_missing_header', {
+      path: req.path,
+      origin: req.headers.origin,
+      ip: req.ip,
+    });
+    throw new AppError(401, 'unauthorized');
+  }
 
   try {
-    const decoded = jwt.verify(token, config.jwt.secret) as JwtPayload | string;
+    const decoded = jwt.verify(token, config.jwt.secret);
     if (!isAccessTokenPayload(decoded)) {
       logger.warn('auth_invalid_payload', {
         path: req.path,
@@ -107,14 +107,14 @@ const tryAuthenticateWithBearer = (req: AuthRequest, header: string | null): boo
         path: req.path,
         origin: req.headers.origin,
         ip: req.ip,
-        error,
+        error: error instanceof Error ? error.message : String(error),
       });
       throw error;
     }
   }
 };
 
-export const authenticate = async (req: AuthRequest, _res: Response, next: NextFunction) => {
+export const authenticate = (req: AuthRequest, _res: Response, next: NextFunction) => {
   try {
     const header = normalizeAuthorizationHeader(req.headers.authorization);
 

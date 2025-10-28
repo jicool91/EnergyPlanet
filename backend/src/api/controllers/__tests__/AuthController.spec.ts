@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/unbound-method */
 import { Request, Response, NextFunction } from 'express';
 import { AuthController } from '../AuthController';
 import { AppError } from '../../../middleware/errorHandler';
@@ -37,7 +38,8 @@ describe('AuthController.authenticateWithTelegramHeader', () => {
     const res = createResponse();
     const next = jest.fn() as jest.MockedFunction<NextFunction>;
 
-    await controller.authenticateWithTelegramHeader(req, res, next);
+    const handler = controller.authenticateWithTelegramHeader.bind(controller);
+    await handler(req, res, next);
 
     expect(authServiceMock.authenticateWithTelegram).toHaveBeenCalledWith('foo=bar&hash=baz', {
       enforceReplayProtection: true,
@@ -58,7 +60,8 @@ describe('AuthController.authenticateWithTelegramHeader', () => {
     const res = createResponse();
     const next = jest.fn() as jest.MockedFunction<NextFunction>;
 
-    await controller.authenticateWithTelegramHeader(req, res, next);
+    const handler = controller.authenticateWithTelegramHeader.bind(controller);
+    await handler(req, res, next);
 
     expect(authServiceMock.authenticateWithTelegram).toHaveBeenCalledWith('foo=bar', {
       enforceReplayProtection: true,
@@ -75,7 +78,8 @@ describe('AuthController.authenticateWithTelegramHeader', () => {
     const res = createResponse();
     const next = jest.fn() as jest.MockedFunction<NextFunction>;
 
-    await controller.authenticateWithTelegramHeader(req, res, next);
+    const handler = controller.authenticateWithTelegramHeader.bind(controller);
+    await handler(req, res, next);
 
     expect(next).toHaveBeenCalledTimes(1);
     const error = next.mock.calls[0]?.[0] as unknown as AppError;
@@ -94,7 +98,8 @@ describe('AuthController.authenticateWithTelegramHeader', () => {
     const res = createResponse();
     const next = jest.fn() as jest.MockedFunction<NextFunction>;
 
-    await controller.authenticateWithTelegramHeader(req, res, next);
+    const handler = controller.authenticateWithTelegramHeader.bind(controller);
+    await handler(req, res, next);
 
     expect(next).toHaveBeenCalledTimes(1);
     const error = next.mock.calls[0]?.[0] as unknown as AppError;

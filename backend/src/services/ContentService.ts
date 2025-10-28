@@ -9,6 +9,31 @@ import YAML from 'yaml';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 
+type BoostOverrides = Record<string, unknown>;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const parseJson = async <T>(filePath: string): Promise<T> => {
+  const raw = await fs.readFile(filePath, 'utf-8');
+  return JSON.parse(raw) as T;
+};
+
+const isFeatureFlagsPayload = (value: unknown): value is FeatureFlagsPayload =>
+  isRecord(value) && isRecord(value.features);
+
+const isBuildingsPayload = (value: unknown): value is BuildingsPayload =>
+  isRecord(value) && Array.isArray(value.buildings);
+
+const isCosmeticsPayload = (value: unknown): value is CosmeticsPayload =>
+  isRecord(value) && Array.isArray(value.cosmetics);
+
+const isStarPackPayload = (value: unknown): value is StarPackPayload =>
+  isRecord(value) && (!('packs' in value) || Array.isArray(value.packs));
+
+const isSeasonPayload = (value: unknown): value is Season =>
+  isRecord(value) && isRecord(value.season) && typeof value.season?.id === 'string';
+
 interface Building {
   id: string;
   name: string;
@@ -51,7 +76,28 @@ interface Season {
 interface FeatureFlags {
   features: Record<string, boolean>;
   experiments: Record<string, unknown>;
-  boosts?: Record<string, unknown>;
+  boosts?: BoostOverrides;
+}
+
+interface BuildingsPayload {
+  buildings: Building[];
+  formulas?: BuildingFormulas;
+}
+
+interface CosmeticsPayload {
+  cosmetics: Cosmetic[];
+}
+
+interface StarPackPayload {
+  packs?: StarPack[];
+}
+
+interface ReferralsPayload extends Partial<ReferralConfig> {}
+
+interface FeatureFlagsPayload {
+  features: Record<string, unknown>;
+  experiments?: Record<string, unknown>;
+  boosts?: unknown;
 }
 
 interface BuildingFormulas {
@@ -154,13 +200,13 @@ class ContentService {
       });
 
       await Promise.all([
-        this.loadBuildings().catch(e => this.handleLoadError('buildings', e)),
-        this.loadCosmetics().catch(e => this.handleLoadError('cosmetics', e)),
-        this.loadSeason().catch(e => this.handleLoadError('season', e)),
-        this.loadFeatureFlags().catch(e => this.handleLoadError('featureFlags', e)),
-        this.loadStarPacks().catch(e => this.handleLoadError('starPacks', e)),
-        this.loadQuests().catch(e => this.handleLoadError('quests', e)),
-        this.loadReferrals().catch(e => this.handleLoadError('referrals', e)),
+        this.loadBuildings().catch(error => this.handleLoadError('buildings', error)),
+        this.loadCosmetics().catch(error => this.handleLoadError('cosmetics', error)),
+        this.loadSeason().catch(error => this.handleLoadError('season', error)),
+        this.loadFeatureFlags().catch(error => this.handleLoadError('featureFlags', error)),
+        this.loadStarPacks().catch(error => this.handleLoadError('starPacks', error)),
+        this.loadQuests().catch(error => this.handleLoadError('quests', error)),
+        this.loadReferrals().catch(error => this.handleLoadError('referrals', error)),
       ]);
 
       logger.info('Content loaded successfully', {
@@ -173,13 +219,15 @@ class ContentService {
         referralMilestones: this.referralConfig?.milestones.length ?? 0,
       });
     } catch (error) {
-      logger.warn('Content loading completed with errors (this is OK for MVP)', error);
+      logger.warn('Content loading completed with errors (this is OK for MVP)', {
+        error: error instanceof Error ? error.message : String(error),
+      });
       // Don't throw - allow app to start even if content is missing
       // This handles Railway deployments where content might be in different location
     }
   }
 
-  private async handleLoadError(contentType: string, error: unknown) {
+  private handleLoadError(contentType: string, error: unknown) {
     logger.warn(`Failed to load ${contentType}`, {
       error: error instanceof Error ? error.message : String(error),
       code: typeof error === 'object' && error !== null && 'code' in error ? (error as { code?: string }).code : undefined,
@@ -190,42 +238,73 @@ class ContentService {
 
   private async loadBuildings() {
     const filePath = path.join(config.content.path, 'items', 'buildings.json');
-    const data = await fs.readFile(filePath, 'utf-8');
-    const parsed = JSON.parse(data);
-    this.buildings = parsed.buildings;
-    this.formulas = parsed.formulas as BuildingFormulas;
+    const parsed = await parseJson<unknown>(filePath);
+    if (!isBuildingsPayload(parsed)) {
+      throw new Error('Invalid buildings payload');
+    }
+    const payload: BuildingsPayload = parsed;
+    this.buildings = payload.buildings;
+    this.formulas = payload.formulas ?? null;
   }
 
   private async loadCosmetics() {
     const filePath = path.join(config.content.path, 'cosmetics', 'skins.json');
-    const data = await fs.readFile(filePath, 'utf-8');
-    const parsed = JSON.parse(data);
-    this.cosmetics = parsed.cosmetics;
+    const parsed = await parseJson<unknown>(filePath);
+    if (!isCosmeticsPayload(parsed)) {
+      throw new Error('Invalid cosmetics payload');
+    }
+    const payload: CosmeticsPayload = parsed;
+    this.cosmetics = payload.cosmetics;
   }
 
   private async loadSeason() {
     const filePath = path.join(config.content.path, 'seasons', 'season_001.yaml');
     const data = await fs.readFile(filePath, 'utf-8');
-    this.season = YAML.parse(data);
+    const parsed = YAML.parse(data) as unknown;
+    if (!isSeasonPayload(parsed)) {
+      throw new Error('Invalid season payload');
+    }
+    this.season = parsed;
   }
 
   private async loadFeatureFlags() {
     const filePath = path.join(config.content.path, 'flags', 'default.json');
-    const data = await fs.readFile(filePath, 'utf-8');
-    this.featureFlags = JSON.parse(data);
+    const parsed = await parseJson<unknown>(filePath);
+    if (!isFeatureFlagsPayload(parsed)) {
+      throw new Error('Invalid feature flag payload');
+    }
+    const featuresRaw = parsed.features;
+    const features: Record<string, boolean> = {};
+    Object.entries(featuresRaw).forEach(([key, value]) => {
+      if (typeof value === 'boolean') {
+        features[key] = value;
+      }
+    });
+
+    const experiments = isRecord(parsed.experiments) ? parsed.experiments : {};
+    const boosts: BoostOverrides | undefined = isRecord(parsed.boosts)
+      ? parsed.boosts
+      : undefined;
+    this.featureFlags = {
+      features,
+      experiments,
+      boosts,
+    };
   }
 
   private async loadStarPacks() {
     const filePath = path.join(config.content.path, 'monetization', 'star_packs.json');
-    const data = await fs.readFile(filePath, 'utf-8');
-    const parsed = JSON.parse(data);
-    this.starPacks = parsed.packs ?? [];
+    const parsed = await parseJson<unknown>(filePath);
+    if (!isStarPackPayload(parsed)) {
+      throw new Error('Invalid star packs payload');
+    }
+    const payload: StarPackPayload = parsed;
+    this.starPacks = Array.isArray(payload.packs) ? payload.packs : [];
   }
 
   private async loadQuests() {
     const filePath = path.join(config.content.path, 'quests', 'quests.json');
-    const data = await fs.readFile(filePath, 'utf-8');
-    const parsed = JSON.parse(data) as Partial<Record<QuestType, QuestDefinition[]>>;
+    const parsed = await parseJson<Partial<Record<QuestType, QuestDefinition[]>>>(filePath);
     this.questDefinitions = {
       daily: (parsed.daily ?? []).map(q => ({ ...q, type: 'daily' })),
       weekly: (parsed.weekly ?? []).map(q => ({ ...q, type: 'weekly' })),
@@ -234,8 +313,7 @@ class ContentService {
 
   private async loadReferrals() {
     const filePath = path.join(config.content.path, 'referrals.json');
-    const data = await fs.readFile(filePath, 'utf-8');
-    const parsed = JSON.parse(data) as ReferralConfig;
+    const parsed = await parseJson<ReferralsPayload>(filePath);
     this.referralConfig = {
       inviteeReward: parsed.inviteeReward ?? {},
       referrerReward: parsed.referrerReward ?? {},

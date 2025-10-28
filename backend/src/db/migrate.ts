@@ -248,7 +248,7 @@ async function main() {
 
 // Запуск если вызван напрямую
 if (require.main === module) {
-  main();
+  void main();
 }
 
 export { migrateUp, migrateDown, migrateStatus };

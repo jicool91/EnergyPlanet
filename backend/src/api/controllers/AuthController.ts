@@ -19,6 +19,16 @@ type TelegramHeaderRequest = Request<Record<string, never>, unknown, TelegramIni
 type RefreshRequest = Request<Record<string, never>, unknown, RefreshBody>;
 type HttpRequest = Request<Record<string, never>, unknown, Record<string, unknown>>;
 
+const getSingleHeader = (value: string | string[] | undefined): string | null => {
+  if (typeof value === 'string') {
+    return value;
+  }
+  if (Array.isArray(value)) {
+    return value.find(entry => typeof entry === 'string') ?? null;
+  }
+  return null;
+};
+
 export class AuthController {
   private authService: AuthService;
 
@@ -51,8 +61,7 @@ export class AuthController {
 
   authenticateWithTelegramHeader = async (req: HttpRequest, res: Response, next: NextFunction) => {
     try {
-      const header = req.headers.authorization;
-      const authorization = Array.isArray(header) ? header[0] : header;
+      const authorization = getSingleHeader(req.headers.authorization);
 
       if (!authorization) {
         logger.warn('Telegram header authentication failed', {
@@ -64,13 +73,13 @@ export class AuthController {
       }
 
       const trimmedAuthorization = authorization.trim();
-      const [schemeRaw, ...rest] = trimmedAuthorization.split(/\s+/);
-      const initData = rest.join(' ').trim();
-      const normalizedScheme = (schemeRaw || '').toLowerCase();
-      const scheme = schemeRaw ?? '';
+      const firstSpace = trimmedAuthorization.indexOf(' ');
+      const scheme = firstSpace === -1 ? trimmedAuthorization : trimmedAuthorization.slice(0, firstSpace);
+      const payload = firstSpace === -1 ? '' : trimmedAuthorization.slice(firstSpace + 1).trim();
+      const normalizedScheme = scheme.toLowerCase();
       const allowedSchemes = new Set(['tma', 'telegraminit']);
 
-      if (!scheme || !initData) {
+      if (!scheme || !payload) {
         logger.warn('Telegram header authentication failed', {
           reason: 'authorization_malformed',
           origin: req.headers.origin,
@@ -89,7 +98,7 @@ export class AuthController {
         throw new AppError(400, 'authorization_scheme_invalid');
       }
 
-      const result = await this.authService.authenticateWithTelegram(initData, {
+      const result = await this.authService.authenticateWithTelegram(payload, {
         enforceReplayProtection: true,
       });
 
