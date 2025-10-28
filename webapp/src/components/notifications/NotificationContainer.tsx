@@ -15,7 +15,13 @@ export function NotificationContainer() {
   return (
     <>
       {/* Toasts - Bottom right corner */}
-      <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-40 pointer-events-auto">
+      <div
+        className="fixed z-50 flex flex-col gap-2 pointer-events-auto"
+        style={{
+          right: 'calc(var(--safe-area-right) + 16px)',
+          bottom: 'calc(var(--safe-area-bottom) + 80px)',
+        }}
+      >
         <AnimatePresence mode="popLayout">
           {toasts.map(notification => (
             <Toast key={notification.id} notification={notification} />
@@ -24,7 +30,13 @@ export function NotificationContainer() {
       </div>
 
       {/* Achievements - Top center */}
-      <div className="fixed top-1/4 left-1/2 -translate-x-1/2 z-40 pointer-events-auto">
+      <div
+        className="fixed z-50 pointer-events-auto -translate-x-1/2"
+        style={{
+          left: '50%',
+          top: 'calc(var(--safe-area-top) + 72px)',
+        }}
+      >
         <AnimatePresence mode="wait">
           {achievements.length > 0 && <Achievement notification={achievements[0]} />}
         </AnimatePresence>

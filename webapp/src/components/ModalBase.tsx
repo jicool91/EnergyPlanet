@@ -138,8 +138,8 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: 0.2 }}
               className={clsx(
-                'bg-[var(--app-bg)] rounded-xl border border-[var(--color-border-subtle)] shadow-xl backdrop-blur-md pointer-events-auto',
-                'max-h-[85vh] flex flex-col gap-5 p-5 sm:gap-6 sm:p-6 w-full',
+                'pointer-events-auto rounded-3xl border border-[rgba(0,217,255,0.25)] bg-gradient-to-br from-[rgba(12,18,40,0.96)] via-[rgba(16,24,56,0.94)] to-[rgba(24,18,64,0.9)] shadow-elevation-4 backdrop-blur-md',
+                'max-h-[85vh] flex w-full flex-col gap-5 p-6 sm:gap-6 sm:p-7',
                 sizeStyles[size]
               )}
             >

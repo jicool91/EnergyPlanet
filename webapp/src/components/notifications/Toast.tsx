@@ -18,7 +18,7 @@ const TOAST_THEME: Record<
 > = {
   success: {
     container:
-      'border border-lime/35 bg-gradient-to-r from-lime/15 via-dark-card to-dark-card shadow-lg',
+      'border border-lime/35 bg-gradient-to-r from-lime/15 via-dark-card to-dark-card shadow-elevation-2',
     iconBg: 'bg-lime/80 text-gray-900',
     text: 'text-lime-100',
     accent: 'bg-lime/60',
@@ -26,7 +26,7 @@ const TOAST_THEME: Record<
   },
   error: {
     container:
-      'border border-red-error/50 bg-gradient-to-r from-red-error/20 via-dark-card to-dark-card shadow-lg',
+      'border border-red-error/50 bg-gradient-to-r from-red-error/20 via-dark-card to-dark-card shadow-elevation-2',
     iconBg: 'bg-red-error text-white',
     text: 'text-red-100',
     accent: 'bg-red-error/70',
@@ -34,7 +34,7 @@ const TOAST_THEME: Record<
   },
   warning: {
     container:
-      'border border-amber-400/50 bg-gradient-to-r from-amber-400/20 via-dark-card to-dark-card shadow-lg',
+      'border border-amber-400/50 bg-gradient-to-r from-amber-400/20 via-dark-card to-dark-card shadow-elevation-2',
     iconBg: 'bg-amber-400 text-gray-900',
     text: 'text-amber-100',
     accent: 'bg-amber-400/70',
@@ -42,7 +42,7 @@ const TOAST_THEME: Record<
   },
   star: {
     container:
-      'border border-yellow-300/40 bg-gradient-to-r from-yellow-300/15 via-dark-card to-dark-card shadow-lg',
+      'border border-yellow-300/40 bg-gradient-to-r from-yellow-300/15 via-dark-card to-dark-card shadow-elevation-2',
     iconBg: 'bg-yellow-300 text-gray-900',
     text: 'text-yellow-100',
     accent: 'bg-yellow-300/70',
@@ -50,7 +50,7 @@ const TOAST_THEME: Record<
   },
   trophy: {
     container:
-      'border border-orange-400/60 bg-gradient-to-r from-orange-400/20 via-dark-card to-dark-card shadow-lg',
+      'border border-orange-400/60 bg-gradient-to-r from-orange-400/20 via-dark-card to-dark-card shadow-elevation-2',
     iconBg: 'bg-orange-400 text-gray-900',
     text: 'text-orange-100',
     accent: 'bg-orange-400/70',
@@ -58,7 +58,7 @@ const TOAST_THEME: Record<
   },
   info: {
     container:
-      'border border-cyan/40 bg-gradient-to-r from-cyan/20 via-dark-card to-dark-card shadow-lg',
+      'border border-cyan/40 bg-gradient-to-r from-cyan/20 via-dark-card to-dark-card shadow-elevation-2',
     iconBg: 'bg-cyan/80 text-gray-900',
     text: 'text-white',
     accent: 'bg-cyan/70',
@@ -109,7 +109,7 @@ export function Toast({ notification }: ToastProps) {
       whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 320, damping: 30 }}
       aria-live="polite"
-      className={`relative flex items-center gap-3 rounded-xl px-4 py-3 sm:px-5 sm:py-4 backdrop-blur-md min-w-[280px] shadow-lg ${theme.container}`}
+      className={`relative flex items-center gap-3 rounded-2xl px-4 py-3 sm:px-5 sm:py-4 backdrop-blur-md min-w-[280px] ${theme.container}`}
     >
       <span
         className={`absolute left-2 top-2 bottom-2 w-1 rounded-full ${theme.accent}`}
