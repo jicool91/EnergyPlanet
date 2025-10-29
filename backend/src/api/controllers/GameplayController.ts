@@ -71,6 +71,7 @@ export class GameplayController {
           refresh_token: issuedTokens.refreshToken,
           refresh_expires_at: issuedTokens.refreshExpiresAt,
           expires_in: issuedTokens.expiresIn,
+          refresh_expires_in: issuedTokens.refreshExpiresIn,
           auth_strategy: req.authContext?.strategy ?? 'tma',
         });
       }

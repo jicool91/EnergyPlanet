@@ -54,7 +54,11 @@ export class AuthController {
       }
 
       const initData = initDataRaw.trim();
-      const result = await this.authService.authenticateWithTelegram(initData);
+      const result = await this.authService.authenticateWithTelegram(initData, {
+        ip: req.ip ?? null,
+        userAgent: getSingleHeader(req.headers['user-agent']),
+        origin: getSingleHeader(req.headers.origin as string | string[] | undefined),
+      });
 
       res.status(200).json(result);
     } catch (error) {
@@ -112,6 +116,9 @@ export class AuthController {
 
       const result = await this.authService.authenticateWithTelegram(payload, {
         enforceReplayProtection: true,
+        ip: req.ip ?? null,
+        userAgent: getSingleHeader(req.headers['user-agent']),
+        origin: getSingleHeader(req.headers.origin as string | string[] | undefined),
       });
 
       res.status(200).json(result);
@@ -128,7 +135,11 @@ export class AuthController {
         throw new AppError(400, 'refresh_token is required');
       }
 
-      const result = await this.authService.refreshAccessToken(refreshTokenRaw.trim());
+      const result = await this.authService.refreshAccessToken(refreshTokenRaw.trim(), {
+        ip: req.ip ?? null,
+        userAgent: getSingleHeader(req.headers['user-agent']),
+        origin: getSingleHeader(req.headers.origin as string | string[] | undefined),
+      });
 
       res.status(200).json(result);
     } catch (error) {

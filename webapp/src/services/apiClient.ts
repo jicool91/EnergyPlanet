@@ -3,7 +3,7 @@
  */
 
 import axios from 'axios';
-import { authStore } from '../store/authStore';
+import { sessionManager } from './sessionManager';
 
 declare global {
   interface Window {
@@ -58,7 +58,7 @@ export const apiClient = axios.create({
 // Request interceptor - add auth token
 apiClient.interceptors.request.use(
   config => {
-    const token = authStore.accessToken;
+    const token = sessionManager.getAccessToken();
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -85,25 +85,15 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = authStore.refreshToken;
-        if (!refreshToken) {
-          authStore.clearTokens();
-          authStore.requestBootstrapRetry();
-          return Promise.reject(error);
+        const accessToken = await sessionManager.refreshAccessToken('response');
+        if (accessToken) {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+          return apiClient(originalRequest);
         }
-        const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refresh_token: refreshToken,
-        });
-
-        const { access_token } = response.data;
-        authStore.setAccessToken(access_token);
-
-        originalRequest.headers.Authorization = `Bearer ${access_token}`;
-        return apiClient(originalRequest);
-      } catch {
-        // Refresh failed, trigger bootstrap retry
-        authStore.clearTokens();
-        authStore.requestBootstrapRetry();
+        sessionManager.forceReauth('refresh_failed');
+      } catch (refreshError) {
+        sessionManager.forceReauth('refresh_exception');
+        return Promise.reject(refreshError);
       }
     }
 

@@ -24,6 +24,7 @@ export interface AuthRequest extends Request {
       refreshToken: string;
       refreshExpiresAt: string;
       expiresIn: number;
+      refreshExpiresIn?: number;
     };
   };
 }
@@ -235,6 +236,7 @@ export const authenticateTick = async (req: AuthRequest, _res: Response, next: N
         refreshToken: authResult.refresh_token,
         refreshExpiresAt: authResult.refresh_expires_at,
         expiresIn: authResult.expires_in,
+        refreshExpiresIn: authResult.refresh_expires_in,
       },
     };
 

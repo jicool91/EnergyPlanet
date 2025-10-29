@@ -20,9 +20,12 @@ import { createDefaultProgress, getProgress } from '../repositories/ProgressRepo
 import { ensureProfile } from '../repositories/ProfileRepository';
 import {
   createSession,
-  deleteSessionByHash,
   findByRefreshTokenHash,
+  findSessionById,
   rotateSessionToken,
+  markSessionRevoked,
+  insertRefreshAuditEntry,
+  SessionRecord,
 } from '../repositories/SessionRepository';
 import { logEvent } from '../repositories/EventRepository';
 import { transaction } from '../db/connection';
@@ -47,7 +50,12 @@ interface ParsedTelegramAuth {
 
 interface AuthenticateOptions {
   enforceReplayProtection?: boolean;
+  ip?: string | null;
+  userAgent?: string | null;
+  origin?: string | null;
 }
+
+type RequestContext = Pick<AuthenticateOptions, 'ip' | 'userAgent' | 'origin'>;
 
 export class AuthService {
   private readonly jwtSecret: Secret = config.jwt.secret as Secret;
@@ -70,6 +78,10 @@ export class AuthService {
 
   private accessTokenTtlSeconds(): number {
     return Math.floor(durationToMilliseconds(config.jwt.accessExpiry) / 1000);
+  }
+
+  private refreshTokenTtlSeconds(): number {
+    return Math.floor(durationToMilliseconds(config.jwt.refreshExpiry) / 1000);
   }
 
   private parseInitData(initData: string): ParsedTelegramAuth {
@@ -146,7 +158,7 @@ export class AuthService {
       matchedBotToken: string | null;
       initDataLength: number;
     }
-  ) {
+  ): Promise<'fresh' | 'replay' | 'skipped'> {
     const ttlSeconds = Math.max(config.telegram.authDataMaxAgeSec, 0);
     const initDataHash = hashToken(initData);
     try {
@@ -164,7 +176,6 @@ export class AuthService {
           },
           'telegram_initdata_replay_detected'
         );
-        throw new AppError(409, 'telegram_initdata_replayed');
       }
 
       if (status === 'skipped') {
@@ -178,6 +189,7 @@ export class AuthService {
           'telegram_initdata_replay_skip'
         );
       }
+      return status;
     } catch (error) {
       if (error instanceof AppError) {
         throw error;
@@ -191,6 +203,7 @@ export class AuthService {
         },
         'telegram_initdata_replay_degraded'
       );
+      return 'skipped';
     }
   }
 
@@ -204,8 +217,9 @@ export class AuthService {
       matchedBotToken = parsedToken;
       telegramUserId = telegramUser.id;
 
+      let replayStatus: 'fresh' | 'replay' | 'skipped' = 'skipped';
       if (options.enforceReplayProtection) {
-        await this.ensureInitDataReplayProtection(initData, {
+        replayStatus = await this.ensureInitDataReplayProtection(initData, {
           telegramUserId,
           matchedBotToken,
           initDataLength,
@@ -253,18 +267,52 @@ export class AuthService {
 
         await ensureProfile(user.id, client);
 
-        await ensurePlayerSession(user.id, client);
+        const playerSession = await ensurePlayerSession(user.id, client);
+        let existingSession: SessionRecord | null = null;
+        if (playerSession.authSessionId) {
+          existingSession = await findSessionById(playerSession.authSessionId, client);
+        }
+
+        const now = Date.now();
+        const canReuseSession =
+          existingSession &&
+          !existingSession.revokedAt &&
+          existingSession.expiresAt.getTime() > now;
+        const reusableSession = canReuseSession ? existingSession : null;
+        const sessionFamilyId = reusableSession ? reusableSession.familyId : uuidv4();
 
         const tokens = this.generateTokens(user);
         const refreshTokenHash = hashToken(tokens.refreshToken);
 
-        await deleteSessionByHash(refreshTokenHash, client);
-        const sessionRecord = await createSession(
-          user.id,
-          refreshTokenHash,
-          tokens.refreshExpiresAt,
-          client
-        );
+        let sessionRecord: SessionRecord;
+        let sessionRotated = false;
+
+        if (reusableSession && replayStatus === 'replay') {
+          sessionRecord = await rotateSessionToken(
+            reusableSession.id,
+            refreshTokenHash,
+            tokens.refreshExpiresAt,
+            {
+              ip: options.ip ?? null,
+              userAgent: options.userAgent ?? null,
+            },
+            client
+          );
+          sessionRotated = true;
+        } else {
+          sessionRecord = await createSession(
+            user.id,
+            refreshTokenHash,
+            tokens.refreshExpiresAt,
+            {
+              familyId: sessionFamilyId,
+              ip: options.ip ?? null,
+              userAgent: options.userAgent ?? null,
+            },
+            client
+          );
+        }
+
         await updatePlayerSession(
           user.id,
           {
@@ -272,18 +320,32 @@ export class AuthService {
           },
           client
         );
-        await logEvent(
-          user.id,
-          'login',
-          {
-            telegram_id: telegramUser.id,
-            username: telegramUser.username,
-            is_new_user: isNewUser,
-          },
-          { client }
-        );
+        if (sessionRotated) {
+          await logEvent(
+            user.id,
+            'token_refresh',
+            {
+              reason: 'tma_replay',
+              session_id: sessionRecord.id,
+              family_id: sessionRecord.familyId,
+            },
+            { client }
+          );
+        } else {
+          await logEvent(
+            user.id,
+            'login',
+            {
+              telegram_id: telegramUser.id,
+              username: telegramUser.username,
+              is_new_user: isNewUser,
+              replay_status: replayStatus,
+            },
+            { client }
+          );
+        }
 
-        return { user, progress, isNewUser, tokens };
+        return { user, progress, isNewUser, tokens, replayStatus, sessionRotated };
       });
 
       logger.info(
@@ -291,6 +353,7 @@ export class AuthService {
           userId: result.user.id,
           telegramId: result.user.telegramId,
           isNewUser: result.isNewUser,
+          replayStatus: result.replayStatus,
           initDataLength,
           botToken: matchedBotToken
             ? `${matchedBotToken.slice(0, 6)}...${matchedBotToken.slice(-4)}`
@@ -304,6 +367,8 @@ export class AuthService {
         refresh_token: result.tokens.refreshToken,
         refresh_expires_at: result.tokens.refreshExpiresAt.toISOString(),
         expires_in: this.accessTokenTtlSeconds(),
+        refresh_expires_in: this.refreshTokenTtlSeconds(),
+        replay_status: result.replayStatus,
         user_id: result.user.id,
         telegram_id: result.user.telegramId,
         username: result.user.username,
@@ -329,7 +394,7 @@ export class AuthService {
     }
   }
 
-  async refreshAccessToken(refreshToken: string) {
+  async refreshAccessToken(refreshToken: string, context: RequestContext = {}) {
     let decoded: JwtPayload | string;
 
     try {
@@ -344,54 +409,145 @@ export class AuthService {
       throw new AppError(401, 'invalid_refresh_token');
     }
 
-    if (typeof decoded !== 'object' || !decoded.userId) {
+    if (typeof decoded !== 'object' || typeof decoded.userId !== 'string') {
       throw new AppError(401, 'invalid_refresh_token');
     }
 
+    const decodedUserId = decoded.userId;
     const refreshHash = hashToken(refreshToken);
-    const session = await findByRefreshTokenHash(refreshHash);
 
-    if (!session) {
-      throw new AppError(401, 'invalid_refresh_token');
-    }
+    const result = await transaction(async client => {
+      const session = await findByRefreshTokenHash(refreshHash, client);
+      if (!session) {
+        await insertRefreshAuditEntry(
+          {
+            sessionId: null,
+            userId: decodedUserId,
+            familyId: null,
+            hashedToken: refreshHash,
+            reason: 'not_found',
+            ip: context.ip ?? null,
+            userAgent: context.userAgent ?? null,
+          },
+          client
+        );
+        throw new AppError(401, 'invalid_refresh_token');
+      }
 
-    if (session.userId !== decoded.userId) {
-      await deleteSessionByHash(refreshHash);
-      throw new AppError(401, 'invalid_refresh_token');
-    }
+      if (session.userId !== decodedUserId) {
+        await insertRefreshAuditEntry(
+          {
+            sessionId: session.id,
+            userId: session.userId,
+            familyId: session.familyId,
+            hashedToken: refreshHash,
+            reason: 'user_mismatch',
+            ip: context.ip ?? null,
+            userAgent: context.userAgent ?? null,
+          },
+          client
+        );
+        await markSessionRevoked(session.id, client);
+        throw new AppError(401, 'invalid_refresh_token');
+      }
 
-    if (session.expiresAt.getTime() < Date.now()) {
-      await deleteSessionByHash(refreshHash);
-      throw new AppError(401, 'refresh_token_expired');
-    }
+      if (session.revokedAt) {
+        await insertRefreshAuditEntry(
+          {
+            sessionId: session.id,
+            userId: session.userId,
+            familyId: session.familyId,
+            hashedToken: refreshHash,
+            reason: 'revoked',
+            ip: context.ip ?? null,
+            userAgent: context.userAgent ?? null,
+          },
+          client
+        );
+        throw new AppError(401, 'invalid_refresh_token');
+      }
 
-    const user = await findUserById(session.userId);
-    if (!user) {
-      await deleteSessionByHash(refreshHash);
-      throw new AppError(404, 'user_not_found');
-    }
+      if (session.expiresAt.getTime() < Date.now()) {
+        await insertRefreshAuditEntry(
+          {
+            sessionId: session.id,
+            userId: session.userId,
+            familyId: session.familyId,
+            hashedToken: refreshHash,
+            reason: 'expired',
+            ip: context.ip ?? null,
+            userAgent: context.userAgent ?? null,
+          },
+          client
+        );
+        await markSessionRevoked(session.id, client);
+        throw new AppError(401, 'refresh_token_expired');
+      }
 
-    await ensurePlayerSession(user.id);
+      const user = await findUserById(session.userId, client);
+      if (!user) {
+        await insertRefreshAuditEntry(
+          {
+            sessionId: session.id,
+            userId: session.userId,
+            familyId: session.familyId,
+            hashedToken: refreshHash,
+            reason: 'user_missing',
+            ip: context.ip ?? null,
+            userAgent: context.userAgent ?? null,
+          },
+          client
+        );
+        await markSessionRevoked(session.id, client);
+        throw new AppError(404, 'user_not_found');
+      }
 
-    const tokens = this.generateTokens(user);
-    const newRefreshHash = hashToken(tokens.refreshToken);
+      await ensurePlayerSession(user.id, client);
 
-    const rotatedSession = await rotateSessionToken(session.id, newRefreshHash, tokens.refreshExpiresAt);
-    await updatePlayerSession(user.id, {
-      authSessionId: rotatedSession.id,
+      const tokens = this.generateTokens(user);
+      const newRefreshHash = hashToken(tokens.refreshToken);
+
+      const rotatedSession = await rotateSessionToken(
+        session.id,
+        newRefreshHash,
+        tokens.refreshExpiresAt,
+        {
+          ip: context.ip ?? null,
+          userAgent: context.userAgent ?? null,
+        },
+        client
+      );
+      await updatePlayerSession(
+        user.id,
+        {
+          authSessionId: rotatedSession.id,
+        },
+        client
+      );
+
+      await logEvent(
+        user.id,
+        'token_refresh',
+        {
+          session_id: session.id,
+          rotated: true,
+          reason: 'refresh_endpoint',
+        },
+        { client }
+      );
+
+      return {
+        tokens,
+        user,
+      };
     });
-    const refreshResult = {
-      access_token: tokens.accessToken,
-      refresh_token: tokens.refreshToken,
-      refresh_expires_at: tokens.refreshExpiresAt.toISOString(),
+
+    return {
+      access_token: result.tokens.accessToken,
+      refresh_token: result.tokens.refreshToken,
+      refresh_expires_at: result.tokens.refreshExpiresAt.toISOString(),
       expires_in: this.accessTokenTtlSeconds(),
+      refresh_expires_in: this.refreshTokenTtlSeconds(),
     };
-
-    await logEvent(user.id, 'token_refresh', {
-      session_id: session.id,
-      rotated: true,
-    });
-
-    return refreshResult;
   }
 }

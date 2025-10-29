@@ -14,6 +14,7 @@ import { fetchLeaderboard, LeaderboardUserEntry } from '../services/leaderboard'
 import { fetchProfile, ProfileResponse } from '../services/profile';
 import { describeError } from './storeUtils';
 import { authStore } from './authStore';
+import { sessionManager } from '@/services/sessionManager';
 import { uiStore } from './uiStore';
 import { fetchPrestigeStatus, performPrestigeReset } from '../services/prestige';
 import {
@@ -57,6 +58,7 @@ interface TickSyncResponse {
   refresh_token?: string;
   refresh_expires_at?: string;
   expires_in?: number;
+  refresh_expires_in?: number;
   pending_passive_sec?: number;
 }
 
@@ -769,13 +771,27 @@ export const useGameStore = create<GameState>((set, get) => ({
       const achievementMultiplier = payload.achievement_multiplier ?? get().achievementMultiplier;
 
       if (payload.access_token) {
+        const accessExpiresIn =
+          typeof payload.expires_in === 'number'
+            ? payload.expires_in
+            : typeof payload.expires_in === 'string'
+              ? Number(payload.expires_in)
+              : undefined;
+        const refreshExpiresIn =
+          typeof payload.refresh_expires_in === 'number' ? payload.refresh_expires_in : undefined;
+
         if (payload.refresh_token) {
-          authStore.setTokens({
+          sessionManager.acceptTokens({
             accessToken: payload.access_token,
             refreshToken: payload.refresh_token,
+            accessExpiresIn,
+            refreshExpiresIn,
           });
         } else {
-          authStore.setAccessToken(payload.access_token);
+          sessionManager.acceptTokens({
+            accessToken: payload.access_token,
+            accessExpiresIn,
+          });
         }
       }
 

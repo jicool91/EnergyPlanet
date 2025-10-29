@@ -23,6 +23,25 @@ export const errorHandler = (
   res: Response,
   _next: NextFunction
 ) => {
+  const isRequestAborted =
+    (err as { type?: string }).type === 'entity.request.aborted' ||
+    err.message === 'request aborted';
+
+  if (isRequestAborted) {
+    logger.debug(
+      {
+        path: req.path,
+        method: req.method,
+        message: 'request_aborted',
+      },
+      'request_aborted'
+    );
+    return res.status(408).json({
+      error: 'request_aborted',
+      message: 'Client aborted the request before completion',
+    });
+  }
+
   if (err instanceof AppError) {
     logger.warn(
       {

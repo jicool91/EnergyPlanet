@@ -36,6 +36,7 @@ const METRIC_KEYS = {
   taps: 'totalTaps',
   energy: 'totalEnergyProduced',
   buildings: 'totalBuildingsPurchased',
+  buildings_purchased: 'totalBuildingsPurchased',
   prestige_energy: 'prestigeEnergySinceReset',
 } as const;
 
@@ -61,6 +62,7 @@ function resolveMetric(def: QuestDefinition, context: Awaited<ReturnType<typeof 
     case 'energy':
       return Math.floor(context.progress.totalEnergyProduced ?? 0);
     case 'buildings':
+    case 'buildings_purchased':
       return context.progress.totalBuildingsPurchased ?? 0;
     case 'prestige_energy':
       return Math.max(

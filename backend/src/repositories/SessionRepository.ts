@@ -7,6 +7,12 @@ export interface SessionRecord {
   refreshTokenHash: string;
   expiresAt: Date;
   createdAt: Date;
+  version: number;
+  lastUsedAt: Date | null;
+  lastIp: string | null;
+  lastUserAgent: string | null;
+  revokedAt: Date | null;
+  familyId: string;
 }
 
 interface SessionRow {
@@ -15,6 +21,12 @@ interface SessionRow {
   refresh_token: string;
   expires_at: string;
   created_at: string;
+  version: number;
+  last_used_at: string | null;
+  last_ip: string | null;
+  last_user_agent: string | null;
+  revoked_at: string | null;
+  family_id: string;
 }
 
 function mapSession(row: SessionRow): SessionRecord {
@@ -24,20 +36,49 @@ function mapSession(row: SessionRow): SessionRecord {
     refreshTokenHash: row.refresh_token,
     expiresAt: new Date(row.expires_at),
     createdAt: new Date(row.created_at),
+    version: row.version,
+    lastUsedAt: row.last_used_at ? new Date(row.last_used_at) : null,
+    lastIp: row.last_ip,
+    lastUserAgent: row.last_user_agent,
+    revokedAt: row.revoked_at ? new Date(row.revoked_at) : null,
+    familyId: row.family_id,
   };
+}
+
+export interface CreateSessionOptions {
+  familyId?: string;
+  ip?: string | null;
+  userAgent?: string | null;
 }
 
 export async function createSession(
   userId: string,
   refreshTokenHash: string,
   expiresAt: Date,
+  options: CreateSessionOptions = {},
   client?: PoolClient
 ): Promise<SessionRecord> {
   const result = await runQuery<SessionRow>(
-    `INSERT INTO sessions (user_id, refresh_token, expires_at)
-     VALUES ($1, $2, $3)
+    `INSERT INTO sessions (
+        user_id,
+        refresh_token,
+        expires_at,
+        family_id,
+        version,
+        last_used_at,
+        last_ip,
+        last_user_agent
+     )
+     VALUES ($1, $2, $3, COALESCE($4, uuid_generate_v4()), 1, NOW(), $5, $6)
      RETURNING *`,
-    [userId, refreshTokenHash, expiresAt.toISOString()],
+    [
+      userId,
+      refreshTokenHash,
+      expiresAt.toISOString(),
+      options.familyId ?? null,
+      options.ip ?? null,
+      options.userAgent ?? null,
+    ],
     client
   );
 
@@ -90,6 +131,22 @@ export async function findByRefreshTokenHash(
   return mapSession(result.rows[0]);
 }
 
+export async function findSessionById(id: string, client?: PoolClient): Promise<SessionRecord | null> {
+  const result = await runQuery<SessionRow>(
+    `SELECT *
+     FROM sessions
+     WHERE id = $1`,
+    [id],
+    client
+  );
+
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  return mapSession(result.rows[0]);
+}
+
 export async function pruneExpiredSessions(client?: PoolClient): Promise<number> {
   const result = await runQuery(
     `DELETE FROM sessions
@@ -126,15 +183,20 @@ export async function rotateSessionToken(
   id: string,
   refreshTokenHash: string,
   expiresAt: Date,
+  options: { ip?: string | null; userAgent?: string | null } = {},
   client?: PoolClient
 ): Promise<SessionRecord> {
   const result = await runQuery<SessionRow>(
     `UPDATE sessions
      SET refresh_token = $1,
-         expires_at = $2
+         expires_at = $2,
+         version = version + 1,
+         last_used_at = NOW(),
+         last_ip = $4,
+         last_user_agent = $5
      WHERE id = $3
      RETURNING *`,
-    [refreshTokenHash, expiresAt.toISOString(), id],
+    [refreshTokenHash, expiresAt.toISOString(), id, options.ip ?? null, options.userAgent ?? null],
     client
   );
 
@@ -143,4 +205,76 @@ export async function rotateSessionToken(
   }
 
   return mapSession(result.rows[0]);
+}
+
+export async function markSessionRevoked(
+  id: string,
+  client?: PoolClient
+): Promise<void> {
+  await runQuery(
+    `UPDATE sessions
+     SET revoked_at = NOW()
+     WHERE id = $1`,
+    [id],
+    client
+  );
+}
+
+export async function updateSessionUsage(
+  id: string,
+  ip: string | null,
+  userAgent: string | null,
+  client?: PoolClient
+): Promise<SessionRecord> {
+  const result = await runQuery<SessionRow>(
+    `UPDATE sessions
+     SET last_used_at = NOW(),
+         last_ip = $2,
+         last_user_agent = $3
+     WHERE id = $1
+     RETURNING *`,
+    [id, ip, userAgent],
+    client
+  );
+
+  if (result.rowCount === 0) {
+    throw new Error(`Session ${id} not found`);
+  }
+
+  return mapSession(result.rows[0]);
+}
+
+export async function insertRefreshAuditEntry(
+  data: {
+    sessionId: string | null;
+    userId: string | null;
+    familyId: string | null;
+    hashedToken: string;
+    reason: string;
+    ip?: string | null;
+    userAgent?: string | null;
+  },
+  client?: PoolClient
+): Promise<void> {
+  await runQuery(
+    `INSERT INTO session_refresh_audit (
+       session_id,
+       user_id,
+       family_id,
+       hashed_token,
+       reason,
+       ip,
+       user_agent
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+    [
+      data.sessionId,
+      data.userId,
+      data.familyId,
+      data.hashedToken,
+      data.reason,
+      data.ip ?? null,
+      data.userAgent ?? null,
+    ],
+    client
+  );
 }

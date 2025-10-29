@@ -18,6 +18,7 @@ import {
   onTmaSafeAreaChange,
   onTmaViewportChange,
 } from '@/services/tma/viewport';
+import { sessionManager } from './services/sessionManager';
 
 // Export logger to window for debugging
 declare global {
@@ -42,6 +43,7 @@ const noop = () => {};
 onTmaSafeAreaChange(noop);
 onTmaViewportChange(noop);
 authStore.hydrate();
+sessionManager.syncFromStore();
 onTmaThemeChange(theme => uiStore.updateTheme(theme));
 
 ReactDOM.createRoot(document.getElementById('root')!).render(

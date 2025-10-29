@@ -50,7 +50,7 @@ export async function connectDatabase(): Promise<Pool> {
 
   // Test connection
   try {
-    const result = await pool.query('SELECT NOW() as current_time');
+    const result = await pool.query<{ current_time: string }>('SELECT NOW() as current_time');
     logger.info(
       {
         currentTime: result.rows[0]?.current_time,

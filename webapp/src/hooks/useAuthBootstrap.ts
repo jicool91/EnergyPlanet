@@ -2,10 +2,11 @@ import { useEffect, useRef } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../services/apiClient';
 import { getTmaInitData } from '@/services/tma/initData';
-import { useAuthStore, authStore } from '../store/authStore';
+import { useAuthStore } from '../store/authStore';
 import { uiStore } from '../store/uiStore';
 import { logClientEvent } from '../services/telemetry';
 import { logger } from '../utils/logger';
+import { sessionManager } from '@/services/sessionManager';
 
 export function useAuthBootstrap() {
   const hydrated = useAuthStore(state => state.hydrated);
@@ -16,7 +17,6 @@ export function useAuthBootstrap() {
   const bootstrapNonce = useAuthStore(state => state.bootstrapNonce);
   const setBootstrapping = useAuthStore(state => state.setBootstrapping);
   const setAuthReady = useAuthStore(state => state.setAuthReady);
-  const setTokens = useAuthStore(state => state.setTokens);
 
   const hasShownErrorRef = useRef(false);
   const hasAttemptedOnceRef = useRef(false);
@@ -80,17 +80,20 @@ export function useAuthBootstrap() {
           }
 
           const tokens = {
-            accessToken: response.data.access_token,
-            refreshToken: response.data.refresh_token,
+            accessToken: response.data.access_token as string,
+            refreshToken: response.data.refresh_token as string,
+            accessExpiresIn: Number(response.data.expires_in),
+            refreshExpiresIn: Number(response.data.refresh_expires_in),
           };
 
           logger.info('🔐 Tokens received from /auth/tma', {
             accessTokenLength: tokens.accessToken?.length || 0,
             refreshTokenLength: tokens.refreshToken?.length || 0,
             attempt,
+            replayStatus: response.data.replay_status,
           });
 
-          setTokens(tokens);
+          sessionManager.acceptTokens(tokens);
 
           void logClientEvent(
             'auth_tokens_set',
@@ -99,6 +102,7 @@ export function useAuthBootstrap() {
               hasRefreshToken: !!tokens.refreshToken,
               accessTokenLength: tokens.accessToken?.length || 0,
               attempt,
+              replay_status: response.data.replay_status,
             },
             'info'
           );
@@ -187,15 +191,17 @@ export function useAuthBootstrap() {
             }
 
             const refreshedTokens = {
-              accessToken: response.data.access_token,
-              refreshToken: response.data.refresh_token,
+              accessToken: response.data.access_token as string,
+              refreshToken: response.data.refresh_token as string,
+              accessExpiresIn: Number(response.data.expires_in),
+              refreshExpiresIn: Number(response.data.refresh_expires_in),
             };
 
             logger.info('✅ Access token refreshed successfully', {
               accessTokenLength: refreshedTokens.accessToken?.length || 0,
             });
 
-            setTokens(refreshedTokens);
+            sessionManager.acceptTokens(refreshedTokens);
 
             void logClientEvent(
               'refresh_token_success',
@@ -213,7 +219,7 @@ export function useAuthBootstrap() {
               error: refreshError instanceof Error ? refreshError.message : 'unknown',
             });
             // Refresh token is invalid or expired - fall through to TMA auth
-            authStore.clearTokens();
+            sessionManager.clearTokens('refresh_invalid');
             await authenticateWithTelegramWithRetry();
           }
         } else {
@@ -231,7 +237,7 @@ export function useAuthBootstrap() {
           retries: authRetryCountRef.current,
         });
 
-        authStore.clearTokens();
+        sessionManager.clearTokens('bootstrap_failed');
         setAuthReady(false);
         setBootstrapping(false);
 
@@ -277,6 +283,5 @@ export function useAuthBootstrap() {
     bootstrapNonce,
     setBootstrapping,
     setAuthReady,
-    setTokens,
   ]);
 }
