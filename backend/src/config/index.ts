@@ -165,7 +165,22 @@ export const config = {
     },
     botUsername: process.env.TELEGRAM_BOT_USERNAME || '',
     miniAppUrl: process.env.TELEGRAM_MINI_APP_URL || '',
-    authDataMaxAgeSec: parseInt(process.env.TELEGRAM_AUTHDATA_MAX_AGE_SEC || '60', 10),
+    authDataMaxAgeSec: parseInt(process.env.TELEGRAM_AUTHDATA_MAX_AGE_SEC || '86400', 10),
+    get allowedOrigins() {
+      const defaults = ['https://t.me'];
+      const raw = process.env.TELEGRAM_ALLOWED_ORIGINS;
+      if (!raw || raw.trim().length === 0) {
+        return defaults;
+      }
+
+      const parsed = raw
+        .split(/[,\s]+/)
+        .map(origin => origin.trim())
+        .filter(Boolean);
+
+      const merged = new Set([...defaults, ...parsed]);
+      return Array.from(merged);
+    },
     paymentWebhookSecret: process.env.TELEGRAM_PAYMENT_WEBHOOK_SECRET || '',
   },
 
@@ -202,6 +217,14 @@ export const config = {
         : process.env.RATE_LIMIT_ENABLED !== 'false',
     windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '60000', 10),
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS || '100', 10),
+    auth: {
+      windowMs: parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS || '60000', 10),
+      maxRequests: parseInt(process.env.AUTH_RATE_LIMIT_MAX || '8', 10),
+    },
+  },
+
+  security: {
+    refreshAuditRetentionDays: parseInt(process.env.SESSION_REFRESH_AUDIT_TTL_DAYS || '30', 10),
   },
 
   logging: {

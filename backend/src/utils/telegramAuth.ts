@@ -208,6 +208,21 @@ export function validateTelegramInitData(
     throw new AppError(401, 'auth_data_invalid');
   }
 
+  if (maxAgeSec > 0) {
+    const nearExpiryWindowSec = 4 * 3600; // 4 часа по умолчанию
+    if (ageSeconds >= Math.max(maxAgeSec - nearExpiryWindowSec, 0) && ageSeconds <= maxAgeSec) {
+      logger.warn(
+        {
+          authDate,
+          now,
+          ageSeconds,
+          maxAgeSec,
+        },
+        'telegram_auth_data_near_expiry'
+      );
+    }
+  }
+
   if (ageSeconds > maxAgeSec) {
     logger.warn(
       {

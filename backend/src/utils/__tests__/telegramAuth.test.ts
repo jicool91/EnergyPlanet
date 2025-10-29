@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { AppError } from '../../middleware/errorHandler';
 import { validateTelegramInitData } from '../telegramAuth';
+import { logger } from '../logger';
 
 const TEST_TOKEN = '123456:test_token';
 const DEFAULT_USER = {
@@ -60,6 +61,11 @@ function createInitData(options?: {
 describe('validateTelegramInitData', () => {
   beforeEach(() => {
     process.env.TELEGRAM_BOT_TOKEN = TEST_TOKEN;
+    process.env.TELEGRAM_AUTHDATA_MAX_AGE_SEC = '300';
+  });
+
+  afterEach(() => {
+    delete process.env.TELEGRAM_AUTHDATA_MAX_AGE_SEC;
   });
 
   it('returns parsed user and matched bot token for valid initData', () => {
@@ -114,7 +120,7 @@ describe('validateTelegramInitData', () => {
   });
 
   it('throws when auth_date is older than allowed max age', () => {
-    const oldAuthDate = Math.floor(Date.now() / 1000) - 600; // older than default 300s
+    const oldAuthDate = Math.floor(Date.now() / 1000) - 600; // старше настроенного TTL 300с
     const initData = createInitData({ authDate: oldAuthDate }).toString();
 
     expect(() => validateTelegramInitData(initData, [TEST_TOKEN])).toThrowError(AppError);
@@ -154,5 +160,26 @@ describe('validateTelegramInitData', () => {
       expect(error).toBeInstanceOf(AppError);
       expect((error as AppError).message).toBe('missing_user_data');
     }
+  });
+
+  it('logs near-expiry warning when auth_date is within the last 4 hours of TTL', () => {
+    process.env.TELEGRAM_AUTHDATA_MAX_AGE_SEC = '86400';
+    const now = Math.floor(Date.now() / 1000);
+    const nearExpiryAuthDate = now - (86400 - 3600); // 1 час до истечения
+    const initData = createInitData({ authDate: nearExpiryAuthDate }).toString();
+    const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => logger);
+
+    const result = validateTelegramInitData(initData, [TEST_TOKEN]);
+
+    expect(result.telegramUser.id).toBe(DEFAULT_USER.id);
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authDate: nearExpiryAuthDate,
+        maxAgeSec: 86400,
+      }),
+      'telegram_auth_data_near_expiry'
+    );
+
+    warnSpy.mockRestore();
   });
 });

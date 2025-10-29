@@ -6,6 +6,8 @@ import { Request } from 'express';
 import rateLimit from 'express-rate-limit';
 import { config } from '../config';
 import { AuthRequest } from './auth';
+import { recordAuthRequestMetric } from '../metrics/auth';
+import { logger } from '../utils/logger';
 
 const userKey = (req: Request): string => {
   const authReq = req as AuthRequest;
@@ -19,6 +21,19 @@ const userKey = (req: Request): string => {
 };
 
 const shouldSkip = () => !config.rateLimit.enabled || process.env.NODE_ENV === 'test';
+
+const resolveAuthEndpoint = (path: string): 'tma' | 'refresh' | 'telegram' | 'other' => {
+  if (path.endsWith('/auth/tma')) {
+    return 'tma';
+  }
+  if (path.endsWith('/auth/refresh')) {
+    return 'refresh';
+  }
+  if (path.endsWith('/auth/telegram')) {
+    return 'telegram';
+  }
+  return 'other';
+};
 
 export const rateLimiter = rateLimit({
   windowMs: config.rateLimit.windowMs,
@@ -90,11 +105,31 @@ export const purchaseRateLimiter = rateLimit({
  * This protects /auth/tma and /auth/refresh endpoints
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 60000, // 1 minute
-  max: 5, // 5 requests per minute
-  message: {
-    error: 'auth_rate_limit_exceeded',
-    message: 'Too many authentication attempts, please try again in a few minutes',
+  windowMs: config.rateLimit.auth.windowMs,
+  max: Math.max(config.rateLimit.auth.maxRequests, 1),
+  handler: (req, res, _next, options) => {
+    const retryAfterSeconds = Math.max(1, Math.ceil(options.windowMs / 1000));
+    const endpoint = resolveAuthEndpoint(req.path);
+    const statusCode = options.statusCode ?? 429;
+
+    res.setHeader('Retry-After', retryAfterSeconds);
+
+    logger.warn(
+      {
+        path: req.path,
+        ip: req.ip,
+        retryAfterSeconds,
+      },
+      'auth_rate_limit_triggered'
+    );
+
+    recordAuthRequestMetric(endpoint, statusCode, 'rate_limited');
+
+    res.status(statusCode).json({
+      error: 'auth_rate_limit_exceeded',
+      message: 'Too many authentication attempts, please try again in a few minutes',
+      retry_after: retryAfterSeconds,
+    });
   },
   standardHeaders: true,
   legacyHeaders: false,

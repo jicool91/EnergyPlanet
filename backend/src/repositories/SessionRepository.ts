@@ -1,5 +1,6 @@
 import { PoolClient } from 'pg';
 import { runQuery } from './base';
+import { recordRefreshAuditMetric } from '../metrics/auth';
 
 export interface SessionRecord {
   id: string;
@@ -253,6 +254,7 @@ export async function insertRefreshAuditEntry(
     reason: string;
     ip?: string | null;
     userAgent?: string | null;
+    revocationReason?: string | null;
   },
   client?: PoolClient
 ): Promise<void> {
@@ -264,8 +266,9 @@ export async function insertRefreshAuditEntry(
        hashed_token,
        reason,
        ip,
-       user_agent
-     ) VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+       user_agent,
+       revocation_reason
+     ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
     [
       data.sessionId,
       data.userId,
@@ -274,7 +277,151 @@ export async function insertRefreshAuditEntry(
       data.reason,
       data.ip ?? null,
       data.userAgent ?? null,
+      data.revocationReason ?? null,
     ],
     client
   );
+
+  recordRefreshAuditMetric(data.reason, data.revocationReason ?? null);
+}
+
+export interface SessionFamilySummary {
+  familyId: string;
+  userId: string;
+  activeSessions: number;
+  totalSessions: number;
+  lastUsedAt: Date | null;
+  lastIp: string | null;
+  lastUserAgent: string | null;
+}
+
+export async function listSessionFamilies(
+  options: { userId?: string | null; limit?: number; offset?: number },
+  client?: PoolClient
+): Promise<SessionFamilySummary[]> {
+  const result = await runQuery<{
+    family_id: string;
+    user_id: string;
+    active_sessions: number;
+    total_sessions: number;
+    last_used_at: string | null;
+    last_ip: string | null;
+    last_user_agent: string | null;
+  }>(
+    `SELECT
+        family_id,
+        user_id,
+        COUNT(*) FILTER (WHERE revoked_at IS NULL) AS active_sessions,
+        COUNT(*) AS total_sessions,
+        MAX(last_used_at) AS last_used_at,
+        MAX(last_ip) FILTER (WHERE last_ip IS NOT NULL) AS last_ip,
+        MAX(last_user_agent) FILTER (WHERE last_user_agent IS NOT NULL) AS last_user_agent
+     FROM sessions
+     WHERE ($1::uuid IS NULL OR user_id = $1::uuid)
+     GROUP BY family_id, user_id
+     ORDER BY MAX(last_used_at) DESC NULLS LAST, family_id
+     LIMIT $2 OFFSET $3`,
+    [options.userId ?? null, options.limit ?? 50, options.offset ?? 0],
+    client
+  );
+
+  return result.rows.map(row => ({
+    familyId: row.family_id,
+    userId: row.user_id,
+    activeSessions: Number(row.active_sessions),
+    totalSessions: Number(row.total_sessions),
+    lastUsedAt: row.last_used_at ? new Date(row.last_used_at) : null,
+    lastIp: row.last_ip,
+    lastUserAgent: row.last_user_agent,
+  }));
+}
+
+export async function getSessionFamilySummary(
+  familyId: string,
+  client?: PoolClient
+): Promise<SessionFamilySummary | null> {
+  const result = await runQuery<{
+    family_id: string;
+    user_id: string;
+    active_sessions: number;
+    total_sessions: number;
+    last_used_at: string | null;
+    last_ip: string | null;
+    last_user_agent: string | null;
+  }>(
+    `SELECT
+        family_id,
+        user_id,
+        COUNT(*) FILTER (WHERE revoked_at IS NULL) AS active_sessions,
+        COUNT(*) AS total_sessions,
+        MAX(last_used_at) AS last_used_at,
+        MAX(last_ip) FILTER (WHERE last_ip IS NOT NULL) AS last_ip,
+        MAX(last_user_agent) FILTER (WHERE last_user_agent IS NOT NULL) AS last_user_agent
+     FROM sessions
+     WHERE family_id = $1
+     GROUP BY family_id, user_id`,
+    [familyId],
+    client
+  );
+
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  const row = result.rows[0];
+  return {
+    familyId: row.family_id,
+    userId: row.user_id,
+    activeSessions: Number(row.active_sessions),
+    totalSessions: Number(row.total_sessions),
+    lastUsedAt: row.last_used_at ? new Date(row.last_used_at) : null,
+    lastIp: row.last_ip,
+    lastUserAgent: row.last_user_agent,
+  };
+}
+
+export async function markSessionFamilyRevoked(
+  familyId: string,
+  client?: PoolClient
+): Promise<number> {
+  const result = await runQuery(
+    `UPDATE sessions
+     SET revoked_at = NOW()
+     WHERE family_id = $1
+       AND revoked_at IS NULL`,
+    [familyId],
+    client
+  );
+
+  return result.rowCount ?? 0;
+}
+
+export async function markSessionsRevokedForUser(
+  userId: string,
+  client?: PoolClient
+): Promise<number> {
+  const result = await runQuery(
+    `UPDATE sessions
+     SET revoked_at = NOW()
+     WHERE user_id = $1
+       AND revoked_at IS NULL`,
+    [userId],
+    client
+  );
+
+  return result.rowCount ?? 0;
+}
+
+export async function pruneSessionRefreshAuditOlderThan(
+  retentionDays: number,
+  client?: PoolClient
+): Promise<number> {
+  const result = await runQuery(
+    `DELETE FROM session_refresh_audit
+     WHERE created_at < NOW() - make_interval(days => $1::int)`,
+    [Math.max(Math.floor(retentionDays), 1)],
+    client
+  );
+
+  return result.rowCount ?? 0;
 }

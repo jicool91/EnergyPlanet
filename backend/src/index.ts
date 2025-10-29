@@ -11,6 +11,7 @@ import { connectRedis, healthCheck as redisHealth } from './cache/redis';
 import { loadContent } from './services/ContentService';
 import { tapAggregator } from './services/TapAggregator';
 import { questResetScheduler } from './jobs/QuestResetScheduler';
+import { sessionAuditPruner } from './jobs/SessionAuditPruner';
 import apiRouter from './api/routes';
 import { rateLimiter } from './middleware/rateLimiter';
 import { requestContext as requestContextMiddleware } from './middleware/requestContext';
@@ -147,6 +148,7 @@ export async function bootstrap() {
   await loadContent();
   tapAggregator.start();
   questResetScheduler.start();
+  sessionAuditPruner.start();
 
   const port = config.server.port;
 
@@ -165,6 +167,7 @@ export async function bootstrap() {
     logger.warn({ signal }, 'shutdown_initiated');
     tapAggregator.stop();
     questResetScheduler.stop();
+    sessionAuditPruner.stop();
     server.close(() => {
       logger.info({}, 'http_server_closed');
       process.exit(0);

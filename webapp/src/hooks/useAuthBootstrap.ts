@@ -115,15 +115,17 @@ export function useAuthBootstrap() {
           }
 
           // Handle 409: initData already used in Redis within TTL window
-          if (axios.isAxiosError(error) && error.response?.status === 409) {
+          if (axios.isAxiosError(error)) {
+            const status = error.response?.status;
             const errorCode =
-              typeof error.response.data === 'object' &&
-              error.response.data !== null &&
-              'error' in error.response.data &&
-              typeof (error.response.data as { error?: unknown }).error === 'string'
-                ? (error.response.data as { error: string }).error
+              typeof error.response?.data === 'object' &&
+              error.response?.data !== null &&
+              'error' in (error.response?.data as Record<string, unknown>) &&
+              typeof (error.response?.data as { error?: unknown }).error === 'string'
+                ? (error.response?.data as { error: string }).error
                 : undefined;
-            if (errorCode === 'telegram_initdata_replayed') {
+
+            if (status === 409 && errorCode === 'telegram_initdata_replayed') {
               logger.warn('⚠️ Telegram initData replayed (409), retrying...', {
                 attempt,
                 maxRetries,
@@ -145,6 +147,11 @@ export function useAuthBootstrap() {
                 const err = new Error('telegram_initdata_replayed_max_retries');
                 throw err;
               }
+            }
+
+            if (status === 401 && errorCode === 'auth_data_expired_renew') {
+              logger.warn('⚠️ Telegram initData устарела, требуется переавторизация');
+              throw new Error('auth_data_expired_renew');
             }
           }
 
@@ -251,6 +258,11 @@ export function useAuthBootstrap() {
               message = 'Telegram Mini App не инициализирован. Откройте приложение через Telegram.';
               errorType = 'auth_init_data_missing';
               logger.error('❌ init_data_missing');
+            } else if (error.message === 'auth_data_expired_renew') {
+              message =
+                'Срок действия авторизации истёк. Закройте мини-приложение и откройте его заново в Telegram, чтобы получить новую подпись.';
+              errorType = 'auth_data_expired_renew';
+              logger.error('❌ auth_data_expired_renew');
             } else if (error.message.includes('telegram_initdata_replayed')) {
               message = 'Слишком много попыток входа. Подождите и попробуйте снова.';
               errorType = 'auth_replay_protection_triggered';

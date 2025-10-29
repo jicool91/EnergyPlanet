@@ -3,15 +3,18 @@ import { logger } from '../utils/logger';
 
 const ACCESS_TOKEN_KEY = 'access_token';
 const REFRESH_TOKEN_KEY = 'refresh_token';
+const REFRESH_EXPIRES_AT_KEY = 'refresh_expires_at_ms';
 
 export interface AuthTokens {
   accessToken: string;
   refreshToken: string;
+  refreshExpiresAtMs?: number | null;
 }
 
 interface AuthState {
   accessToken: string | null;
   refreshToken: string | null;
+  refreshExpiresAt: number | null;
   hydrated: boolean;
   authReady: boolean;
   bootstrapping: boolean;
@@ -24,6 +27,7 @@ interface AuthState {
   setAuthReady: (ready: boolean) => void;
   setBootstrapping: (value: boolean) => void;
   requestBootstrapRetry: () => void;
+  setRefreshExpiresAt: (value: number | null) => void;
 }
 
 const getStorage = () => {
@@ -97,6 +101,7 @@ function storageSetItem(key: string, value: string | null) {
 export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   refreshToken: null,
+  refreshExpiresAt: null,
   hydrated: false,
   authReady: false,
   bootstrapping: false,
@@ -104,16 +109,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   hydrate: () => {
     const access = storageGetItem(ACCESS_TOKEN_KEY);
     const refresh = storageGetItem(REFRESH_TOKEN_KEY);
-    set({ accessToken: access, refreshToken: refresh, hydrated: true, authReady: false });
+    const refreshExpiresAtRaw = storageGetItem(REFRESH_EXPIRES_AT_KEY);
+    const refreshExpiresAt = refreshExpiresAtRaw ? Number(refreshExpiresAtRaw) : null;
+    set({
+      accessToken: access,
+      refreshToken: refresh,
+      refreshExpiresAt: Number.isFinite(refreshExpiresAt) ? refreshExpiresAt : null,
+      hydrated: true,
+      authReady: false,
+    });
   },
-  setTokens: ({ accessToken, refreshToken }) => {
+  setTokens: ({ accessToken, refreshToken, refreshExpiresAtMs }) => {
     logger.info('🔐 setTokens called', {
       accessTokenLength: accessToken.length,
       refreshTokenLength: refreshToken.length,
+      refreshExpiresAtMs,
     });
     storageSetItem(ACCESS_TOKEN_KEY, accessToken);
     storageSetItem(REFRESH_TOKEN_KEY, refreshToken);
-    set({ accessToken, refreshToken, authReady: true });
+    if (typeof refreshExpiresAtMs === 'number') {
+      storageSetItem(REFRESH_EXPIRES_AT_KEY, String(refreshExpiresAtMs));
+    } else if (refreshExpiresAtMs === null) {
+      storageSetItem(REFRESH_EXPIRES_AT_KEY, null);
+    }
+    set({
+      accessToken,
+      refreshToken,
+      refreshExpiresAt:
+        typeof refreshExpiresAtMs === 'number' && Number.isFinite(refreshExpiresAtMs)
+          ? refreshExpiresAtMs
+          : get().refreshExpiresAt,
+      authReady: true,
+    });
     logger.info('✅ authReady set to true (via setTokens)');
   },
   setAccessToken: (token: string) => {
@@ -128,7 +155,8 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     logger.warn('🗑️ clearTokens called - clearing all tokens');
     storageSetItem(ACCESS_TOKEN_KEY, null);
     storageSetItem(REFRESH_TOKEN_KEY, null);
-    set({ accessToken: null, refreshToken: null, authReady: false });
+    storageSetItem(REFRESH_EXPIRES_AT_KEY, null);
+    set({ accessToken: null, refreshToken: null, refreshExpiresAt: null, authReady: false });
   },
   getAuthHeaders: () => {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -151,6 +179,14 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   requestBootstrapRetry: () => {
     set(state => ({ bootstrapNonce: state.bootstrapNonce + 1 }));
   },
+  setRefreshExpiresAt: value => {
+    if (value === null) {
+      storageSetItem(REFRESH_EXPIRES_AT_KEY, null);
+    } else if (Number.isFinite(value)) {
+      storageSetItem(REFRESH_EXPIRES_AT_KEY, String(value));
+    }
+    set({ refreshExpiresAt: Number.isFinite(value) ? value : null });
+  },
 }));
 
 export const authStore = {
@@ -168,6 +204,12 @@ export const authStore = {
   },
   clearTokens() {
     useAuthStore.getState().clearTokens();
+  },
+  get refreshExpiresAt() {
+    return useAuthStore.getState().refreshExpiresAt;
+  },
+  setRefreshExpiresAt(value: number | null) {
+    useAuthStore.getState().setRefreshExpiresAt(value);
   },
   hydrate() {
     useAuthStore.getState().hydrate();

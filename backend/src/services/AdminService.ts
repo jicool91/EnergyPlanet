@@ -6,10 +6,19 @@
 import fs from 'fs/promises';
 import path from 'path';
 import { QueryResultRow } from 'pg';
-import { query } from '../db/connection';
+import { query, transaction } from '../db/connection';
 import { healthCheck as databaseHealthCheck } from '../db/connection';
 import { healthCheck as redisHealthCheck } from '../cache/redis';
 import { logger } from '../utils/logger';
+import {
+  getSessionFamilySummary,
+  listSessionFamilies,
+  markSessionFamilyRevoked,
+  insertRefreshAuditEntry,
+} from '../repositories/SessionRepository';
+import { ensurePlayerSession, updatePlayerSession } from '../repositories/PlayerSessionRepository';
+import { logEvent } from '../repositories/EventRepository';
+import { recordSessionFamilyRevocationMetric } from '../metrics/auth';
 
 interface MigrationRow extends QueryResultRow {
   version: string;
@@ -128,6 +137,112 @@ export class AdminService {
       },
       timestamp: new Date().toISOString(),
     };
+  }
+
+  async listAuthSessionFamilies(options: { userId?: string; limit?: number; offset?: number } = {}) {
+    return listSessionFamilies(options);
+  }
+
+  async revokeSessionFamily(familyId: string, reason?: string) {
+    return transaction(async client => {
+      const summary = await getSessionFamilySummary(familyId, client);
+
+      if (!summary) {
+        return {
+          familyId,
+          revokedCount: 0,
+          userId: null,
+        };
+      }
+
+      const revokedCount = await markSessionFamilyRevoked(familyId, client);
+      if (revokedCount === 0) {
+        return {
+          familyId,
+          revokedCount,
+          userId: summary.userId,
+        };
+      }
+
+      const revocationLabel = reason?.trim() || 'manual_revoke';
+
+      await insertRefreshAuditEntry(
+        {
+          sessionId: null,
+          userId: summary.userId,
+          familyId,
+          hashedToken: revocationLabel,
+          reason: 'manual_revoke',
+          ip: null,
+          userAgent: null,
+          revocationReason: revocationLabel,
+        },
+        client
+      );
+
+      try {
+        await ensurePlayerSession(summary.userId, client);
+        await updatePlayerSession(
+          summary.userId,
+          {
+            authSessionId: null,
+          },
+          client
+        );
+      } catch (playerError) {
+        logger.warn(
+          {
+            familyId,
+            userId: summary.userId,
+            error: playerError instanceof Error ? playerError.message : String(playerError),
+          },
+          'admin_session_family_revoke_player_session_failed'
+        );
+      }
+
+      try {
+        await logEvent(
+          summary.userId,
+          'session_family_revoked',
+          {
+            family_id: familyId,
+            trigger: revocationLabel,
+            revoked_count: revokedCount,
+            initiated_by: 'admin',
+          },
+          { client }
+        );
+      } catch (eventError) {
+        logger.warn(
+          {
+            familyId,
+            userId: summary.userId,
+            error: eventError instanceof Error ? eventError.message : String(eventError),
+          },
+          'admin_session_family_revoke_event_failed'
+        );
+      }
+
+      logger.info(
+        {
+          familyId,
+          userId: summary.userId,
+          revokedCount,
+          reason: revocationLabel,
+        },
+        'admin_session_family_revoked'
+      );
+
+      recordSessionFamilyRevocationMetric(revocationLabel, revokedCount);
+
+      return {
+        familyId,
+        revokedCount,
+        userId: summary.userId,
+        reason: revocationLabel,
+        lastUsedAt: summary.lastUsedAt ? summary.lastUsedAt.toISOString() : null,
+      };
+    });
   }
 
   private async readMigrationFiles(): Promise<{ version: string; name: string }[]> {

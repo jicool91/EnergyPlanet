@@ -23,8 +23,9 @@ import {
   findByRefreshTokenHash,
   findSessionById,
   rotateSessionToken,
-  markSessionRevoked,
   insertRefreshAuditEntry,
+  markSessionFamilyRevoked,
+  markSessionsRevokedForUser,
   SessionRecord,
 } from '../repositories/SessionRepository';
 import { logEvent } from '../repositories/EventRepository';
@@ -36,6 +37,7 @@ import {
   ensurePlayerSession,
   updatePlayerSession,
 } from '../repositories/PlayerSessionRepository';
+import { recordSessionFamilyRevocationMetric } from '../metrics/auth';
 
 interface AuthTokens {
   accessToken: string;
@@ -378,7 +380,12 @@ export class AuthService {
         is_new_user: result.isNewUser,
       };
     } catch (error) {
-      const reason = error instanceof AppError ? error.message : 'unexpected_error';
+      let handledError: unknown = error;
+      if (handledError instanceof AppError && handledError.message === 'auth_data_expired') {
+        handledError = new AppError(handledError.statusCode ?? 401, 'auth_data_expired_renew');
+      }
+
+      const reason = handledError instanceof AppError ? handledError.message : 'unexpected_error';
       logger.warn(
         {
           reason,
@@ -390,6 +397,9 @@ export class AuthService {
         },
         'telegram_authentication_failed'
       );
+      if (handledError instanceof Error) {
+        throw handledError;
+      }
       throw error;
     }
   }
@@ -417,6 +427,78 @@ export class AuthService {
     const refreshHash = hashToken(refreshToken);
 
     const result = await transaction(async client => {
+      const recordFamilyRevocation = async ({
+        userId,
+        familyId,
+        trigger,
+        revokedCount,
+      }: {
+        userId: string | null;
+        familyId: string | null;
+        trigger: string;
+        revokedCount: number;
+      }) => {
+        if (!userId || revokedCount === 0) {
+          return;
+        }
+
+        try {
+          await ensurePlayerSession(userId, client);
+          await updatePlayerSession(
+            userId,
+            {
+              authSessionId: null,
+            },
+            client
+          );
+        } catch (playerError) {
+          logger.warn(
+            {
+              userId,
+              familyId,
+              trigger,
+              error: playerError instanceof Error ? playerError.message : String(playerError),
+            },
+            'session_family_revocation_player_session_update_failed'
+          );
+        }
+
+        try {
+          await logEvent(
+            userId,
+            'session_family_revoked',
+            {
+              family_id: familyId,
+              trigger,
+              revoked_count: revokedCount,
+            },
+            { client }
+          );
+        } catch (eventError) {
+          logger.warn(
+            {
+              userId,
+              familyId,
+              trigger,
+              error: eventError instanceof Error ? eventError.message : String(eventError),
+            },
+            'session_family_revocation_event_failed'
+          );
+        }
+
+        logger.info(
+          {
+            userId,
+            familyId,
+            revokedCount,
+            trigger,
+          },
+          'session_family_revoked'
+        );
+
+        recordSessionFamilyRevocationMetric(trigger, revokedCount);
+      };
+
       const session = await findByRefreshTokenHash(refreshHash, client);
       if (!session) {
         await insertRefreshAuditEntry(
@@ -428,9 +510,17 @@ export class AuthService {
             reason: 'not_found',
             ip: context.ip ?? null,
             userAgent: context.userAgent ?? null,
+            revocationReason: 'auto_revoke_user',
           },
           client
         );
+        const revokedCount = await markSessionsRevokedForUser(decodedUserId, client);
+        await recordFamilyRevocation({
+          userId: decodedUserId,
+          familyId: null,
+          trigger: 'refresh_not_found',
+          revokedCount,
+        });
         throw new AppError(401, 'invalid_refresh_token');
       }
 
@@ -444,10 +534,17 @@ export class AuthService {
             reason: 'user_mismatch',
             ip: context.ip ?? null,
             userAgent: context.userAgent ?? null,
+            revocationReason: 'auto_revoke_user_mismatch',
           },
           client
         );
-        await markSessionRevoked(session.id, client);
+        const revokedCount = await markSessionFamilyRevoked(session.familyId, client);
+        await recordFamilyRevocation({
+          userId: session.userId,
+          familyId: session.familyId,
+          trigger: 'refresh_user_mismatch',
+          revokedCount,
+        });
         throw new AppError(401, 'invalid_refresh_token');
       }
 
@@ -477,10 +574,17 @@ export class AuthService {
             reason: 'expired',
             ip: context.ip ?? null,
             userAgent: context.userAgent ?? null,
+            revocationReason: 'auto_revoke_expired',
           },
           client
         );
-        await markSessionRevoked(session.id, client);
+        const revokedCount = await markSessionFamilyRevoked(session.familyId, client);
+        await recordFamilyRevocation({
+          userId: session.userId,
+          familyId: session.familyId,
+          trigger: 'refresh_expired',
+          revokedCount,
+        });
         throw new AppError(401, 'refresh_token_expired');
       }
 
@@ -495,10 +599,17 @@ export class AuthService {
             reason: 'user_missing',
             ip: context.ip ?? null,
             userAgent: context.userAgent ?? null,
+            revocationReason: 'auto_revoke_user_missing',
           },
           client
         );
-        await markSessionRevoked(session.id, client);
+        const revokedCount = await markSessionFamilyRevoked(session.familyId, client);
+        await recordFamilyRevocation({
+          userId: session.userId,
+          familyId: session.familyId,
+          trigger: 'refresh_user_missing',
+          revokedCount,
+        });
         throw new AppError(404, 'user_not_found');
       }
 

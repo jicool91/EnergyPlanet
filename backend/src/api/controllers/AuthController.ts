@@ -6,6 +6,8 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../../services/AuthService';
 import { AppError } from '../../middleware/errorHandler';
 import { logger } from '../../utils/logger';
+import { config } from '../../config';
+import { recordAuthRequestMetric } from '../../metrics/auth';
 
 interface TelegramInitBody {
   initData?: unknown;
@@ -60,8 +62,11 @@ export class AuthController {
         origin: getSingleHeader(req.headers.origin as string | string[] | undefined),
       });
 
+      recordAuthRequestMetric('telegram', 200);
       res.status(200).json(result);
     } catch (error) {
+      const status = error instanceof AppError ? error.statusCode : 500;
+      recordAuthRequestMetric('telegram', status);
       next(error);
     }
   };
@@ -114,15 +119,34 @@ export class AuthController {
         throw new AppError(400, 'authorization_scheme_invalid');
       }
 
+      const originHeader = getSingleHeader(req.headers.origin as string | string[] | undefined);
+      if (
+        originHeader &&
+        !config.telegram.allowedOrigins.some(allowed => allowed.toLowerCase() === originHeader.toLowerCase())
+      ) {
+        logger.warn(
+          {
+            reason: 'origin_not_allowed',
+            origin: originHeader,
+            ip: req.ip,
+          },
+          'telegram_header_auth_failed'
+        );
+        throw new AppError(403, 'origin_not_allowed');
+      }
+
       const result = await this.authService.authenticateWithTelegram(payload, {
         enforceReplayProtection: true,
         ip: req.ip ?? null,
         userAgent: getSingleHeader(req.headers['user-agent']),
-        origin: getSingleHeader(req.headers.origin as string | string[] | undefined),
+        origin: originHeader,
       });
 
+      recordAuthRequestMetric('tma', 200);
       res.status(200).json(result);
     } catch (error) {
+      const status = error instanceof AppError ? error.statusCode : 500;
+      recordAuthRequestMetric('tma', status);
       next(error);
     }
   };
@@ -141,8 +165,11 @@ export class AuthController {
         origin: getSingleHeader(req.headers.origin as string | string[] | undefined),
       });
 
+      recordAuthRequestMetric('refresh', 200);
       res.status(200).json(result);
     } catch (error) {
+      const status = error instanceof AppError ? error.statusCode : 500;
+      recordAuthRequestMetric('refresh', status);
       next(error);
     }
   };
