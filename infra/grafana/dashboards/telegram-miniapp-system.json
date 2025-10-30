@@ -21,65 +21,18 @@
   "links": [],
   "panels": [
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
+      "collapsed": false,
+      "datasource": null,
       "gridPos": {
-        "h": 8,
-        "w": 12,
+        "h": 1,
+        "w": 24,
         "x": 0,
         "y": 0
       },
       "id": 1,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "rate(energyplanet_tick_success_total[5m])",
-          "legendFormat": "Success",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(energyplanet_tick_unauthorized_total[5m]))",
-          "legendFormat": "Unauthorized",
-          "refId": "B"
-        },
-        {
-          "expr": "sum(rate(energyplanet_tick_error_total[5m]))",
-          "legendFormat": "Error",
-          "refId": "C"
-        }
-      ],
-      "title": "Tick Throughput (5m rate)",
-      "type": "timeseries"
+      "panels": [],
+      "title": "Node.js Runtime",
+      "type": "row"
     },
     {
       "datasource": {
@@ -101,35 +54,36 @@
                 "value": null
               }
             ]
-          }
+          },
+          "unit": "s"
         },
         "overrides": []
       },
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 12,
-        "y": 0
+        "x": 0,
+        "y": 1
       },
       "id": 2,
       "options": {
         "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
+          "calcs": ["mean"],
+          "displayMode": "list",
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "multi"
+          "mode": "single"
         }
       },
       "targets": [
         {
-          "expr": "sum by (reason) (increase(energyplanet_tick_unauthorized_total[5m]))",
-          "legendFormat": "{{reason}}",
+          "expr": "energyplanet_nodejs_eventloop_lag_stddev_seconds",
+          "legendFormat": "Event Loop Lag StdDev",
           "refId": "A"
         }
       ],
-      "title": "Tick Unauthorized Reasons (5m)",
+      "title": "Event Loop Lag StdDev",
       "type": "timeseries"
     },
     {
@@ -159,9 +113,9 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 8
+        "w": 12,
+        "x": 12,
+        "y": 1
       },
       "id": 3,
       "options": {
@@ -176,12 +130,12 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.95, sum(rate(energyplanet_tick_latency_seconds_bucket[5m])) by (le))",
-          "legendFormat": "p95",
+          "expr": "energyplanet_nodejs_eventloop_delay_seconds",
+          "legendFormat": "Event Loop Delay",
           "refId": "A"
         }
       ],
-      "title": "Tick Latency p95",
+      "title": "Event Loop Delay",
       "type": "timeseries"
     },
     {
@@ -211,81 +165,29 @@
       },
       "gridPos": {
         "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 8
+        "w": 12,
+        "x": 0,
+        "y": 9
       },
       "id": 4,
       "options": {
         "legend": {
-          "calcs": ["last"],
+          "calcs": ["mean", "max"],
           "displayMode": "list",
           "placement": "bottom"
         },
         "tooltip": {
-          "mode": "single"
+          "mode": "multi"
         }
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.5, sum(rate(energyplanet_tick_latency_seconds_bucket[5m])) by (le))",
-          "legendFormat": "p50",
+          "expr": "energyplanet_nodejs_gc_duration_seconds",
+          "legendFormat": "GC Duration",
           "refId": "A"
         }
       ],
-      "title": "Tick Latency p50",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 8
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "rate(energyplanet_tick_accounted_seconds_sum[5m])",
-          "legendFormat": "Accounted Seconds / s",
-          "refId": "A"
-        }
-      ],
-      "title": "Passive Seconds Processed",
+      "title": "GC Duration",
       "type": "timeseries"
     },
     {
@@ -315,13 +217,13 @@
       "gridPos": {
         "h": 8,
         "w": 12,
-        "x": 0,
-        "y": 16
+        "x": 12,
+        "y": 9
       },
-      "id": 6,
+      "id": 5,
       "options": {
         "legend": {
-          "calcs": ["last"],
+          "calcs": ["mean"],
           "displayMode": "list",
           "placement": "bottom"
         },
@@ -331,12 +233,12 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.9, sum(rate(energyplanet_tick_energy_gained_bucket[5m])) by (le))",
-          "legendFormat": "p90",
+          "expr": "rate(energyplanet_nodejs_gc_count[5m])",
+          "legendFormat": "GC Count",
           "refId": "A"
         }
       ],
-      "title": "Energy Gained per Tick (p90)",
+      "title": "GC Count (5m rate)",
       "type": "timeseries"
     },
     {
@@ -360,7 +262,64 @@
               }
             ]
           },
-          "unit": "s"
+          "unit": "bytes"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "id": 6,
+      "options": {
+        "legend": {
+          "calcs": ["mean"],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "energyplanet_nodejs_memory_heap_used_bytes",
+          "legendFormat": "Heap Used",
+          "refId": "A"
+        },
+        {
+          "expr": "energyplanet_nodejs_memory_external_bytes",
+          "legendFormat": "External",
+          "refId": "B"
+        }
+      ],
+      "title": "Memory Usage",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PrometheusDatasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "bytes"
         },
         "overrides": []
       },
@@ -368,7 +327,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 16
+        "y": 17
       },
       "id": 7,
       "options": {
@@ -383,12 +342,126 @@
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.9, sum(rate(energyplanet_tick_carryover_seconds_bucket[5m])) by (le))",
-          "legendFormat": "p90",
+          "expr": "energyplanet_nodejs_heap_size_limit_bytes",
+          "legendFormat": "Heap Size Limit",
           "refId": "A"
         }
       ],
-      "title": "Carryover Seconds Remaining (p90)",
+      "title": "Heap Size Limit",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PrometheusDatasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "percentunit"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 25
+      },
+      "id": 8,
+      "options": {
+        "legend": {
+          "calcs": ["mean"],
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "100 * rate(energyplanet_nodejs_cpu_user_seconds_total[5m])",
+          "legendFormat": "User",
+          "refId": "A"
+        },
+        {
+          "expr": "100 * rate(energyplanet_nodejs_cpu_system_seconds_total[5m])",
+          "legendFormat": "System",
+          "refId": "B"
+        }
+      ],
+      "title": "CPU Usage (5m rate)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PrometheusDatasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 25
+      },
+      "id": 9,
+      "options": {
+        "legend": {
+          "calcs": ["last"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      },
+      "targets": [
+        {
+          "expr": "energyplanet_nodejs_active_handles_total",
+          "legendFormat": "Active Handles",
+          "refId": "A"
+        },
+        {
+          "expr": "energyplanet_nodejs_active_requests_total",
+          "legendFormat": "Active Requests",
+          "refId": "B"
+        }
+      ],
+      "title": "Handles & Requests",
       "type": "timeseries"
     }
   ],
@@ -396,8 +469,8 @@
   "schemaVersion": 39,
   "style": "dark",
   "tags": [
-    "telegram",
-    "engagement",
+    "system",
+    "nodejs",
     "energyplanet"
   ],
   "templating": {
@@ -408,8 +481,8 @@
     "to": "now"
   },
   "timezone": "",
-  "title": "Energy Planet — Gameplay Engagement",
-  "uid": "tele-engagement-dashboard",
+  "title": "Energy Planet — System Metrics",
+  "uid": "tele-system-dashboard",
   "version": 1,
   "weekStart": ""
 }
