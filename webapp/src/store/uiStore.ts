@@ -2,6 +2,8 @@ import { create } from 'zustand';
 import type { TelegramThemeParams } from '@/utils/telegramTheme';
 import { DEFAULT_THEME } from '@/utils/telegramTheme';
 
+const notificationTimers = new Map<string, number>();
+
 export interface OfflineSummarySnapshot {
   energy: number;
   xp: number;
@@ -57,18 +59,29 @@ export const useUIStore = create<UIState>(set => ({
     }));
 
     // Auto-dismiss if duration specified
-    if (notification.duration && notification.duration > 0) {
-      setTimeout(() => {
+    if (typeof window !== 'undefined' && notification.duration && notification.duration > 0) {
+      const timer = window.setTimeout(() => {
+        notificationTimers.delete(id);
         useUIStore.getState().removeNotification(id);
       }, notification.duration);
+      notificationTimers.set(id, timer);
     }
 
     return id;
   },
   removeNotification: id =>
-    set(state => ({
-      notifications: state.notifications.filter(n => n.id !== id),
-    })),
+    set(state => {
+      if (typeof window !== 'undefined') {
+        const timer = notificationTimers.get(id);
+        if (timer) {
+          window.clearTimeout(timer);
+          notificationTimers.delete(id);
+        }
+      }
+      return {
+        notifications: state.notifications.filter(n => n.id !== id),
+      };
+    }),
 }));
 
 export const uiStore = {

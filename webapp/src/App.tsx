@@ -7,6 +7,7 @@ import { OfflineSummaryModal } from './components/OfflineSummaryModal';
 import { LevelUpScreen } from './components/LevelUpScreen';
 import { NotificationContainer } from './components/notifications/NotificationContainer';
 import { TabBar, MainScreenHeader, type TabBarItem } from './components';
+import { getTabIcon } from './components/icons/TabIcons';
 import { ModalBase } from './components/ModalBase';
 import { useNotification } from './hooks/useNotification';
 import { useTelegramBackButton } from './hooks/useTelegramBackButton';
@@ -322,11 +323,26 @@ function App() {
       <TabBar
         tabs={
           [
-            { id: 'home', icon: '🏠', label: 'Главная', title: 'Home' },
-            { id: 'shop', icon: '🛍️', label: 'Магазин', title: 'Shop' },
-            { id: 'builds', icon: '🏗️', label: 'Постройки', title: 'Buildings' },
-            { id: 'leaderboard', icon: '🏆', label: 'Рейтинг', title: 'Leaderboard' },
-            { id: 'clan', icon: '🛡️', label: 'Клан', title: 'Clan (soon)' },
+            { id: 'home', icon: getTabIcon('home', 'Главная'), label: 'Главная', title: 'Главная' },
+            { id: 'shop', icon: getTabIcon('shop', 'Магазин'), label: 'Магазин', title: 'Магазин' },
+            {
+              id: 'builds',
+              icon: getTabIcon('builds', 'Постройки'),
+              label: 'Постройки',
+              title: 'Постройки',
+            },
+            {
+              id: 'leaderboard',
+              icon: getTabIcon('leaderboard', 'Рейтинг'),
+              label: 'Рейтинг',
+              title: 'Рейтинг игроков',
+            },
+            {
+              id: 'account',
+              icon: getTabIcon('account', 'Профиль'),
+              label: 'Профиль',
+              title: 'Профиль и настройки',
+            },
           ] as TabBarItem[]
         }
         active={activeTab}

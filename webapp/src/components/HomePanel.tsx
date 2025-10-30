@@ -10,8 +10,8 @@
  * - Responsive design (mobile-first)
  */
 
-import { useMemo, useEffect, useRef, useCallback, useState } from 'react';
-import { motion } from 'framer-motion';
+import { useMemo, useEffect, useRef, useCallback, useState, type ReactNode } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Card } from './Card';
 import { StatCard } from './StatCard';
 import { XPProgressCard } from './XPProgressCard';
@@ -26,6 +26,49 @@ import { logClientEvent } from '@/services/telemetry';
 import { useQuestStore, type QuestView } from '@/store/questStore';
 import { useShallow } from 'zustand/react/shallow';
 import { canShowCap, consumeCap } from '@/utils/frequencyCap';
+
+interface CollapsibleSectionProps {
+  title: string;
+  description?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}
+
+function CollapsibleSection({
+  title,
+  description,
+  defaultOpen = true,
+  children,
+}: CollapsibleSectionProps) {
+  const [isOpen, setIsOpen] = useState(defaultOpen);
+
+  return (
+    <section
+      className="rounded-2xl border border-[var(--color-border-subtle)] bg-[rgba(12,18,40,0.78)] p-md shadow-[0_12px_28px_rgba(0,0,0,0.28)]"
+      aria-expanded={isOpen}
+    >
+      <button
+        type="button"
+        onClick={() => setIsOpen(prev => !prev)}
+        className="flex w-full items-center justify-between gap-sm text-left"
+      >
+        <div className="flex flex-col gap-xs">
+          <span className="text-base font-semibold text-[var(--color-text-primary)]">{title}</span>
+          {description ? (
+            <span className="text-sm text-[var(--color-text-secondary)]">{description}</span>
+          ) : null}
+        </div>
+        <span
+          className="inline-flex h-8 w-8 items-center justify-center rounded-full border border-[var(--color-border-subtle)] bg-[rgba(0,0,0,0.2)] text-sm font-semibold text-[var(--color-text-secondary)]"
+          aria-hidden
+        >
+          {isOpen ? '−' : '+'}
+        </span>
+      </button>
+      {isOpen ? <div className="mt-sm flex flex-col gap-sm">{children}</div> : null}
+    </section>
+  );
+}
 
 export interface HomePanelProps {
   // Game state
@@ -202,11 +245,25 @@ export function HomePanel({
   const performance = useDevicePerformance();
   const isLowPerformance = performance === 'low';
   const isMediumPerformance = performance === 'medium';
-  const hoverAnimation = isLowPerformance ? undefined : { scale: 1.05 };
-  const tapAnimation = isLowPerformance ? { scale: 0.98 } : { scale: 0.95 };
-  const glowClassName = isLowPerformance
+  const prefersReducedMotion = useReducedMotion();
+  const disableHeavyMotion = prefersReducedMotion || isLowPerformance;
+  const hoverAnimation = disableHeavyMotion ? undefined : { scale: 1.04 };
+  const tapAnimation = disableHeavyMotion ? { scale: 0.98 } : { scale: 0.94 };
+  const glowClassName = disableHeavyMotion
     ? 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-12 -z-10'
     : 'absolute inset-0 rounded-full bg-gradient-to-br from-cyan to-lime opacity-20 blur-xl -z-10';
+  const glowAnimation = disableHeavyMotion
+    ? undefined
+    : {
+        scale: [1, isMediumPerformance ? 1.08 : 1.16, 1],
+        opacity: [0.12, 0.24, 0.12],
+      };
+  const glowTransition = disableHeavyMotion
+    ? undefined
+    : {
+        duration: isMediumPerformance ? 2.4 : 2,
+        repeat: Infinity,
+      };
   const hasLoggedMonetizationPromptRef = useRef(false);
   const [, setMonetizationCapRevision] = useState(0);
   const monetizationCapAllowed = canShowCap('home_monetization_prompt', { limit: 3 });
@@ -358,49 +415,93 @@ export function HomePanel({
       <div className="flex h-full flex-col lg:grid lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] lg:items-stretch lg:gap-lg lg:px-lg lg:py-md">
         {/* Left column: stats + tap CTA */}
         <div className="flex flex-col h-full gap-sm">
-          {/* Top: Essential Stats (responsive grid) */}
-          <div className="grid grid-cols-2 gap-sm px-md py-sm lg:px-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)]">
-            <StatCard
-              icon="⚡"
-              label="Баланс энергии"
-              value={heroEnergyValue}
-              subLabel={heroCardDetails}
-              tone="positive"
-              size="hero"
-            />
+          <section className="mx-md flex flex-col items-center gap-md rounded-3xl border border-[rgba(0,217,255,0.18)] bg-[rgba(8,12,30,0.72)] px-lg py-lg shadow-[0_24px_48px_rgba(0,0,0,0.32)] lg:mx-0">
+            {streakCount > 0 && (
+              <motion.div
+                className={`flex items-center gap-sm rounded-full px-sm-plus py-xs-plus border shadow-md backdrop-blur bg-gradient-to-r ${
+                  isCriticalStreak
+                    ? 'from-red-500/80 to-orange-400/80 border-red-400/70'
+                    : 'from-cyan/80 to-lime/70 border-cyan/60'
+                }`}
+                animate={
+                  disableHeavyMotion ? undefined : { opacity: [0.85, 1, 0.85], scale: [1, 1.06, 1] }
+                }
+                transition={
+                  disableHeavyMotion
+                    ? undefined
+                    : { duration: isCriticalStreak ? 1.2 : 1.8, repeat: Infinity }
+                }
+              >
+                <span className="text-base font-semibold text-black drop-shadow">
+                  Серия ×{streakCount}
+                </span>
+                <span className="text-xs font-medium text-black/80 drop-shadow">
+                  Лучший результат ×{bestStreak}
+                </span>
+              </motion.div>
+            )}
 
-            <div className="grid grid-rows-[minmax(0,1fr)_auto] gap-sm h-full">
-              <StatCard
-                icon="💤"
-                label="Пассивный доход"
-                value={passivePrimaryDisplay}
-                subLabel={passiveCardDetails}
-                tone="default"
-                size="standard"
+            <motion.button
+              onClick={onTap}
+              whileTap={tapAnimation}
+              whileHover={hoverAnimation}
+              className="relative flex h-32 w-32 items-center justify-center rounded-full border-2 border-cyan/50 bg-gradient-to-br from-cyan via-lime to-gold text-4xl font-bold text-black shadow-[0_28px_64px_rgba(0,0,0,0.45)] transition-transform duration-300 md:h-40 md:w-40 focus-ring"
+              aria-label="Tap to generate energy"
+              data-test-id="tap-button"
+            >
+              <motion.div
+                className={glowClassName}
+                animate={glowAnimation}
+                transition={glowTransition}
               />
-              <div className="grid grid-cols-2 gap-sm">
+              <span role="img" aria-label="Tap planet to generate energy">
+                🌍
+              </span>
+            </motion.button>
+
+            <div className="grid w-full grid-cols-2 gap-sm lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)]">
+              <StatCard
+                icon="⚡"
+                label="Баланс энергии"
+                value={heroEnergyValue}
+                subLabel={heroCardDetails}
+                tone="positive"
+                size="hero"
+              />
+
+              <div className="grid grid-rows-[minmax(0,1fr)_auto] gap-sm">
                 <StatCard
-                  icon="🪐"
-                  label="Тап-уровень"
-                  value={`Ур. ${tapLevel}`}
-                  subLabel={`За тап: +${tapIncomeDisplay} E`}
-                  size="compact"
+                  icon="💤"
+                  label="Пассивный доход"
+                  value={passivePrimaryDisplay}
+                  subLabel={passiveCardDetails}
+                  tone="default"
+                  size="standard"
                 />
-                <StatCard
-                  icon="⭐"
-                  label="Stars"
-                  value={`${starsShort}`}
-                  subLabel="Используйте для ускорений"
-                  size="compact"
-                />
+                <div className="grid grid-cols-2 gap-sm">
+                  <StatCard
+                    icon="🪐"
+                    label="Тап-уровень"
+                    value={`Ур. ${tapLevel}`}
+                    subLabel={`За тап: +${tapIncomeDisplay} E`}
+                    size="compact"
+                  />
+                  <StatCard
+                    icon="⭐"
+                    label="Stars"
+                    value={`${starsShort}`}
+                    subLabel="Используйте для ускорений"
+                    size="compact"
+                  />
+                </div>
               </div>
             </div>
-          </div>
+          </section>
 
           {onViewAchievements && (
-            <Card className="mx-md mt-sm flex items-center justify-between gap-sm bg-gradient-to-br from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.22)] to-[rgba(120,63,255,0.3)] border-[rgba(0,217,255,0.35)] shadow-glow">
+            <Card className="mt-sm flex items-center justify-between gap-sm bg-gradient-to-br from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.22)] to-[rgba(120,63,255,0.3)] border-[rgba(0,217,255,0.35)] shadow-glow">
               <div className="flex flex-col gap-xs">
-                <span className="text-caption uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
+                <span className="text-sm font-medium text-[var(--color-text-secondary)]">
                   Серия входов
                 </span>
                 <span className="text-body font-semibold text-[var(--color-text-primary)]">
@@ -424,7 +525,7 @@ export function HomePanel({
           )}
 
           {showMonetizationPrompt && purchaseInsight && (
-            <Card className="mx-md mt-sm flex items-center gap-sm bg-gradient-to-r from-[rgba(255,215,0,0.18)] via-[rgba(255,163,0,0.12)] to-[rgba(0,217,255,0.18)] border-[rgba(255,215,0,0.35)]">
+            <Card className="mt-sm flex items-center gap-sm bg-gradient-to-r from-[rgba(255,215,0,0.18)] via-[rgba(255,163,0,0.12)] to-[rgba(0,217,255,0.18)] border-[rgba(255,215,0,0.35)]">
               <div className="flex flex-col gap-xs flex-1">
                 <p className="m-0 text-body font-semibold text-[var(--color-text-primary)]">
                   Ускорьте {purchaseInsight.name}
@@ -448,11 +549,11 @@ export function HomePanel({
             </Card>
           )}
 
-          <Card className="mx-md mt-sm flex flex-col gap-sm bg-gradient-to-br from-[rgba(0,217,255,0.2)] via-[rgba(0,255,136,0.18)] to-[rgba(120,63,255,0.2)] border-[rgba(0,217,255,0.32)] shadow-elevation-2">
+          <Card className="mt-sm flex flex-col gap-sm bg-gradient-to-br from-[rgba(0,217,255,0.2)] via-[rgba(0,255,136,0.18)] to-[rgba(120,63,255,0.2)] border-[rgba(0,217,255,0.32)] shadow-elevation-2">
             <div className="flex items-start justify-between gap-sm">
               <div className="flex flex-col gap-xs">
-                <span className="text-caption uppercase tracking-[0.16em] text-[var(--color-text-secondary)]">
-                  Ежедневные задания
+                <span className="text-sm font-medium text-[var(--color-text-secondary)]">
+                  Задания
                 </span>
                 <span className="text-body font-semibold text-[var(--color-text-primary)]">
                   {availableDaily + availableWeekly > 0
@@ -502,182 +603,126 @@ export function HomePanel({
               </Button>
             </div>
           </Card>
-
-          {/* Center: BIG TAP BUTTON */}
-          <div className="relative flex flex-1 items-center justify-center px-md py-sm-plus lg:px-0">
-            {streakCount > 0 && (
-              <motion.div
-                className={`pointer-events-none absolute -top-4 sm:-top-6 left-1/2 -translate-x-1/2 flex items-center gap-sm rounded-full px-sm-plus py-xs-plus border shadow-lg backdrop-blur bg-gradient-to-r ${
-                  isCriticalStreak
-                    ? 'from-red-500/85 to-orange-400/85 border-red-400/70'
-                    : 'from-cyan/80 to-lime/70 border-cyan/60'
-                }`}
-                animate={{ opacity: [0.8, 1, 0.8], scale: [1, 1.05, 1] }}
-                transition={{ duration: isCriticalStreak ? 1.2 : 1.8, repeat: Infinity }}
-              >
-                <span className="text-lg" aria-hidden="true">
-                  🔥
-                </span>
-                <span className="text-sm font-semibold text-black drop-shadow">×{streakCount}</span>
-                <span className="text-[11px] font-medium text-black/80 drop-shadow">
-                  Лучшее {bestStreak}
-                </span>
-              </motion.div>
-            )}
-            <motion.button
-              onClick={onTap}
-              whileTap={tapAnimation}
-              whileHover={hoverAnimation}
-              className="relative w-32 h-32 md:w-40 md:h-40 rounded-full bg-gradient-to-br from-cyan via-lime to-gold text-black font-bold text-4xl md:text-5xl shadow-2xl border-2 border-cyan/50 hover:border-cyan transition-all duration-300 active:scale-95 focus-ring"
-              aria-label="Tap to generate energy"
-              data-test-id="tap-button"
-            >
-              {/* Glow effect */}
-              <motion.div
-                className={glowClassName}
-                animate={
-                  isLowPerformance
-                    ? undefined
-                    : {
-                        scale: [1, isMediumPerformance ? 1.1 : 1.2, 1],
-                        opacity: [0.15, 0.28, 0.15],
-                      }
-                }
-                transition={
-                  isLowPerformance
-                    ? undefined
-                    : {
-                        duration: isMediumPerformance ? 2.4 : 2,
-                        repeat: Infinity,
-                      }
-                }
-              />
-
-              {/* Tap indicator */}
-              <span role="img" aria-label="Tap planet to generate energy">
-                🌍
-              </span>
-            </motion.button>
-          </div>
         </div>
 
-        {/* Right column: Progress & social blocks */}
+        {/* Right column: grouped insights */}
         <div className="flex flex-col gap-sm-plus px-md py-sm lg:px-0 lg:py-0">
-          <div className="px-xs lg:px-0">
-            <h2 className="m-0 text-sm font-semibold text-[var(--color-text-primary)] uppercase tracking-[0.12em]">
-              Возвращайтесь каждый день
-            </h2>
-            <p className="m-0 mt-1 text-xs text-[var(--color-text-secondary)]">
-              Заберите ежедневную награду и откройте Boost Hub, чтобы ускорить следующее повышение
-              уровня.
-            </p>
-          </div>
-          {/* Daily Reward Banner */}
-          <DailyRewardBanner onOpenBoosts={onViewBoosts} onOpenShop={onOpenShop} />
-          {activeBoost ? (
-            <Card className="flex items-center justify-between gap-sm-plus bg-lime/15 border-lime/40">
-              <div>
-                <p className="m-0 text-xs uppercase tracking-[0.3em] text-lime-600">
-                  Активный буст
-                </p>
-                <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
-                  ×{activeBoost.multiplier.toFixed(1)} к доходу
-                </p>
-                <p className="m-0 text-xs text-[var(--color-text-secondary)]">
-                  Осталось {formatMsToReadable(activeBoost.remainingMs)}
-                </p>
-              </div>
-              {onViewBoosts && (
-                <Button variant="ghost" size="sm" onClick={onViewBoosts}>
-                  Управлять
-                </Button>
-              )}
-            </Card>
-          ) : typeof nextBoostAvailabilityMs !== 'undefined' ? (
-            <Card className="flex items-center justify-between gap-sm-plus bg-cyan/10 border-cyan/30">
-              <div>
-                <p className="m-0 text-xs uppercase tracking-[0.3em] text-cyan-600">
-                  {nextBoostAvailabilityMs === 0 ? 'Буст доступен' : 'Следующий буст'}
-                </p>
-                <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
-                  {nextBoostAvailabilityMs === 0
-                    ? 'Свободный буст ждёт вас в Boost Hub'
-                    : `Откройте Boost Hub через ${formatMsToReadable(nextBoostAvailabilityMs)}`}
-                </p>
-                <p className="m-0 text-xs text-[var(--color-text-secondary)]">
-                  Бусты удваивают пассивный доход и ускоряют новые постройки.
-                </p>
-              </div>
-              {onViewBoosts && (
-                <Button variant="secondary" size="sm" onClick={onViewBoosts}>
-                  Открыть Boost Hub
-                </Button>
-              )}
-            </Card>
-          ) : null}
-
-          {/* XP Progress Card */}
-          <XPProgressCard
-            level={level}
-            xpProgress={xpProgress}
-            xpCurrent={xpIntoLevel}
-            xpTotal={xpIntoLevel + xpToNextLevel}
-            xpRemaining={xpRemaining}
-          />
-
-          <PrestigeCard
-            prestigeLevel={prestigeLevel}
-            prestigeMultiplier={prestigeMultiplier}
-            prestigeEnergySinceReset={prestigeEnergySinceReset}
-            prestigeNextThreshold={prestigeNextThreshold}
-            prestigeEnergyToNext={prestigeEnergyToNext}
-            prestigeGainAvailable={prestigeGainAvailable}
-            isPrestigeAvailable={isPrestigeAvailable}
-            isLoading={isPrestigeLoading}
-            onPrestige={onPrestige}
-          />
-
-          {/* Social Proof (Friends Playing) */}
-          <SocialProofCard
-            friendsCount={socialPlayerCount}
-            isLoading={isSocialBlockLoading}
-            onViewLeaderboard={onViewLeaderboard}
-          />
-
-          {/* Next Goal Card */}
-          {purchaseInsight && (
-            <Card highlighted={purchaseInsight.affordable}>
-              <div className="mb-sm-plus flex items-center justify-between gap-sm-plus">
+          <CollapsibleSection
+            title="Ежедневные бонусы"
+            description="Заберите подарок и держите бусты активными, чтобы ускорять прогресс."
+          >
+            <DailyRewardBanner onOpenBoosts={onViewBoosts} onOpenShop={onOpenShop} />
+            {activeBoost ? (
+              <Card className="flex items-center justify-between gap-sm-plus bg-lime/15 border-lime/40">
                 <div>
-                  <p className="m-0 text-xs uppercase tracking-[0.6px] text-[var(--color-text-secondary)]">
-                    Следующая цель
+                  <p className="m-0 text-xs font-semibold text-lime-400">Активный буст</p>
+                  <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
+                    ×{activeBoost.multiplier.toFixed(1)} к доходу
                   </p>
-                  <h3 className="m-0 text-lg text-[var(--color-text-primary)] font-semibold">
-                    {purchaseInsight.name}
-                  </h3>
+                  <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                    Осталось {formatMsToReadable(activeBoost.remainingMs)}
+                  </p>
                 </div>
-                {purchaseInsight.roiRank && (
-                  <span className="text-xs text-lime/80 font-semibold">
-                    ROI #{purchaseInsight.roiRank}
-                  </span>
+                {onViewBoosts && (
+                  <Button variant="ghost" size="sm" onClick={onViewBoosts}>
+                    Управлять
+                  </Button>
                 )}
-              </div>
-              <div className="text-sm text-[var(--color-text-secondary)]">
-                Стоимость: {formatNumberWithSpaces(Math.floor(purchaseInsight.cost))} E
-              </div>
-              {purchaseInsight.remaining > 0 && (
-                <div className="text-sm text-[var(--color-text-secondary)] mt-1">
-                  Осталось: {formatNumberWithSpaces(Math.floor(purchaseInsight.remaining))} E
+              </Card>
+            ) : typeof nextBoostAvailabilityMs !== 'undefined' ? (
+              <Card className="flex items-center justify-between gap-sm-plus bg-cyan/10 border-cyan/30">
+                <div>
+                  <p className="m-0 text-xs font-semibold text-cyan-400">
+                    {nextBoostAvailabilityMs === 0 ? 'Новый буст доступен' : 'Следующий буст'}
+                  </p>
+                  <p className="m-0 text-sm text-[var(--color-text-primary)] font-semibold">
+                    {nextBoostAvailabilityMs === 0
+                      ? 'Свободный буст ждёт вас в Boost Hub'
+                      : `Откройте Boost Hub через ${formatMsToReadable(nextBoostAvailabilityMs)}`}
+                  </p>
+                  <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                    Бусты удваивают пассивный доход и ускоряют новые постройки.
+                  </p>
                 </div>
-              )}
-              {purchaseInsight.paybackSeconds !== undefined &&
-                purchaseInsight.paybackSeconds !== null && (
-                  <div className="text-xs text-[var(--color-text-secondary)] mt-1">
-                    Окупаемость: {(purchaseInsight.paybackSeconds / 3600).toFixed(1)} часов
+                {onViewBoosts && (
+                  <Button variant="secondary" size="sm" onClick={onViewBoosts}>
+                    Открыть Boost Hub
+                  </Button>
+                )}
+              </Card>
+            ) : null}
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Прогресс и множители"
+            description="Следите за уровнем, XP и возможностями престижа."
+          >
+            <XPProgressCard
+              level={level}
+              xpProgress={xpProgress}
+              xpCurrent={xpIntoLevel}
+              xpTotal={xpIntoLevel + xpToNextLevel}
+              xpRemaining={xpRemaining}
+            />
+
+            <PrestigeCard
+              prestigeLevel={prestigeLevel}
+              prestigeMultiplier={prestigeMultiplier}
+              prestigeEnergySinceReset={prestigeEnergySinceReset}
+              prestigeNextThreshold={prestigeNextThreshold}
+              prestigeEnergyToNext={prestigeEnergyToNext}
+              prestigeGainAvailable={prestigeGainAvailable}
+              isPrestigeAvailable={isPrestigeAvailable}
+              isLoading={isPrestigeLoading}
+              onPrestige={onPrestige}
+            />
+          </CollapsibleSection>
+
+          <CollapsibleSection
+            title="Сообщество и цели"
+            description="Сравнивайте результаты с друзьями и выбирайте следующую инвестицию."
+            defaultOpen={false}
+          >
+            <SocialProofCard
+              friendsCount={socialPlayerCount}
+              isLoading={isSocialBlockLoading}
+              onViewLeaderboard={onViewLeaderboard}
+            />
+
+            {purchaseInsight && (
+              <Card highlighted={purchaseInsight.affordable}>
+                <div className="mb-sm-plus flex items-center justify-between gap-sm-plus">
+                  <div>
+                    <p className="m-0 text-sm font-medium text-[var(--color-text-secondary)]">
+                      Следующая цель
+                    </p>
+                    <h3 className="m-0 text-lg text-[var(--color-text-primary)] font-semibold">
+                      {purchaseInsight.name}
+                    </h3>
+                  </div>
+                  {purchaseInsight.roiRank && (
+                    <span className="text-xs text-lime/80 font-semibold">
+                      ROI #{purchaseInsight.roiRank}
+                    </span>
+                  )}
+                </div>
+                <div className="text-sm text-[var(--color-text-secondary)]">
+                  Стоимость: {formatNumberWithSpaces(Math.floor(purchaseInsight.cost))} E
+                </div>
+                {purchaseInsight.remaining > 0 && (
+                  <div className="text-sm text-[var(--color-text-secondary)] mt-1">
+                    Осталось: {formatNumberWithSpaces(Math.floor(purchaseInsight.remaining))} E
                   </div>
                 )}
-            </Card>
-          )}
+                {purchaseInsight.paybackSeconds !== undefined &&
+                  purchaseInsight.paybackSeconds !== null && (
+                    <div className="text-xs text-[var(--color-text-secondary)] mt-1">
+                      Окупаемость: {(purchaseInsight.paybackSeconds / 3600).toFixed(1)} часов
+                    </div>
+                  )}
+              </Card>
+            )}
+          </CollapsibleSection>
         </div>
       </div>
 

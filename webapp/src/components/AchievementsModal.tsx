@@ -89,8 +89,23 @@ export function AchievementsModal({
         </div>
 
         {loading && (
-          <div className="py-lg text-center text-body text-[var(--color-text-secondary)]">
-            Загружаем достижения...
+          <div className="grid gap-sm" aria-live="polite">
+            <span className="sr-only">Загружаем достижения…</span>
+            {[0, 1, 2].map(index => (
+              <div
+                key={`achievement-skeleton-${index}`}
+                className="animate-pulse rounded-2xl border border-[rgba(0,217,255,0.12)] bg-[rgba(12,18,40,0.5)] p-md"
+              >
+                <div className="mb-sm flex items-center gap-sm">
+                  <div className="h-10 w-10 rounded-full bg-[rgba(0,217,255,0.18)]" />
+                  <div className="flex-1 space-y-2">
+                    <div className="h-3 w-3/4 rounded-full bg-[rgba(0,217,255,0.16)]" />
+                    <div className="h-3 w-1/2 rounded-full bg-[rgba(0,217,255,0.12)]" />
+                  </div>
+                </div>
+                <div className="h-2 w-full rounded-full bg-[rgba(0,217,255,0.1)]" />
+              </div>
+            ))}
           </div>
         )}
 

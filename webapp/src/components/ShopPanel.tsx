@@ -41,6 +41,18 @@ const BOOST_TABS: Array<{ id: BoostSubSection; label: string }> = [
   { id: 'premium', label: 'Премиум' },
 ];
 
+const STAR_PACK_SECTION_LABELS: Record<StarPackSubSection, string> = {
+  one_time: 'Разовые паки',
+  subscriptions: 'Подписки',
+  bundles: 'Наборы',
+};
+
+const BOOST_SECTION_LABELS: Record<BoostSubSection, string> = {
+  daily: 'Ежедневные бусты',
+  ad: 'Рекламные бусты',
+  premium: 'Премиум бусты',
+};
+
 const getSectionTabId = (id: ShopSection) => `shop-tab-${id}`;
 const getSectionPanelId = (id: ShopSection) => `shop-panel-${id}`;
 const COSMETICS_GRID_ID = 'shop-cosmetics-grid';
@@ -294,6 +306,9 @@ export function ShopPanel({
       }),
     [cosmetics, starPacks, selectedCategory]
   );
+  const activeCosmeticsCategoryLabel = useMemo(() => {
+    return categories.find(category => category.id === activeCategory)?.label ?? null;
+  }, [categories, activeCategory]);
 
   const { success: hapticSuccess, error: hapticError } = useHaptic();
   const handleSectionKeyDown = useCallback(
@@ -556,6 +571,55 @@ export function ShopPanel({
     }
   }, [activeStarPackSection]);
 
+  const breadcrumbLabel = useMemo(() => {
+    const parts: string[] = ['Магазин'];
+    switch (activeSection) {
+      case 'star_packs':
+        parts.push('Паки Stars');
+        parts.push(STAR_PACK_SECTION_LABELS[activeStarPackSection]);
+        break;
+      case 'boosts':
+        parts.push('Бусты');
+        parts.push(BOOST_SECTION_LABELS[activeBoostSection]);
+        break;
+      case 'cosmetics':
+        parts.push('Косметика');
+        if (activeCosmeticsCategoryLabel) {
+          parts.push(activeCosmeticsCategoryLabel);
+        }
+        break;
+      default:
+        break;
+    }
+    return parts.length > 1 ? parts.join(' → ') : null;
+  }, [activeSection, activeStarPackSection, activeBoostSection, activeCosmeticsCategoryLabel]);
+
+  const breadcrumbLogRef = useRef<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!breadcrumbLabel) {
+      return;
+    }
+    if (breadcrumbLogRef.current.has(breadcrumbLabel)) {
+      return;
+    }
+    breadcrumbLogRef.current.add(breadcrumbLabel);
+    void logClientEvent('shop_breadcrumb_view', {
+      label: breadcrumbLabel,
+      section: activeSection,
+      star_section: activeSection === 'star_packs' ? activeStarPackSection : undefined,
+      boost_section: activeSection === 'boosts' ? activeBoostSection : undefined,
+      cosmetics_category:
+        activeSection === 'cosmetics' ? (activeCosmeticsCategoryLabel ?? undefined) : undefined,
+    });
+  }, [
+    breadcrumbLabel,
+    activeSection,
+    activeStarPackSection,
+    activeBoostSection,
+    activeCosmeticsCategoryLabel,
+  ]);
+
   return (
     <div className="flex flex-col gap-md">
       {showHeader ? (
@@ -567,6 +631,18 @@ export function ShopPanel({
           {sectionHelper ? (
             <p className="m-0 mt-1 text-xs text-token-secondary/80">{sectionHelper}</p>
           ) : null}
+        </div>
+      ) : null}
+
+      {breadcrumbLabel ? (
+        <div
+          className="flex items-center gap-xs text-xs text-token-secondary"
+          role="status"
+          aria-live="polite"
+        >
+          <span className="inline-flex items-center gap-xs rounded-full border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.6)] px-sm py-xs">
+            {breadcrumbLabel}
+          </span>
         </div>
       ) : null}
 
@@ -651,10 +727,6 @@ export function ShopPanel({
 
           <Card className="bg-cyan/10 border-cyan/20 text-sm text-token-secondary">
             <strong className="text-token-primary">Совет:</strong> {starPackBannerText}
-          </Card>
-          <Card className="rounded-2xl border border-[rgba(0,217,255,0.25)] bg-gradient-to-br from-[rgba(0,26,63,0.85)] to-[rgba(10,12,36,0.9)] text-body text-[var(--color-text-secondary)]">
-            <strong className="text-[var(--color-text-primary)]">Совет:</strong>{' '}
-            {starPackBannerText}
           </Card>
           {featuredVisiblePack && !isStarPacksLoading && (
             <Card className="relative flex flex-col md:flex-row gap-4 overflow-hidden rounded-2xl border border-[rgba(255,215,0,0.4)] bg-gradient-to-br from-[rgba(28,22,64,0.94)] via-[rgba(38,16,76,0.92)] to-[rgba(72,18,102,0.95)] shadow-glow-gold">

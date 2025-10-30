@@ -20,14 +20,15 @@
  * ```
  */
 
-import { useRef, useEffect, useMemo } from 'react';
+import { useRef, useEffect, useMemo, useCallback, type ReactNode, type KeyboardEvent } from 'react';
 import { useSafeArea } from '../hooks';
 
 export interface TabBarItem {
   id: string;
   label: string;
-  icon: string;
+  icon: ReactNode;
   title?: string; // Full name for accessibility
+  disabled?: boolean;
 }
 
 interface TabBarProps {
@@ -50,6 +51,58 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
     };
   }, [safeBottom, safeLeft, safeRight]);
 
+  const enabledTabs = useMemo(() => tabs.filter(tab => !tab.disabled), [tabs]);
+
+  const handleKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLButtonElement>, index: number) => {
+      const lastIndex = enabledTabs.length - 1;
+      const focusTab = (nextIndex: number) => {
+        const next = enabledTabs[nextIndex];
+        if (!next) {
+          return;
+        }
+        onChange(next.id);
+        requestAnimationFrame(() => {
+          const button = document.getElementById(`tab-${next.id}`) as HTMLButtonElement | null;
+          button?.focus();
+        });
+      };
+
+      switch (event.key) {
+        case 'ArrowRight':
+        case 'ArrowDown': {
+          event.preventDefault();
+          const nextIndex = index === lastIndex ? 0 : index + 1;
+          focusTab(nextIndex);
+          break;
+        }
+        case 'ArrowLeft':
+        case 'ArrowUp': {
+          event.preventDefault();
+          const nextIndex = index === 0 ? lastIndex : index - 1;
+          focusTab(nextIndex);
+          break;
+        }
+        case 'Home':
+          event.preventDefault();
+          focusTab(0);
+          break;
+        case 'End':
+          event.preventDefault();
+          focusTab(lastIndex);
+          break;
+        case 'Enter':
+        case ' ':
+          event.preventDefault();
+          onChange(enabledTabs[index]?.id ?? active);
+          break;
+        default:
+          break;
+      }
+    },
+    [enabledTabs, onChange, active]
+  );
+
   // Auto-scroll active tab into view
   useEffect(() => {
     if (activeTabRef.current && scrollContainerRef.current) {
@@ -70,6 +123,7 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
       className="fixed bottom-0 left-0 right-0 surface-translucent border-t border-[var(--color-border-subtle)] z-[100] w-full backdrop-blur"
       style={footerPadding}
       role="tablist"
+      aria-label="Основная навигация"
     >
       <div
         ref={scrollContainerRef}
@@ -81,7 +135,7 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
           scrollbarWidth: 'none',
         }}
       >
-        {tabs.map(tab => {
+        {enabledTabs.map((tab, index) => {
           const isActive = active === tab.id;
           const buttonClasses = `relative flex flex-col gap-1 items-center justify-center flex-shrink-0 px-sm-plus py-sm min-w-[68px] min-h-[48px] cursor-pointer transition-colors border-none bg-none text-xs tracking-wide ${
             isActive
@@ -104,6 +158,7 @@ export function TabBar({ tabs, active, onChange }: TabBarProps) {
               role="tab"
               id={`tab-${tab.id}`}
               aria-controls={`tab-panel-${tab.id}`}
+              onKeyDown={event => handleKeyDown(event, index)}
             >
               <span className="text-title" aria-hidden="true">
                 {tab.icon}
