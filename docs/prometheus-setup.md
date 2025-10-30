@@ -13,7 +13,7 @@ docker build -t energyplanet-prometheus infra/prometheus
   - `PROMETHEUS_SCRAPE_TARGET=api:3000` (внутренний hostname backend’а, см. Private Networking). Если идёшь по публичному домену — `your-api.up.railway.app:443`.
   - `PROMETHEUS_SCRAPE_SCHEME=http` (или `https` при внешнем доступе).
   - `PROMETHEUS_METRICS_PATH=/metrics` (необязательно, это дефолт).
-  - Если `/metrics` защищён basic auth: `PROM_AUTH_USER` / `PROM_AUTH_PASS`.
+  - Если `/metrics` защищён basic auth: `PROM_AUTH_USER=metrics`, `PROM_AUTH_PASS=metrics` (или свой логин/пароль) — шаблон теперь подставляет их в `basic_auth`.
 - Включи Private Networking и для backend, и для prometheus, чтобы адрес `api:3000` резолвился.
 - После изменений нажми **Deploy** (prometheus пересоберёт конфиг через `envsubst`).
 
