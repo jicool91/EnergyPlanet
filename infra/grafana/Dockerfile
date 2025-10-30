@@ -5,4 +5,4 @@ ENV GF_AUTH_ANONYMOUS_ENABLED=false \
     GF_SERVER_HTTP_PORT=3000
 
 COPY provisioning /etc/grafana/provisioning
-COPY ../../grafana/dashboards /var/lib/grafana/dashboards
+COPY dashboards /var/lib/grafana/dashboards
