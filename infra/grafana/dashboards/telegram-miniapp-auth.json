@@ -177,7 +177,7 @@
       },
       "targets": [
         {
-          "expr": "100 * sum(rate(energyplanet_auth_requests_total{outcome!\"success\"}[5m])) / ignoring(outcome) sum(rate(energyplanet_auth_requests_total[5m]))",
+          "expr": "100 * sum(rate(energyplanet_auth_requests_total{outcome!=\"success\"}[5m])) / ignoring(outcome) sum(rate(energyplanet_auth_requests_total[5m]))",
           "legendFormat": "error share",
           "refId": "A"
         }
@@ -277,7 +277,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (endpoint, status) (energyplanet_auth_requests_total)",
+          "expr": "sum by (endpoint, status) (increase(energyplanet_auth_requests_total[$__range]))",
           "format": "table",
           "refId": "A"
         }
