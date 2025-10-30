@@ -46,7 +46,7 @@ function MainScreenHeaderComponent({
 }: MainScreenHeaderProps) {
   const energyDisplay = useMemo(
     () =>
-      new Intl.NumberFormat('ru-RU', {
+      new Intl.NumberFormat('en-US', {
         notation: 'compact',
         maximumFractionDigits: 1,
         minimumFractionDigits: 1,
@@ -55,7 +55,7 @@ function MainScreenHeaderComponent({
   );
   const starsDisplay = useMemo(
     () =>
-      new Intl.NumberFormat('ru-RU', {
+      new Intl.NumberFormat('en-US', {
         notation: 'compact',
         maximumFractionDigits: 1,
       }).format(stars),
