@@ -36,6 +36,7 @@ import {
   recordReferralCodeMetric,
   recordReferralRewardMetric,
 } from '../metrics/gameplay';
+import { recordStarsCreditMetric } from '../metrics/business';
 
 const hasDatabaseErrorCode = (error: unknown, code: string): boolean => {
   return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === code;
@@ -422,6 +423,7 @@ class ReferralService {
     if (effectiveStars > 0) {
       await adjustStarsBalance(userId, effectiveStars, client);
       starsGranted = effectiveStars;
+      recordStarsCreditMetric(`referral_${type}`, effectiveStars);
     }
 
     if (reward.cosmeticId) {

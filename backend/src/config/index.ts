@@ -230,7 +230,7 @@ export const config = {
   logging: {
     level:
       process.env.LOG_LEVEL ||
-      (normalizedRuntimeEnv === 'production' ? 'warn' : 'debug'),
+      (normalizedRuntimeEnv === 'production' ? 'error' : 'debug'),
     format: process.env.LOG_FORMAT || 'json',
     filePath: process.env.LOG_FILE_PATH || './logs/app.log',
     errorFilePath: process.env.LOG_ERROR_FILE_PATH || './logs/error.log',
