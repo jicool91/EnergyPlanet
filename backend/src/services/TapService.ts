@@ -7,6 +7,7 @@ import { logger } from '../utils/logger';
 import { tapAggregator } from './TapAggregator';
 import { logEvent } from '../repositories/EventRepository';
 import { getActiveBoosts } from '../repositories/BoostRepository';
+import { recordTapRateLimitMetric, recordTapRequestMetric } from '../metrics/gameplay';
 
 const MAX_TAP_COUNT_PER_REQUEST = 50;
 const MAX_TAPS_PER_MINUTE = 600;
@@ -38,6 +39,13 @@ export class TapService {
           second_total: secondCount,
           minute_total: minuteCount,
         };
+        const window: 'second' | 'minute' | 'unknown' =
+          secondCount > MAX_TAPS_PER_SECOND
+            ? 'second'
+            : minuteCount > MAX_TAPS_PER_MINUTE
+              ? 'minute'
+              : 'unknown';
+        recordTapRateLimitMetric(window);
         await logEvent(userId, 'tap_rate_limit', payload, { suspicious: true });
         logger.warn({ userId, ...payload }, 'tap_rate_limit_triggered');
         throw new AppError(429, 'tap_rate_limited');
@@ -65,6 +73,7 @@ export class TapService {
     }
 
     await this.enforceRateLimit(userId, tapCount);
+    recordTapRequestMetric(tapCount);
 
     const progress = await getProgress(userId);
     if (!progress) {

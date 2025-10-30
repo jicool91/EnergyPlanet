@@ -66,6 +66,24 @@ const boostClaimCounter = metricsEnabled
     })
   : null;
 
+const purchaseFailureCounter = metricsEnabled
+  ? new client.Counter({
+      name: 'energyplanet_purchase_failures_total',
+      help: 'Count of failed purchases grouped by reason',
+      labelNames: ['reason'] as const,
+      registers: [register],
+    })
+  : null;
+
+const starsCreditCounter = metricsEnabled
+  ? new client.Counter({
+      name: 'energyplanet_stars_credit_total',
+      help: 'Stars credited to users grouped by source',
+      labelNames: ['source'] as const,
+      registers: [register],
+    })
+  : null;
+
 export function recordUserLoginMetric(isNewUser: boolean, replayStatus: ReplayStatus) {
   loginCounter?.inc({
     is_new_user: isNewUser ? 'true' : 'false',
@@ -116,4 +134,18 @@ export function recordBoostClaimMetric(params: {
     boost_type: params.boostType,
     outcome: params.outcome,
   });
+}
+
+export function recordPurchaseFailureMetric(reason: string) {
+  if (!metricsEnabled) {
+    return;
+  }
+  purchaseFailureCounter?.inc({ reason });
+}
+
+export function recordStarsCreditMetric(source: string, amount: number) {
+  if (!metricsEnabled || amount <= 0) {
+    return;
+  }
+  starsCreditCounter?.inc({ source }, amount);
 }

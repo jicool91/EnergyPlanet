@@ -7,6 +7,7 @@ import { calculateLevelProgress } from '../utils/level';
 import { logEvent } from '../repositories/EventRepository';
 import { createTapEvent } from '../repositories/TapEventRepository';
 import { achievementService } from './AchievementService';
+import { recordTapBatchMetric } from '../metrics/gameplay';
 
 interface BufferTotals {
   taps: number;
@@ -177,6 +178,16 @@ export class TapAggregator {
     }
 
     try {
+      let batchMetrics:
+        | {
+            taps: number;
+            energy: number;
+            baseEnergy: number;
+            xp: number;
+            latencyMs: number;
+            leveledUp: boolean;
+          }
+        | null = null;
       const replies = await redis
         .multi()
         .hGetAll(this.bufferKey(userId))
@@ -252,7 +263,20 @@ export class TapAggregator {
         logger.info({ userId, ...payload }, 'tap_batch_processed');
 
         await logEvent(userId, 'tap_batch_processed', payload, { client });
+
+        batchMetrics = {
+          taps,
+          energy: energyDelta,
+          baseEnergy: baseEnergyDelta,
+          xp: xpDelta,
+          latencyMs,
+          leveledUp,
+        };
       });
+
+      if (batchMetrics) {
+        recordTapBatchMetric(batchMetrics);
+      }
 
       return true;
     } finally {

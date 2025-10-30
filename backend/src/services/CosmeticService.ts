@@ -12,6 +12,7 @@ import { config } from '../config';
 import { invalidateProfileCache } from '../cache/invalidation';
 import { upsertCosmetics } from '../repositories/CosmeticRepository';
 import { adjustStarsBalance } from '../repositories/ProgressRepository';
+import { recordCosmeticEquipMetric, recordCosmeticGrantedMetric } from '../metrics/gameplay';
 
 type UnlockType = 'free' | 'level' | 'purchase' | 'event';
 
@@ -130,13 +131,16 @@ async function grantCosmetic(
   userId: string,
   cosmeticId: string,
   ownedSet: Set<string>,
-  client: Parameters<typeof addUserCosmetic>[2]
-): Promise<void> {
+  client: Parameters<typeof addUserCosmetic>[2],
+  source: 'auto_unlock' | 'purchase' | 'reward'
+): Promise<boolean> {
   if (ownedSet.has(cosmeticId)) {
-    return;
+    return false;
   }
   await addUserCosmetic(userId, cosmeticId, client);
   ownedSet.add(cosmeticId);
+  recordCosmeticGrantedMetric({ cosmeticId, source });
+  return true;
 }
 
 function determineStatus(
@@ -172,7 +176,7 @@ export class CosmeticService {
         const unlockType = (cosmetic.unlock_type ?? 'free') as UnlockType;
         const requirement = (cosmetic.unlock_requirement ?? {}) as CosmeticUnlockRequirement;
         if (shouldAutoUnlock(unlockType, requirement, context.progress.level)) {
-          await grantCosmetic(userId, cosmetic.id, ownedSet, client);
+          await grantCosmetic(userId, cosmetic.id, ownedSet, client, 'auto_unlock');
         }
       }
 
@@ -226,7 +230,7 @@ export class CosmeticService {
 
       if (ownedSet.has(cosmeticId) || shouldAutoUnlock(unlockType, requirement, context.progress.level)) {
         // Already owned or auto-eligible
-        await grantCosmetic(userId, cosmeticId, ownedSet, client);
+        await grantCosmetic(userId, cosmeticId, ownedSet, client, 'auto_unlock');
         return;
       }
 
@@ -270,7 +274,7 @@ export class CosmeticService {
             { client }
           );
 
-          await grantCosmetic(userId, cosmeticId, ownedSet, client);
+          await grantCosmetic(userId, cosmeticId, ownedSet, client, 'purchase');
           await logEvent(
             userId,
             'cosmetic_purchase',
@@ -289,11 +293,11 @@ export class CosmeticService {
           if (context.progress.level < requiredLevel) {
             throw new AppError(403, 'level_requirement_not_met');
           }
-          await grantCosmetic(userId, cosmeticId, ownedSet, client);
+          await grantCosmetic(userId, cosmeticId, ownedSet, client, 'auto_unlock');
           break;
         }
         case 'free': {
-          await grantCosmetic(userId, cosmeticId, ownedSet, client);
+          await grantCosmetic(userId, cosmeticId, ownedSet, client, 'auto_unlock');
           break;
         }
         case 'event':
@@ -322,7 +326,7 @@ export class CosmeticService {
         throw new AppError(403, 'cosmetic_not_owned');
       }
 
-      await grantCosmetic(userId, cosmeticId, ownedSet, client);
+      await grantCosmetic(userId, cosmeticId, ownedSet, client, 'auto_unlock');
 
       const profileField = ensureProfileField(cosmetic.category);
       await updateEquipment(
@@ -340,6 +344,10 @@ export class CosmeticService {
         },
         { client }
       );
+      recordCosmeticEquipMetric({
+        cosmeticId,
+        category: cosmetic.category,
+      });
     });
 
     await invalidateProfileCache(userId);

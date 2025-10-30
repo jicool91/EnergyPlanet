@@ -13,6 +13,7 @@ import { AppError } from '../middleware/errorHandler';
 import { adjustStarsBalance } from '../repositories/ProgressRepository';
 import { updateProgress } from '../repositories/ProgressRepository';
 import { logEvent } from '../repositories/EventRepository';
+import { recordQuestClaimMetric } from '../metrics/gameplay';
 
 interface QuestReward {
   stars: number;
@@ -197,6 +198,12 @@ class QuestService {
         },
         { client }
       );
+      recordQuestClaimMetric({
+        questType: definition.type,
+        stars: reward.stars,
+        energy: reward.energy,
+        xp: reward.xp,
+      });
 
       logger.info(
         {

@@ -16,6 +16,8 @@ import {
   recordPurchaseCompletedMetric,
   recordPurchaseConflictMetric,
   recordPurchaseInvoiceMetric,
+  recordPurchaseFailureMetric,
+  recordStarsCreditMetric,
 } from '../metrics/business';
 
 interface RecordPurchaseInput {
@@ -271,6 +273,7 @@ export class PurchaseService {
       },
       { client }
     );
+    recordStarsCreditMetric('purchase', totalStars);
   }
 
   async markFailed(purchaseId: string): Promise<PurchaseRecord> {
@@ -294,6 +297,7 @@ export class PurchaseService {
       logger.warn({ userId: updated.userId, ...payload }, 'purchase_failed');
 
       await logEvent(updated.userId, 'purchase_failed', payload, { client });
+      recordPurchaseFailureMetric(existing.status ?? 'unknown');
 
       return updated;
     });

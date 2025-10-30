@@ -30,6 +30,12 @@ import { addUserCosmetic } from '../repositories/UserCosmeticsRepository';
 import { logEvent } from '../repositories/EventRepository';
 import { findById } from '../repositories/UserRepository';
 import { invalidateProfileCache } from '../cache/invalidation';
+import {
+  recordCosmeticGrantedMetric,
+  recordReferralActivationMetric,
+  recordReferralCodeMetric,
+  recordReferralRewardMetric,
+} from '../metrics/gameplay';
 
 const hasDatabaseErrorCode = (error: unknown, code: string): boolean => {
   return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === code;
@@ -209,6 +215,18 @@ class ReferralService {
       await invalidateProfileCache(userId);
       await invalidateProfileCache(codeRecord.userId);
 
+      recordReferralActivationMetric();
+      recordReferralRewardMetric({
+        type: 'invitee',
+        stars: inviteeRewardResult.starsGranted,
+        cosmeticGranted: Boolean(inviteeRewardResult.cosmeticGranted),
+      });
+      recordReferralRewardMetric({
+        type: 'referrer',
+        stars: referrerRewardResult.starsGranted,
+        cosmeticGranted: Boolean(referrerRewardResult.cosmeticGranted),
+      });
+
       return this.buildSummary(userId, config, client);
     });
   }
@@ -282,6 +300,12 @@ class ReferralService {
         { client }
       );
 
+      recordReferralRewardMetric({
+        type: 'milestone',
+        stars: rewardResult.starsGranted,
+        cosmeticGranted: Boolean(rewardResult.cosmeticGranted),
+      });
+
       await invalidateProfileCache(userId);
 
       return this.buildSummary(userId, config, client);
@@ -336,6 +360,7 @@ class ReferralService {
           { code: created.code },
           { client }
         );
+        recordReferralCodeMetric();
         return;
       } catch (error: unknown) {
         if (hasDatabaseErrorCode(error, '23505')) {
@@ -401,6 +426,10 @@ class ReferralService {
 
     if (reward.cosmeticId) {
       await addUserCosmetic(userId, reward.cosmeticId, client);
+      recordCosmeticGrantedMetric({
+        cosmeticId: reward.cosmeticId,
+        source: 'reward',
+      });
     }
 
     return {

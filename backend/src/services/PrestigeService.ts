@@ -7,6 +7,7 @@ import { AppError } from '../middleware/errorHandler';
 import { logEvent } from '../repositories/EventRepository';
 import { invalidateProfileCache } from '../cache/invalidation';
 import { achievementService } from './AchievementService';
+import { recordPrestigeMetric } from '../metrics/gameplay';
 
 const PRESTIGE_MILESTONE = 1_000_000_000_000; // 1e12
 const MIN_PRESTIGE_LEVEL = 50;
@@ -129,6 +130,11 @@ export class PrestigeService {
         },
         { client }
       );
+
+      recordPrestigeMetric({
+        gain,
+        energySinceReset: energySincePrestige,
+      });
 
       return {
         progress: updatedProgress,

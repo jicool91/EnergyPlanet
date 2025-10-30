@@ -18,6 +18,12 @@ import {
 import { upsertInventoryItem } from '../repositories/InventoryRepository';
 import { invalidateProfileCache } from '../cache/invalidation';
 import { achievementService } from './AchievementService';
+import {
+  recordBuildingPurchaseMetric,
+  recordOfflineRewardMetric,
+  recordSessionLogoutMetric,
+  recordSessionOpenMetric,
+} from '../metrics/gameplay';
 
 interface OfflineGains {
   energy: number;
@@ -98,6 +104,13 @@ export class SessionService {
           },
           { client }
         );
+        recordBuildingPurchaseMetric({
+          buildingId: 'solar_panel',
+          quantity: 1,
+          energySpent: 0,
+          xpGained: 0,
+          source: 'auto_grant',
+        });
       }
 
       const detailedInventory = buildBuildingDetails(effectiveInventory, progress.level);
@@ -193,7 +206,16 @@ export class SessionService {
         effectiveMultiplier,
         effectivePassiveIncome: effectiveIncome,
         featureFlags,
+        leveledUp,
       };
+    });
+
+    recordSessionOpenMetric(state.leveledUp);
+    recordOfflineRewardMetric({
+      energy: state.offline.energy,
+      xp: state.offline.xp,
+      durationSec: state.offline.duration_sec,
+      capped: state.offline.capped,
     });
 
     await invalidateProfileCache(userId);
@@ -253,5 +275,6 @@ export class SessionService {
   async recordLogout(userId: string): Promise<void> {
     await updateProgress(userId, { lastLogout: new Date() });
     await logEvent(userId, 'logout', {});
+    recordSessionLogoutMetric();
   }
 }

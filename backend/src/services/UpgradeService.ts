@@ -11,6 +11,7 @@ import { calculateLevelProgress } from '../utils/level';
 import { calculatePurchaseXp, calculateUpgradeXp } from '../utils/xp';
 import { invalidateProfileCache } from '../cache/invalidation';
 import { achievementService } from './AchievementService';
+import { recordBuildingPurchaseMetric, recordBuildingUpgradeMetric } from '../metrics/gameplay';
 
 interface UpgradeRequest {
   buildingId: string;
@@ -154,11 +155,11 @@ export class UpgradeService {
           client
         );
 
-        await logEvent(
-          userId,
-          'building_purchase',
-          {
-            building_id: request.buildingId,
+      await logEvent(
+        userId,
+        'building_purchase',
+        {
+          building_id: request.buildingId,
             quantity: purchased,
             cost: totalCost,
             total_cost: totalCost,
@@ -170,6 +171,14 @@ export class UpgradeService {
           },
           { client }
         );
+
+        recordBuildingPurchaseMetric({
+          buildingId: request.buildingId,
+          quantity: purchased,
+          energySpent: totalCost,
+          xpGained: totalAppliedXp,
+          source: 'player',
+        });
 
         const income = contentService.getBuildingIncome(
           building,
@@ -243,6 +252,12 @@ export class UpgradeService {
         },
         { client }
       );
+
+      recordBuildingUpgradeMetric({
+        buildingId: request.buildingId,
+        energySpent: cost,
+        xpGained: upgradeXp.appliedXp,
+      });
 
       const income = contentService.getBuildingIncome(building, updatedInventory.count, updatedInventory.level);
       const nextCost = contentService.getBuildingCost(building, updatedInventory.count);

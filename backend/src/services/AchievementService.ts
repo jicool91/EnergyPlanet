@@ -16,6 +16,12 @@ import { logEvent } from '../repositories/EventRepository';
 import { AppError } from '../middleware/errorHandler';
 import { invalidateProfileCache } from '../cache/invalidation';
 import { addUserCosmetic, hasUserCosmetic } from '../repositories/UserCosmeticsRepository';
+import {
+  recordAchievementClaimedMetric,
+  recordAchievementCosmeticMetric,
+  recordAchievementUnlockedMetric,
+  recordCosmeticGrantedMetric,
+} from '../metrics/gameplay';
 
 type AchievementMetric = 'total_energy' | 'total_taps' | 'buildings_owned' | 'prestige_level';
 
@@ -200,6 +206,7 @@ export class AchievementService {
             },
             { client }
           );
+          recordAchievementUnlockedMetric(def.slug, tier);
         }
         results.push({
           slug: def.slug,
@@ -274,6 +281,11 @@ export class AchievementService {
             },
             { client }
           );
+          recordAchievementCosmeticMetric(cosmeticForTier.cosmeticId);
+          recordCosmeticGrantedMetric({
+            cosmeticId: cosmeticForTier.cosmeticId,
+            source: 'reward',
+          });
         }
       }
 
@@ -288,6 +300,7 @@ export class AchievementService {
         },
         { client }
       );
+      recordAchievementClaimedMetric(definition.slug, nextTier);
 
       return {
         definition,
