@@ -31,4 +31,4 @@ cat <<'EOF' >>/etc/prometheus/prometheus.yml
         target_label: instance
 EOF
 
-exec /bin/prometheus   --config.file=/etc/prometheus/prometheus.yml   --web.enable-lifecycle   --web.listen-address='[::]:9090'   --log.level=debug
+exec /bin/prometheus   --config.file=/etc/prometheus/prometheus.yml   --web.enable-lifecycle   --web.listen-address='[::]:9090'   --log.level=debug   2>&1
