@@ -43,8 +43,8 @@ Prometheus UI: `http://localhost:9090/graph` → run query `energyplanet_tick_su
 
 - New Service → “Deploy from GitHub”, папка `infra/grafana`.
 - Переменные окружения:
-  - `GF_ADMIN_USER=admin` (или другой логин)
-  - `GF_ADMIN_PASSWORD=<сильный пароль>`
+  - `GF_SECURITY_ADMIN_USER=admin`
+  - `GF_SECURITY_ADMIN_PASSWORD=<сильный пароль>`
   - `GF_PROMETHEUS_USER=metrics`
   - `GF_PROMETHEUS_PASS=metrics`
 - Включи Private Networking, чтобы `prometheus:9090` резолвился.
