@@ -104,7 +104,7 @@ export const config = {
   server: {
     env: normalizedRuntimeEnv,
     port: parseInt(process.env.PORT || '3000', 10),
-    host: process.env.HOST || '0.0.0.0',
+    host: process.env.HOST || '::',
     apiPrefix: process.env.API_PREFIX || '/api/v1',
   },
 
