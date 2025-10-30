@@ -10,8 +10,9 @@ datasources:
     type: prometheus
     access: proxy
     url: ${GF_PROMETHEUS_URL}
-    basicAuth: true
-    basicAuthUser: ${GF_PROMETHEUS_USER}
-    basicAuthPassword: ${GF_PROMETHEUS_PASS}
+    basicAuth: false
     isDefault: true
     editable: false
+    jsonData:
+      tlsSkipVerify: true
+      timeInterval: 15s
