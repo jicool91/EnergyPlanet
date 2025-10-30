@@ -12,6 +12,7 @@ import { loadPlayerContext } from './playerContext';
 import { config } from '../config';
 import { invalidateProfileCache } from '../cache/invalidation';
 import { contentService } from './ContentService';
+import { recordBoostClaimMetric } from '../metrics/business';
 
 type BoostType = 'ad_boost' | 'daily_boost' | 'premium_boost';
 
@@ -182,6 +183,7 @@ export class BoostService {
   }
 
   async claimBoost(userId: string, boostType: BoostType): Promise<BoostRecord> {
+    let outcome: 'success' | 'already_active' | 'cooldown' | 'requires_premium' | 'error' = 'success';
     const definitions = this.getDefinitions();
     const definition = definitions[boostType];
 
@@ -189,64 +191,83 @@ export class BoostService {
       throw new AppError(400, 'unknown_boost_type');
     }
 
-    const result = await transaction(async client => {
-      await loadPlayerContext(userId, client);
+    try {
+      const result = await transaction(async client => {
+        await loadPlayerContext(userId, client);
 
-      if (definition.requiresPremium && !config.monetization.starsEnabled && !config.testing.mockPayments) {
-        throw new AppError(403, 'premium_boost_unavailable');
-      }
-
-      const active = await findActiveBoostByType(userId, boostType, client);
-      if (active) {
-        throw new AppError(409, 'boost_already_active');
-      }
-
-      const lastClaim = await getLastBoostClaim(userId, boostType, client);
-      if (lastClaim) {
-        const now = new Date();
-        const elapsedMinutes = (now.getTime() - lastClaim.getTime()) / 60000;
-        if (elapsedMinutes < definition.cooldownMinutes) {
-          const remaining = Math.ceil(definition.cooldownMinutes - elapsedMinutes);
-          throw new AppError(429, `boost_cooldown_${remaining}`);
+        if (definition.requiresPremium && !config.monetization.starsEnabled && !config.testing.mockPayments) {
+          throw new AppError(403, 'premium_boost_unavailable');
         }
+
+        const active = await findActiveBoostByType(userId, boostType, client);
+        if (active) {
+          throw new AppError(409, 'boost_already_active');
+        }
+
+        const lastClaim = await getLastBoostClaim(userId, boostType, client);
+        if (lastClaim) {
+          const now = new Date();
+          const elapsedMinutes = (now.getTime() - lastClaim.getTime()) / 60000;
+          if (elapsedMinutes < definition.cooldownMinutes) {
+            const remaining = Math.ceil(definition.cooldownMinutes - elapsedMinutes);
+            throw new AppError(429, `boost_cooldown_${remaining}`);
+          }
+        }
+
+        const expiresAt = addDuration(new Date(), `${definition.durationMinutes}m`);
+        const boost = await createBoost(
+          userId,
+          boostType,
+          definition.multiplier,
+          expiresAt,
+          client
+        );
+
+        await logEvent(
+          userId,
+          'boost_claim',
+          {
+            boost_type: boostType,
+            multiplier: definition.multiplier,
+            duration_minutes: definition.durationMinutes,
+          },
+          { client }
+        );
+
+        // Log also as activation event for analytics
+        await logEvent(
+          userId,
+          'boost_activate',
+          {
+            boost_type: boostType,
+            expires_at: boost.expiresAt.toISOString(),
+          },
+          { client }
+        );
+
+        return boost;
+      });
+
+      await invalidateProfileCache(userId);
+      recordBoostClaimMetric({ boostType, outcome: 'success' });
+      return result;
+    } catch (error) {
+      if (error instanceof AppError) {
+        if (error.message === 'boost_already_active') {
+          outcome = 'already_active';
+        } else if (error.message.startsWith('boost_cooldown_')) {
+          outcome = 'cooldown';
+        } else if (error.message === 'premium_boost_unavailable') {
+          outcome = 'requires_premium';
+        } else {
+          outcome = 'error';
+        }
+      } else {
+        outcome = 'error';
       }
-
-      const expiresAt = addDuration(new Date(), `${definition.durationMinutes}m`);
-      const boost = await createBoost(
-        userId,
-        boostType,
-        definition.multiplier,
-        expiresAt,
-        client
-      );
-
-      await logEvent(
-        userId,
-        'boost_claim',
-        {
-          boost_type: boostType,
-          multiplier: definition.multiplier,
-          duration_minutes: definition.durationMinutes,
-        },
-        { client }
-      );
-
-      // Log also as activation event for analytics
-      await logEvent(
-        userId,
-        'boost_activate',
-        {
-          boost_type: boostType,
-          expires_at: boost.expiresAt.toISOString(),
-        },
-        { client }
-      );
-
-      return boost;
-    });
-
-    await invalidateProfileCache(userId);
-    return result;
+      recordBoostClaimMetric({ boostType, outcome });
+      throw error;
+    }
   }
 }
 

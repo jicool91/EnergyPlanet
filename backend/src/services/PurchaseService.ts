@@ -12,6 +12,11 @@ import { config } from '../config';
 import { logger } from '../utils/logger';
 import { adjustStarsBalance } from '../repositories/ProgressRepository';
 import { contentService } from './ContentService';
+import {
+  recordPurchaseCompletedMetric,
+  recordPurchaseConflictMetric,
+  recordPurchaseInvoiceMetric,
+} from '../metrics/business';
 
 interface RecordPurchaseInput {
   purchaseId: string;
@@ -24,6 +29,7 @@ interface RecordPurchaseInput {
 export class PurchaseService {
   async createInvoice(userId: string, input: RecordPurchaseInput) {
     if (!config.testing.mockPayments && !config.monetization.starsEnabled) {
+      recordPurchaseConflictMetric('stars_disabled');
       throw new AppError(403, 'stars_disabled');
     }
 
@@ -39,6 +45,7 @@ export class PurchaseService {
             },
             'purchase_invoice_user_mismatch'
           );
+          recordPurchaseConflictMetric('invoice_user_mismatch');
           throw new AppError(409, 'purchase_conflict');
         }
 
@@ -50,6 +57,7 @@ export class PurchaseService {
           },
           'purchase_invoice_reused'
         );
+        recordPurchaseInvoiceMetric(existing.purchaseType ?? input.purchaseType, 'reused');
         return existing;
       }
 
@@ -62,6 +70,8 @@ export class PurchaseService {
         'pending',
         { client }
       );
+
+      recordPurchaseInvoiceMetric(input.purchaseType, 'created');
 
       logger.info(
         {
@@ -92,6 +102,7 @@ export class PurchaseService {
 
   async recordMockPurchase(userId: string, input: RecordPurchaseInput): Promise<PurchaseRecord> {
     if (!config.testing.mockPayments && !config.monetization.starsEnabled) {
+      recordPurchaseConflictMetric('stars_disabled');
       throw new AppError(403, 'stars_disabled');
     }
 
@@ -107,6 +118,7 @@ export class PurchaseService {
             },
             'purchase_user_mismatch'
           );
+          recordPurchaseConflictMetric('invoice_user_mismatch');
           throw new AppError(409, 'purchase_conflict');
         }
 
@@ -140,6 +152,12 @@ export class PurchaseService {
         await logEvent(userId, 'purchase_succeeded', payload, { client });
 
         await this.applyPostPurchaseEffects(userId, input, client);
+        recordPurchaseCompletedMetric({
+          purchaseType: updated.purchaseType ?? input.purchaseType ?? 'unknown',
+          itemId: updated.itemId ?? input.itemId ?? 'unknown',
+          priceStars: typeof updated.priceStars === 'number' ? updated.priceStars : input.priceStars,
+          mock: config.testing.mockPayments,
+        });
 
         return updated;
       }
@@ -153,6 +171,8 @@ export class PurchaseService {
         'succeeded',
         { client }
       );
+
+      recordPurchaseInvoiceMetric(input.purchaseType, 'created');
 
       const payload = {
         purchase_id: purchase.purchaseId,
@@ -169,6 +189,12 @@ export class PurchaseService {
       await logEvent(userId, 'purchase_succeeded', payload, { client });
 
       await this.applyPostPurchaseEffects(userId, input, client);
+      recordPurchaseCompletedMetric({
+        purchaseType: purchase.purchaseType ?? input.purchaseType ?? 'unknown',
+        itemId: purchase.itemId ?? input.itemId ?? 'unknown',
+        priceStars: typeof purchase.priceStars === 'number' ? purchase.priceStars : input.priceStars,
+        mock: config.testing.mockPayments,
+      });
 
       return purchase;
     });

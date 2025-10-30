@@ -33,11 +33,9 @@ import { transaction } from '../db/connection';
 import { addDuration, durationToMilliseconds } from '../utils/time';
 import { hashToken } from '../utils/token';
 import { registerInitDataHash } from '../cache/telegramInitReplay';
-import {
-  ensurePlayerSession,
-  updatePlayerSession,
-} from '../repositories/PlayerSessionRepository';
+import { ensurePlayerSession, updatePlayerSession } from '../repositories/PlayerSessionRepository';
 import { recordSessionFamilyRevocationMetric } from '../metrics/auth';
+import { recordSessionRotationMetric, recordUserLoginMetric } from '../metrics/business';
 
 interface AuthTokens {
   accessToken: string;
@@ -333,6 +331,7 @@ export class AuthService {
             },
             { client }
           );
+          recordSessionRotationMetric('tma_replay');
         } else {
           await logEvent(
             user.id,
@@ -345,6 +344,7 @@ export class AuthService {
             },
             { client }
           );
+          recordUserLoginMetric(isNewUser, replayStatus);
         }
 
         return { user, progress, isNewUser, tokens, replayStatus, sessionRotated };

@@ -17,3 +17,27 @@ groups:
         annotations:
           summary: "Unauthorized tick spikes"
           description: "Detected more than 50 unauthorized ticks in 5 minutes."
+      - alert: AuthErrorRateHigh
+        expr: (sum(rate(energyplanet_auth_requests_total{outcome!="success"}[5m])) / sum(rate(energyplanet_auth_requests_total[5m]))) > 0.2 and sum(rate(energyplanet_auth_requests_total[5m])) > 5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Auth error rate above 20%"
+          description: "Auth failure or rate-limit share exceeded 20% for 5 minutes."
+      - alert: PurchaseConflictSpike
+        expr: increase(energyplanet_purchase_conflicts_total[10m]) > 5
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Purchase conflicts spike"
+          description: "More than 5 purchase conflicts occurred within 10 minutes."
+      - alert: BoostCooldownFlood
+        expr: increase(energyplanet_boost_claims_total{outcome="cooldown"}[10m]) > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Players hitting boost cooldown frequently"
+          description: "More than 30 boost claims were rejected due to cooldown in 10 minutes."
