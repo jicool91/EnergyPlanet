@@ -23,8 +23,6 @@
  */
 
 import { memo, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { formatCompactNumber } from '../utils/number';
 import { LevelBar } from './LevelBar';
 import { useSafeArea } from '../hooks';
 import { HEADER_BUFFER_PX } from '../constants/layout';
@@ -46,8 +44,23 @@ function MainScreenHeaderComponent({
   onSettingsClick,
   onShopClick,
 }: MainScreenHeaderProps) {
-  const energyCompact = useMemo(() => formatCompactNumber(Math.floor(energy)), [energy]);
-  const starsCompact = useMemo(() => formatCompactNumber(Math.floor(stars)), [stars]);
+  const energyDisplay = useMemo(
+    () =>
+      new Intl.NumberFormat('ru-RU', {
+        notation: 'compact',
+        maximumFractionDigits: 1,
+        minimumFractionDigits: 1,
+      }).format(energy),
+    [energy]
+  );
+  const starsDisplay = useMemo(
+    () =>
+      new Intl.NumberFormat('ru-RU', {
+        notation: 'compact',
+        maximumFractionDigits: 1,
+      }).format(stars),
+    [stars]
+  );
   const { safeArea } = useSafeArea();
   const safeTop = Math.max(0, safeArea.safe.top ?? 0);
   const contentTop = Math.max(0, safeArea.content.top ?? 0);
@@ -72,114 +85,68 @@ function MainScreenHeaderComponent({
         borderBottom: '1px solid var(--color-border-subtle)',
       }}
     >
-      <div className="flex h-14 items-center justify-between gap-md px-md py-md">
-        {/* Left: Level & Resources */}
-        <div className="flex items-stretch gap-sm-plus min-w-0 divide-x divide-[rgba(255,255,255,0.08)]">
-          {/* Level Badge */}
-          <div className="flex flex-col items-center justify-center px-sm-plus">
-            <span className="text-caption text-[var(--color-text-secondary)] uppercase tracking-[0.18em]">
-              Lv
-            </span>
-            <span className="text-subheading font-bold text-[var(--color-text-accent)]">
-              {level}
-            </span>
-          </div>
-
-          {/* Energy */}
-          <div className="flex items-center gap-sm min-w-0 px-sm-plus">
-            <span className="text-title flex-shrink-0" role="img" aria-label="Energy">
+      <div className="flex h-14 items-center justify-between gap-md px-md">
+        <div className="flex min-w-0 flex-1 items-center gap-sm-plus">
+          <span className="inline-flex items-center gap-xs rounded-full bg-[rgba(0,217,255,0.12)] px-sm-plus py-xs-plus text-xs font-semibold uppercase tracking-[0.14em] text-[var(--color-text-accent)] shadow-[0_8px_18px_rgba(0,217,255,0.22)]">
+            <span aria-hidden="true">🚀</span>
+            Lv {level}
+          </span>
+          <div className="flex items-center gap-xs min-w-0">
+            <span className="text-lg" aria-hidden="true">
               ⚡
             </span>
-            <div className="min-w-0">
-              <p className="m-0 text-caption text-[var(--color-text-secondary)] uppercase tracking-[0.16em]">
-                Energy
-              </p>
-              <p className="m-0 text-body font-semibold text-[var(--color-text-primary)] truncate">
-                {energyCompact}
-              </p>
-            </div>
-          </div>
-
-          {/* Stars + Quick Top-Up */}
-          <div className="flex items-center gap-sm min-w-0 px-sm-plus">
-            <span className="text-title flex-shrink-0" role="img" aria-label="Stars">
-              ⭐
+            <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+              {energyDisplay}
             </span>
-            <div className="min-w-0">
-              <p className="m-0 text-caption text-[var(--color-text-secondary)] uppercase tracking-[0.16em]">
-                Stars
-              </p>
-              <p className="m-0 text-body font-semibold text-[var(--color-text-accent)] truncate">
-                {starsCompact}
-              </p>
-            </div>
+          </div>
+          <div className="flex items-center gap-xs min-w-0">
+            <span className="text-sm font-semibold text-[var(--color-text-accent)]">
+              {starsDisplay}
+            </span>
             {onShopClick && (
-              <motion.button
+              <button
                 onClick={onShopClick}
-                className="flex items-center gap-xs rounded-xl bg-gradient-to-br from-[var(--color-cyan)] to-[var(--color-success)] px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.12em] text-[var(--color-surface-primary)] shadow-glow transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
-                title="Пополнить Stars"
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-[rgba(255,215,0,0.32)] bg-[rgba(255,215,0,0.15)] text-lg text-[var(--color-text-primary)] shadow-[0_12px_24px_rgba(255,215,0,0.2)] transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)] hover:scale-105"
                 type="button"
-                aria-label="Пополнить Stars"
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.96 }}
-                animate={{
-                  opacity: [0.85, 1, 0.85],
-                  boxShadow: [
-                    '0 0 20px rgba(0, 217, 255, 0.45)',
-                    '0 0 24px rgba(0, 255, 136, 0.55)',
-                    '0 0 20px rgba(0, 217, 255, 0.45)',
-                  ],
-                }}
-                transition={{
-                  opacity: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' },
-                  boxShadow: { duration: 2.4, repeat: Infinity, ease: 'easeInOut' },
-                }}
+                aria-label="Открыть пакеты Stars"
               >
-                <span aria-hidden="true" className="text-title leading-none">
-                  +
-                </span>
-                <span className="leading-none">Пополнить</span>
-              </motion.button>
+                <span aria-hidden="true">⭐</span>
+              </button>
             )}
           </div>
+          <span className="hidden min-w-[160px] truncate text-xs text-[var(--color-text-secondary)] lg:inline">
+            Сохраняйте ритм — акции и бусты обновляются каждые несколько часов.
+          </span>
         </div>
-
-        {/* Right: Quick Actions */}
-        <div className="flex items-center gap-sm flex-shrink-0">
-          {/* Shop/Top-up Button */}
+        <div className="flex flex-shrink-0 items-center gap-xs">
           {onShopClick && (
             <button
               onClick={onShopClick}
-              className="flex-shrink-0 h-11 px-md rounded-xl border border-[var(--color-border-subtle)] bg-[rgba(0,217,255,0.12)] text-caption font-semibold uppercase tracking-[0.14em] text-[var(--color-text-accent)] hover:shadow-glow transition-all duration-200 active:scale-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
-              title="Открыть магазин Stars"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[rgba(0,217,255,0.26)] bg-[rgba(0,217,255,0.18)] text-[var(--color-text-primary)] transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
+              title="Магазин"
+              aria-label="Открыть магазин"
               type="button"
-              aria-label="Открыть магазин Stars"
             >
-              <span className="text-title" aria-hidden="true">
+              <span className="text-lg" aria-hidden="true">
                 🛍️
               </span>
-              <span className="ml-xs hidden sm:inline">Магазин</span>
             </button>
           )}
-
-          {/* Settings Button */}
           {onSettingsClick && (
             <button
               onClick={onSettingsClick}
-              className="flex-shrink-0 h-11 w-11 rounded-xl transition-colors duration-150 text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[var(--color-surface-secondary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)] flex items-center justify-center shadow-elevation-1 hover:shadow-glow"
-              title="Settings"
-              aria-label="Settings"
+              className="flex h-10 w-10 items-center justify-center rounded-xl border border-[rgba(255,255,255,0.14)] bg-[rgba(0,0,0,0.25)] text-[var(--color-text-secondary)] transition-colors duration-150 hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-header-bg)]"
+              title="Настройки"
+              aria-label="Настройки"
               type="button"
             >
-              <span className="text-title" aria-hidden="true">
+              <span className="text-lg" aria-hidden="true">
                 ⚙️
               </span>
             </button>
           )}
         </div>
       </div>
-
-      {/* Level progress bar at bottom */}
       {xpProgress !== undefined && (
         <LevelBar progress={xpProgress} xpCurrent={undefined} xpTotal={undefined} />
       )}

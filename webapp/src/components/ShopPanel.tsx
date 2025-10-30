@@ -506,29 +506,29 @@ export function ShopPanel({
       case 'star_packs':
         switch (activeStarPackSection) {
           case 'subscriptions':
-            return 'Оформите подписку и получайте Stars автоматически';
+            return 'Постоянные бонусы без ручных пополнений — выберите удобную подписку.';
           case 'bundles':
-            return 'Комбо-наборы с бонусами и ускорителями';
+            return 'Комбо-наборы с дополнительными Stars и редкими эффектами.';
           default:
-            return 'Получите Stars и разблокируйте новые возможности';
+            return 'Подберите пакет Stars, чтобы ускорить прогресс и открыть новые бусты.';
         }
       case 'boosts':
         switch (activeBoostSection) {
           case 'ad':
-            return 'Смотрите короткие ролики и получайте мгновенные бусты';
+            return 'Просматривайте ролики и мгновенно усиливайте множители.';
           case 'premium':
-            return 'Премиум-бусты для подписчиков с максимальным эффектом';
+            return 'Премиум-бусты дают длительный эффект и суммируются с другими бонусами.';
           default:
-            return 'Ежедневные бусты держат множитель в тонусе';
+            return 'Ежедневные бусты не дают прогрессу остановиться — держите множитель активным.';
         }
       default:
         if (activeSection === 'cosmetics') {
           const categoryLabel = categories.find(cat => cat.id === activeCategory)?.label;
           return categoryLabel
-            ? `Косметика: ${categoryLabel}`
-            : 'Кастомизируйте вашу планету эксклюзивной косметикой';
+            ? `Тематические стили: ${categoryLabel}`
+            : 'Измените внешний вид планеты и выделитесь в рейтинге.';
         }
-        return 'Кастомизируйте вашу планету эксклюзивной косметикой';
+        return 'Создайте уникальный образ и мотивируйте друзей возвращаться каждый день.';
     }
   }, [activeSection, activeBoostSection, activeStarPackSection, activeCategory, categories]);
 
@@ -537,28 +537,41 @@ export function ShopPanel({
       case 'star_packs':
         switch (activeStarPackSection) {
           case 'subscriptions':
-            return 'Выберите недельную или месячную подписку — Stars будут начисляться автоматически.';
+            return 'Еженедельные и месячные подписки автоматически начисляют Stars и бонусы.';
           case 'bundles':
-            return 'Бонусные наборы содержат больше Stars и дополнительные привилегии.';
+            return 'Эксклюзивные наборы объединяют Stars, бусты и косметику со скидкой.';
           default:
-            return 'Разовые паки удобны для стремительных апгрейдов и покупки бустов.';
+            return 'Разовые паки подходят для быстрого апгрейда зданий и покупки бустов.';
         }
       case 'boosts':
         switch (activeBoostSection) {
           case 'ad':
-            return 'Каждый просмотр рекламы открывает временный множитель энергии.';
+            return 'Умные рекламные бусты помогают монетизировать внимание без paywall.';
           case 'premium':
-            return 'Премиум-бусты работают дольше и суммируются с другими эффектами.';
+            return 'Лучшие предложения для платных подписчиков — создайте эффект VIP-доступа.';
           default:
-            return 'Ежедневные бусты обновляются сами — не забывайте заглядывать.';
+            return 'Ежедневные бусты возвращают игроков и поддерживают вовлечённость.';
         }
       default:
         if (activeSection === 'cosmetics') {
-          return 'Выбирайте темы и эффекты по вкусу — новые категории открываются с уровнем.';
+          return 'Косметика подчёркивает статус — используйте редкие облики для социальных доказательств.';
         }
-        return 'Косметика и бусты возвращают игроков — используйте оба инструмента.';
+        return 'Комбинируйте визуальные и экономические предложения, чтобы усилить удержание.';
     }
-  }, [activeSection, activeBoostSection, activeStarPackSection]);
+  }, [activeSection, activeBoostSection, activeStarPackSection, categories, activeCategory]);
+
+  const heroTitle = useMemo(() => {
+    switch (activeSection) {
+      case 'star_packs':
+        return 'Подберите Stars под свою стратегию';
+      case 'boosts':
+        return 'Удерживайте множитель на пике';
+      case 'cosmetics':
+        return 'Сделайте планету заметной';
+      default:
+        return 'Откройте новые возможности';
+    }
+  }, [activeSection]);
 
   const starPackBannerText = useMemo(() => {
     switch (activeStarPackSection) {
@@ -620,65 +633,109 @@ export function ShopPanel({
     activeCosmeticsCategoryLabel,
   ]);
 
+  const sectionTabList = (
+    <div
+      className="flex flex-wrap gap-xs rounded-2xl border border-[rgba(0,217,255,0.18)] bg-[rgba(8,12,28,0.6)] p-xs"
+      role="tablist"
+      aria-label="Разделы магазина"
+    >
+      {SECTION_TABS.map((section, index) => {
+        const isActive = activeSection === section.id;
+        const tabId = getSectionTabId(section.id);
+        const panelId = getSectionPanelId(section.id);
+
+        return (
+          <button
+            key={section.id}
+            onClick={() => changeSection(section.id)}
+            role="tab"
+            aria-selected={isActive}
+            aria-controls={panelId}
+            id={tabId}
+            tabIndex={isActive ? 0 : -1}
+            onKeyDown={event => handleSectionKeyDown(event, index)}
+            type="button"
+            className={`flex-1 min-w-[120px] rounded-xl px-sm-plus py-xs-plus text-sm font-semibold transition-all duration-150 focus-ring ${
+              isActive
+                ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.22)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
+                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
+            }`}
+          >
+            {section.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+
   return (
-    <div className="flex flex-col gap-md">
+    <div className="flex flex-col gap-lg">
       {showHeader ? (
-        <div className="flex flex-col gap-1">
-          <h2 className="m-0 mb-1 text-heading font-bold bg-gradient-to-r from-gold to-orange bg-clip-text text-transparent">
-            🚀 Power Up
-          </h2>
-          <p className="m-0 text-caption text-token-secondary">{sectionSubtitle}</p>
-          {sectionHelper ? (
-            <p className="m-0 mt-1 text-xs text-token-secondary/80">{sectionHelper}</p>
-          ) : null}
-        </div>
+        <section className="rounded-3xl border border-[rgba(0,217,255,0.18)] bg-[rgba(10,14,34,0.85)] px-lg py-lg shadow-[0_32px_60px_rgba(0,0,0,0.35)]">
+          <div className="flex flex-col gap-sm">
+            {breadcrumbLabel ? (
+              <div
+                className="inline-flex w-fit items-center gap-xs rounded-full border border-[rgba(0,217,255,0.24)] bg-[rgba(0,217,255,0.12)] px-sm-plus py-xs-plus text-xs font-semibold text-[var(--color-text-secondary)]"
+                role="status"
+                aria-live="polite"
+              >
+                {breadcrumbLabel}
+              </div>
+            ) : null}
+            <div className="flex flex-wrap items-start justify-between gap-md">
+              <div className="flex flex-col gap-xs max-w-[540px]">
+                <h2 className="m-0 text-2xl font-bold text-[var(--color-text-primary)]">
+                  {heroTitle}
+                </h2>
+                <p className="m-0 text-sm text-[var(--color-text-secondary)]">{sectionSubtitle}</p>
+                {sectionHelper ? (
+                  <p className="m-0 text-xs text-[var(--color-text-secondary)]/80">
+                    {sectionHelper}
+                  </p>
+                ) : null}
+              </div>
+              {activeSection === 'star_packs' && featuredVisiblePack ? (
+                <div className="flex items-center gap-sm rounded-2xl border border-[rgba(255,215,0,0.32)] bg-[rgba(32,20,64,0.72)] px-md py-sm shadow-[0_18px_36px_rgba(255,215,0,0.25)]">
+                  <div className="flex flex-col gap-xs">
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
+                      Рекомендуем сегодня
+                    </span>
+                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+                      {featuredVisiblePack.title}
+                    </span>
+                    <span className="text-xs text-[var(--color-text-secondary)]">
+                      +{featuredVisiblePack.bonus_stars ?? 0} бонусных ⭐ внутри
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleStarPackSectionChange('bundles')}
+                    className="rounded-full border border-[rgba(255,215,0,0.42)] bg-[rgba(255,215,0,0.12)] px-sm-plus py-xs-plus text-xs font-semibold text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[rgba(32,20,64,0.72)]"
+                    type="button"
+                  >
+                    Смотреть
+                  </button>
+                </div>
+              ) : null}
+            </div>
+            {sectionTabList}
+          </div>
+        </section>
       ) : null}
 
-      {breadcrumbLabel ? (
-        <div
-          className="flex items-center gap-xs text-xs text-token-secondary"
-          role="status"
-          aria-live="polite"
-        >
-          <span className="inline-flex items-center gap-xs rounded-full border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.6)] px-sm py-xs">
-            {breadcrumbLabel}
-          </span>
-        </div>
-      ) : null}
-
-      {/* Section Tabs */}
-      <nav
-        className="flex gap-xs rounded-2xl border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.78)] p-xs"
-        role="tablist"
-        aria-label="Разделы магазина"
-      >
-        {SECTION_TABS.map((section, index) => {
-          const isActive = activeSection === section.id;
-          const tabId = getSectionTabId(section.id);
-          const panelId = getSectionPanelId(section.id);
-
-          return (
-            <button
-              key={section.id}
-              onClick={() => changeSection(section.id)}
-              role="tab"
-              aria-selected={isActive}
-              aria-controls={panelId}
-              id={tabId}
-              tabIndex={isActive ? 0 : -1}
-              onKeyDown={event => handleSectionKeyDown(event, index)}
-              type="button"
-              className={`flex-1 rounded-2xl px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
-                isActive
-                  ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
-                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
-              }`}
+      {!showHeader && (
+        <div className="flex flex-col gap-sm">
+          {breadcrumbLabel ? (
+            <div
+              className="inline-flex w-fit items-center gap-xs rounded-full border border-[rgba(0,217,255,0.24)] bg-[rgba(0,217,255,0.12)] px-sm-plus py-xs-plus text-xs font-semibold text-[var(--color-text-secondary)]"
+              role="status"
+              aria-live="polite"
             >
-              {section.label}
-            </button>
-          );
-        })}
-      </nav>
+              {breadcrumbLabel}
+            </div>
+          ) : null}
+          {sectionTabList}
+        </div>
+      )}
 
       {/* Errors */}
       {activeSection === 'star_packs' && starPacksError && (
@@ -700,7 +757,7 @@ export function ShopPanel({
           aria-labelledby={getSectionTabId('star_packs')}
         >
           <nav
-            className="flex flex-wrap gap-xs rounded-2xl border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.78)] p-xs"
+            className="flex flex-wrap gap-xs rounded-2xl border border-[rgba(0,217,255,0.18)] bg-[rgba(8,12,28,0.62)] p-xs"
             aria-label="Категории паков"
             role="tablist"
           >
@@ -713,7 +770,7 @@ export function ShopPanel({
                   onClick={() => handleStarPackSectionChange(tab.id)}
                   role="tab"
                   aria-selected={isActive}
-                  className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-2xl px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
+                  className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-xl px-sm-plus py-xs-plus text-sm font-semibold transition-all duration-150 focus-ring ${
                     isActive
                       ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
                       : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
@@ -724,10 +781,11 @@ export function ShopPanel({
               );
             })}
           </nav>
-
-          <Card className="bg-cyan/10 border-cyan/20 text-sm text-token-secondary">
-            <strong className="text-token-primary">Совет:</strong> {starPackBannerText}
-          </Card>
+          <div className="rounded-2xl border border-[rgba(0,217,255,0.24)] bg-[rgba(8,12,28,0.78)] p-md shadow-[0_18px_36px_rgba(0,217,255,0.18)]">
+            <p className="m-0 text-sm font-semibold text-[var(--color-text-primary)]">
+              {starPackBannerText}
+            </p>
+          </div>
           {featuredVisiblePack && !isStarPacksLoading && (
             <Card className="relative flex flex-col md:flex-row gap-4 overflow-hidden rounded-2xl border border-[rgba(255,215,0,0.4)] bg-gradient-to-br from-[rgba(28,22,64,0.94)] via-[rgba(38,16,76,0.92)] to-[rgba(72,18,102,0.95)] shadow-glow-gold">
               <div
