@@ -39,7 +39,18 @@ curl https://<api-host>/metrics -u $PROM_AUTH_USER:$PROM_AUTH_PASS
 
 Prometheus UI: `http://localhost:9090/graph` → run query `energyplanet_tick_success_total`.
 
-## 5. Alertmanager (optional)
+## 5. Grafana (Railway)
 
-- Add `--config.file=/etc/prometheus/prometheus.yml --web.enable-lifecycle` in Railway start command.
-- Deploy Alertmanager (Railway) and wire to Prometheus via `alerting` section.
+- New Service → “Deploy from GitHub”, папка `infra/grafana`.
+- Переменные окружения:
+  - `GF_ADMIN_USER=admin` (или другой логин)
+  - `GF_ADMIN_PASSWORD=<сильный пароль>`
+  - `GF_PROMETHEUS_USER=metrics`
+  - `GF_PROMETHEUS_PASS=metrics`
+- Включи Private Networking, чтобы `prometheus:9090` резолвился.
+- После деплоя datasource `Prometheus` создастся автоматически (см. `provisioning/datasources/prometheus.yml`).
+
+## 6. Alertmanager (optional)
+
+- Add `--config.file=/etc/prometheus/prometheus.yml --web.enable-lifecycle` в команду запуска.
+- Deploy Alertmanager (Railway) и подключи к Prometheus через `alerting` блок.
