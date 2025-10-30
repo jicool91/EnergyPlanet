@@ -23,7 +23,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "Prometheus"
+        "uid": "PrometheusDatasource"
       },
       "fieldConfig": {
         "defaults": {
@@ -63,7 +63,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (endpoint, outcome) (increase(energyplanet_auth_requests_total[$__range]))",
+          "expr": "sum by (endpoint, outcome) (rate(energyplanet_auth_requests_total[5m]))",
           "legendFormat": "{{endpoint}} / {{outcome}}",
           "refId": "A"
         }
@@ -74,7 +74,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "Prometheus"
+        "uid": "PrometheusDatasource"
       },
       "fieldConfig": {
         "defaults": {
@@ -114,7 +114,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (reason, revocation_reason) (increase(energyplanet_auth_refresh_audit_total[$__range]))",
+          "expr": "sum by (reason, revocation_reason) (rate(energyplanet_auth_refresh_audit_total[5m]))",
           "legendFormat": "{{reason}} / {{revocation_reason}}",
           "refId": "A"
         }
@@ -125,7 +125,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "Prometheus"
+        "uid": "PrometheusDatasource"
       },
       "description": "Процент наших auth запросов, заканчивающихся 4xx (rate limited или error)",
       "fieldConfig": {
@@ -177,7 +177,7 @@
       },
       "targets": [
         {
-          "expr": "100 * sum(increase(energyplanet_auth_requests_total{outcome!\"success\"}[$__range])) / ignoring(outcome) sum(increase(energyplanet_auth_requests_total[$__range]))",
+          "expr": "100 * sum(rate(energyplanet_auth_requests_total{outcome!\"success\"}[5m])) / ignoring(outcome) sum(rate(energyplanet_auth_requests_total[5m]))",
           "legendFormat": "error share",
           "refId": "A"
         }
@@ -188,7 +188,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "Prometheus"
+        "uid": "PrometheusDatasource"
       },
       "fieldConfig": {
         "defaults": {
@@ -243,7 +243,7 @@
     {
       "datasource": {
         "type": "prometheus",
-        "uid": "Prometheus"
+        "uid": "PrometheusDatasource"
       },
       "fieldConfig": {
         "defaults": {
@@ -277,7 +277,7 @@
       },
       "targets": [
         {
-          "expr": "sum by (endpoint, status) (increase(energyplanet_auth_requests_total[$__range]))",
+          "expr": "sum by (endpoint, status) (energyplanet_auth_requests_total)",
           "format": "table",
           "refId": "A"
         }

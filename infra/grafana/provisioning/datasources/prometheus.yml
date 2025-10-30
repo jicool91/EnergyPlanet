@@ -4,8 +4,9 @@ deleteDatasources:
   - name: Prometheus
     type: prometheus
 
-.datasources:
+datasources:
   - name: Prometheus
+    uid: PrometheusDatasource
     type: prometheus
     access: proxy
     url: http://prometheus:9090
