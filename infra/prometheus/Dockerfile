@@ -5,7 +5,7 @@ RUN chmod +x /tmp/entrypoint.sh
 
 FROM prom/prometheus:v2.53.0
 
-COPY --from=tools /usr/bin/envsubst /usr/local/bin/envsubst
+COPY --from=tools /usr/bin/envsubst /bin/envsubst
 
 COPY prometheus.yml /etc/prometheus/prometheus.yml.template
 COPY alerts.yml /etc/prometheus/alerts.yml

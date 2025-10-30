@@ -1,7 +1,7 @@
 #!/bin/sh
 set -eu
 
-/usr/local/bin/envsubst "${PROMETHEUS_SCRAPE_TARGET} ${PROMETHEUS_SCRAPE_SCHEME} ${PROMETHEUS_METRICS_PATH} ${PROM_AUTH_USER} ${PROM_AUTH_PASS}" \
+/bin/envsubst "${PROMETHEUS_SCRAPE_TARGET} ${PROMETHEUS_SCRAPE_SCHEME} ${PROMETHEUS_METRICS_PATH} ${PROM_AUTH_USER} ${PROM_AUTH_PASS}" \
   < /etc/prometheus/prometheus.yml.template > /etc/prometheus/prometheus.yml
 
 exec /bin/prometheus \
