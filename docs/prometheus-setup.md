@@ -15,6 +15,7 @@ docker build -t energyplanet-prometheus infra/prometheus
   - `PROMETHEUS_METRICS_PATH=/metrics` (необязательно, это дефолт).
   - Если `/metrics` защищён basic auth: `PROM_AUTH_USER=metrics`, `PROM_AUTH_PASS=metrics` (или свой логин/пароль) — шаблон теперь подставляет их в `basic_auth`.
 - Включи Private Networking и для backend, и для prometheus, чтобы адрес `api:3000` резолвился.
+- **Важно:** образ слушает `[::]:9090`, поэтому контейнер стартует заново с IPv6 после деплоя. Если используете свой Dockerfile — убедитесь, что сервис слушает `::`, иначе приватная сеть не заработает.
 - После изменений нажми **Deploy** (prometheus пересоберёт конфиг через `envsubst`).
 
 ## 3. API environment
