@@ -7,10 +7,11 @@ COPY --from=tools /usr/bin/envsubst /usr/local/bin/envsubst
 
 COPY prometheus.yml /etc/prometheus/prometheus.yml.template
 COPY alerts.yml /etc/prometheus/alerts.yml
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 ENV PROMETHEUS_SCRAPE_TARGET=localhost:3000 \
     PROMETHEUS_SCRAPE_SCHEME=http \
     PROMETHEUS_METRICS_PATH=/metrics
 
-ENTRYPOINT ["/bin/sh", "-c"]
-CMD envsubst "$$PROMETHEUS_SCRAPE_TARGET $$PROMETHEUS_SCRAPE_SCHEME $$PROMETHEUS_METRICS_PATH $$PROM_AUTH_USER $$PROM_AUTH_PASS" < /etc/prometheus/prometheus.yml.template > /etc/prometheus/prometheus.yml && exec /bin/prometheus --config.file=/etc/prometheus/prometheus.yml --web.enable-lifecycle --web.listen-address=[::]:9090
+ENTRYPOINT ["/entrypoint.sh"]
