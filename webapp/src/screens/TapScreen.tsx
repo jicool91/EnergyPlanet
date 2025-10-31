@@ -1,16 +1,56 @@
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MainScreen } from './MainScreen';
+import type { ShopSection } from '@/components/ShopPanel';
+
 export function TapScreen() {
+  const navigate = useNavigate();
+  const [shopSection, setShopSection] = useState<ShopSection>('star_packs');
+
+  const handleTabChange = useCallback(
+    (tab: 'home' | 'shop' | 'builds' | 'leaderboard' | 'account' | 'clan') => {
+      switch (tab) {
+        case 'home': {
+          navigate('/', { replace: false });
+          break;
+        }
+        case 'shop':
+        case 'builds': {
+          navigate('/exchange', { replace: false });
+          break;
+        }
+        case 'leaderboard': {
+          navigate('/friends', { replace: false });
+          break;
+        }
+        case 'account': {
+          navigate('/earn', { replace: false });
+          break;
+        }
+        case 'clan': {
+          navigate('/airdrop', { replace: false });
+          break;
+        }
+        default:
+          navigate('/', { replace: false });
+      }
+    },
+    [navigate]
+  );
+
+  const handleOpenAdminMetrics = useCallback(() => {
+    navigate('/earn', { replace: false });
+  }, [navigate]);
+
   return (
-    <section className="flex flex-col gap-4 py-6">
-      <header>
-        <h1 className="text-heading font-semibold text-[var(--color-text-primary)]">Tap</h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          Основной экран добычи. Содержимое будет перенесено из legacy MainScreen на следующих
-          фазах.
-        </p>
-      </header>
-      <div className="rounded-3xl border border-[rgba(255,255,255,0.08)] bg-[rgba(39,42,47,0.6)] p-4 text-[var(--color-text-secondary)]">
-        ⚙️ Заглушка: новый Tap UI в разработке.
-      </div>
-    </section>
+    <div className="flex h-full w-full flex-col">
+      <MainScreen
+        activeTab="home"
+        onTabChange={handleTabChange}
+        shopSection={shopSection}
+        onShopSectionChange={setShopSection}
+        onOpenAdminMetrics={handleOpenAdminMetrics}
+      />
+    </div>
   );
 }
