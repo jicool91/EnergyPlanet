@@ -19,40 +19,49 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Brand Colors (2025 palette)
-        cyan: '#00d9ff',
-        lime: '#00ff88',
-        gold: '#ffd700',
-        orange: '#ff8d4d',
-        'gold-metallic': '#ffd700',
-        'silver-metallic': '#e8e8e8',
-        'magenta-neon': '#ff00ff',
-
-        // Status Colors (brighter for AAA contrast)
-        success: '#00ff88',
-        warning: '#ff8d4d',
-        error: '#ff3333',
-        'red-error': '#ff3333',
-        info: '#00d9ff',
-
-        // Background Colors
-        'dark-bg': '#0a0e27',
-        'dark-secondary': '#101328',
-        'dark-tertiary': '#1a2540',
-        'dark-elevated': '#141836',
-
-        // Component Colors (preset combinations)
-        'card-dark': 'rgba(10, 14, 32, 0.9)',
-        'card-dark-secondary': 'rgba(16, 19, 40, 0.6)',
-        'button-primary': 'linear-gradient(135deg, rgba(0,217,255,0.3) 0%, rgba(0,255,136,0.4) 100%)',
-        'button-secondary': 'rgba(0, 217, 255, 0.22)',
-        'button-success': 'linear-gradient(135deg, #ffd700 0%, #ff8d4d 100%)',
+        black: '#000000',
+        white: '#ffffff',
+        slate: {
+          950: '#090b10',
+          900: '#1d2025',
+          800: '#272a2f',
+          700: '#2f3339',
+          600: '#3b3f45',
+          500: '#4b5058',
+          400: '#85827d',
+          300: '#95908a',
+          200: '#bdc0c4',
+        },
+        // Legacy aliases — будут очищены после обновления компонентов
+        cyan: '#f3ba2f',
+        lime: '#fad258',
+        gold: '#f3ba2f',
+        orange: '#f97316',
+        'gold-metallic': '#d4af37',
+        'silver-metallic': '#e5e7eb',
+        'magenta-neon': '#a855f7',
+        success: '#4ade80',
+        warning: '#facc15',
+        error: '#ef4444',
+        'red-error': '#ef4444',
+        info: '#3b82f6',
+        'dark-bg': '#000000',
+        'dark-secondary': '#1d2025',
+        'dark-tertiary': '#272a2f',
+        'dark-elevated': '#2f3339',
+        'dark-card': '#272a2f',
+        'dark-card-secondary': 'rgba(39, 42, 47, 0.6)',
+        'dark-border': 'rgba(255, 255, 255, 0.08)',
+        'accent-gold': '#f3ba2f',
+        'accent-gold-light': '#fad258',
+        'accent-gold-dark': '#d4af37',
       },
       backgroundImage: {
-        'gradient-hero': 'linear-gradient(135deg, #001a3f 0%, #0a0e27 100%)',
-        'gradient-accent': 'linear-gradient(90deg, #00d9ff 0%, #00ff88 100%)',
-        'gradient-premium': 'linear-gradient(135deg, #ffd700 0%, #ff8d4d 100%)',
-        'gradient-holographic': 'linear-gradient(135deg, #00d9ff 0%, #ff00ff 50%, #ffd700 100%)',
+        'gradient-hero': 'linear-gradient(180deg, rgba(0, 0, 0, 0.92) 0%, #1d2025 100%)',
+        'gradient-accent': 'linear-gradient(135deg, #f3ba2f 0%, #fad258 100%)',
+        'gradient-premium': 'linear-gradient(135deg, #d4af37 0%, #f3ba2f 100%)',
+        'gradient-holographic':
+          'linear-gradient(135deg, #f3ba2f 0%, #fad258 60%, rgba(255, 255, 255, 0.35) 100%)',
       },
       spacing: {
         ...spacingTokens,

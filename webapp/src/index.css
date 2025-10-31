@@ -12,33 +12,33 @@
 
 :root {
   /* Telegram Theme Defaults (fallbacks before JS initializes) */
-  --tg-theme-bg-color: #0f0f0f;
+  --tg-theme-bg-color: #000000;
   --tg-theme-text-color: #ffffff;
-  --tg-theme-hint-color: #9aa0b1;
-  --tg-theme-link-color: #3d9eff;
-  --tg-theme-button-color: #1f6feb;
-  --tg-theme-button-text-color: #ffffff;
-  --tg-theme-secondary-bg-color: #181a20;
-  --tg-theme-header-bg-color: #0f0f0f;
-  --tg-theme-bottom-bar-bg-color: #0f0f0f;
-  --tg-theme-accent-text-color: #7ab7ff;
-  --tg-theme-section-bg-color: #181a20;
-  --tg-theme-section-header-bg-color: #1e212c;
+  --tg-theme-hint-color: #85827d;
+  --tg-theme-link-color: #f3ba2f;
+  --tg-theme-button-color: #f3ba2f;
+  --tg-theme-button-text-color: #000000;
+  --tg-theme-secondary-bg-color: #1d2025;
+  --tg-theme-header-bg-color: #000000;
+  --tg-theme-bottom-bar-bg-color: #1d2025;
+  --tg-theme-accent-text-color: #f3ba2f;
+  --tg-theme-section-bg-color: #1d2025;
+  --tg-theme-section-header-bg-color: #272a2f;
   --tg-theme-section-header-text-color: #ffffff;
   --tg-theme-section-separator-color: rgba(255, 255, 255, 0.08);
-  --tg-theme-subtitle-text-color: #c4cad8;
-  --tg-theme-destructive-text-color: #ff5a5a;
+  --tg-theme-subtitle-text-color: #95908a;
+  --tg-theme-destructive-text-color: #ef4444;
 
   /* Derived application tokens */
-  --app-bg: var(--tg-theme-bg-color, #0f0f0f);
+  --app-bg: var(--tg-theme-bg-color, #000000);
   --app-text: var(--tg-theme-text-color, #ffffff);
-  --app-text-subtle: var(--tg-theme-hint-color, #9aa0b1);
-  --app-accent: var(--tg-theme-accent-text-color, #7ab7ff);
-  --app-card-bg: var(--tg-theme-section-bg-color, #181a20);
+  --app-text-subtle: var(--tg-theme-hint-color, #85827d);
+  --app-accent: var(--tg-theme-accent-text-color, #f3ba2f);
+  --app-card-bg: var(--tg-theme-section-bg-color, #1d2025);
   --app-card-border: var(--tg-theme-section-separator-color, rgba(255, 255, 255, 0.08));
-  --app-header-bg: var(--tg-theme-header-bg-color, #0f0f0f);
-  --app-bottom-bar-bg: var(--tg-theme-bottom-bar-bg-color, #0f0f0f);
-  --app-danger-text: var(--tg-theme-destructive-text-color, #ff5a5a);
+  --app-header-bg: var(--tg-theme-header-bg-color, #000000);
+  --app-bottom-bar-bg: var(--tg-theme-bottom-bar-bg-color, #1d2025);
+  --app-danger-text: var(--tg-theme-destructive-text-color, #ef4444);
 
   /* Telegram Safe Area Variables */
   --tg-safe-area-inset-top: 0px;

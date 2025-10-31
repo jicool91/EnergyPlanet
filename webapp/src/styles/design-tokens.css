@@ -9,38 +9,59 @@
 :root {
   /* ===== COLORS ===== */
 
-  /* Brand Colors */
-  --color-cyan: #00d9ff;
-  --color-lime: #00ff88;
-  --color-gold: #ffd700;
-  --color-orange: #ff8d4d;
-  --color-silver: #e8e8e8;
-  --color-magenta: #ff00ff;
+  /* Base Palette */
+  --color-bg-primary: #000000;
+  --color-bg-secondary: #1d2025;
+  --color-bg-tertiary: #272a2f;
+  --color-bg-elevated: #2f3339;
+
+  /* Text */
+  --color-text-primary: #ffffff;
+  --color-text-secondary: #85827d;
+  --color-text-tertiary: #95908a;
+
+  /* Accent */
+  --color-accent-gold: #f3ba2f;
+  --color-accent-gold-light: #fad258;
+  --color-accent-gold-dark: #d4af37;
+
+  /* Semantic */
+  --color-success: #4ade80;
+  --color-warning: #facc15;
+  --color-error: #ef4444;
+  --color-info: #3b82f6;
+
+  /* Legacy aliases (для совместимости со старыми компонентами) */
+  --color-cyan: var(--color-accent-gold);
+  --color-lime: var(--color-accent-gold-light);
+  --color-gold: var(--color-accent-gold);
+  --color-orange: #f97316;
+  --color-silver: #e5e7eb;
+  --color-magenta: #a855f7;
 
   /* Gradient aliases */
-  --gradient-hero: linear-gradient(135deg, #001a3f 0%, #0a0e27 100%);
-  --gradient-accent: linear-gradient(90deg, #00d9ff 0%, #00ff88 100%);
-  --gradient-premium: linear-gradient(135deg, #ffd700 0%, #ff8d4d 100%);
-  --gradient-holographic: linear-gradient(135deg, #00d9ff 0%, #ff00ff 50%, #ffd700 100%);
-
-  /* Status Colors */
-  --color-success: #00ff88;
-  --color-warning: #ff8d4d;
-  --color-error: #ff3333;
-  --color-info: #00d9ff;
+  --gradient-hero: linear-gradient(180deg, rgba(0, 0, 0, 0.92) 0%, #1d2025 100%);
+  --gradient-accent: linear-gradient(135deg, #f3ba2f 0%, #fad258 100%);
+  --gradient-premium: linear-gradient(135deg, #d4af37 0%, #f3ba2f 100%);
+  --gradient-holographic: linear-gradient(
+    135deg,
+    #f3ba2f 0%,
+    #fad258 60%,
+    rgba(255, 255, 255, 0.35) 100%
+  );
 
   /* Theme-aware Surfaces */
-  --color-surface-primary: var(--app-bg);
-  --color-surface-secondary: var(--app-card-bg);
-  --color-surface-tertiary: var(--tg-theme-section-header-bg-color, #1e212c);
-  --color-surface-accent: var(--tg-theme-accent-text-color, #7ab7ff);
+  --color-surface-primary: var(--app-bg, #000000);
+  --color-surface-secondary: var(--app-card-bg, #1d2025);
+  --color-surface-tertiary: var(--tg-theme-section-header-bg-color, #272a2f);
+  --color-surface-accent: var(--color-accent-gold);
 
   /* Theme-aware Text Colors */
   --color-text-primary: var(--app-text);
-  --color-text-secondary-fallback: var(--tg-theme-subtitle-text-color, #c4cad8);
+  --color-text-secondary-fallback: var(--tg-theme-subtitle-text-color, #85827d);
   --color-text-secondary: var(--color-text-secondary-fallback);
-  --color-text-accent: var(--app-accent);
-  --color-text-destructive: var(--app-danger-text);
+  --color-text-accent: var(--app-accent, var(--color-accent-gold));
+  --color-text-destructive: var(--app-danger-text, #ef4444);
   --color-text-link: var(--tg-theme-link-color, #3d9eff);
 
   /* Theme-aware Borders */

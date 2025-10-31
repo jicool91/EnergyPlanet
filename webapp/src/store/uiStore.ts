@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import type { TelegramThemeParams } from '@/utils/telegramTheme';
 import { DEFAULT_THEME } from '@/utils/telegramTheme';
 
@@ -30,6 +31,7 @@ interface UIState {
   offlineSummary: OfflineSummarySnapshot | null;
   theme: TelegramThemeParams;
   notifications: Notification[];
+  isNextUiEnabled: boolean;
   openAuthError: (message: string) => void;
   dismissAuthError: () => void;
   setOfflineSummary: (summary: OfflineSummarySnapshot | null) => void;
@@ -37,52 +39,69 @@ interface UIState {
   clearOfflineSummary: () => void;
   addNotification: (notification: Omit<Notification, 'id'>) => string;
   removeNotification: (id: string) => void;
+  setNextUiEnabled: (value: boolean) => void;
+  toggleNextUiEnabled: () => void;
 }
 
-export const useUIStore = create<UIState>(set => ({
-  authErrorMessage: null,
-  isAuthModalOpen: false,
-  offlineSummary: null,
-  theme: DEFAULT_THEME,
-  notifications: [],
-  openAuthError: (message: string) => set({ authErrorMessage: message, isAuthModalOpen: true }),
-  dismissAuthError: () => set({ authErrorMessage: null, isAuthModalOpen: false }),
-  setOfflineSummary: summary => set({ offlineSummary: summary }),
-  updateTheme: theme => set({ theme }),
-  clearOfflineSummary: () => set({ offlineSummary: null }),
-  addNotification: notification => {
-    const id = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-    const fullNotification: Notification = { ...notification, id };
+export const useUIStore = create<UIState>()(
+  persist(
+    set => ({
+      authErrorMessage: null,
+      isAuthModalOpen: false,
+      offlineSummary: null,
+      theme: DEFAULT_THEME,
+      notifications: [],
+      isNextUiEnabled: false,
+      openAuthError: (message: string) => set({ authErrorMessage: message, isAuthModalOpen: true }),
+      dismissAuthError: () => set({ authErrorMessage: null, isAuthModalOpen: false }),
+      setOfflineSummary: summary => set({ offlineSummary: summary }),
+      updateTheme: theme => set({ theme }),
+      clearOfflineSummary: () => set({ offlineSummary: null }),
+      addNotification: notification => {
+        const id = `notif-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        const fullNotification: Notification = { ...notification, id };
 
-    set(state => ({
-      notifications: [...state.notifications, fullNotification],
-    }));
+        set(state => ({
+          notifications: [...state.notifications, fullNotification],
+        }));
 
-    // Auto-dismiss if duration specified
-    if (typeof window !== 'undefined' && notification.duration && notification.duration > 0) {
-      const timer = window.setTimeout(() => {
-        notificationTimers.delete(id);
-        useUIStore.getState().removeNotification(id);
-      }, notification.duration);
-      notificationTimers.set(id, timer);
-    }
-
-    return id;
-  },
-  removeNotification: id =>
-    set(state => {
-      if (typeof window !== 'undefined') {
-        const timer = notificationTimers.get(id);
-        if (timer) {
-          window.clearTimeout(timer);
-          notificationTimers.delete(id);
+        // Auto-dismiss if duration specified
+        if (typeof window !== 'undefined' && notification.duration && notification.duration > 0) {
+          const timer = window.setTimeout(() => {
+            notificationTimers.delete(id);
+            useUIStore.getState().removeNotification(id);
+          }, notification.duration);
+          notificationTimers.set(id, timer);
         }
-      }
-      return {
-        notifications: state.notifications.filter(n => n.id !== id),
-      };
+
+        return id;
+      },
+      removeNotification: id =>
+        set(state => {
+          if (typeof window !== 'undefined') {
+            const timer = notificationTimers.get(id);
+            if (timer) {
+              window.clearTimeout(timer);
+              notificationTimers.delete(id);
+            }
+          }
+          return {
+            notifications: state.notifications.filter(n => n.id !== id),
+          };
+        }),
+      setNextUiEnabled: value => set({ isNextUiEnabled: value }),
+      toggleNextUiEnabled: () => set(state => ({ isNextUiEnabled: !state.isNextUiEnabled })),
     }),
-}));
+    {
+      name: 'energy-ui',
+      partialize: state => ({
+        isNextUiEnabled: state.isNextUiEnabled,
+        theme: state.theme,
+      }),
+      version: 1,
+    }
+  )
+);
 
 export const uiStore = {
   openAuthError(message: string) {
@@ -108,5 +127,14 @@ export const uiStore = {
   },
   get theme() {
     return useUIStore.getState().theme;
+  },
+  setNextUiEnabled(value: boolean) {
+    useUIStore.getState().setNextUiEnabled(value);
+  },
+  toggleNextUiEnabled() {
+    useUIStore.getState().toggleNextUiEnabled();
+  },
+  get isNextUiEnabled() {
+    return useUIStore.getState().isNextUiEnabled;
   },
 };
