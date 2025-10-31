@@ -36,6 +36,7 @@ import { logClientEvent } from './services/telemetry';
 import { logger } from './utils/logger';
 import { AdminMonetizationScreen } from './screens/AdminMonetizationScreen';
 import { ProgressBar } from './components';
+import { AdminModalContext } from './contexts/AdminModalContext';
 
 const NAVIGATION_TABS: BottomNavigationTab[] = [
   { id: 'tap', label: 'Tap', icon: '⚡️', path: '/' },
@@ -313,6 +314,20 @@ function NextUiApp() {
     enabled: isAuthModalOpen || Boolean(offlineSummary) || isAdminMetricsOpen || showLevelUp,
   });
 
+  const openAdminMetrics = useCallback(() => {
+    if (!isAdmin) {
+      return;
+    }
+    setAdminMetricsOpen(true);
+  }, [isAdmin]);
+
+  const adminContextValue = useMemo(
+    () => ({
+      openAdminMetrics,
+    }),
+    [openAdminMetrics]
+  );
+
   const renderHeader = useCallback(
     ({ activeTab, navigate }: RenderHeaderParams) => {
       const formatter = new Intl.NumberFormat('ru-RU', {
@@ -357,7 +372,7 @@ function NextUiApp() {
               {isAdmin && (
                 <button
                   type="button"
-                  onClick={() => setAdminMetricsOpen(true)}
+                  onClick={openAdminMetrics}
                   className="rounded-2xl border border-[rgba(74,222,128,0.35)] px-4 py-2 text-sm text-[var(--color-success)] transition-colors duration-150 hover:bg-[rgba(74,222,128,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-success)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
                 >
                   Admin
@@ -391,52 +406,54 @@ function NextUiApp() {
         </div>
       );
     },
-    [energy, isAdmin, level, stars, xpIntoLevel, xpToNextLevel]
+    [energy, isAdmin, level, openAdminMetrics, stars, xpIntoLevel, xpToNextLevel]
   );
 
   return (
     <>
-      <BrowserRouter>
-        <NextUiRouter renderHeader={renderHeader} />
-      </BrowserRouter>
+      <AdminModalContext.Provider value={adminContextValue}>
+        <BrowserRouter>
+          <NextUiRouter renderHeader={renderHeader} />
+        </BrowserRouter>
 
-      <AuthErrorModal
-        isOpen={isAuthModalOpen}
-        message={authErrorMessage || ''}
-        onRetry={handleRetry}
-        onDismiss={dismissAuthError}
-      />
-      <OfflineSummaryModal
-        isOpen={!!offlineSummary}
-        energy={offlineSummary?.energy ?? 0}
-        xp={offlineSummary?.xp ?? 0}
-        durationSec={offlineSummary?.duration_sec ?? 0}
-        capped={offlineSummary?.capped ?? false}
-        levelStart={offlineSummary?.level_start}
-        levelEnd={offlineSummary?.level_end}
-        levelsGained={offlineSummary?.levels_gained}
-        onClose={acknowledgeOfflineSummary}
-      />
-      <LevelUpScreen
-        isOpen={showLevelUp && overlayLevel !== null}
-        newLevel={overlayLevel || 1}
-        onDismiss={() => {
-          setShowLevelUp(false);
-          setOverlayLevel(null);
-        }}
-      />
-      <ModalBase
-        isOpen={isAdminMetricsOpen && isAdmin}
-        title="Монетизация (админ)"
-        onClose={() => {
-          setAdminMetricsOpen(false);
-          void logClientEvent('admin_monetization_close', {});
-        }}
-        size="lg"
-      >
-        <AdminMonetizationScreen />
-      </ModalBase>
-      <NotificationContainer />
+        <AuthErrorModal
+          isOpen={isAuthModalOpen}
+          message={authErrorMessage || ''}
+          onRetry={handleRetry}
+          onDismiss={dismissAuthError}
+        />
+        <OfflineSummaryModal
+          isOpen={!!offlineSummary}
+          energy={offlineSummary?.energy ?? 0}
+          xp={offlineSummary?.xp ?? 0}
+          durationSec={offlineSummary?.duration_sec ?? 0}
+          capped={offlineSummary?.capped ?? false}
+          levelStart={offlineSummary?.level_start}
+          levelEnd={offlineSummary?.level_end}
+          levelsGained={offlineSummary?.levels_gained}
+          onClose={acknowledgeOfflineSummary}
+        />
+        <LevelUpScreen
+          isOpen={showLevelUp && overlayLevel !== null}
+          newLevel={overlayLevel || 1}
+          onDismiss={() => {
+            setShowLevelUp(false);
+            setOverlayLevel(null);
+          }}
+        />
+        <ModalBase
+          isOpen={isAdminMetricsOpen && isAdmin}
+          title="Монетизация (админ)"
+          onClose={() => {
+            setAdminMetricsOpen(false);
+            void logClientEvent('admin_monetization_close', {});
+          }}
+          size="lg"
+        >
+          <AdminMonetizationScreen />
+        </ModalBase>
+        <NotificationContainer />
+      </AdminModalContext.Provider>
     </>
   );
 }
