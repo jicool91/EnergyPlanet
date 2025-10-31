@@ -1,15 +1,50 @@
+import { useCallback, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { MainScreen } from './MainScreen';
+import type { ShopSection } from '@/components/ShopPanel';
+
 export function AirdropScreen() {
+  const navigate = useNavigate();
+  const [shopSection, setShopSection] = useState<ShopSection>('star_packs');
+
+  const handleTabChange = useCallback(
+    (tab: 'home' | 'shop' | 'builds' | 'leaderboard' | 'account' | 'clan') => {
+      switch (tab) {
+        case 'clan':
+          break;
+        case 'home':
+          navigate('/', { replace: false });
+          return;
+        case 'shop':
+        case 'builds':
+          navigate('/exchange', { replace: false });
+          return;
+        case 'leaderboard':
+          navigate('/friends', { replace: false });
+          return;
+        case 'account':
+          navigate('/earn', { replace: false });
+          return;
+        default:
+          navigate('/', { replace: false });
+      }
+    },
+    [navigate]
+  );
+
+  const handleOpenAdminMetrics = useCallback(() => {
+    navigate('/earn', { replace: false });
+  }, [navigate]);
+
   return (
-    <section className="flex flex-col gap-4 py-6">
-      <header>
-        <h1 className="text-heading font-semibold text-[var(--color-text-primary)]">Airdrop</h1>
-        <p className="mt-1 text-sm text-[var(--color-text-secondary)]">
-          Здесь появятся события сезона и таймлайны. Пока отображается заглушка.
-        </p>
-      </header>
-      <div className="rounded-3xl border border-[rgba(255,255,255,0.08)] bg-[rgba(39,42,47,0.6)] p-4 text-[var(--color-text-secondary)]">
-        🎁 Таймлайн Airdrop будет собран в фазе 5.
-      </div>
-    </section>
+    <div className="flex h-full w-full flex-col">
+      <MainScreen
+        activeTab="clan"
+        onTabChange={handleTabChange}
+        shopSection={shopSection}
+        onShopSectionChange={setShopSection}
+        onOpenAdminMetrics={handleOpenAdminMetrics}
+      />
+    </div>
   );
 }
