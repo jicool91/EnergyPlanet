@@ -9,7 +9,7 @@
 ## Step 1 – Bridge spacing tokens into Tailwind (≈45 min)
 
 1. Open `webapp/tailwind.config.js`.
-2. Add semantic spacing keys that proxy the existing CSS tokens (`webapp/src/styles/design-tokens.css`). Tailwind 3.4 allows direct CSS variable references.
+2. Add semantic spacing keys that proxy the existing CSS tokens (`webapp/src/styles/tokens.css`). Tailwind 3.4 allows direct CSS variable references.
 
 ```ts
 // webapp/tailwind.config.js

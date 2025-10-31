@@ -1,4 +1,5 @@
-import React from 'react';
+import { forwardRef } from 'react';
+import type { HTMLAttributes } from 'react';
 import clsx from 'clsx';
 
 /**
@@ -7,7 +8,7 @@ import clsx from 'clsx';
  * Uses design system: border, shadow, padding, border-radius
  */
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   /**
    * Highlight the card (featured/recommended items)
    * Adds glow effect and lime border
@@ -45,7 +46,7 @@ export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
  *   Important info
  * </Card>
  */
-export const Card = React.forwardRef<HTMLDivElement, CardProps>(
+export const Card = forwardRef<HTMLDivElement, CardProps>(
   (
     {
       className,
@@ -58,19 +59,17 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     const baseStyles =
-      'relative overflow-hidden rounded-2xl p-md transition-all duration-200 ease-out text-[var(--color-text-primary)] backdrop-blur-sm';
+      'relative overflow-hidden rounded-3xl px-6 py-5 text-[var(--color-text-primary)] shadow-[0_18px_48px_rgba(0,0,0,0.32)] transition-transform duration-200 ease-out backdrop-blur-sm';
 
-    const variantStyles = {
-      default:
-        'bg-[rgba(10,16,38,0.88)] border border-[var(--color-border-subtle)] shadow-elevation-2',
+    const variantStyles: Record<NonNullable<CardProps['variant']>, string> = {
+      default: 'border border-[rgba(255,255,255,0.08)] bg-[rgba(29,32,37,0.92)]',
       elevated:
-        'bg-[rgba(12,20,48,0.92)] border border-[color-mix(in srgb,_var(--color-border-subtle)_70%,_transparent)] shadow-elevation-3',
-      outlined:
-        'bg-[rgba(8,12,26,0.65)] border border-[color-mix(in srgb,_var(--color-border-subtle)_55%,_transparent)] shadow-none',
+        'border border-[rgba(255,255,255,0.12)] bg-[rgba(39,42,47,0.95)] shadow-[0_24px_64px_rgba(0,0,0,0.42)]',
+      outlined: 'border border-[rgba(243,186,47,0.28)] bg-[rgba(29,32,37,0.65)] backdrop-blur-md',
     };
 
     const highlightStyles = highlighted
-      ? 'ring-[3px] ring-[rgba(0,255,136,0.45)] shadow-glow-lime'
+      ? 'ring-2 ring-[var(--color-accent-gold)] shadow-[0_20px_52px_rgba(243,186,47,0.28)]'
       : '';
     const isInteractive =
       typeof props.onClick === 'function' ||
@@ -84,13 +83,14 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
           baseStyles,
           variantStyles[variant],
           highlightStyles,
-          isInteractive && 'card-interactive hover:-translate-y-0.5',
+          isInteractive &&
+            'transition-transform hover:-translate-y-0.5 hover:shadow-[0_22px_60px_rgba(243,186,47,0.18)]',
           className
         )}
         {...props}
       >
         {highlighted && (
-          <span className="absolute top-3 right-3 rounded-full bg-[rgba(0,255,136,0.18)] px-sm-plus py-xs text-label font-bold text-[var(--color-success)] border border-[rgba(0,255,136,0.45)] shadow-glow-lime">
+          <span className="absolute right-4 top-4 rounded-full border border-[rgba(243,186,47,0.45)] bg-[rgba(243,186,47,0.16)] px-3 py-1 text-label font-bold text-[var(--color-accent-gold)] shadow-[0_12px_28px_rgba(243,186,47,0.35)]">
             {highlightBadge}
           </span>
         )}

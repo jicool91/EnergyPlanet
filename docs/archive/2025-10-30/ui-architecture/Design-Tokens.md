@@ -1,6 +1,6 @@
 # Design Tokens & Theming
 
-**Source of truth:** `webapp/src/styles/design-tokens.css`
+**Source of truth:** `webapp/src/styles/tokens.css`
 **Consumers:** Tailwind utilities (`webapp/tailwind.config.js`), component CSS classes, inline styles
 **Updated:** 2025-10-27
 
@@ -17,7 +17,7 @@
 | **Shadows & glows** | `--shadow-sm`, `--shadow-lg`, `--shadow-glow-card`, etc. | Provide depth cues for cards and modals. | Align new layout surfaces to reuse these tokens.
 | **Safe area** | `--safe-area-*`, `--tg-safe-area-*`, `--tg-content-safe-area-*` | Populated from Telegram viewport events (`useSafeArea`). | Critical for notch/inset support per Telegram UX guidance.
 
-Add new tokens in `design-tokens.css` first, then expose them in Tailwind and components.
+Add new tokens in `tokens.css` first, then expose them in Tailwind and components.
 
 ---
 
@@ -56,7 +56,7 @@ Set `--card-size-*` via CSS variables or inline style objects if dynamic.
 
 ## 4. Token Governance Checklist
 
-- [ ] Add/update token in `design-tokens.css` with documentation comment.
+- [ ] Add/update token in `tokens.css` with documentation comment.
 - [ ] Surface token in Tailwind config (if needed) and run `npm run build`.
 - [ ] Update relevant component stories / usage (Card, Button, surfaces).
 - [ ] Document changes here and in `README.md` changelog.

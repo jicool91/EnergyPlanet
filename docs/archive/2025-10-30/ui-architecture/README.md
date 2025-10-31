@@ -10,7 +10,7 @@
 
 - **App Shell (`webapp/src/App.tsx`):** Owns Telegram safe-area padding, tab state, modal stack, telemetry bootstrap, and orchestrates `MainScreen` plus global chrome (`MainScreenHeader`, `TabBar`).
 - **Main Screen (`webapp/src/screens/MainScreen.tsx`):** Single routed surface containing seven tab panels rendered via `ScreenTransition`, sharing a scroll container (`ScrollContainerContext`) and safe-area aware padding. Data comes from `gameStore`, `catalogStore`, and `authStore`.
-- **Design System Layer:** CSS custom properties in `webapp/src/styles/design-tokens.css` + Tailwind config (`webapp/tailwind.config.js`) expose colors, shadows, typography, and safe-area spacing. Components consume tokens via CSS vars (e.g., `Card`, `Button`, `Badge`).
+- **Design System Layer:** CSS custom properties in `webapp/src/styles/tokens.css` + Tailwind config (`webapp/tailwind.config.js`) expose colors, shadows, typography, and safe-area spacing. Components consume tokens via CSS vars (e.g., `Card`, `Button`, `Badge`).
 - **Performance Patterns:** Heavy tabs (`BuildingsPanel`, `ShopPanel`, `BoostHub`, etc.) are lazy loaded, while large lists use virtualization (`react-virtuoso` in `BuildingsPanel`). Skeleton components provide perceived performance.
 - **State Management:** Zustand stores split across gameplay (`gameStore`), catalog (`catalogStore`), auth (`authStore`), and UI (`uiStore`, `preferencesStore`). Panels subscribe selectively with `shallow` comparison to limit re-renders.
 

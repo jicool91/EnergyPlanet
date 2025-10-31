@@ -9,7 +9,7 @@
 ## 📌 Быстрый старт
 
 Все изменения находятся в:
-- **Design System:** `/webapp/tailwind.config.js` + `/webapp/src/styles/design-tokens.css`
+- **Design System:** `/webapp/tailwind.config.js` + `/webapp/src/styles/tokens.css`
 - **Component Library:** `/webapp/src/components/` (новые файлы: Button, Card, Input, Badge, ModalBase)
 - **Документация:** `/webapp/docs/DESIGN_SYSTEM.md`
 - **Summary:** `/docs/PHASE1_SUMMARY.md`
@@ -34,7 +34,7 @@ webapp/tailwind.config.js
 
 **Design Tokens документированы:**
 ```bash
-webapp/src/styles/design-tokens.css
+webapp/src/styles/tokens.css
 ```
 
 Содержит:
@@ -217,7 +217,7 @@ webapp/src/components/
 └── index.ts           (70 строк)
 
 webapp/src/styles/
-└── design-tokens.css  (200 строк)
+└── tokens.css  (200 строк)
 
 webapp/docs/
 └── DESIGN_SYSTEM.md   (400+ строк)
@@ -232,7 +232,7 @@ docs/
 webapp/tailwind.config.js          ← Design tokens
 webapp/src/components/StatCard.tsx  ← Использует design tokens
 webapp/src/components/BuildingCard.tsx ← Использует design tokens
-webapp/src/index.css               ← Импортирует design-tokens.css
+webapp/src/index.css               ← Импортирует tokens.css
 ```
 
 ---

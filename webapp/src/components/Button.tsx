@@ -1,4 +1,5 @@
-import React from 'react';
+import { forwardRef } from 'react';
+import type { ButtonHTMLAttributes } from 'react';
 import { motion, type Transition } from 'framer-motion';
 import { cva, type VariantProps } from 'class-variance-authority';
 import clsx from 'clsx';
@@ -11,40 +12,26 @@ import clsx from 'clsx';
 
 const buttonVariants = cva(
   // Base classes: flex, center, text, cursor, transition
-  'inline-flex items-center justify-center gap-2 font-semibold transition-all duration-120 ease-in-out cursor-pointer disabled:opacity-60 disabled:cursor-default focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-[var(--app-bg)]',
+  'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition-transform duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)] disabled:cursor-not-allowed disabled:opacity-55 data-[loading=true]:pointer-events-none',
   {
     variants: {
       variant: {
-        // Primary: cyan gradient
         primary:
-          'btn-primary text-[var(--tg-theme-button-text-color)] shadow-none hover:shadow-glow disabled:shadow-none',
-
-        // Secondary: cyan with less opacity
+          'bg-[var(--color-accent-gold)] text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(243,186,47,0.26)] hover:brightness-105 active:scale-[0.97]',
         secondary:
-          'bg-[var(--app-card-bg)] text-[var(--color-text-primary)] border border-[var(--color-border-subtle)] hover:brightness-110 hover:shadow-glow-card disabled:shadow-none',
-
-        // Success: lime/gold gradient
+          'border border-[rgba(255,255,255,0.08)] bg-[rgba(39,42,47,0.65)] text-[var(--color-text-primary)] hover:border-[rgba(255,255,255,0.18)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] active:scale-[0.97]',
         success:
-          'bg-[var(--color-success)] text-[var(--color-surface-primary)] font-bold hover:brightness-110 hover:shadow-lg disabled:shadow-none',
-
-        // Danger: red
+          'bg-[var(--color-success)] text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(74,222,128,0.26)] hover:brightness-105 active:scale-[0.97]',
         danger:
-          'bg-[var(--color-text-destructive)] text-[var(--tg-theme-button-text-color)] hover:brightness-110 hover:shadow-lg disabled:shadow-none',
-
-        // Ghost: text only
+          'bg-[var(--color-error)] text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(239,68,68,0.3)] hover:brightness-110 active:scale-[0.97]',
         ghost:
-          'bg-transparent text-[var(--color-text-accent)] hover:text-[var(--tg-theme-link-color)] disabled:text-[var(--color-text-secondary)]',
+          'bg-transparent text-[var(--color-text-accent)] hover:text-[var(--color-text-primary)] active:scale-[0.97]',
       },
 
       size: {
-        // Small: compact button
-        sm: 'px-sm-plus py-xs-plus text-caption rounded-xl min-h-[44px]',
-
-        // Medium: default button
-        md: 'px-md py-sm text-caption rounded-xl min-h-[44px]',
-
-        // Large: prominent button
-        lg: 'px-lg py-sm-plus text-body rounded-2xl min-h-[48px]',
+        sm: 'h-10 min-w-[88px] rounded-xl px-4 text-caption',
+        md: 'h-12 min-w-[104px] rounded-2xl px-5 text-body',
+        lg: 'h-14 min-w-[120px] rounded-3xl px-6 text-body',
       },
 
       fullWidth: {
@@ -62,7 +49,7 @@ const buttonVariants = cva(
 );
 
 type NativeButtonProps = Omit<
-  React.ButtonHTMLAttributes<HTMLButtonElement>,
+  ButtonHTMLAttributes<HTMLButtonElement>,
   | 'onAnimationStart'
   | 'onAnimationEnd'
   | 'onAnimationIteration'
@@ -129,7 +116,7 @@ const springTransition: Transition = {
   duration: 0.2,
 };
 
-export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   (
     {
       className,
@@ -154,6 +141,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       ? { duration: 0.4, ease: 'easeInOut' }
       : undefined;
 
+    const resolvedType = props.type ?? 'button';
+
     return (
       <motion.button
         ref={ref}
@@ -165,6 +154,10 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         whileTap={!isDisabled ? { scale: 0.95 } : { scale: 1 }}
         animate={error ? shakeAnimation : { x: 0 }}
         transition={error ? errorTransition : springTransition}
+        data-loading={loading}
+        aria-busy={loading || undefined}
+        aria-live={success || error ? 'polite' : undefined}
+        type={resolvedType}
         {...props}
       >
         {/* Loading spinner */}

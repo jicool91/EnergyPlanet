@@ -75,3 +75,5 @@ export { SettingsScreen } from './settings/SettingsScreen';
 // Utilities
 export { AnimatedNumber } from './AnimatedNumber';
 export { ErrorBoundary } from './ErrorBoundary';
+export { ProgressBar } from './ui/ProgressBar';
+export { Text } from './ui/Text';

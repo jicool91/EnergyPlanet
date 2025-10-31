@@ -1,8 +1,9 @@
-import React from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Button } from './Button';
+import { useEffect, useId, useRef } from 'react';
+import type { ReactNode } from 'react';
+import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import clsx from 'clsx';
 import { createPortal } from 'react-dom';
+import { Button } from './Button';
 
 /**
  * ModalBase Component
@@ -46,7 +47,7 @@ export interface ModalBaseProps {
   /**
    * Modal content
    */
-  children: React.ReactNode;
+  children: ReactNode;
 
   /**
    * Action buttons at the bottom
@@ -99,7 +100,7 @@ export interface ModalBaseProps {
  *   <p>You reached level {newLevel}</p>
  * </ModalBase>
  */
-export const ModalBase: React.FC<ModalBaseProps> = ({
+export function ModalBase({
   isOpen,
   title,
   children,
@@ -107,12 +108,37 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
   onClose,
   showClose = true,
   size = 'md',
-}) => {
+}: ModalBaseProps) {
   const sizeStyles: Record<Required<ModalBaseProps>['size'], string> = {
     sm: 'w-[min(92vw,420px)]',
     md: 'w-[min(92vw,560px)]',
     lg: 'w-[min(92vw,720px)]',
   };
+  const reduceMotion = useReducedMotion();
+  const titleId = useId();
+  const dialogRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation();
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
+  useEffect(() => {
+    if (isOpen && dialogRef.current) {
+      dialogRef.current.focus();
+    }
+  }, [isOpen]);
 
   const modalContent = (
     <AnimatePresence>
@@ -124,36 +150,43 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 backdrop-blur-sm z-40"
-            style={{
-              background: 'color-mix(in srgb, var(--app-bg) 60%, transparent)',
-            }}
+            className="fixed inset-0 z-40 bg-[rgba(5,8,12,0.78)] backdrop-blur-sm"
+            transition={{ duration: reduceMotion ? 0 : 0.2 }}
           />
 
           {/* Modal */}
-          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none p-4 sm:p-6">
+          <div className="pointer-events-none fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
             <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              transition={{ duration: 0.2 }}
+              ref={dialogRef}
+              tabIndex={-1}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
+              initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
+              animate={reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
+              exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ duration: reduceMotion ? 0 : 0.24, ease: 'easeOut' }}
               className={clsx(
-                'pointer-events-auto rounded-3xl border border-[rgba(0,217,255,0.25)] bg-gradient-to-br from-[rgba(12,18,40,0.96)] via-[rgba(16,24,56,0.94)] to-[rgba(24,18,64,0.9)] shadow-elevation-4 backdrop-blur-md',
-                'max-h-[85vh] flex w-full flex-col gap-5 p-6 sm:gap-6 sm:p-7',
+                'pointer-events-auto flex w-full max-h-[85vh] flex-col gap-5 rounded-4xl border border-[rgba(255,255,255,0.08)] bg-[rgba(19,22,28,0.96)] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:gap-6 sm:p-7',
                 sizeStyles[size]
               )}
             >
               {/* Header */}
               <div className="flex items-center justify-between gap-4">
-                <h2 className="text-heading font-semibold text-token-primary flex-1">{title}</h2>
+                <h2
+                  id={titleId}
+                  className="flex-1 text-heading font-semibold text-[var(--color-text-primary)]"
+                >
+                  {title}
+                </h2>
 
                 {showClose && (
                   <button
                     onClick={onClose}
-                    className="text-token-secondary hover:text-token-primary transition-colors focus-ring"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(39,42,47,0.7)] text-[var(--color-text-secondary)] transition-colors hover:bg-[rgba(39,42,47,0.9)] hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
                     aria-label="Close modal"
                   >
-                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -166,13 +199,13 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto pr-1 text-body text-token-secondary">
+              <div className="flex-1 overflow-y-auto pr-1 text-body text-[var(--color-text-secondary)]">
                 {children}
               </div>
 
               {/* Actions */}
               {actions.length > 0 && (
-                <div className="flex gap-3 justify-end flex-wrap">
+                <div className="flex flex-wrap justify-end gap-3">
                   {actions.map((action, index) => (
                     <Button
                       key={index}
@@ -198,4 +231,4 @@ export const ModalBase: React.FC<ModalBaseProps> = ({
   }
 
   return createPortal(modalContent, document.body);
-};
+}

@@ -20,7 +20,7 @@
 - ✅ Border radius (xs-4px до 2xl-32px)
 - ✅ Shadows (sm, md, lg, xl + cyan glows)
 
-**src/styles/design-tokens.css** - документирован Design System:
+**src/styles/tokens.css** - документирован Design System:
 - ✅ CSS custom properties для всех токенов
 - ✅ Utility classes для типографии
 - ✅ Примеры компонентных стилей
@@ -109,7 +109,7 @@ webapp/
 │   │   ├── index.ts             ✅ NEW
 │   │   └── ... (остальные)
 │   └── styles/
-│       ├── design-tokens.css    ✅ NEW
+│       ├── tokens.css    ✅ NEW
 │       └── index.css            ✅ UPDATED
 ├── docs/
 │   ├── DESIGN_SYSTEM.md         ✅ NEW (гайд для разработчиков)
