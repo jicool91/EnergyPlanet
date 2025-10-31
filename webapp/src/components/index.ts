@@ -13,14 +13,9 @@ export { Badge, type BadgeProps } from './Badge';
 export { OptimizedImage, type OptimizedImageProps } from './OptimizedImage';
 export { ModalBase, type ModalBaseProps, type ModalAction } from './ModalBase';
 export { StatCard, type StatCardProps } from './StatCard';
-export { XPProgressCard } from './XPProgressCard';
 
 // Layout & Navigation
 export { ScreenTransition } from './ScreenTransition';
-export { TabBar, type TabBarItem } from './TabBar';
-export { MainScreenHeader } from './MainScreenHeader';
-export { TapSection } from './TapSection';
-export { LevelBar } from './LevelBar';
 export { TabPageSurface } from './layout/TabPageSurface';
 export { AppLayout } from './layout/AppLayout';
 export {
@@ -32,7 +27,6 @@ export {
 // Panels (Feature-specific)
 export { BuildingCard, type BuildingCardProps } from './BuildingCard';
 export { BuildingsPanel } from './BuildingsPanel';
-export { HomePanel, type HomePanelProps } from './HomePanel';
 export { ShopPanel } from './ShopPanel';
 export { ProfilePanel } from './ProfilePanel';
 export { BoostHub } from './BoostHub';

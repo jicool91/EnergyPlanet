@@ -10,7 +10,7 @@
 - [x] `AppLayout` центрирует приложение (`max-w-xl`), корректно учитывает safe-area на iOS/Android в Telegram, использует `motion-safe`/`motion-reduce` классы.[^telegram-viewport][^tailwind-best]
 - [x] `BottomNavigation` содержит 5 вкладок, состояния выделяются по макету, `aria-label`, `aria-current="page"`, стрелочная навигация и `startTransition` при переключении.
 - [x] Маршруты `/`, `/exchange`, `/friends`, `/earn`, `/airdrop` рендерятся через `React.Suspense` без ошибок в консоли.
-- [x] Legacy `MainScreen` остаётся доступным при выключенном фичефлаге.
+- [ ] Legacy `MainScreen` остаётся доступным при выключенном фичефлаге. _(неприменимо, legacy UI удалён 31.10.2025)_
 
 ## Экран Tap
 - [x] Тап по планете обновляет энергию, streak, телеметрию (`logClientEvent`) без визуальной задержки.
@@ -41,7 +41,7 @@
 - [ ] `COMPONENT_MIGRATION_MAP.md` обновлён фактическими статусами и допущениями.
 - [ ] В `docs/ui-transition/_evidence` лежат финальные скриншоты всех экранов (Tap, Exchange, Friends, Earn, Airdrop) и обновлённые метрики.
 - [ ] Release notes содержат раздел «Новый UI» с перечислением изменений и рисков.
-- [ ] Feature flag `isNextUiEnabled` включён по умолчанию, legacy-компоненты удалены, smoke-тесты повторно пройдены.
+- [ ] Feature flag `isNextUiEnabled` включён по умолчанию, legacy-компоненты удалены, smoke-тесты повторно пройдены. _(флаг отключён навсегда; осталось выполнить smoke-тесты)_
 
 [^react192]: React Team. “React 19.2.” *React.dev Blog*, October 1, 2025. https://react.dev/blog/2025/10/01/react-19-2.
 [^react-best]: Jay Sarvaiya. “React 19 Best Practices.” *DEV Community*, October 2025. https://dev.to/jay_sarvaiya_reactjs/react-19-best-practices-write-clean-modern-and-efficient-react-code-1beb.

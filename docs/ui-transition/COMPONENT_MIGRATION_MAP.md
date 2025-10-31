@@ -8,7 +8,7 @@
 | AppLayout | `webapp/src/components/layout/AppLayout.tsx` | Контейнер `max-w-xl`, поддержка safe-area через `env(safe-area-inset-*)`, использование `motion-safe`/`motion-reduce` классов Tailwind и `useEffectEvent` для событий resize.[^telegram-viewport][^tailwind-best][^react-best] | React 19, Tailwind токены, `useSafeArea` | Готово |
 | BottomNavigation | `webapp/src/components/layout/BottomNavigation.tsx` | Фиксированное позиционирование, пять вкладок, `aria-current`, `aria-label`, поддержка клавиатурной навигации и `startTransition` при переключении.[^react192] | `useSafeArea`, `framer-motion`, Tailwind | Готово |
 | Header | `webapp/src/components/layout/Header.tsx` (создать) | Варианты для Tap/Exchange/Friends/Earn/Airdrop, отображение профиля, CTA, адаптивные размеры текста, анимации появления (Framer Motion + `prefers-reduced-motion`). | `useGameStore`, `useAuthStore`, `OptimizedImage` | План |
-| Router Shell | `webapp/src/App.tsx` | Настроить `Routes`, `React.lazy` и `Suspense` на уровне экранов, feature flag `uiStore.isNextUiEnabled`, передавать `location` через `startTransition`. | `react-router-dom@6.30`, `uiStore` | Готово — Next UI shell + глобальные модалки |
+| Router Shell | `webapp/src/App.tsx` | Настроить `Routes`, `React.lazy` и `Suspense` на уровне экранов; ранний feature flag отключён после миграции. | `react-router-dom@6.30`, `uiStore` | Готово — Next UI shell + глобальные модалки |
 
 ## UI-кирпичики
 | Компонент | Файл/папка | Ключевые действия | Зависимости | Статус |
@@ -36,7 +36,7 @@
 | Объект | Файл/папка | Ключевые действия | Зависимости | Статус |
 | --- | --- | --- | --- | --- |
 | Цветовые токены | `src/styles/tokens.css`, `tailwind.config.js` | Синхронизировать с `COLOR_SCHEMES.md`, вынести градиенты/тени в CSS переменные, настроить `@layer base`. | Tailwind 3.4.18 | Готово |
-| UI Store | `src/store/uiStore.ts` | Фичефлаги, активная вкладка, глобальные модалки, persisted state, `useEffectEvent` для подписок. | Zustand 5, React 19 | В работе — фичефлаг и persisted state |
+| UI Store | `src/store/uiStore.ts` | Фичефлаги, активная вкладка, глобальные модалки, persisted state, `useEffectEvent` для подписок. | Zustand 5, React 19 | Готово — глобальные модалки/notifications, сохранение темы |
 | Telegram Hooks | `src/hooks/useSafeArea.ts`, `useTelegram.ts` | Перепроверить расчёт safe-area, внедрить обработку изменения viewport и `themeParams`. | `@tma.js/sdk-react` | План |
 | Notifications | `src/hooks/useNotification.ts` | Добавить очередь, поддержку `aria-live`, лимит одновременных тостов. | React 19 | План |
 | Тесты | `tests/performance/tap-loop.spec.ts` + новые | Добавить smoke для каждого экрана, проверить переходы, использовать `page.waitForFunction` для Suspense. | Playwright 1.45.2 | План |

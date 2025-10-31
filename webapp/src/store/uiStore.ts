@@ -31,7 +31,6 @@ interface UIState {
   offlineSummary: OfflineSummarySnapshot | null;
   theme: TelegramThemeParams;
   notifications: Notification[];
-  isNextUiEnabled: boolean;
   openAuthError: (message: string) => void;
   dismissAuthError: () => void;
   setOfflineSummary: (summary: OfflineSummarySnapshot | null) => void;
@@ -39,8 +38,6 @@ interface UIState {
   clearOfflineSummary: () => void;
   addNotification: (notification: Omit<Notification, 'id'>) => string;
   removeNotification: (id: string) => void;
-  setNextUiEnabled: (value: boolean) => void;
-  toggleNextUiEnabled: () => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -51,7 +48,6 @@ export const useUIStore = create<UIState>()(
       offlineSummary: null,
       theme: DEFAULT_THEME,
       notifications: [],
-      isNextUiEnabled: false,
       openAuthError: (message: string) => set({ authErrorMessage: message, isAuthModalOpen: true }),
       dismissAuthError: () => set({ authErrorMessage: null, isAuthModalOpen: false }),
       setOfflineSummary: summary => set({ offlineSummary: summary }),
@@ -89,13 +85,10 @@ export const useUIStore = create<UIState>()(
             notifications: state.notifications.filter(n => n.id !== id),
           };
         }),
-      setNextUiEnabled: value => set({ isNextUiEnabled: value }),
-      toggleNextUiEnabled: () => set(state => ({ isNextUiEnabled: !state.isNextUiEnabled })),
     }),
     {
       name: 'energy-ui',
       partialize: state => ({
-        isNextUiEnabled: state.isNextUiEnabled,
         theme: state.theme,
       }),
       version: 1,
@@ -127,14 +120,5 @@ export const uiStore = {
   },
   get theme() {
     return useUIStore.getState().theme;
-  },
-  setNextUiEnabled(value: boolean) {
-    useUIStore.getState().setNextUiEnabled(value);
-  },
-  toggleNextUiEnabled() {
-    useUIStore.getState().toggleNextUiEnabled();
-  },
-  get isNextUiEnabled() {
-    return useUIStore.getState().isNextUiEnabled;
   },
 };

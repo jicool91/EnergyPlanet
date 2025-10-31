@@ -3,7 +3,7 @@
 ## Фаза 1 — Подготовка окружения (≤ 1 день)
 - Выполнить `npm ci` в `webapp/` и убедиться, что lock-файл не меняется (React 19.2, Vite 5, Tailwind 3.4.18, Zustand 5 остаются актуальными).
 - Сравнить токены в `tailwind.config.js`, `src/index.css` с `docs/COLOR_SCHEMES.md`, добавить недостающие переменные и custom properties.
-- Добавить feature flag `isNextUiEnabled` в `webapp/src/store/uiStore.ts` с persisted state, предусмотреть переключение через query-параметр для QA.
+- Добавить feature flag `isNextUiEnabled` в `webapp/src/store/uiStore.ts` с persisted state, предусмотреть переключение через query-параметр для QA. _(выполнено на раннем этапе; после финальной миграции флаг отключён)_
 - Снять baseline-метрики: React Profiler (commit time), DevTools Performance (TTI/CLS) и скриншоты `MainScreen`, сохранить в `_evidence/phase1`.
 
 **Артефакты:** запись в `QA_CHECKLIST.md` («Подготовка»), baseline-метрики и скриншоты в `docs/ui-transition/_evidence/phase1`.
@@ -13,7 +13,7 @@
 - Адаптировать `components/TabBar.tsx` в `layout/BottomNavigation.tsx`: пять вкладок, активное состояние, `aria-current="page"`, поддержку `KeyboardEvent`.
 - В `App.tsx` внедрить `react-router-dom` с отдельными `Suspense`-границами на каждый экран (`Tap`, `Exchange`, `Friends`, `Earn`, `Airdrop`) и переключением через `startTransition`.[^react192]
 - Создать заглушки экранов в `src/screens/` и обернуть их в `loadable` функции с `React.lazy`.
-- Зафичефлагить новый layout, оставив legacy `MainScreen` доступным при выключенном флаге.
+- Зафичефлагить новый layout, оставив legacy `MainScreen` доступным при выключенном флаге. _(этап завершён; legacy UI удалён после миграции)_
 
 **Критерии:** переключение флага рендерит пустые экраны с корректной навигацией, метрики baseline ±5 % от старого UI.
 

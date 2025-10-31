@@ -9,7 +9,6 @@ import {
   useState,
 } from 'react';
 import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import LegacyApp from './AppLegacy';
 import { useUIStore } from './store/uiStore';
 import { AppLayout } from './components/layout/AppLayout';
 import type {
@@ -459,11 +458,5 @@ function NextUiApp() {
 }
 
 export default function App() {
-  const isNextUiEnabled = useUIStore(state => state.isNextUiEnabled);
-
-  if (!isNextUiEnabled) {
-    return <LegacyApp />;
-  }
-
   return <NextUiApp />;
 }

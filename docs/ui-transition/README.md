@@ -27,7 +27,7 @@
 ## Как работаем командой
 - Каждая фаза завершается PR-ом со скриншотами Tap + альтернативного экрана, перечислением прогонов `npm run lint`, `npm run typecheck`, `npm run build`, `npm run test:perf`.
 - Все отклонения от дизайн-документов и best practices документируем в `COMPONENT_MIGRATION_MAP.md` (колонка «Статус») с ссылкой на задачу.
-- После финальной валидации включаем feature flag по умолчанию, удаляем legacy-компоненты и описываем изменения в release notes.
+- После финальной валидации feature flag отключён, новый UI активен по умолчанию, legacy-компоненты удалены; выпускаем release notes с перечислением изменений и рисков.
 
 [^react192]: React Team. “React 19.2.” *React.dev Blog*, October 1, 2025. https://react.dev/blog/2025/10/01/react-19-2.
 [^react-best]: Jay Sarvaiya. “React 19 Best Practices: Write Clean, Modern, and Efficient React Code.” *DEV Community*, October 2025. https://dev.to/jay_sarvaiya_reactjs/react-19-best-practices-write-clean-modern-and-efficient-react-code-1beb.
