@@ -523,14 +523,13 @@ export function ShopPanel({
         }
       default:
         if (activeSection === 'cosmetics') {
-          const categoryLabel = categories.find(cat => cat.id === activeCategory)?.label;
-          return categoryLabel
-            ? `Тематические стили: ${categoryLabel}`
+          return activeCosmeticsCategoryLabel
+            ? `Тематические стили: ${activeCosmeticsCategoryLabel}`
             : 'Измените внешний вид планеты и выделитесь в рейтинге.';
         }
         return 'Создайте уникальный образ и мотивируйте друзей возвращаться каждый день.';
     }
-  }, [activeSection, activeBoostSection, activeStarPackSection, activeCategory, categories]);
+  }, [activeSection, activeBoostSection, activeStarPackSection, activeCosmeticsCategoryLabel]);
 
   const sectionHelper = useMemo(() => {
     switch (activeSection) {
@@ -558,7 +557,7 @@ export function ShopPanel({
         }
         return 'Комбинируйте визуальные и экономические предложения, чтобы усилить удержание.';
     }
-  }, [activeSection, activeBoostSection, activeStarPackSection, categories, activeCategory]);
+  }, [activeSection, activeBoostSection, activeStarPackSection]);
 
   const heroTitle = useMemo(() => {
     switch (activeSection) {
