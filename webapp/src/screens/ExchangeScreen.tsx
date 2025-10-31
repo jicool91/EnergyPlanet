@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { MainScreen } from './MainScreen';
 import type { ShopSection } from '@/components/ShopPanel';
 
@@ -7,8 +7,33 @@ type ExchangeTab = 'shop' | 'builds';
 
 export function ExchangeScreen() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [shopSection, setShopSection] = useState<ShopSection>('star_packs');
   const [exchangeTab, setExchangeTab] = useState<ExchangeTab>('shop');
+  const validSections = useMemo<ShopSection[]>(() => ['star_packs', 'boosts'], []);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const section = params.get('section');
+    if (section && validSections.includes(section as ShopSection)) {
+      startTransition(() => {
+        setShopSection(section as ShopSection);
+        setExchangeTab('shop');
+      });
+    }
+  }, [location.search, validSections]);
+
+  useEffect(() => {
+    if (exchangeTab !== 'shop') {
+      return;
+    }
+    const params = new URLSearchParams(location.search);
+    if (params.get('section') === shopSection) {
+      return;
+    }
+    params.set('section', shopSection);
+    navigate({ pathname: '/exchange', search: params.toString() }, { replace: true });
+  }, [shopSection, exchangeTab, location.search, navigate]);
 
   const handleTabChange = useCallback(
     (tab: 'home' | 'shop' | 'builds' | 'leaderboard' | 'account' | 'clan') => {
