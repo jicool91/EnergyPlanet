@@ -22,6 +22,12 @@ export { MainScreenHeader } from './MainScreenHeader';
 export { TapSection } from './TapSection';
 export { LevelBar } from './LevelBar';
 export { TabPageSurface } from './layout/TabPageSurface';
+export { AppLayout } from './layout/AppLayout';
+export {
+  BottomNavigation,
+  type BottomNavigationTab,
+  type BottomNavigationTabId,
+} from './layout/BottomNavigation';
 
 // Panels (Feature-specific)
 export { BuildingCard, type BuildingCardProps } from './BuildingCard';
