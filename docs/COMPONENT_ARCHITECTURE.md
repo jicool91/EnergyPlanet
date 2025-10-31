@@ -28,15 +28,26 @@ webapp/src/
 │   │   ├── Tabs.tsx              # Вкладки
 │   │   └── Divider.tsx           # Разделители
 │   │
-│   └── common/                   # Специфичные для игры компоненты
-│       ├── TapCircle.tsx         # Кликабельный круг планеты
-│       ├── DailyTasksBar.tsx     # Полоса ежедневных задач
+│   ├── tap/                      # Модули экрана Tap
+│   │   ├── TapCircle.tsx         # Кликабельный круг планеты
+│   │   ├── StatsSummary.tsx      # Сводка по энергии/множителям/престижу
+│   │   └── DailyTasksBar.tsx     # Полоса ежедневных задач и CTA
+│   │
+│   ├── friends/                  # Реферальные компоненты
+│   │   └── FriendsList.tsx       # Список рефералов и CTA приглашений
+│   │
+│   ├── earn/                     # Компоненты экрана Earn
+│   │   └── EarnTasksBoard.tsx    # Обёртка над BoostHub с фильтрами
+│   │
+│   ├── airdrop/                  # Компоненты таймлайна событий
+│   │   └── AirdropTimeline.tsx   # Сезонные события и награды
+│   │
+│   └── common/                   # Переиспользуемые игровые элементы
 │       ├── BuildingCard.tsx      # Карточка здания
-│       ├── UserStats.tsx         # Статистика игрока
-│       ├── ProfitCounter.tsx     # Счетчик дохода в час
-│       ├── FriendsList.tsx       # Список друзей
-│       ├── TaskCard.tsx          # Карточка задачи
-│       └── BoostBadge.tsx        # Значок активного буста
+│       ├── UserStats.tsx         # Статистика игрока (legacy)
+│       ├── ProfitCounter.tsx     # Счетчик дохода (legacy)
+│       ├── TaskCard.tsx          # Карточка задачи (legacy)
+│       └── BoostBadge.tsx        # Значок активного буста (legacy)
 │
 ├── hooks/
 │   ├── useGame.ts               # Хук для игровых данных (Zustand)
