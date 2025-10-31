@@ -59,6 +59,11 @@ export { ShopSkeleton } from './skeletons/ShopSkeleton';
 export { ProfileSkeleton } from './skeletons/ProfileSkeleton';
 export { LeaderboardSkeleton } from './skeletons/LeaderboardSkeleton';
 
+// Tap
+export { TapCircle } from './tap/TapCircle';
+export { StatsSummary } from './tap/StatsSummary';
+export { DailyTasksBar } from './tap/DailyTasksBar';
+
 // Modals
 export { AuthErrorModal } from './AuthErrorModal';
 export { OfflineSummaryModal } from './OfflineSummaryModal';

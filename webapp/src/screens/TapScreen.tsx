@@ -1,8 +1,14 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { HomePanel } from '@/components/HomePanel';
-import { AchievementsModal } from '@/components/AchievementsModal';
+import {
+  AchievementsModal,
+  TapCircle,
+  StatsSummary,
+  DailyTasksBar,
+  Card,
+  TabPageSurface,
+} from '@/components';
 import { useNotification } from '@/hooks/useNotification';
 import { useHaptic } from '@/hooks/useHaptic';
 import { streakConfig, useGameStore } from '@/store/gameStore';
@@ -20,6 +26,67 @@ function buildExchangeUrl(section: ShopSection) {
   return `/exchange?${params.toString()}`;
 }
 
+interface PurchaseInsight {
+  name: string;
+  cost: number;
+  affordable: boolean;
+  remaining: number;
+  roiRank: number | null;
+  paybackSeconds: number | null;
+  incomeGain: number;
+}
+
+function PurchaseInsightCard({
+  insight,
+  onOpenShop,
+}: {
+  insight: PurchaseInsight;
+  onOpenShop: (section?: ShopSection) => void;
+}) {
+  const { name, cost, affordable, remaining, paybackSeconds, incomeGain } = insight;
+  return (
+    <Card className="flex flex-col gap-3">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
+            Следующая цель
+          </p>
+          <p className="text-lg font-semibold text-[var(--color-text-primary)]">{name}</p>
+        </div>
+        <span className="rounded-full bg-[rgba(255,255,255,0.08)] px-3 py-1 text-xs text-[var(--color-text-secondary)]">
+          Стоимость {cost.toLocaleString('ru-RU')}
+        </span>
+      </div>
+      <p className="text-sm text-[var(--color-text-secondary)]">
+        Доход в секунду: +{incomeGain.toLocaleString('ru-RU')}
+      </p>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+          {affordable ? (
+            <span className="text-[var(--color-success)]">Можно купить прямо сейчас</span>
+          ) : (
+            <>Осталось накопить: {remaining.toLocaleString('ru-RU')}</>
+          )}
+        </div>
+        <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+          {paybackSeconds
+            ? `Окупится за ~${Math.round(paybackSeconds / 60)} мин`
+            : 'Окупаемость не указана'}
+        </div>
+      </div>
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => onOpenShop('boosts')}
+          className="rounded-2xl bg-[var(--color-accent-gold)] px-4 py-2 text-sm font-semibold text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(243,186,47,0.26)] transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bg-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-accent-gold)]"
+        >
+          Улучшить сейчас
+        </button>
+      </div>
+    </Card>
+  );
+}
+
 export function TapScreen() {
   const navigate = useNavigate();
   const { toast } = useNotification();
@@ -27,10 +94,7 @@ export function TapScreen() {
 
   const {
     energy,
-    stars,
     level,
-    xpIntoLevel,
-    xpToNextLevel,
     tapLevel,
     tapIncome,
     passiveIncomePerSec,
@@ -62,10 +126,7 @@ export function TapScreen() {
   } = useGameStore(
     useShallow(state => ({
       energy: state.energy,
-      stars: state.stars,
       level: state.level,
-      xpIntoLevel: state.xpIntoLevel,
-      xpToNextLevel: state.xpToNextLevel,
       tapLevel: state.tapLevel,
       tapIncome: state.tapIncome,
       passiveIncomePerSec: state.passiveIncomePerSec,
@@ -204,10 +265,6 @@ export function TapScreen() {
     [tapIncome]
   );
 
-  const xpTotalForLevel = xpIntoLevel + xpToNextLevel;
-  const xpProgress = xpTotalForLevel > 0 ? Math.min(1, xpIntoLevel / xpTotalForLevel) : 0;
-  const xpRemaining = xpToNextLevel;
-
   const passiveIncomeLabel = useMemo(() => {
     if (passiveIncomePerSec <= 0) {
       return '—';
@@ -233,6 +290,10 @@ export function TapScreen() {
   const multiplierLabel = useMemo(() => {
     return multiplierParts.join(' · ');
   }, [multiplierParts]);
+  const overallMultiplier = useMemo(
+    () => boostMultiplier * prestigeMultiplier * Math.max(1, achievementMultiplier),
+    [boostMultiplier, prestigeMultiplier, achievementMultiplier]
+  );
 
   const claimableAchievementsCount = useMemo(() => {
     if (!Array.isArray(achievements)) {
@@ -314,34 +375,18 @@ export function TapScreen() {
     };
   }, [buildingCatalog, buildings, energy, level]);
 
-  const { activeBoostSummary, nextBoostAvailabilityMs } = useMemo(() => {
+  const nextBoostAvailabilityMs = useMemo(() => {
     if (!Array.isArray(boostHub) || boostHub.length === 0) {
-      return { activeBoostSummary: null, nextBoostAvailabilityMs: undefined };
+      return undefined;
     }
 
     const currentServerMs = clientNowMs + (boostHubTimeOffsetMs ?? 0);
-    let activeSummary: { boostType: string; multiplier: number; remainingMs: number } | null = null;
     let nextAvailabilityMs: number | undefined;
     let hasReadyBoost = false;
 
     boostHub.forEach(item => {
       if (item.active) {
-        const expiresAtMs = item.active.expires_at ? Date.parse(item.active.expires_at) : null;
-        const remainingMs =
-          expiresAtMs !== null
-            ? Math.max(0, expiresAtMs - currentServerMs)
-            : (item.active.remaining_seconds ?? 0) * 1000;
-        if (
-          !activeSummary ||
-          remainingMs > activeSummary.remainingMs ||
-          item.multiplier > activeSummary.multiplier
-        ) {
-          activeSummary = {
-            boostType: item.boost_type,
-            multiplier: item.multiplier,
-            remainingMs,
-          };
-        }
+        // active boost не влияет на таймер следующего — пропускаем
       } else {
         const cooldownSeconds = item.cooldown_remaining_seconds ?? 0;
         const availableAtMs = item.available_at ? Date.parse(item.available_at) : null;
@@ -363,7 +408,7 @@ export function TapScreen() {
       nextAvailabilityMs = 0;
     }
 
-    return { activeBoostSummary: activeSummary, nextBoostAvailabilityMs: nextAvailabilityMs };
+    return nextAvailabilityMs;
   }, [boostHub, boostHubTimeOffsetMs, clientNowMs]);
 
   const handleViewBoosts = useCallback(() => {
@@ -399,44 +444,73 @@ export function TapScreen() {
 
   return (
     <>
-      <HomePanel
-        energy={energy}
-        level={level}
-        xpProgress={xpProgress}
-        xpIntoLevel={xpIntoLevel}
-        xpToNextLevel={xpToNextLevel}
-        xpRemaining={xpRemaining}
-        tapLevel={tapLevel}
-        tapIncomeDisplay={tapIncomeDisplay}
-        passiveIncomeLabel={passiveIncomeLabel}
-        passiveIncomePerSec={passiveIncomePerSec}
-        multiplierLabel={multiplierLabel}
-        multiplierParts={multiplierParts}
-        stars={stars}
-        streakCount={streakCount}
-        bestStreak={bestStreak}
-        isCriticalStreak={isCriticalStreak}
-        purchaseInsight={purchaseInsight || undefined}
-        prestigeLevel={prestigeLevel}
-        prestigeMultiplier={prestigeMultiplier}
-        prestigeEnergySinceReset={prestigeEnergySinceReset}
-        prestigeNextThreshold={prestigeNextThreshold}
-        prestigeEnergyToNext={prestigeEnergyToNext}
-        prestigeGainAvailable={prestigeGainAvailable}
-        isPrestigeAvailable={isPrestigeAvailable}
-        isPrestigeLoading={isPrestigeLoading}
-        onPrestige={performPrestige}
-        onTap={handleTap}
-        onViewLeaderboard={handleViewLeaderboard}
-        socialPlayerCount={leaderboardTotal}
-        isSocialBlockLoading={!leaderboardLoaded && isLeaderboardLoading}
-        activeBoost={activeBoostSummary ?? undefined}
-        nextBoostAvailabilityMs={nextBoostAvailabilityMs}
-        onViewBoosts={handleViewBoosts}
-        onViewAchievements={handleViewAchievements}
-        onOpenShop={handleOpenShop}
-        claimableAchievements={claimableAchievementsCount}
-      />
+      <div className="flex flex-col gap-6">
+        <TapCircle
+          onTap={handleTap}
+          streakCount={streakCount}
+          tapLevel={tapLevel}
+          boostMultiplier={overallMultiplier}
+          isCriticalStreak={isCriticalStreak}
+        />
+
+        <StatsSummary
+          energy={energy}
+          tapIncomeDisplay={tapIncomeDisplay}
+          passiveIncomeLabel={passiveIncomeLabel}
+          streakCount={streakCount}
+          bestStreak={bestStreak}
+          multiplierLabel={multiplierLabel}
+          multiplierParts={multiplierParts}
+          prestigeLevel={prestigeLevel}
+          prestigeMultiplier={prestigeMultiplier}
+          prestigeEnergySinceReset={prestigeEnergySinceReset}
+          prestigeEnergyToNext={prestigeEnergyToNext}
+          prestigeGainAvailable={prestigeGainAvailable}
+          prestigeNextThreshold={prestigeNextThreshold}
+          isPrestigeAvailable={isPrestigeAvailable}
+          isPrestigeLoading={isPrestigeLoading}
+          onPrestige={performPrestige}
+        />
+
+        <DailyTasksBar
+          nextBoostAvailabilityMs={nextBoostAvailabilityMs}
+          claimableAchievements={claimableAchievementsCount}
+          onViewBoosts={handleViewBoosts}
+          onViewAchievements={handleViewAchievements}
+          onViewLeaderboard={handleViewLeaderboard}
+          socialPlayerCount={leaderboardTotal}
+          isSocialBlockLoading={!leaderboardLoaded && isLeaderboardLoading}
+        />
+
+        {purchaseInsight ? (
+          <PurchaseInsightCard insight={purchaseInsight} onOpenShop={handleOpenShop} />
+        ) : null}
+
+        <TabPageSurface className="gap-4">
+          <Card className="flex flex-col gap-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
+                  Сообщество
+                </p>
+                <p className="text-lg font-semibold text-[var(--color-text-primary)]">
+                  {leaderboardTotal.toLocaleString('ru-RU')} игроков онлайн
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleViewLeaderboard}
+                className="rounded-2xl border border-[rgba(255,255,255,0.12)] px-4 py-2 text-sm text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+              >
+                Смотреть рейтинг
+              </button>
+            </div>
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Тапай быстрее, чтобы обогнать друзей и открыть новые награды.
+            </p>
+          </Card>
+        </TabPageSurface>
+      </div>
 
       <AchievementsModal
         isOpen={isAchievementsOpen}

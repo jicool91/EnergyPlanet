@@ -24,9 +24,9 @@
 ## Game-specific компоненты
 | Компонент | Файл/папка | Ключевые действия | Зависимости | Статус |
 | --- | --- | --- | --- | --- |
-| TapCircle | `webapp/src/components/TapSection.tsx` → `components/common/TapCircle.tsx` | Выделить круг планеты, состояния tap/boost/cooldown, анимация импульса, хаптик. | `framer-motion`, `useHaptic` | План |
-| DailyTasksBar | `DailyRewardBanner.tsx` + `BoostHub.tsx` | Объединить ежедневные задания, бусты, streak, добавить CTA на Earn. | `useGameStore`, `useCatalogStore` | План |
-| StatsSummary | `HomePanel.tsx` → `components/common/StatsSummary.tsx` | Сводные данные по энергии, доходу, престижу, использование `AnimatedNumber`. | `useGameStore`, `AnimatedNumber` | План |
+| TapCircle | `webapp/src/components/tap/TapCircle.tsx` | Выделить круг планеты, состояния tap/boost/cooldown, анимация импульса, хаптик. | `framer-motion`, `useHaptic` | Готово — базовая реализация в Next UI |
+| DailyTasksBar | `webapp/src/components/tap/DailyTasksBar.tsx` | Объединить ежедневные задания, бусты, streak, добавить CTA на Earn. | `useGameStore`, `useCatalogStore` | Готово — CTA и таймер | 
+| StatsSummary | `webapp/src/components/tap/StatsSummary.tsx` | Сводные данные по энергии, доходу, престижу, использование `AnimatedNumber`. | `useGameStore`, `AnimatedNumber` | Готово |
 | BuildingsGrid | `BuildingsPanel.tsx` | Обновить карточки под токены, добавить виртуализацию секций `react-virtuoso`, Suspense загрузку. | React.lazy, Zustand | Есть (нужен рефактор) |
 | FriendsList | `ProfilePanel.tsx` → `components/common/FriendsList.tsx` | Список друзей, CTA share, отображение прогресса рефералов. | `useGameStore`, Friends API | План |
 | TasksBoard | `BoostHub.tsx` → `components/common/EarnTasksBoard.tsx` | Фильтры по задачам, прогресс, состояния выполнения, CTA. | `useGameStore`, telemetry | План |
