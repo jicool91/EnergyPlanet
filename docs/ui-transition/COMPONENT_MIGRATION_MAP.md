@@ -28,9 +28,9 @@
 | DailyTasksBar | `webapp/src/components/tap/DailyTasksBar.tsx` | Объединить ежедневные задания, бусты, streak, добавить CTA на Earn. | `useGameStore`, `useCatalogStore` | Готово — CTA и таймер | 
 | StatsSummary | `webapp/src/components/tap/StatsSummary.tsx` | Сводные данные по энергии, доходу, престижу, использование `AnimatedNumber`. | `useGameStore`, `AnimatedNumber` | Готово |
 | BuildingsGrid | `BuildingsPanel.tsx` | Обновить карточки под токены, добавить виртуализацию секций `react-virtuoso`, Suspense загрузку. | React.lazy, Zustand | Есть (нужен рефактор) |
-| FriendsList | `ProfilePanel.tsx` → `components/common/FriendsList.tsx` | Список друзей, CTA share, отображение прогресса рефералов. | `useGameStore`, Friends API | План |
-| TasksBoard | `BoostHub.tsx` → `components/common/EarnTasksBoard.tsx` | Фильтры по задачам, прогресс, состояния выполнения, CTA. | `useGameStore`, telemetry | План |
-| SeasonTimeline | `components/common/AirdropTimeline.tsx` (новый) | Таймлайн сезонов и ивентов, адаптивная шкала времени, подсвеченные активные события. | Tailwind, дата-утилиты | TBD |
+| FriendsList | `webapp/src/components/friends/FriendsList.tsx` | Список друзей, CTA share, отображение прогресса рефералов. | `useGameStore`, Friends API | Готово — базовая версия |
+| TasksBoard | `webapp/src/components/earn/EarnTasksBoard.tsx` | Фильтры по задачам, прогресс, состояния выполнения, CTA. | `useGameStore`, telemetry | Готово — обёртка над BoostHub |
+| SeasonTimeline | `webapp/src/components/airdrop/AirdropTimeline.tsx` | Таймлайн сезонов и ивентов, адаптивная шкала времени, подсвеченные активные события. | Tailwind, дата-утилиты | Готово — демо-события |
 
 ## Инфраструктура и вспомогательные слои
 | Объект | Файл/папка | Ключевые действия | Зависимости | Статус |

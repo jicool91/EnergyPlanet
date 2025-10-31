@@ -64,6 +64,15 @@ export { TapCircle } from './tap/TapCircle';
 export { StatsSummary } from './tap/StatsSummary';
 export { DailyTasksBar } from './tap/DailyTasksBar';
 
+// Friends
+export { FriendsList } from './friends/FriendsList';
+
+// Earn
+export { EarnTasksBoard } from './earn/EarnTasksBoard';
+
+// Airdrop
+export { AirdropTimeline } from './airdrop/AirdropTimeline';
+
 // Modals
 export { AuthErrorModal } from './AuthErrorModal';
 export { OfflineSummaryModal } from './OfflineSummaryModal';

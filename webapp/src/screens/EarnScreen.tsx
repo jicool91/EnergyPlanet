@@ -1,5 +1,10 @@
 import { useCallback, useEffect } from 'react';
-import { TabPageSurface, ProfileSettingsScreen, ProfileSkeleton } from '@/components';
+import {
+  TabPageSurface,
+  ProfileSettingsScreen,
+  ProfileSkeleton,
+  EarnTasksBoard,
+} from '@/components';
 import { useGameStore } from '@/store/gameStore';
 import { useAuthStore } from '@/store/authStore';
 import { useAdminModal } from '@/contexts/AdminModalContext';
@@ -28,8 +33,10 @@ export function EarnScreen() {
 
   return (
     <div className="flex flex-col gap-4">
+      <EarnTasksBoard />
+
       <header>
-        <h1 className="text-heading font-semibold text-[var(--color-text-primary)]">Профиль</h1>
+        <h2 className="text-heading font-semibold text-[var(--color-text-primary)]">Профиль</h2>
         <p className="text-sm text-[var(--color-text-secondary)]">
           Управляйте аккаунтом, подключайте уведомления и проверяйте прогресс.
         </p>
