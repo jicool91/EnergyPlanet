@@ -208,7 +208,7 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
         <span>
           Данные обновляются автоматически; при необходимости воспользуйтесь кнопкой обновления.
         </span>
-        <Button size="xs" variant="ghost" onClick={onRetry}>
+        <Button size="sm" variant="ghost" onClick={onRetry}>
           Обновить
         </Button>
       </footer>
