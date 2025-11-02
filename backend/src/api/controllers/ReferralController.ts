@@ -2,6 +2,7 @@ import { Response, NextFunction } from 'express';
 import { AuthRequest } from '../../middleware/auth';
 import { AppError } from '../../middleware/errorHandler';
 import { referralService } from '../../services/ReferralService';
+import { referralRevenueService } from '../../services/ReferralRevenueService';
 
 type ReferralActivateBody = {
   code?: unknown;
@@ -58,6 +59,19 @@ class ReferralController {
 
       const summary = await referralService.claimMilestone(req.user.id, milestoneId);
       res.status(200).json({ referral: summary });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  revenue = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'unauthorized');
+      }
+
+      const overview = await referralRevenueService.getOverview(req.user.id);
+      res.status(200).json({ revenue: overview });
     } catch (error) {
       next(error);
     }

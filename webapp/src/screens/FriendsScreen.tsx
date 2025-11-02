@@ -1,8 +1,11 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { TabPageSurface, LeaderboardPanel, FriendsList } from '@/components';
+import { useShallow } from 'zustand/react/shallow';
+import { TabPageSurface, LeaderboardPanel, FriendsList, ReferralRevenueCard } from '@/components';
 import { useGameStore } from '@/store/gameStore';
 import { useAuthStore } from '@/store/authStore';
+import { useReferralStore } from '@/store/referralStore';
+import { useReferralRevenueStore } from '@/store/referralRevenueStore';
 import { useNotification } from '@/hooks/useNotification';
 import { logClientEvent } from '@/services/telemetry';
 
@@ -17,6 +20,43 @@ export function FriendsScreen() {
   const referralStats = useGameStore(state => state.profile?.referral ?? null);
   const authReady = useAuthStore(state => state.authReady);
   const { success: notifySuccess } = useNotification();
+  const { referral, loadSummary: loadReferralSummary } = useReferralStore(
+    useShallow(state => ({
+      referral: state.referral,
+      loadSummary: state.loadSummary,
+    }))
+  );
+  const {
+    overview: revenueOverview,
+    isLoading: isRevenueLoading,
+    error: revenueError,
+    loadOverview: loadRevenueOverview,
+  } = useReferralRevenueStore(
+    useShallow(state => ({
+      overview: state.overview,
+      isLoading: state.isLoading,
+      error: state.error,
+      loadOverview: state.loadOverview,
+    }))
+  );
+
+  useEffect(() => {
+    if (!authReady || referral) {
+      return;
+    }
+    void loadReferralSummary().catch(error => {
+      console.warn('Failed to preload referral summary', error);
+    });
+  }, [authReady, referral, loadReferralSummary]);
+
+  useEffect(() => {
+    if (!authReady || revenueOverview) {
+      return;
+    }
+    void loadRevenueOverview().catch(error => {
+      console.warn('Failed to preload referral revenue overview', error);
+    });
+  }, [authReady, revenueOverview, loadRevenueOverview]);
 
   useEffect(() => {
     if (!authReady) {
@@ -51,13 +91,26 @@ export function FriendsScreen() {
   }, [navigate]);
 
   const handleInvite = useCallback(() => {
-    const inviteLink =
-      'https://t.me/share/url?url=https%3A%2F%2Ft.me%2Fenergy_planet_bot&text=Присоединяйся%20к%20Energy%20Planet!';
+    const baseBotLink = 'https://t.me/energy_planet_bot';
+    const fallbackShareUrl = `https://t.me/share/url?url=${encodeURIComponent(
+      baseBotLink
+    )}&text=${encodeURIComponent('Присоединяйся к Energy Planet!')}`;
+    const shareUrl = referral?.shareUrl ?? fallbackShareUrl;
+    const nativeShareText = referral
+      ? `Присоединяйся ко мне в Energy Planet! Мой код: ${referral.code}`
+      : 'Присоединяйся ко мне в Energy Planet!';
+    const directLink = referral
+      ? `${baseBotLink}?start=ref_${encodeURIComponent(referral.code)}`
+      : baseBotLink;
+
     if (typeof window === 'undefined') {
       return;
     }
 
-    logClientEvent('friends_invite_click', { source: 'friends_screen' });
+    logClientEvent('friends_invite_click', {
+      source: 'friends_screen',
+      hasReferralLink: Boolean(referral?.shareUrl),
+    });
 
     const telegram = (
       window as typeof window & {
@@ -66,7 +119,7 @@ export function FriendsScreen() {
     ).Telegram?.WebApp;
 
     if (telegram?.openTelegramLink) {
-      telegram.openTelegramLink(inviteLink);
+      telegram.openTelegramLink(shareUrl);
       notifySuccess('Открыли приглашение в Telegram');
       return;
     }
@@ -75,22 +128,22 @@ export function FriendsScreen() {
       navigator
         .share({
           title: 'Energy Planet',
-          text: 'Присоединяйся ко мне в Energy Planet!',
-          url: 'https://t.me/energy_planet_bot',
+          text: nativeShareText,
+          url: directLink,
         })
         .then(() => {
           notifySuccess('Приглашение отправлено');
         })
         .catch(() => {
-          window.open(inviteLink, '_blank');
+          window.open(shareUrl, '_blank');
           notifySuccess('Ссылка на приглашение открыта');
         });
       return;
     }
 
-    window.open(inviteLink, '_blank');
+    window.open(shareUrl, '_blank');
     notifySuccess('Ссылка на приглашение открыта');
-  }, [notifySuccess]);
+  }, [notifySuccess, referral]);
 
   return (
     <div className="flex flex-col gap-4">
@@ -121,6 +174,15 @@ export function FriendsScreen() {
         error={profileError}
         onInvite={handleInvite}
         onViewLeaderboard={handleViewLeaderboard}
+      />
+
+      <ReferralRevenueCard
+        overview={revenueOverview}
+        isLoading={isRevenueLoading}
+        error={revenueError}
+        onRetry={() => {
+          void loadRevenueOverview(true);
+        }}
       />
 
       <TabPageSurface>

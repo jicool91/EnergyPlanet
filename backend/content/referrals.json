@@ -87,5 +87,10 @@
   "share": {
     "headline": "Собери свой отряд в Energy Planet!",
     "message": "Каждый новый друг ускоряет наш прогресс и приносит бонусные Stars."
+  },
+  "revenueShare": {
+    "percentage": 0.01,
+    "dailyCap": 2000,
+    "monthlyCap": 10000
   }
 }

@@ -84,6 +84,15 @@ const starsCreditCounter = metricsEnabled
     })
   : null;
 
+const referralRevenueCounter = metricsEnabled
+  ? new client.Counter({
+      name: 'energyplanet_referral_revenue_stars_total',
+      help: 'Stars credited to referrers from invitee purchases',
+      labelNames: ['source'] as const,
+      registers: [register],
+    })
+  : null;
+
 export function recordUserLoginMetric(isNewUser: boolean, replayStatus: ReplayStatus) {
   loginCounter?.inc({
     is_new_user: isNewUser ? 'true' : 'false',
@@ -148,4 +157,11 @@ export function recordStarsCreditMetric(source: string, amount: number) {
     return;
   }
   starsCreditCounter?.inc({ source }, amount);
+}
+
+export function recordReferralRevenueMetric(source: string, amount: number) {
+  if (!metricsEnabled || amount <= 0) {
+    return;
+  }
+  referralRevenueCounter?.inc({ source }, amount);
 }

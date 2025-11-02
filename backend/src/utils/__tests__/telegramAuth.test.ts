@@ -38,6 +38,7 @@ function createInitData(options?: {
   authDate?: number;
   userOverride?: Partial<typeof DEFAULT_USER>;
   includeSignature?: boolean;
+  startParam?: string;
 }) {
   const botToken = options?.botToken ?? TEST_TOKEN;
   const authDate = options?.authDate ?? Math.floor(Date.now() / 1000);
@@ -49,6 +50,9 @@ function createInitData(options?: {
 
   params.set('user', JSON.stringify(user));
   params.set('auth_date', String(authDate));
+  if (options?.startParam) {
+    params.set('start_param', options.startParam);
+  }
 
   if (options?.includeSignature !== false) {
     params.set('signature', 'optional_signature_value');
@@ -76,6 +80,7 @@ describe('validateTelegramInitData', () => {
     expect(result.telegramUser.id).toBe(DEFAULT_USER.id);
     expect(result.telegramUser.username).toBe(DEFAULT_USER.username);
     expect(result.matchedBotToken).toBe(TEST_TOKEN);
+    expect(result.startParam).toBeNull();
   });
 
   it('accepts payloads without signature parameter', () => {
@@ -85,6 +90,7 @@ describe('validateTelegramInitData', () => {
 
     expect(result.telegramUser.id).toBe(DEFAULT_USER.id);
     expect(result.matchedBotToken).toBe(TEST_TOKEN);
+    expect(result.startParam).toBeNull();
   });
 
   it('throws when hash does not match payload', () => {
@@ -178,6 +184,31 @@ describe('validateTelegramInitData', () => {
         maxAgeSec: 86400,
       }),
       'telegram_auth_data_near_expiry'
+    );
+
+    warnSpy.mockRestore();
+  });
+
+  it('returns start_param when provided and valid', () => {
+    const initData = createInitData({ startParam: 'ref_EP-ABCD12' }).toString();
+
+    const result = validateTelegramInitData(initData, [TEST_TOKEN]);
+
+    expect(result.startParam).toBe('ref_EP-ABCD12');
+  });
+
+  it('sanitizes invalid start_param formats', () => {
+    const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => logger);
+    const initData = createInitData({ startParam: 'ref:../../etc/passwd' }).toString();
+
+    const result = validateTelegramInitData(initData, [TEST_TOKEN]);
+
+    expect(result.startParam).toBeNull();
+    expect(warnSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        length: expect.any(Number),
+      }),
+      'telegram_start_param_invalid_format'
     );
 
     warnSpy.mockRestore();

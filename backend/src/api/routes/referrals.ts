@@ -5,6 +5,7 @@ import { referralController } from '../controllers/ReferralController';
 const router = Router();
 
 router.get('/referrals', authenticate, referralController.summary);
+router.get('/referrals/revenue', authenticate, referralController.revenue);
 router.post('/referrals/activate', authenticate, referralController.activate);
 router.post(
   '/referrals/milestones/:milestoneId/claim',

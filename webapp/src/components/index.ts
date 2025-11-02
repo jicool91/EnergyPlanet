@@ -60,6 +60,7 @@ export { DailyTasksBar } from './tap/DailyTasksBar';
 
 // Friends
 export { FriendsList } from './friends/FriendsList';
+export { ReferralRevenueCard } from './friends/ReferralRevenueCard';
 
 // Earn
 export { EarnTasksBoard } from './earn/EarnTasksBoard';

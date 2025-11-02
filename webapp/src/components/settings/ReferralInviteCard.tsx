@@ -192,6 +192,29 @@ export const ReferralInviteCard: React.FC = () => {
           </p>
         )}
 
+        {referral && (
+          <div className="grid gap-sm text-xs text-token-secondary sm:grid-cols-3">
+            <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] px-3 py-2">
+              Всего заработано:{' '}
+              <strong className="text-token-primary">
+                +{formatNumberWithSpaces(referral.revenue.totalEarned)}★
+              </strong>
+            </div>
+            <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] px-3 py-2">
+              Месяц:{' '}
+              <strong className="text-token-primary">
+                +{formatNumberWithSpaces(referral.revenue.monthEarned)}★
+              </strong>
+            </div>
+            <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] px-3 py-2">
+              Сегодня:{' '}
+              <strong className="text-token-primary">
+                +{formatNumberWithSpaces(referral.revenue.todayEarned)}★
+              </strong>
+            </div>
+          </div>
+        )}
+
         <footer className="flex flex-wrap items-center justify-between gap-sm text-xs text-token-secondary">
           <span>
             Друзей:{' '}

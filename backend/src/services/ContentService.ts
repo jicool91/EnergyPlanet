@@ -167,6 +167,13 @@ export interface ReferralLimitsConfig {
   dailyRewardClaims: number;
 }
 
+export interface ReferralRevenueShareConfig {
+  percentage: number;
+  dailyCap?: number;
+  monthlyCap?: number;
+  lifetimeCap?: number;
+}
+
 export interface ReferralConfig {
   inviteeReward: ReferralRewardConfig;
   referrerReward: ReferralRewardConfig;
@@ -177,6 +184,7 @@ export interface ReferralConfig {
     headline?: string;
     message?: string;
   };
+  revenueShare?: ReferralRevenueShareConfig | null;
 }
 
 class ContentService {
@@ -337,6 +345,7 @@ class ContentService {
       limits: parsed.limits ?? { dailyActivations: 10, dailyRewardClaims: 5 },
       events: parsed.events ?? [],
       share: parsed.share,
+      revenueShare: parsed.revenueShare ?? null,
     };
   }
 

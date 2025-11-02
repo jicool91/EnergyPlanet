@@ -1982,6 +1982,129 @@
       ],
       "title": "Purchase Failures (range)",
       "type": "table"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PrometheusDatasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 124
+      },
+      "id": 41,
+      "options": {
+        "legend": {
+          "calcs": ["last"],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (source) (rate(energyplanet_referral_revenue_stars_total[5m]))",
+          "legendFormat": "{{source}} stars/s",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(rate(energyplanet_referral_revenue_stars_total[5m]))",
+          "legendFormat": "total stars/s",
+          "refId": "B"
+        }
+      ],
+      "title": "Referral Revenue Rate (5m)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PrometheusDatasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 124
+      },
+      "id": 42,
+      "options": {
+        "footer": {
+          "fields": "",
+          "reducer": [],
+          "show": false
+        },
+        "showHeader": true,
+        "sortBy": [
+          {
+            "desc": true,
+            "displayName": "value"
+          }
+        ]
+      },
+      "targets": [
+        {
+          "expr": "sum by (source) (increase(energyplanet_referral_revenue_stars_total[$__range]))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "{{source}}",
+          "refId": "A"
+        },
+        {
+          "expr": "sum(increase(energyplanet_referral_revenue_stars_total[$__range]))",
+          "format": "table",
+          "instant": true,
+          "legendFormat": "total",
+          "refId": "B"
+        }
+      ],
+      "title": "Referral Revenue (range)",
+      "transformations": [
+        {
+          "id": "merge",
+          "options": {}
+        }
+      ],
+      "type": "table"
     }
   ],
   "refresh": "30s",

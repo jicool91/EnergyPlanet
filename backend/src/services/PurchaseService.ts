@@ -19,6 +19,7 @@ import {
   recordPurchaseFailureMetric,
   recordStarsCreditMetric,
 } from '../metrics/business';
+import { referralRevenueService } from './ReferralRevenueService';
 
 interface RecordPurchaseInput {
   purchaseId: string;
@@ -274,6 +275,18 @@ export class PurchaseService {
       { client }
     );
     recordStarsCreditMetric('purchase', totalStars);
+
+    await referralRevenueService.handlePurchaseReward({
+      purchaserId: userId,
+      purchaseId: input.purchaseId,
+      purchaseType: input.purchaseType,
+      creditedStars: totalStars,
+      metadata: {
+        base_stars: baseStars,
+        bonus_stars: bonusStars,
+      },
+      client,
+    });
   }
 
   async markFailed(purchaseId: string): Promise<PurchaseRecord> {

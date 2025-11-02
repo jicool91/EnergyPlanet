@@ -37,6 +37,7 @@ import {
   recordReferralRewardMetric,
 } from '../metrics/gameplay';
 import { recordStarsCreditMetric } from '../metrics/business';
+import { referralRevenueService } from './ReferralRevenueService';
 
 const hasDatabaseErrorCode = (error: unknown, code: string): boolean => {
   return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === code;
@@ -93,6 +94,17 @@ export interface ReferralSummary {
     totalRewardsClaimed: number;
     dailyRewardsUsed: number;
     dailyRewardLimit: number;
+  };
+  revenueShare: {
+    percentage: number;
+    dailyCap?: number;
+    monthlyCap?: number;
+  } | null;
+  revenue: {
+    totalEarned: number;
+    monthEarned: number;
+    todayEarned: number;
+    lastUpdated: string;
   };
   referredBy?: {
     userId: string;
@@ -460,6 +472,8 @@ class ReferralService {
 
     const activeEvents = this.getActiveEvents(config, new Date());
 
+    const revenueTotals = await referralRevenueService.getTotals(userId, client);
+
     const inviteeRewardView = this.toRewardView(
       config.inviteeReward,
       activeEvents,
@@ -520,6 +534,13 @@ class ReferralService {
         totalRewardsClaimed: claimedRewards.length,
         dailyRewardsUsed,
         dailyRewardLimit: config.limits.dailyRewardClaims,
+      },
+      revenueShare: revenueTotals.revenueShare,
+      revenue: {
+        totalEarned: revenueTotals.totals.allTime,
+        monthEarned: revenueTotals.totals.month,
+        todayEarned: revenueTotals.totals.today,
+        lastUpdated: revenueTotals.updatedAt,
       },
       referredBy,
       lastUpdated: new Date().toISOString(),

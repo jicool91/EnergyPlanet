@@ -23,6 +23,7 @@ export interface TelegramUser {
 export interface TelegramInitDataResult {
   telegramUser: TelegramUser;
   matchedBotToken: string;
+  startParam: string | null;
 }
 
 const maskSensitive = (value: string | null) => {
@@ -190,6 +191,27 @@ export function validateTelegramInitData(
 
   const parsed = JSON.parse(userParam) as TelegramUser;
 
+  const rawStartParam = urlParams.get('start_param');
+  let startParam: string | null = null;
+  if (typeof rawStartParam === 'string' && rawStartParam.trim().length > 0) {
+    const normalized = rawStartParam.trim();
+    const isValidFormat = /^[A-Za-z0-9_-]{1,512}$/.test(normalized);
+    if (isValidFormat) {
+      startParam = normalized;
+    } else {
+      logger.warn(
+        {
+          length: normalized.length,
+          preview:
+            normalized.length > 32
+              ? `${normalized.slice(0, 16)}…${normalized.slice(-8)}`
+              : normalized,
+        },
+        'telegram_start_param_invalid_format'
+      );
+    }
+  }
+
   const authDateRaw = urlParams.get('auth_date') || '0';
   const authDate = parseInt(authDateRaw, 10);
   const now = Math.floor(Date.now() / 1000);
@@ -239,5 +261,6 @@ export function validateTelegramInitData(
   return {
     telegramUser: parsed,
     matchedBotToken,
+    startParam,
   };
 }

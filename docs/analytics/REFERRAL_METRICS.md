@@ -116,3 +116,153 @@ LIMIT 20;
 2. Добавить фильтр по источнику (когда будут `utm`/каналы в payload).  
 3. Снять baseline до запуска реферального события и сравнивать uplift через weekly snapshot.  
 4. Подготовить export в `docs/analytics/exports/referrals_YYYY-MM-DD.csv` на еженедельной основе.
+
+---
+
+## Аудит deeplink-активаций через `start_param`
+
+### Логи (Grafana Loki)
+
+1. Откройте дашборд **Product › Backend Logs**.  
+2. Включите фильтры:
+   - `app = "backgame"`
+   - (при необходимости) `environment = "production"`
+3. Используйте LogQL-запрос:
+
+   ```
+   {app="backgame"} |= "referral_start_param_"
+   ```
+
+   Дополнительные варианты:
+
+   - Только успешные активации:  
+     ```
+     {app="backgame"} |= "referral_start_param_activated"
+     ```
+   - Ошибки/игнорирование:  
+     ```
+     {app="backgame"} |= "referral_start_param_failed" or {app="backgame"} |= "referral_start_param_skipped"
+     ```
+
+4. Сохраните фильтр как Loki Panel/Alert, чтобы отслеживать всплески и ошибки deeplink-флоу.
+
+### Быстрая проверка через CLI
+
+```bash
+railway variables --service backgame --json \
+  | jq -r '.DATABASE_URL' \
+  | xargs -I{} railway run --service backgame -- psql "{}" -c "
+    SELECT activated_at,
+           referrer_id,
+           referred_id,
+           metadata ->> 'code' AS code
+    FROM referral_relations
+    WHERE activated_at >= NOW() - INTERVAL '24 hours'
+    ORDER BY activated_at DESC;
+  "
+```
+
+- В логах `referral_start_param_activated` берём `userId` и проверяем, что `referred_id` совпадает.  
+- Если в логах встречается `referral_start_param_failed`, ищем причину по `reason` и проверяем, что нет записи в `referral_relations`.
+
+### Сопоставление активаций и логов (SQL)
+
+```sql
+WITH deeplink_logs AS (
+  SELECT
+    (log ->> 'userId')::uuid AS referred_id,
+    (log ->> 'referralCode') AS code,
+    (log ->> 'timestamp')::timestamptz AS logged_at
+  FROM jsonb_array_elements(
+    -- предварительно выгруженный JSON из Loki-логов
+    :loki_payload
+  ) AS log
+  WHERE log ->> 'message' = 'referral_start_param_activated'
+)
+SELECT
+  d.logged_at,
+  r.activated_at,
+  r.referrer_id,
+  r.referred_id,
+  r.metadata ->> 'code' AS code
+FROM deeplink_logs d
+LEFT JOIN referral_relations r
+  ON r.referred_id = d.referred_id
+ORDER BY d.logged_at DESC;
+```
+
+> При отсутствии прямой выгрузки Loki можно вручную сверять `userId`/`referralCode` из логов и SQL-запроса к `referral_relations`.
+
+### Мониторинг
+
+- Создайте алерт в Loki: количество `referral_start_param_failed` > 0 за 15 минут.  
+- Добавьте карточку в Grafana с `count_over_time({app="backgame"} |= "referral_start_param_activated"[5m])`, чтобы видеть поток активаций из deeplink.
+
+---
+
+## Реферальный доход (Stars)
+
+### Агрегаты по выплаченным бонусам
+
+```sql
+SELECT
+  date_trunc('day', granted_at)::date AS day,
+  SUM(share_amount) AS stars_granted,
+  COUNT(*) AS payouts
+FROM referral_revenue_events
+WHERE granted_at >= NOW() - INTERVAL '30 days'
+GROUP BY day
+ORDER BY day DESC;
+```
+
+### Топ рефереров по доходу
+
+```sql
+SELECT
+  u.username,
+  u.first_name,
+  SUM(t.total_share_amount) AS total_stars,
+  COUNT(DISTINCT t.referral_relation_id) AS referred_count
+FROM referral_revenue_totals t
+JOIN users u ON u.id = t.referrer_id
+ORDER BY total_stars DESC
+LIMIT 20;
+```
+
+### Проверка ограничений (дневной и месячный кап)
+
+```sql
+WITH earnings AS (
+  SELECT
+    referrer_id,
+    SUM(share_amount) FILTER (WHERE granted_at >= date_trunc('day', NOW())) AS stars_today,
+    SUM(share_amount) FILTER (WHERE granted_at >= date_trunc('month', NOW())) AS stars_month
+  FROM referral_revenue_events
+  WHERE granted_at >= date_trunc('month', NOW())
+  GROUP BY referrer_id
+)
+SELECT
+  e.referrer_id,
+  e.stars_today,
+  e.stars_month
+FROM earnings e
+WHERE e.stars_today >= 0.9 * :daily_cap
+   OR e.stars_month >= 0.9 * :monthly_cap
+ORDER BY stars_today DESC;
+```
+
+### Журнал выплат по конкретному рефереру
+
+```sql
+SELECT
+  granted_at,
+  share_amount,
+  purchase_amount,
+  purchase_id,
+  referred_id,
+  metadata ->> 'purchase_type' AS purchase_type
+FROM referral_revenue_events
+WHERE referrer_id = :referrer_id
+ORDER BY granted_at DESC
+LIMIT 100;
+```

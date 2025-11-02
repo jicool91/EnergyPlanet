@@ -36,6 +36,7 @@ import { registerInitDataHash } from '../cache/telegramInitReplay';
 import { ensurePlayerSession, updatePlayerSession } from '../repositories/PlayerSessionRepository';
 import { recordSessionFamilyRevocationMetric } from '../metrics/auth';
 import { recordSessionRotationMetric, recordUserLoginMetric } from '../metrics/business';
+import { referralService } from './ReferralService';
 
 interface AuthTokens {
   accessToken: string;
@@ -46,6 +47,7 @@ interface AuthTokens {
 interface ParsedTelegramAuth {
   telegramUser: TelegramUser;
   matchedBotToken: string | null;
+  startParam: string | null;
 }
 
 interface AuthenticateOptions {
@@ -109,6 +111,10 @@ export class AuthService {
             hash: '',
           },
           matchedBotToken: null,
+          startParam:
+            typeof (parsed as Record<string, unknown>).start_param === 'string'
+              ? ((parsed as Record<string, unknown>).start_param as string)
+              : null,
         };
       } catch (error) {
         logger.warn(
@@ -126,6 +132,7 @@ export class AuthService {
             hash: '',
           },
           matchedBotToken: null,
+          startParam: null,
         };
       }
     }
@@ -213,7 +220,9 @@ export class AuthService {
     let telegramUserId: number | null = null;
 
     try {
-      const { telegramUser, matchedBotToken: parsedToken } = this.parseInitData(initData);
+      const { telegramUser, matchedBotToken: parsedToken, startParam } = this.parseInitData(
+        initData
+      );
       matchedBotToken = parsedToken;
       telegramUserId = telegramUser.id;
 
@@ -350,6 +359,11 @@ export class AuthService {
         return { user, progress, isNewUser, tokens, replayStatus, sessionRotated };
       });
 
+      await this.handleStartParamReferral(result.user.id, startParam, {
+        isNewUser: result.isNewUser,
+        telegramUserId,
+      });
+
       logger.info(
         {
           userId: result.user.id,
@@ -401,6 +415,92 @@ export class AuthService {
         throw handledError;
       }
       throw error;
+    }
+  }
+
+  private async handleStartParamReferral(
+    userId: string,
+    startParam: string | null,
+    context: { isNewUser: boolean; telegramUserId: number | null }
+  ): Promise<void> {
+    if (!startParam) {
+      return;
+    }
+
+    const trimmed = startParam.trim();
+    if (!trimmed) {
+      return;
+    }
+
+    const match = /^ref[_-](.+)$/i.exec(trimmed);
+    if (!match || match.length < 2) {
+      logger.debug(
+        {
+          userId,
+          telegramUserId: context.telegramUserId,
+          startParam: trimmed,
+        },
+        'referral_start_param_ignored'
+      );
+      return;
+    }
+
+    const referralCode = match[1];
+    if (!referralCode) {
+      return;
+    }
+
+    try {
+      await referralService.activateCode(userId, referralCode);
+      logger.info(
+        {
+          userId,
+          telegramUserId: context.telegramUserId,
+          referralCode,
+          isNewUser: context.isNewUser,
+        },
+        'referral_start_param_activated'
+      );
+    } catch (error) {
+      if (error instanceof AppError) {
+        const reason = error.message || 'unknown';
+        const silentReasons = new Set([
+          'referral_already_activated',
+          'referral_self_not_allowed',
+        ]);
+        if (silentReasons.has(reason)) {
+          logger.debug(
+            {
+              userId,
+              telegramUserId: context.telegramUserId,
+              referralCode,
+              reason,
+            },
+            'referral_start_param_skipped'
+          );
+          return;
+        }
+        logger.warn(
+          {
+            userId,
+            telegramUserId: context.telegramUserId,
+            referralCode,
+            reason,
+          },
+          'referral_start_param_failed'
+        );
+        return;
+      }
+
+      logger.error(
+        {
+          userId,
+          telegramUserId: context.telegramUserId,
+          referralCode,
+          error: error instanceof Error ? error.message : String(error),
+        },
+        'referral_start_param_unexpected_error'
+      );
     }
   }
 
