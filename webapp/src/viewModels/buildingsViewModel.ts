@@ -33,6 +33,7 @@ export type CatalogBuilding = BuildingCardBuilding & {
 
 export interface OwnedBuilding {
   buildingId: string;
+  name: string;
   count: number;
   level: number;
   incomePerSec: number;
@@ -114,17 +115,86 @@ export const buildBuildingsViewModel = ({
   purchaseOption,
   energy,
 }: BuildingsViewModelInput): BuildingsViewModel => {
-  const merged: CatalogBuilding[] = buildingCatalog.map(def => {
+  const catalogById = new Map<string, BuildingDefinition>();
+
+  for (const definition of buildingCatalog) {
+    if (definition?.id) {
+      catalogById.set(definition.id, definition);
+    }
+  }
+
+  const synthesizedFromOwned: BuildingDefinition[] = ownedBuildings
+    .filter(owned => !catalogById.has(owned.buildingId))
+    .map(owned => ({
+      id: owned.buildingId,
+      name: owned.name,
+      description: undefined,
+      tier: null,
+      base_income: owned.incomePerSec,
+      base_cost: owned.nextCost,
+      cost_multiplier: null,
+      upgrade_cost_multiplier: null,
+      upgrade_income_bonus: null,
+      upgrade_soft_cap_level: null,
+      upgrade_post_soft_cap_multiplier: null,
+      unlock_level: null,
+      max_count: null,
+      category: null,
+      rarity: null,
+      payback_seconds:
+        owned.incomePerSec > 0 && owned.nextCost > 0
+          ? Math.round(owned.nextCost / owned.incomePerSec)
+          : null,
+      roi_rank: null,
+    }));
+
+  const sourceCatalog: BuildingDefinition[] = [...buildingCatalog, ...synthesizedFromOwned];
+
+  if (sourceCatalog.length === 0) {
+    sourceCatalog.push(
+      ...ownedBuildings.map(owned => ({
+        id: owned.buildingId,
+        name: owned.name,
+        description: undefined,
+        tier: null,
+        base_income: owned.incomePerSec,
+        base_cost: owned.nextCost,
+        cost_multiplier: null,
+        upgrade_cost_multiplier: null,
+        upgrade_income_bonus: null,
+        upgrade_soft_cap_level: null,
+        upgrade_post_soft_cap_multiplier: null,
+        unlock_level: null,
+        max_count: null,
+        category: null,
+        rarity: null,
+        payback_seconds:
+          owned.incomePerSec > 0 && owned.nextCost > 0
+            ? Math.round(owned.nextCost / owned.incomePerSec)
+            : null,
+        roi_rank: null,
+      }))
+    );
+  }
+
+  const merged: CatalogBuilding[] = sourceCatalog.map(def => {
     const owned = ownedBuildings.find(b => b.buildingId === def.id);
+    const baseIncome = owned?.incomePerSec ?? def.base_income ?? 0;
+    const nextCost = owned?.nextCost ?? def.base_cost ?? 0;
+    const computedPayback =
+      baseIncome > 0 && nextCost > 0 ? Math.round(nextCost / baseIncome) : null;
 
     return {
       ...def,
+      name: def.name ?? owned?.name ?? def.id,
       count: owned?.count ?? 0,
       level: owned?.level ?? 0,
-      incomePerSec: owned?.incomePerSec ?? def.base_income ?? 0,
-      nextCost: owned?.nextCost ?? def.base_cost ?? 0,
+      incomePerSec: baseIncome,
+      nextCost,
       nextUpgradeCost: owned?.nextUpgradeCost ?? Math.round((def.base_cost ?? 0) * 5),
       roiRank: def.roi_rank ?? null,
+      unlock_level: def.unlock_level ?? null,
+      payback_seconds: def.payback_seconds ?? computedPayback,
     };
   });
 

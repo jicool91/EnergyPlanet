@@ -5,6 +5,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 
 interface TapParticlesProps {
   children: React.ReactNode;
@@ -30,8 +31,12 @@ export const TapParticles: React.FC<TapParticlesProps> = ({
 }) => {
   const [ripples, setRipples] = useState<Ripple[]>([]);
   const [isGlowing, setIsGlowing] = useState(false);
+  const reduceMotion = useAppReducedMotion();
 
   const triggerRipple = (x: number, y: number) => {
+    if (reduceMotion) {
+      return;
+    }
     const id = Date.now();
     setRipples(prev => [...prev, { id, x, y }]);
 
@@ -42,6 +47,9 @@ export const TapParticles: React.FC<TapParticlesProps> = ({
   };
 
   const triggerGlow = () => {
+    if (reduceMotion) {
+      return;
+    }
     setIsGlowing(true);
     setTimeout(() => setIsGlowing(false), 600);
   };
@@ -92,10 +100,8 @@ export const TapParticles: React.FC<TapParticlesProps> = ({
           initial={{ opacity: 0, scale: 0.8 }}
           animate={{ opacity: 1, scale: 1.2 }}
           exit={{ opacity: 0, scale: 1.5 }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
-          style={{
-            boxShadow: '0 0 40px rgba(0, 217, 255, 0.6)',
-          }}
+          transition={{ duration: reduceMotion ? 0 : 0.6, ease: 'easeOut' }}
+          style={{ boxShadow: 'var(--shadow-glow)' }}
         />
       )}
 
@@ -103,9 +109,8 @@ export const TapParticles: React.FC<TapParticlesProps> = ({
       <div className="relative z-10">{children}</div>
 
       {/* Ripple particles */}
-      {ripples.map(ripple => (
-        <RippleParticle key={ripple.id} x={ripple.x} y={ripple.y} />
-      ))}
+      {!reduceMotion &&
+        ripples.map(ripple => <RippleParticle key={ripple.id} x={ripple.x} y={ripple.y} />)}
     </div>
   );
 };
@@ -116,7 +121,7 @@ export const TapParticles: React.FC<TapParticlesProps> = ({
 const RippleParticle: React.FC<{ x: number; y: number }> = ({ x, y }) => {
   return (
     <motion.div
-      className="absolute pointer-events-none border-2 border-cyan/60 rounded-full will-transform"
+      className="absolute pointer-events-none border-2 border-accent-cyan rounded-full will-transform"
       initial={{
         left: x,
         top: y,

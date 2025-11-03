@@ -1,5 +1,6 @@
 import { memo } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
+import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 
 interface TapCircleProps {
   onTap: () => void;
@@ -18,7 +19,7 @@ export const TapCircle = memo(function TapCircle({
   isCriticalStreak,
   disabled = false,
 }: TapCircleProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useAppReducedMotion();
   const glowAnimation = reduceMotion
     ? undefined
     : {
@@ -34,7 +35,7 @@ export const TapCircle = memo(function TapCircle({
     <div className="flex flex-col items-center gap-4">
       <motion.button
         type="button"
-        className={`relative flex h-40 w-40 flex-col items-center justify-center rounded-full bg-gradient-to-br from-[rgba(243,186,47,0.85)] via-[rgba(250,210,88,0.95)] to-[rgba(243,186,47,1)] text-4xl font-semibold text-[var(--color-bg-primary)] shadow-[0_32px_64px_rgba(243,186,47,0.35)] transition-transform duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-[rgba(243,186,47,0.55)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)] ${
+        className={`relative flex h-40 w-40 flex-col items-center justify-center rounded-full bg-gradient-to-br from-accent-gold via-accent-gold-light to-accent-gold text-4xl font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary ${
           disabled ? 'cursor-not-allowed opacity-70' : 'hover:scale-105 active:scale-95'
         }`}
         onClick={disabled ? undefined : onTap}
@@ -43,7 +44,7 @@ export const TapCircle = memo(function TapCircle({
       >
         {!reduceMotion && (
           <motion.div
-            className="absolute inset-[-12%] rounded-full bg-[rgba(243,186,47,0.18)] blur-3xl"
+            className="absolute inset-[-12%] rounded-full bg-gradient-soft blur-3xl"
             animate={glowAnimation}
           />
         )}
@@ -53,16 +54,16 @@ export const TapCircle = memo(function TapCircle({
         <span className="mt-1 text-base font-semibold">Tap!</span>
       </motion.button>
 
-      <div className="flex items-center gap-3 text-sm text-[var(--color-text-secondary)]">
-        <span className="flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.12)] px-3 py-1 text-[var(--color-text-primary)] shadow-[0_12px_24px_rgba(0,0,0,0.25)]">
+      <div className="flex items-center gap-3 text-sm text-text-secondary">
+        <span className="flex items-center gap-1 rounded-full border border-border-layer-strong px-3 py-1 text-text-primary shadow-elevation-2">
           <span aria-hidden="true">⚙️</span>
           Tap Lv {tapLevel}
         </span>
-        <span className="flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-3 py-1">
+        <span className="flex items-center gap-1 rounded-full border border-border-layer px-3 py-1 text-text-secondary">
           <span aria-hidden="true">🔥</span>
           Комбо {streakCount}
         </span>
-        <span className="flex items-center gap-1 rounded-full border border-[rgba(255,255,255,0.08)] px-3 py-1">
+        <span className="flex items-center gap-1 rounded-full border border-border-layer px-3 py-1 text-text-secondary">
           <span aria-hidden="true">✨</span>
           Множитель ×{boostMultiplier.toFixed(2)}
         </span>

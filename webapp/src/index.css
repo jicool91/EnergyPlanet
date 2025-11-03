@@ -143,12 +143,11 @@
 }
 
 html {
-  /* Ensure content covers entire viewport with safe area */
-  position: fixed;
-  top: 0;
-  left: 0;
   width: 100%;
+  min-height: var(--tg-viewport-height, 100dvh);
   height: 100%;
+  background: var(--app-bg);
+  color: var(--app-text);
   overflow: hidden;
 }
 
@@ -157,6 +156,7 @@ body {
     -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   background: var(--app-bg);
   color: var(--app-text);
+  margin: 0;
   overflow: hidden;
   user-select: none;
   -webkit-user-select: none;
@@ -165,21 +165,26 @@ body {
   transition:
     background-color 160ms ease,
     color 160ms ease;
-  /* iOS specific */
-  position: fixed;
-  width: 100%;
+  min-height: var(--tg-viewport-height, 100dvh);
   height: 100%;
+  display: flex;
+  width: 100%;
+}
+
+@supports (height: 100dvh) {
+  body {
+    min-height: var(--tg-viewport-height, 100dvh);
+  }
 }
 
 #root {
-  width: 100vw;
-  height: 100vh;
+  flex: 1;
   display: flex;
+  position: relative;
+  width: 100%;
+  min-height: var(--tg-viewport-height, 100dvh);
+  max-height: var(--tg-viewport-height, 100dvh);
   overflow: hidden;
-  /* Ensure no scrollbar appears */
-  position: fixed;
-  top: 0;
-  left: 0;
 }
 
 /* Tailwind CSS v3.4.0 - Migrated 2025-10-23 */

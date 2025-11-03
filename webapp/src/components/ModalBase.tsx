@@ -1,9 +1,10 @@
 import { useEffect, useId, useRef } from 'react';
 import type { ReactNode } from 'react';
-import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import clsx from 'clsx';
 import { createPortal } from 'react-dom';
 import { Button } from './Button';
+import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 
 /**
  * ModalBase Component
@@ -114,7 +115,7 @@ export function ModalBase({
     md: 'w-[min(92vw,560px)]',
     lg: 'w-[min(92vw,720px)]',
   };
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useAppReducedMotion();
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement | null>(null);
 

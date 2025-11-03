@@ -1,6 +1,7 @@
 import { memo, useMemo } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import clsx from 'clsx';
+import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 
 export interface ProgressBarProps {
   value: number;
@@ -21,7 +22,7 @@ export const ProgressBar = memo(function ProgressBar({
   showValue = false,
   className,
 }: ProgressBarProps) {
-  const reduceMotion = useReducedMotion();
+  const reduceMotion = useAppReducedMotion();
   const safeMax = max <= 0 ? 1 : max;
   const ratio = clamp(value / safeMax, 0, 1);
   const percentage = Math.round(ratio * 100);
@@ -45,14 +46,14 @@ export const ProgressBar = memo(function ProgressBar({
   return (
     <div className={clsx('flex flex-col gap-2', className)}>
       {label && (
-        <div className="flex items-center justify-between text-caption text-[var(--color-text-secondary)]">
+        <div className="flex items-center justify-between text-caption text-text-secondary">
           <span>{label}</span>
           {showValue && <span>{percentage}%</span>}
         </div>
       )}
       <div
         className={clsx(
-          'relative overflow-hidden border border-[rgba(255,255,255,0.08)] bg-[rgba(32,35,44,0.75)]',
+          'relative overflow-hidden border border-border-layer bg-layer-soft',
           sizeClasses.container
         )}
         role="progressbar"
@@ -63,7 +64,7 @@ export const ProgressBar = memo(function ProgressBar({
       >
         <motion.div
           className={clsx(
-            'absolute inset-y-0 left-0 bg-[var(--color-accent-gold)] shadow-[0_12px_24px_rgba(243,186,47,0.35)]',
+            'absolute inset-y-0 left-0 bg-accent-gold shadow-glow-gold',
             sizeClasses.thumb
           )}
           initial={reduceMotion ? false : { width: 0 }}

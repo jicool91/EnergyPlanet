@@ -6,6 +6,7 @@
 
 import React, { memo, useState, useEffect, useRef, useEffectEvent } from 'react';
 import { motion } from 'framer-motion';
+import clsx from 'clsx';
 import { Button } from './Button';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
 import { useNotification } from '@/hooks/useNotification';
@@ -176,15 +177,13 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
       : `${formatNumberWithSpaces(building.nextCost ?? 0)} E`;
   const purchaseDisabled = processing || !canPurchase || purchasePlan.quantity <= 0 || isLocked;
 
-  // Design System: Base card styles using 2025 layering
+  // Design System: Base card styles using tokens (dark/light aware)
   const baseCardClass =
-    'relative flex flex-col gap-md p-md max-[420px]:p-sm-plus max-[360px]:p-sm rounded-2xl border shadow-elevation-2 bg-gradient-to-br from-[rgba(0,26,63,0.95)] to-[rgba(16,19,56,0.92)] backdrop-blur-sm';
-  const cardVariant = isBestPayback
-    ? 'border-[rgba(0,255,136,0.55)] shadow-glow-lime'
-    : 'border-[var(--color-border-subtle)]';
-  const lockedClass = isLocked
-    ? 'border-[rgba(255,141,77,0.5)] bg-[rgba(26,20,55,0.8)] opacity-80'
-    : '';
+    'relative flex flex-col gap-md rounded-2xl border border-border-layer bg-layer-strong px-md py-md text-text-primary shadow-elevation-3 backdrop-blur-sm max-[420px]:px-sm-plus max-[420px]:py-sm-plus max-[360px]:px-sm max-[360px]:py-sm';
+  const cardClassName = clsx(baseCardClass, {
+    'border-state-card-highlight-border shadow-state-card-highlight': isBestPayback,
+    'border-state-card-locked-border bg-state-card-locked-bg opacity-85': isLocked,
+  });
 
   return (
     <motion.div
@@ -192,7 +191,7 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
       initial={isLocked ? { opacity: 0.7, scale: 0.98 } : { opacity: 1, scale: 1 }}
       animate={isLocked ? { opacity: 0.7, scale: 0.98 } : { opacity: 1, scale: 1 }}
       transition={{ duration: 0.3 }}
-      className={`${baseCardClass} ${cardVariant} ${lockedClass}`}
+      className={cardClassName}
     >
       {/* Unlock animation pulse */}
       {showUnlockAnim && (
@@ -207,11 +206,9 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
       {/* Layer 1: Hero */}
       <div className="flex items-start justify-between gap-sm">
         <div className="flex flex-col gap-xs-plus">
-          <h3 className="m-0 text-title text-[var(--color-text-primary)] font-bold">
-            {building.name}
-          </h3>
+          <h3 className="m-0 text-title text-text-primary font-bold">{building.name}</h3>
           <motion.span
-            className="inline-flex items-center gap-xs-plus rounded-xl px-sm-plus py-xs-plus bg-[rgba(0,217,255,0.16)] text-label text-[var(--color-text-accent)]"
+            className="inline-flex items-center gap-xs-plus rounded-xl px-sm-plus py-xs-plus bg-tag-accent-soft text-label text-text-accent"
             animate={showUnlockAnim ? { scale: [1, 1.1, 1] } : { scale: 1 }}
             transition={{ duration: 0.6 }}
           >
@@ -219,12 +216,10 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
           </motion.span>
         </div>
         <div className="flex flex-col items-end gap-xs">
-          <span className="text-label text-[var(--color-text-secondary)]">LV</span>
-          <span className="text-heading font-bold text-[var(--color-text-primary)]">
-            {building.level}
-          </span>
+          <span className="text-label text-text-secondary">LV</span>
+          <span className="text-heading font-bold text-text-primary">{building.level}</span>
           {isBestPayback && (
-            <span className="mt-xs inline-flex items-center gap-xs-plus rounded-full bg-[rgba(0,255,136,0.15)] px-sm py-xs text-label text-[var(--color-success)] shadow-glow-lime">
+            <span className="mt-xs inline-flex items-center gap-xs-plus rounded-full bg-tag-success px-sm py-xs text-label text-feedback-success shadow-glow-lime">
               🔥 Лучший ROI
             </span>
           )}
@@ -233,17 +228,15 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
 
       {/* Layer 2: Primary metric */}
       <div className="flex flex-col gap-xs">
-        <span className="text-label text-[var(--color-text-secondary)] uppercase">Доход</span>
-        <span className="text-heading font-bold text-[var(--color-text-primary)]">
+        <span className="text-label text-text-secondary uppercase">Доход</span>
+        <span className="text-heading font-bold text-text-primary">
           +{formatNumberWithSpaces(Math.round(building.incomePerSec))} E/сек
         </span>
       </div>
 
       {/* Layer 3: Secondary metrics */}
-      <div className="flex flex-wrap items-center gap-sm text-body-sm text-[var(--color-text-secondary)]">
-        {roiRank && (
-          <span className="font-semibold text-[var(--color-text-primary)]">ROI #{roiRank}</span>
-        )}
+      <div className="flex flex-wrap items-center gap-sm text-body-sm text-text-secondary">
+        {roiRank && <span className="font-semibold text-text-primary">ROI #{roiRank}</span>}
         <span>Окупаемость: {payback}</span>
         {building.base_income && (
           <span>Базовый доход: {formatNumberWithSpaces(building.base_income)} E</span>
@@ -251,40 +244,36 @@ const BuildingCardComponent: React.FC<BuildingCardProps> = ({
       </div>
 
       {/* Layer 4: Next purchase info */}
-      <div className="rounded-xl border border-[rgba(0,217,255,0.28)] bg-[rgba(10,19,48,0.75)] px-md py-sm flex flex-col gap-xs">
+      <div className="rounded-xl border border-tag-accent-border bg-tag-accent px-md py-sm flex flex-col gap-xs">
         <div className="flex items-center justify-between gap-sm">
-          <span className="text-label text-[var(--color-text-secondary)] uppercase">
-            Следующая покупка
-          </span>
-          <span className="text-body font-semibold text-[var(--color-text-primary)]">
-            {purchaseQuantityLabel}
-          </span>
+          <span className="text-label text-text-secondary uppercase">Следующая покупка</span>
+          <span className="text-body font-semibold text-text-primary">{purchaseQuantityLabel}</span>
         </div>
-        <div className="flex flex-wrap items-center gap-sm text-body text-[var(--color-text-secondary)]">
+        <div className="flex flex-wrap items-center gap-sm text-body text-text-secondary">
           <span>Стоимость: {purchaseCostLabel}</span>
           {purchasePlan.incomeGain > 0 && (
-            <span className="text-[var(--color-success)] font-semibold">
+            <span className="text-feedback-success font-semibold">
               +{formatNumberWithSpaces(purchasePlan.incomeGain)} E/сек
             </span>
           )}
         </div>
         {!isLocked && purchasePlan.limitedByCap && (
-          <div className="rounded-xl border border-[rgba(255,215,0,0.35)] bg-[rgba(255,215,0,0.12)] px-sm-plus py-xs text-label text-[var(--color-warning)]">
+          <div className="rounded-xl border border-tag-warning-border bg-tag-warning px-sm-plus py-xs text-label text-feedback-warning">
             Достигнут лимит построек для уровня
           </div>
         )}
         {!isLocked && purchasePlan.partial && (
-          <div className="rounded-xl border border-[rgba(255,215,0,0.35)] bg-[rgba(255,215,0,0.12)] px-sm-plus py-xs text-label text-[var(--color-warning)]">
+          <div className="rounded-xl border border-tag-warning-border bg-tag-warning px-sm-plus py-xs text-label text-feedback-warning">
             Энергии хватит на ×{purchasePlan.quantity} из {purchasePlan.requestedValue}
           </div>
         )}
         {!isLocked && purchasePlan.insufficientEnergy && (
-          <div className="rounded-xl border border-[rgba(255,51,51,0.35)] bg-[rgba(255,51,51,0.12)] px-sm-plus py-xs text-label text-[var(--color-error)]">
+          <div className="rounded-xl border border-tag-error-border bg-tag-error px-sm-plus py-xs text-label text-feedback-error">
             Недостаточно энергии для выбранного пакета
           </div>
         )}
         {isLocked && building.unlock_level && (
-          <div className="rounded-xl border border-[rgba(255,141,77,0.32)] bg-[rgba(255,141,77,0.12)] px-sm-plus py-xs text-label text-[var(--color-warning)]">
+          <div className="rounded-xl border border-tag-caution-border bg-tag-caution px-sm-plus py-xs text-label text-feedback-warning">
             Требуется уровень {building.unlock_level}
           </div>
         )}

@@ -105,6 +105,7 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
     () =>
       buildings.map(b => ({
         buildingId: b.buildingId,
+        name: b.name,
         count: b.count,
         level: b.level,
         incomePerSec: b.incomePerSec,
@@ -239,8 +240,8 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
                 className={clsx(
                   baseClasses,
                   isActive
-                    ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(0,217,255,0.28)] border-[rgba(0,255,136,0.55)] text-[var(--color-text-primary)] shadow-glow-lime'
-                    : 'bg-[rgba(12,18,40,0.68)] border-[rgba(0,217,255,0.18)] text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:border-[rgba(0,217,255,0.4)]'
+                    ? 'bg-layer-elevated border-state-card-highlight-border text-text-primary shadow-state-card-highlight'
+                    : 'bg-layer-strong border-border-layer text-text-secondary hover:text-text-primary hover:border-state-card-highlight-border'
                 )}
                 onClick={() => setSelectedPurchaseId(option.id)}
                 onKeyDown={event => handlePurchaseOptionKeyDown(event, index)}
@@ -271,11 +272,11 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
       </div>
 
       {buildingsError && (
-        <div className="flex items-center justify-between rounded-2xl border border-[rgba(255,51,51,0.45)] bg-[rgba(58,16,24,0.82)] px-md py-sm-plus text-body text-[var(--color-text-primary)] shadow-elevation-2">
+        <div className="flex items-center justify-between rounded-2xl border border-state-danger-border bg-state-danger-surface px-md py-sm-plus text-body text-text-primary shadow-elevation-2">
           <span>{buildingsError}</span>
           <button
             onClick={() => loadBuildingCatalog()}
-            className="text-xs px-sm py-xs-plus rounded-xl border border-[rgba(255,51,51,0.45)] bg-[rgba(255,51,51,0.16)] text-[var(--color-text-primary)] font-semibold transition-all duration-150 focus-ring hover:bg-[rgba(255,51,51,0.24)]"
+            className="text-xs px-sm py-xs-plus rounded-xl border border-state-danger-border bg-state-danger-pill text-text-primary font-semibold transition-all duration-150 focus-ring hover:bg-state-danger-pill-hover"
           >
             Перезагрузить
           </button>
@@ -291,15 +292,24 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
           Постройки пока недоступны. Продвигайтесь по уровням, чтобы разблокировать их.
         </div>
       ) : (
-        <Virtuoso
-          className="flex-1"
-          data={sortedBuildings}
-          itemContent={renderBuildingRow}
-          customScrollParent={scrollParent ?? undefined}
-          components={{
-            Footer: () => <div style={{ height: Math.max(16, Math.max(0, contentBottom) + 24) }} />,
-          }}
-        />
+        <div className="flex-1 min-h-[320px]">
+          <Virtuoso
+            style={{
+              height: '100%',
+              minHeight: 320,
+              maxHeight: 'var(--layout-viewport-height, 100vh)',
+            }}
+            className="flex-1 rounded-2xl"
+            data={sortedBuildings}
+            itemContent={renderBuildingRow}
+            customScrollParent={scrollParent ?? undefined}
+            components={{
+              Footer: () => (
+                <div style={{ height: Math.max(16, Math.max(0, contentBottom) + 24) }} />
+              ),
+            }}
+          />
+        </div>
       )}
     </div>
   );

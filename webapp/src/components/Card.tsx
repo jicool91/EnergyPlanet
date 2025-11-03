@@ -59,18 +59,15 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
     ref
   ) => {
     const baseStyles =
-      'relative overflow-hidden rounded-3xl px-6 py-5 text-[var(--color-text-primary)] shadow-[0_18px_48px_rgba(0,0,0,0.32)] transition-transform duration-200 ease-out backdrop-blur-sm';
+      'relative overflow-hidden rounded-3xl px-6 py-5 text-text-primary shadow-elevation-3 transition-transform duration-200 ease-out backdrop-blur-sm';
 
     const variantStyles: Record<NonNullable<CardProps['variant']>, string> = {
-      default: 'border border-[rgba(255,255,255,0.08)] bg-[rgba(29,32,37,0.92)]',
-      elevated:
-        'border border-[rgba(255,255,255,0.12)] bg-[rgba(39,42,47,0.95)] shadow-[0_24px_64px_rgba(0,0,0,0.42)]',
-      outlined: 'border border-[rgba(243,186,47,0.28)] bg-[rgba(29,32,37,0.65)] backdrop-blur-md',
+      default: 'border border-border-layer bg-layer-strong',
+      elevated: 'border border-border-layer-strong bg-layer-elevated shadow-elevation-4',
+      outlined: 'border border-border-featured bg-layer-soft backdrop-blur-md',
     };
 
-    const highlightStyles = highlighted
-      ? 'ring-2 ring-[var(--color-accent-gold)] shadow-[0_20px_52px_rgba(243,186,47,0.28)]'
-      : '';
+    const highlightStyles = highlighted ? 'ring-2 ring-accent-gold shadow-glow-gold' : '';
     const isInteractive =
       typeof props.onClick === 'function' ||
       props.role === 'button' ||
@@ -83,14 +80,13 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
           baseStyles,
           variantStyles[variant],
           highlightStyles,
-          isInteractive &&
-            'transition-transform hover:-translate-y-0.5 hover:shadow-[0_22px_60px_rgba(243,186,47,0.18)]',
+          isInteractive && 'transition-transform hover:-translate-y-0.5 hover:shadow-glow',
           className
         )}
         {...props}
       >
         {highlighted && (
-          <span className="absolute right-4 top-4 rounded-full border border-[rgba(243,186,47,0.45)] bg-[rgba(243,186,47,0.16)] px-3 py-1 text-label font-bold text-[var(--color-accent-gold)] shadow-[0_12px_28px_rgba(243,186,47,0.35)]">
+          <span className="absolute right-4 top-4 rounded-full border border-border-featured bg-gradient-soft px-3 py-1 text-label font-bold text-accent-gold shadow-glow-gold">
             {highlightBadge}
           </span>
         )}

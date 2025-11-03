@@ -12,20 +12,19 @@ import clsx from 'clsx';
 
 const buttonVariants = cva(
   // Base classes: flex, center, text, cursor, transition
-  'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition-transform duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)] disabled:cursor-not-allowed disabled:opacity-55 data-[loading=true]:pointer-events-none',
+  'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition-transform duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary disabled:cursor-not-allowed disabled:opacity-55 data-[loading=true]:pointer-events-none',
   {
     variants: {
       variant: {
         primary:
-          'bg-[var(--color-accent-gold)] text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(243,186,47,0.26)] hover:brightness-105 active:scale-[0.97]',
+          'bg-accent-gold text-text-inverse shadow-glow-gold hover:brightness-105 active:scale-[0.97]',
         secondary:
-          'border border-[rgba(255,255,255,0.08)] bg-[rgba(39,42,47,0.65)] text-[var(--color-text-primary)] hover:border-[rgba(255,255,255,0.18)] hover:shadow-[0_12px_28px_rgba(0,0,0,0.35)] active:scale-[0.97]',
+          'border border-border-layer bg-layer-strong text-text-primary hover:border-border-layer-strong hover:bg-layer-elevated hover:shadow-elevation-2 active:scale-[0.97]',
         success:
-          'bg-[var(--color-success)] text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(74,222,128,0.26)] hover:brightness-105 active:scale-[0.97]',
+          'bg-feedback-success text-text-inverse shadow-glow-lime hover:brightness-105 active:scale-[0.97]',
         danger:
-          'bg-[var(--color-error)] text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(239,68,68,0.3)] hover:brightness-110 active:scale-[0.97]',
-        ghost:
-          'bg-transparent text-[var(--color-text-accent)] hover:text-[var(--color-text-primary)] active:scale-[0.97]',
+          'bg-feedback-error text-text-inverse shadow-lg hover:brightness-110 active:scale-[0.97]',
+        ghost: 'bg-transparent text-text-accent hover:text-text-primary active:scale-[0.97]',
       },
 
       size: {

@@ -13,7 +13,8 @@
     "lint:fix": "eslint src --ext ts,tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "typecheck": "tsc --noEmit",
-    "test:perf": "playwright test tests/performance/tap-loop.spec.ts"
+    "test:perf": "playwright test tests/performance/tap-loop.spec.ts",
+    "test:contrast": "node ./scripts/check-contrast.mjs"
   },
   "dependencies": {
     "@tma.js/sdk-react": "^3.0.8",

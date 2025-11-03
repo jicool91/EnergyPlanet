@@ -4,16 +4,11 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, type CSSProperties } from 'react';
-import {
-  motion,
-  AnimatePresence,
-  useReducedMotion,
-  type Variants,
-  type Transition,
-} from 'framer-motion';
+import { motion, AnimatePresence, type Variants, type Transition } from 'framer-motion';
 import { Confetti } from './animations/Confetti';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
 import { usePreferencesStore } from '@/store/preferencesStore';
+import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 
 interface LevelUpScreenProps {
   isOpen: boolean;
@@ -48,9 +43,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
 }) => {
   const playSound = useSoundEffect();
   const soundEnabled = usePreferencesStore(state => state.soundEnabled);
-  const reduceMotionPreference = usePreferencesStore(state => state.reduceMotion);
-  const systemPrefersReducedMotion = useReducedMotion();
-  const prefersReducedMotion = Boolean(systemPrefersReducedMotion || reduceMotionPreference);
+  const prefersReducedMotion = useAppReducedMotion();
 
   const dialogRef = useRef<HTMLDivElement>(null);
   const primaryActionRef = useRef<HTMLButtonElement>(null);

@@ -4,6 +4,7 @@
  */
 
 import { useMemo } from 'react';
+import { usePreferencesStore } from '@/store/preferencesStore';
 
 interface DeviceCapabilities {
   isLowEnd: boolean; // Low-end device (limit animations)
@@ -24,28 +25,35 @@ interface DeviceCapabilities {
  * - reduceMotion: user prefers reduced motion (accessibility)
  */
 export const useDeviceCapabilities = (): DeviceCapabilities => {
+  const reduceMotionPreference = usePreferencesStore(state => state.reduceMotion);
   interface NavigatorWithMemory extends Navigator {
     deviceMemory?: number;
   }
 
   return useMemo(() => {
     // Check for reduced motion preference (accessibility)
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const prefersReducedMotion =
+      reduceMotionPreference ||
+      (typeof window !== 'undefined'
+        ? window.matchMedia('(prefers-reduced-motion: reduce)').matches
+        : false);
 
     // Detect device type and capabilities
-    const ua = navigator.userAgent.toLowerCase();
+    const ua = typeof navigator !== 'undefined' ? navigator.userAgent.toLowerCase() : '';
     const isAndroid = ua.includes('android');
     const isIOS = ua.includes('iphone') || ua.includes('ipad');
     const isMobile = isAndroid || isIOS;
 
     // Get device memory if available (Chrome)
-    const deviceMemory = (navigator as NavigatorWithMemory).deviceMemory ?? 8;
+    const deviceMemory =
+      typeof navigator !== 'undefined' ? ((navigator as NavigatorWithMemory).deviceMemory ?? 8) : 8;
 
     // Estimate GPU support
-    const canvas = document.createElement('canvas');
-    const gl =
-      canvas.getContext('webgl') ||
-      (canvas.getContext('experimental-webgl') as WebGLRenderingContext | null);
+    const canvas = typeof document !== 'undefined' ? document.createElement('canvas') : null;
+    const gl = canvas
+      ? canvas.getContext('webgl') ||
+        (canvas.getContext('experimental-webgl') as WebGLRenderingContext | null)
+      : null;
     const supportsGPU = gl !== null && gl !== undefined;
 
     // Determine device tier
@@ -92,5 +100,5 @@ export const useDeviceCapabilities = (): DeviceCapabilities => {
       maxParticles: Math.floor(maxParticles),
       reduceMotion: prefersReducedMotion,
     };
-  }, []);
+  }, [reduceMotionPreference]);
 };
