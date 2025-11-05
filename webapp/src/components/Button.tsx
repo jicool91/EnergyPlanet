@@ -3,6 +3,7 @@ import type { ButtonHTMLAttributes } from 'react';
 import { motion, type Transition } from 'framer-motion';
 import { cva, type VariantProps } from 'class-variance-authority';
 import clsx from 'clsx';
+import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 
 /**
  * Button Component
@@ -12,7 +13,7 @@ import clsx from 'clsx';
 
 const buttonVariants = cva(
   // Base classes: flex, center, text, cursor, transition
-  'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold transition-transform duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary disabled:cursor-not-allowed disabled:opacity-55 data-[loading=true]:pointer-events-none',
+  'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold text-center transition-transform duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary disabled:cursor-not-allowed disabled:opacity-55 data-[loading=true]:pointer-events-none',
   {
     variants: {
       variant: {
@@ -136,11 +137,17 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     // Determine button state for styling
     const buttonVariant = success ? 'success' : error ? 'danger' : variant;
     const isDisabled = disabled || loading || success;
+    const reduceMotion = useAppReducedMotion();
     const errorTransition: Transition | undefined = error
-      ? { duration: 0.4, ease: 'easeInOut' }
+      ? { duration: reduceMotion ? 0 : 0.4, ease: 'easeInOut' }
       : undefined;
 
     const resolvedType = props.type ?? 'button';
+    const baseTransition = reduceMotion ? { duration: 0 } : springTransition;
+    const hoverAnimation = !isDisabled && !reduceMotion ? { scale: 1.05 } : { scale: 1 };
+    const tapAnimation = !isDisabled && !reduceMotion ? { scale: 0.95 } : { scale: 1 };
+    const animateState = error && !reduceMotion ? shakeAnimation : { x: 0 };
+    const transitionState = error && !reduceMotion ? errorTransition : baseTransition;
 
     return (
       <motion.button
@@ -149,10 +156,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         className={clsx(buttonVariants({ variant: buttonVariant, size, fullWidth }), className)}
         // Micro-interactions: hover and tap animations
         initial={{ scale: 1 }}
-        whileHover={!isDisabled ? { scale: 1.05 } : { scale: 1 }}
-        whileTap={!isDisabled ? { scale: 0.95 } : { scale: 1 }}
-        animate={error ? shakeAnimation : { x: 0 }}
-        transition={error ? errorTransition : springTransition}
+        whileHover={hoverAnimation}
+        whileTap={tapAnimation}
+        animate={animateState}
+        transition={transitionState}
         data-loading={loading}
         aria-busy={loading || undefined}
         aria-live={success || error ? 'polite' : undefined}
@@ -162,12 +169,14 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {/* Loading spinner */}
         {loading && (
           <motion.svg
-            className="w-4 h-4 animate-spin"
+            className={clsx('h-4 w-4', !reduceMotion && 'animate-spin')}
             fill="none"
             viewBox="0 0 24 24"
             xmlns="http://www.w3.org/2000/svg"
-            animate={{ rotate: 360 }}
-            transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+            animate={reduceMotion ? undefined : { rotate: 360 }}
+            transition={
+              reduceMotion ? undefined : { duration: 1, repeat: Infinity, ease: 'linear' }
+            }
           >
             <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" opacity="0.25" />
             <path

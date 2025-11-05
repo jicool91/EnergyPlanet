@@ -53,22 +53,26 @@ function PurchaseInsightCard({
   const containerClass = clsx(
     'flex flex-col gap-3',
     isDualAccent &&
-      'border border-state-card-highlight-border bg-gradient-soft shadow-state-card-highlight'
+      'border border-state-card-highlight-border bg-[var(--surface-dual-highlight)] shadow-state-card-highlight'
   );
 
   const priceBadgeClass = clsx(
     'px-3 py-1 text-xs',
     isDualAccent
-      ? 'rounded-full bg-accent-cyan/20 text-accent-cyan'
+      ? 'rounded-full bg-[rgba(45,226,255,0.28)] text-[var(--color-text-primary)]'
       : 'rounded-full bg-[rgba(255,255,255,0.08)] text-[var(--color-text-secondary)]'
   );
 
   const infoCardClass = clsx(
     'rounded-2xl border px-4 py-3 text-sm',
     isDualAccent
-      ? 'border-state-card-highlight-border/70 bg-layer-soft text-text-secondary'
+      ? 'border-state-card-highlight-border/70 bg-[var(--surface-dual-highlight-soft)] text-[var(--color-text-primary)]'
       : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] text-[var(--color-text-secondary)]'
   );
+
+  const secondaryTextClass = isDualAccent
+    ? 'text-[var(--color-text-primary)]'
+    : 'text-[var(--color-text-secondary)]';
 
   const ctaClass = clsx(
     'rounded-2xl px-4 py-2 text-sm font-semibold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
@@ -81,14 +85,14 @@ function PurchaseInsightCard({
     <Card className={containerClass}>
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
+          <p className={clsx('text-sm uppercase tracking-[0.12em]', secondaryTextClass)}>
             Следующая цель
           </p>
           <p className="text-lg font-semibold text-[var(--color-text-primary)]">{name}</p>
         </div>
         <span className={priceBadgeClass}>Стоимость {cost.toLocaleString('ru-RU')}</span>
       </div>
-      <p className="text-sm text-[var(--color-text-secondary)]">
+      <p className={clsx('text-sm', secondaryTextClass)}>
         Доход в секунду: +{incomeGain.toLocaleString('ru-RU')}
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
@@ -96,13 +100,19 @@ function PurchaseInsightCard({
           {affordable ? (
             <span className="text-[var(--color-success)]">Можно купить прямо сейчас</span>
           ) : (
-            <>Осталось накопить: {remaining.toLocaleString('ru-RU')}</>
+            <span className={secondaryTextClass}>
+              Осталось накопить: {remaining.toLocaleString('ru-RU')}
+            </span>
           )}
         </div>
         <div className={infoCardClass}>
-          {paybackSeconds
-            ? `Окупится за ~${Math.round(paybackSeconds / 60)} мин`
-            : 'Окупаемость не указана'}
+          {paybackSeconds ? (
+            <span className={secondaryTextClass}>
+              Окупится за ~{Math.round(paybackSeconds / 60)} мин
+            </span>
+          ) : (
+            <span className={secondaryTextClass}>Окупаемость не указана</span>
+          )}
         </div>
       </div>
       <div className="flex justify-end">

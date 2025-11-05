@@ -39,9 +39,45 @@ try {
 uiStore.updateTheme(getTmaThemeSnapshot());
 getTmaSafeAreaSnapshot();
 getTmaViewportMetrics();
-const noop = () => {};
-onTmaSafeAreaChange(noop);
-onTmaViewportChange(noop);
+
+const globalRuntime = globalThis as typeof globalThis & {
+  __tmaRuntimeDisposers__?: VoidFunction[];
+};
+
+globalRuntime.__tmaRuntimeDisposers__?.forEach(dispose => {
+  try {
+    dispose();
+  } catch (error) {
+    logger.warn('Failed to dispose previous TMA runtime listener', { error });
+  }
+});
+
+const runtimeDisposers: VoidFunction[] = [
+  onTmaSafeAreaChange(() => {
+    // viewport service already applies CSS vars; listener exists to trigger mount/update.
+  }),
+  onTmaViewportChange(() => {
+    // see above: ensure CSS variables sync with Telegram runtime.
+  }),
+];
+
+globalRuntime.__tmaRuntimeDisposers__ = runtimeDisposers;
+
+if (import.meta.hot) {
+  import.meta.hot.dispose(() => {
+    runtimeDisposers.forEach(dispose => {
+      try {
+        dispose();
+      } catch (error) {
+        logger.warn('Failed to dispose TMA runtime listener on HMR', { error });
+      }
+    });
+    if (globalRuntime.__tmaRuntimeDisposers__ === runtimeDisposers) {
+      delete globalRuntime.__tmaRuntimeDisposers__;
+    }
+  });
+}
+
 authStore.hydrate();
 sessionManager.syncFromStore();
 onTmaThemeChange(theme => uiStore.updateTheme(theme));

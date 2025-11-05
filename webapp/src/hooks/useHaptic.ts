@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import { usePreferencesStore } from '../store/preferencesStore';
+import { useAppReducedMotion } from './useAppReducedMotion';
 
 type HapticPattern = 'tap' | 'success' | 'error' | 'warning' | 'light' | 'medium' | 'strong';
 
@@ -10,11 +11,12 @@ type HapticPattern = 'tap' | 'success' | 'error' | 'warning' | 'light' | 'medium
  */
 export function useHaptic() {
   const { hapticEnabled, hapticIntensity } = usePreferencesStore();
+  const reduceMotion = useAppReducedMotion();
 
   const checkSupport = useCallback(() => {
-    if (!hapticEnabled) return false;
+    if (!hapticEnabled || reduceMotion) return false;
     return 'vibrate' in navigator;
-  }, [hapticEnabled]);
+  }, [hapticEnabled, reduceMotion]);
 
   const trigger = useCallback(
     (pattern: HapticPattern) => {

@@ -13,6 +13,45 @@ const THEME_KEYS = Object.keys(TELEGRAM_THEME_VARIABLES) as Array<
   keyof typeof TELEGRAM_THEME_VARIABLES
 >;
 
+function applyFontScale(): void {
+  if (typeof document === 'undefined') {
+    return;
+  }
+
+  const root = document.documentElement;
+  const webApp = typeof window !== 'undefined' ? window.Telegram?.WebApp : undefined;
+  let scale: number | undefined;
+
+  if (webApp) {
+    const directScale = (webApp as { fontScale?: number | string }).fontScale;
+    if (typeof directScale === 'number') {
+      scale = directScale;
+    } else if (typeof directScale === 'string') {
+      const parsed = Number.parseFloat(directScale);
+      if (Number.isFinite(parsed)) {
+        scale = parsed;
+      }
+    }
+
+    if (scale === undefined && typeof webApp.settings === 'object' && webApp.settings !== null) {
+      const settingsScale = (webApp.settings as { font_scale?: number | string }).font_scale;
+      if (typeof settingsScale === 'number') {
+        scale = settingsScale;
+      } else if (typeof settingsScale === 'string') {
+        const parsed = Number.parseFloat(settingsScale);
+        if (Number.isFinite(parsed)) {
+          scale = parsed;
+        }
+      }
+    }
+  }
+
+  const resolved =
+    Number.isFinite(scale) && (scale as number) > 0 ? Math.min(scale as number, 1.6) : 1;
+  root.style.setProperty('--tg-text-size-scale', resolved.toString());
+  root.dataset.tgTextScale = resolved.toString();
+}
+
 function mapTmaThemeParams(params: TmaThemeParams | undefined): TelegramThemeParams {
   const result: TelegramThemeParams = {};
 
@@ -40,12 +79,14 @@ function mapTmaThemeParams(params: TmaThemeParams | undefined): TelegramThemePar
 
 function readAndApplyTheme(): TelegramThemeParams {
   const raw = themeParams.state();
+  applyFontScale();
   return updateThemeVariables(mapTmaThemeParams(raw));
 }
 
 export function getTmaThemeSnapshot(): TelegramThemeParams {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
+    applyFontScale();
     return updateThemeVariables(undefined);
   }
   return readAndApplyTheme();

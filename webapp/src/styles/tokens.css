@@ -58,8 +58,8 @@
   --gradient-ai: linear-gradient(135deg, rgba(45, 226, 255, 0.8) 0%, rgba(255, 77, 255, 0.9) 100%);
   --gradient-soft: linear-gradient(
     135deg,
-    rgba(45, 226, 255, 0.18) 0%,
-    rgba(255, 77, 255, 0.22) 100%
+    rgba(45, 226, 255, 0.32) 0%,
+    rgba(255, 77, 255, 0.36) 100%
   );
 
   /* Theme-aware Surfaces */
@@ -77,6 +77,8 @@
   --state-card-highlight-shadow: 0 0 32px rgba(45, 226, 255, 0.28);
   --state-card-locked-border: rgba(255, 141, 77, 0.45);
   --state-card-locked-bg: rgba(39, 42, 47, 0.78);
+  --surface-dual-highlight: rgba(14, 18, 36, 0.94);
+  --surface-dual-highlight-soft: rgba(26, 18, 40, 0.88);
   --state-danger-border: rgba(255, 51, 51, 0.45);
   --state-danger-surface: rgba(58, 16, 24, 0.82);
   --state-danger-pill: rgba(255, 51, 51, 0.16);
@@ -290,56 +292,56 @@
  * Use these for consistent text styling across components
  */
 .text-display {
-  font-size: var(--font-display);
-  line-height: var(--line-height-display);
+  font-size: calc(var(--font-display) * var(--tg-text-size-scale, 1));
+  line-height: calc(var(--line-height-display) * var(--tg-text-size-scale, 1));
   font-weight: var(--font-weight-display);
 }
 
 .text-heading {
-  font-size: var(--font-heading);
-  line-height: var(--line-height-heading);
+  font-size: calc(var(--font-heading) * var(--tg-text-size-scale, 1));
+  line-height: calc(var(--line-height-heading) * var(--tg-text-size-scale, 1));
   font-weight: var(--font-weight-heading);
 }
 
 .text-title {
-  font-size: var(--font-title);
-  line-height: var(--line-height-title);
+  font-size: calc(var(--font-title) * var(--tg-text-size-scale, 1));
+  line-height: calc(var(--line-height-title) * var(--tg-text-size-scale, 1));
   font-weight: var(--font-weight-title);
 }
 
 .text-subheading {
-  font-size: var(--font-subheading);
-  line-height: var(--line-height-subheading);
+  font-size: calc(var(--font-subheading) * var(--tg-text-size-scale, 1));
+  line-height: calc(var(--line-height-subheading) * var(--tg-text-size-scale, 1));
   font-weight: var(--font-weight-subheading);
 }
 
 .text-body {
-  font-size: var(--font-body);
-  line-height: var(--line-height-body);
+  font-size: calc(var(--font-body) * var(--tg-text-size-scale, 1));
+  line-height: calc(var(--line-height-body) * var(--tg-text-size-scale, 1));
   font-weight: var(--font-weight-body);
 }
 
 .text-body-sm {
-  font-size: var(--font-body-sm);
-  line-height: var(--line-height-body-sm);
+  font-size: calc(var(--font-body-sm) * var(--tg-text-size-scale, 1));
+  line-height: calc(var(--line-height-body-sm) * var(--tg-text-size-scale, 1));
   font-weight: var(--font-weight-body-sm);
 }
 
 .text-caption {
-  font-size: var(--font-caption);
-  line-height: var(--line-height-caption);
+  font-size: calc(var(--font-caption) * var(--tg-text-size-scale, 1));
+  line-height: calc(var(--line-height-caption) * var(--tg-text-size-scale, 1));
   font-weight: var(--font-weight-caption);
 }
 
 .text-micro {
-  font-size: var(--font-micro);
-  line-height: var(--line-height-micro);
+  font-size: calc(var(--font-micro) * var(--tg-text-size-scale, 1));
+  line-height: calc(var(--line-height-micro) * var(--tg-text-size-scale, 1));
   font-weight: var(--font-weight-micro);
 }
 
 .text-label {
-  font-size: var(--font-label);
-  line-height: var(--line-height-label);
+  font-size: calc(var(--font-label) * var(--tg-text-size-scale, 1));
+  line-height: calc(var(--line-height-label) * var(--tg-text-size-scale, 1));
   font-weight: var(--font-weight-label);
   letter-spacing: 0.06em;
 }

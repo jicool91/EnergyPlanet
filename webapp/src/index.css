@@ -64,6 +64,7 @@
   --tg-viewport-is-stable: 1;
   --tg-viewport-is-fullscreen: 0;
   --tg-fullscreen: 0;
+  --tg-text-size-scale: 1;
 
   /* Computed safe area with padding */
   --safe-area-top: max(

@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { hideTmaMainButton, withTmaMainButton } from '@/services/tma/mainButton';
 
 type UseTelegramMainButtonOptions = {
@@ -23,6 +24,8 @@ export function useTelegramMainButton(options: UseTelegramMainButtonOptions) {
     enabled = true,
     keepVisibleOnUnmount = false,
   } = options;
+  const location = useLocation();
+  const locationKey = `${location.pathname}${location.search ?? ''}`;
 
   useEffect(() => {
     if (!enabled) {
@@ -39,5 +42,15 @@ export function useTelegramMainButton(options: UseTelegramMainButtonOptions) {
       showProgress,
       keepVisibleOnUnmount,
     });
-  }, [enabled, text, onClick, color, textColor, disabled, showProgress, keepVisibleOnUnmount]);
+  }, [
+    enabled,
+    text,
+    onClick,
+    color,
+    textColor,
+    disabled,
+    showProgress,
+    keepVisibleOnUnmount,
+    locationKey,
+  ]);
 }

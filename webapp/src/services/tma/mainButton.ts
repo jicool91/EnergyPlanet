@@ -1,4 +1,4 @@
-import { mainButton } from '@tma.js/sdk';
+import { mainButton, themeParams } from '@tma.js/sdk';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
 
 type MainButtonOptions = {
@@ -12,6 +12,7 @@ type MainButtonOptions = {
 };
 
 const activeHandlers = new Set<() => void>();
+let loaderVisible = false;
 
 function toRgb(value?: string): `#${string}` | null {
   if (!value || typeof value !== 'string') {
@@ -23,17 +24,45 @@ function toRgb(value?: string): `#${string}` | null {
   return null;
 }
 
+function resolveButtonColors(options: MainButtonOptions): {
+  background: `#${string}` | null;
+  foreground: `#${string}` | null;
+} {
+  let themeBg: string | undefined;
+  let themeFg: string | undefined;
+
+  try {
+    const state = themeParams.state();
+    if (state) {
+      if (typeof state.button_color === 'string') {
+        themeBg = state.button_color;
+      } else if (typeof state.accent_text_color === 'string') {
+        themeBg = state.accent_text_color;
+      }
+      if (typeof state.button_text_color === 'string') {
+        themeFg = state.button_text_color;
+      }
+    }
+  } catch {
+    // themeParams.state can throw if SDK not mounted; ignore and use fallbacks.
+  }
+
+  const background = toRgb(options.color ?? themeBg ?? '#f3ba2f');
+  const foreground = toRgb(options.textColor ?? themeFg ?? '#000000');
+
+  return { background, foreground };
+}
+
 function applyConfig(options: MainButtonOptions) {
   mainButton.setText(options.text);
 
-  const bgColor = toRgb(options.color);
-  if (bgColor) {
-    mainButton.setBgColor(bgColor);
+  const { background, foreground } = resolveButtonColors(options);
+  if (background) {
+    mainButton.setBgColor(background);
   }
 
-  const textColor = toRgb(options.textColor);
-  if (textColor) {
-    mainButton.setTextColor(textColor);
+  if (foreground) {
+    mainButton.setTextColor(foreground);
   }
 
   if (options.disabled) {
@@ -54,17 +83,32 @@ export function withTmaMainButton(options: MainButtonOptions): () => void {
     mainButton.mount();
   }
 
+  if (!mainButton.isVisible()) {
+    mainButton.show();
+  }
+
   applyConfig(options);
 
   const handler = () => {
     if (options.showProgress) {
-      mainButton.showLoader();
+      try {
+        mainButton.showLoader();
+        loaderVisible = true;
+      } catch {
+        loaderVisible = false;
+      }
     }
     try {
       options.onClick();
     } finally {
-      if (options.showProgress) {
-        mainButton.hideLoader();
+      if (options.showProgress && loaderVisible) {
+        try {
+          mainButton.hideLoader();
+        } catch {
+          // ignore bridge errors
+        } finally {
+          loaderVisible = false;
+        }
       }
     }
   };
@@ -72,21 +116,37 @@ export function withTmaMainButton(options: MainButtonOptions): () => void {
   mainButton.onClick(handler);
   activeHandlers.add(handler);
 
-  if (!mainButton.isVisible()) {
-    mainButton.show();
-  }
-
   return () => {
     mainButton.offClick(handler);
     activeHandlers.delete(handler);
 
-    if (options.showProgress) {
-      mainButton.hideLoader();
+    if (options.showProgress && loaderVisible) {
+      try {
+        mainButton.hideLoader();
+      } catch {
+        // ignore bridge errors
+      } finally {
+        loaderVisible = false;
+      }
     }
 
     if (!options.keepVisibleOnUnmount && activeHandlers.size === 0) {
-      mainButton.hideLoader();
-      mainButton.hide();
+      if (loaderVisible) {
+        try {
+          mainButton.hideLoader();
+        } catch {
+          // ignore
+        } finally {
+          loaderVisible = false;
+        }
+      }
+      if (mainButton.isVisible()) {
+        try {
+          mainButton.hide();
+        } catch {
+          // ignore
+        }
+      }
     }
   };
 }
@@ -99,6 +159,20 @@ export function hideTmaMainButton(): void {
   }
 
   activeHandlers.clear();
-  mainButton.hideLoader();
-  mainButton.hide();
+  if (loaderVisible) {
+    try {
+      mainButton.hideLoader();
+    } catch {
+      // ignore
+    } finally {
+      loaderVisible = false;
+    }
+  }
+  if (mainButton.isVisible()) {
+    try {
+      mainButton.hide();
+    } catch {
+      // ignore
+    }
+  }
 }

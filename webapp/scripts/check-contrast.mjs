@@ -131,6 +131,8 @@ const checks = [
   { theme: 'dark', text: '--color-text-secondary-fallback', bg: '--color-bg-primary', min: 4.5, label: 'Secondary text on primary background (dark)' },
   { theme: 'dark', text: '--color-text-inverse', bg: '--color-accent-gold', min: 4.5, label: 'Inverse text on gold accent (dark)' },
   { theme: 'dark', text: '--color-text-primary', bg: '--color-surface-secondary', min: 4.5, label: 'Primary text on secondary surface (dark)' },
+  { theme: 'dark', text: '--color-text-primary', bg: '--surface-dual-highlight', min: 4.5, label: 'Primary text on dual highlight surface (dark)' },
+  { theme: 'dark', text: '--color-text-secondary', bg: '--layer-surface-soft', min: 4.5, label: 'Secondary text on soft layer (dark)' },
   { theme: 'light', text: '--color-text-primary', bg: '--color-bg-primary', min: 4.5, label: 'Primary text on primary background (light)' },
   { theme: 'light', text: '--color-text-secondary', bg: '--color-bg-primary', min: 4.5, label: 'Secondary text on primary background (light)' },
   { theme: 'light', text: '--color-text-inverse', bg: '--color-accent-gold', min: 4.5, label: 'Inverse text on gold accent (light)' },
