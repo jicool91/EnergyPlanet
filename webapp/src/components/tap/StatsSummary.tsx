@@ -1,7 +1,7 @@
 import { memo } from 'react';
 import { Card } from '@/components/Card';
+import { Button, ProgressBar } from '@/components';
 import { Text } from '@/components/ui/Text';
-import { ProgressBar } from '@/components';
 
 interface StatsSummaryProps {
   energy: number;
@@ -124,18 +124,16 @@ export const StatsSummary = memo(function StatsSummary({
               Уровень {prestigeLevel}
             </Text>
           </div>
-          <button
-            type="button"
+          <Button
+            size="md"
+            variant={isPrestigeAvailable ? 'success' : 'secondary'}
             onClick={onPrestige}
-            disabled={!isPrestigeAvailable || isPrestigeLoading}
-            className="rounded-2xl bg-accent-gold px-4 py-2 text-body font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
+            loading={isPrestigeLoading}
+            loadingText="Считаем…"
+            disabled={!isPrestigeAvailable && !isPrestigeLoading}
           >
-            {isPrestigeLoading
-              ? 'Считаем…'
-              : isPrestigeAvailable
-                ? 'Сбросить прогресс'
-                : 'Нужно больше энергии'}
-          </button>
+            {isPrestigeAvailable ? 'Сбросить прогресс' : 'Нужно больше энергии'}
+          </Button>
         </header>
         <div className="flex flex-col gap-2">
           <Text variant="bodySm" tone="secondary">

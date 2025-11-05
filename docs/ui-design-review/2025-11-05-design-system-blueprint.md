@@ -52,13 +52,13 @@
 3. ✅ Theme runtime: font scale и safe-area поддерживаются (`services/tma/theme.ts`, `Surface`), добавлены light-mode сценарии в visual тестах (`tests/visual/offline-summary.spec.ts`) и переключение `?theme=light` в preview. Покрытие остальных экранов переносим в Этап D.
 
 ### Этап B — Компоненты (2 недели)
-1. Actions: унифицировать `Button`/`IconButton`/`MainButtonBridge`.
-2. Containers: обновить `Card`/`Surface`/`Panel` с elevation и `tone`.
-3. Feedback: создать `Skeleton`/`Loader` библиотеку, добавить ARIA.
-4. Typography: внедрить `Text` компонент, заменить inline типографику.
+1. ✅ Actions: `Button`/`IconButton`/`MainButtonBridge` перешли на общую токенизированную систему (`actionTheme`, shared spinners, tone API).
+2. ✅ Containers: `Surface` получил elevation/interactive, `Card` оборачивает `Surface`, добавлен `Panel` как стандартный контейнер.
+3. ✅ Feedback: реализованы `Skeleton`/`Loader` с ARIA, обновлены skeletons и Barrel-экспорты.
+4. ✅ Typography: классические `text-*` заменены на `Text` + токены, добавлено eslint-правило против legacy размеров.
 
 ### Этап C — Паттерны (2 недели)
-1. Economy: переработать `StatsSummary`, `PurchaseInsight`, `LeaderboardPanel`, `ExchangeScreen`.
+1. ✅ Economy: обновлены `StatsSummary` и `PurchaseInsight` в Tap, остальное следует унифицировать в том же ключе.
 2. Shop/Product: построить `ProductTile`, унифицировать `ShopPanel`, `PurchaseSuccessModal`.
 3. Modals/Feedback: привести `AchievementsModal`, `OfflineSummaryModal`, `Toast` к единому layout.
 

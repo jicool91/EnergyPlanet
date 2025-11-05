@@ -9,7 +9,9 @@ import {
   DailyTasksBar,
   Card,
   TabPageSurface,
+  Button,
 } from '@/components';
+import { Surface } from '@/components/ui/Surface';
 import { Text } from '@/components/ui/Text';
 import { useNotification } from '@/hooks/useNotification';
 import { useHaptic } from '@/hooks/useHaptic';
@@ -51,35 +53,15 @@ function PurchaseInsightCard({
   const { name, cost, affordable, remaining, paybackSeconds, incomeGain } = insight;
   const isDualAccent = paletteVariant === 'dual-accent';
 
-  const containerClass = clsx(
-    'flex flex-col gap-3',
-    isDualAccent &&
-      'border border-state-card-highlight-border bg-surface-dual shadow-state-card-highlight'
-  );
-
-  const priceBadgeClass = clsx(
-    'px-3 py-1 text-label',
-    isDualAccent
-      ? 'rounded-full bg-state-cyan-pill-strong text-text-primary'
-      : 'rounded-full bg-layer-overlay-ghost-soft text-text-secondary'
-  );
-
-  const infoCardClass = clsx(
-    'rounded-2xl border px-4 py-3',
-    isDualAccent
-      ? 'border-state-card-highlight-border/70 bg-surface-dual-soft text-text-primary'
-      : 'border-border-layer bg-layer-overlay-ghost text-text-secondary'
-  );
-
-  const ctaClass = clsx(
-    'rounded-2xl px-4 py-2 text-label font-semibold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
-    isDualAccent
-      ? 'bg-gradient-ai text-text-inverse shadow-state-card-highlight hover:scale-105 focus-visible:ring-state-card-highlight-border focus-visible:ring-offset-surface-primary'
-      : 'bg-accent-gold text-text-inverse shadow-[0_14px_36px_rgba(243,186,47,0.26)] hover:scale-105 focus-visible:ring-text-inverse focus-visible:ring-offset-accent-gold'
-  );
+  const priceBadgeTone = isDualAccent ? 'accent' : 'secondary';
 
   return (
-    <Card className={containerClass}>
+    <Card
+      tone={isDualAccent ? 'dual' : undefined}
+      border={isDualAccent ? 'accent' : undefined}
+      elevation={isDualAccent ? 'strong' : undefined}
+      className={clsx('flex flex-col gap-4', isDualAccent && 'shadow-state-card-highlight')}
+    >
       <div className="flex items-center justify-between">
         <div>
           <Text variant="label" tone={isDualAccent ? 'primary' : 'secondary'} transform="uppercase">
@@ -89,13 +71,32 @@ function PurchaseInsightCard({
             {name}
           </Text>
         </div>
-        <span className={priceBadgeClass}>Стоимость {cost.toLocaleString('ru-RU')}</span>
+        <Text
+          as="span"
+          variant="bodySm"
+          tone={priceBadgeTone}
+          className={clsx(
+            'rounded-full px-3 py-1',
+            isDualAccent
+              ? 'bg-state-cyan-pill-strong text-text-primary'
+              : 'bg-layer-overlay-ghost-soft'
+          )}
+        >
+          Стоимость {cost.toLocaleString('ru-RU')}
+        </Text>
       </div>
       <Text variant="body" tone={isDualAccent ? 'primary' : 'secondary'}>
         Доход в секунду: +{incomeGain.toLocaleString('ru-RU')}
       </Text>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className={infoCardClass}>
+        <Surface
+          tone={isDualAccent ? 'dual' : 'overlay'}
+          border={isDualAccent ? 'accent' : 'subtle'}
+          elevation={isDualAccent ? 'soft' : 'none'}
+          padding="md"
+          rounded="2xl"
+          className={clsx('text-text-secondary', isDualAccent && 'text-text-primary')}
+        >
           {affordable ? (
             <Text variant="body" tone="success">
               Можно купить прямо сейчас
@@ -105,8 +106,15 @@ function PurchaseInsightCard({
               Осталось накопить: {remaining.toLocaleString('ru-RU')}
             </Text>
           )}
-        </div>
-        <div className={infoCardClass}>
+        </Surface>
+        <Surface
+          tone={isDualAccent ? 'dual' : 'overlay'}
+          border={isDualAccent ? 'accent' : 'subtle'}
+          elevation={isDualAccent ? 'soft' : 'none'}
+          padding="md"
+          rounded="2xl"
+          className={clsx('text-text-secondary', isDualAccent && 'text-text-primary')}
+        >
           {paybackSeconds ? (
             <Text variant="body" tone={isDualAccent ? 'primary' : 'secondary'}>
               Окупится за ~{Math.round(paybackSeconds / 60)} мин
@@ -116,12 +124,17 @@ function PurchaseInsightCard({
               Окупаемость не указана
             </Text>
           )}
-        </div>
+        </Surface>
       </div>
       <div className="flex justify-end">
-        <button type="button" onClick={() => onOpenShop('boosts')} className={ctaClass}>
+        <Button
+          type="button"
+          size="md"
+          variant={isDualAccent ? 'primary' : 'secondary'}
+          onClick={() => onOpenShop('boosts')}
+        >
           Улучшить сейчас
-        </button>
+        </Button>
       </div>
     </Card>
   );
