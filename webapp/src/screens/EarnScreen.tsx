@@ -36,20 +36,20 @@ export function EarnScreen() {
       <EarnTasksBoard />
 
       <header>
-        <h2 className="text-heading font-semibold text-[var(--color-text-primary)]">Профиль</h2>
-        <p className="text-sm text-[var(--color-text-secondary)]">
+        <h2 className="text-heading font-semibold text-text-primary">Профиль</h2>
+        <p className="text-sm text-text-secondary">
           Управляйте аккаунтом, подключайте уведомления и проверяйте прогресс.
         </p>
       </header>
 
       <TabPageSurface>
         {profileError && !isProfileLoading ? (
-          <div className="flex flex-col items-center gap-3 text-center text-[var(--color-text-secondary)]">
+          <div className="flex flex-col items-center gap-3 text-center text-text-secondary">
             <p>Не удалось загрузить профиль.</p>
             <button
               type="button"
               onClick={handleRetry}
-              className="rounded-2xl border border-[rgba(255,255,255,0.12)] px-4 py-2 text-sm text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+              className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
             >
               Повторить
             </button>

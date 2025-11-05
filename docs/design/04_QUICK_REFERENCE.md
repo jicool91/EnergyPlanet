@@ -120,7 +120,7 @@ Tones: default | positive | warning
 <div className="text-white bg-gray-900">text</div>
 
 // ✅ Use variables
-<div className="text-[var(--color-text-primary)] bg-[var(--app-bg)]">
+<div className="text-text-primary bg-[var(--app-bg)]">
 
 // ❌ Small touch targets
 <button className="w-6 h-6">Icon</button>

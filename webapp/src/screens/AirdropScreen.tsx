@@ -32,8 +32,8 @@ export function AirdropScreen() {
   return (
     <div className="flex flex-col gap-4">
       <header>
-        <h1 className="text-heading font-semibold text-[var(--color-text-primary)]">Airdrop</h1>
-        <p className="text-sm text-[var(--color-text-secondary)]">
+        <h1 className="text-heading font-semibold text-text-primary">Airdrop</h1>
+        <p className="text-sm text-text-secondary">
           Сезонные события и будущие коллаборации появятся здесь. Следите за обновлениями!
         </p>
       </header>

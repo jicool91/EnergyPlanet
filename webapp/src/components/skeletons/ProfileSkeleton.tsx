@@ -5,7 +5,7 @@ export const ProfileSkeleton: React.FC = () => {
   return (
     <div className="flex flex-col gap-4 p-0">
       {/* Header */}
-      <div className="flex items-center gap-3 rounded-2xl border border-[rgba(0,217,255,0.22)] bg-[rgba(12,18,40,0.82)] p-md shadow-elevation-2">
+      <div className="flex items-center gap-3 rounded-2xl border border-border-cyan/60 bg-surface-glass-strong p-md shadow-elevation-2">
         {/* Avatar */}
         <Skeleton width={64} height={64} variant="circle" />
 
@@ -23,7 +23,7 @@ export const ProfileSkeleton: React.FC = () => {
           {Array.from({ length: 4 }).map((_, i) => (
             <div
               key={i}
-              className="rounded-2xl border border-[rgba(0,217,255,0.18)] bg-[rgba(10,16,38,0.78)] p-sm-plus shadow-elevation-1"
+              className="rounded-2xl border border-border-cyan/50 bg-surface-glass-strong p-sm-plus shadow-elevation-1"
             >
               <Skeleton width="80%" height={14} variant="text" />
               <Skeleton width="60%" height={18} variant="text" className="mt-2" />

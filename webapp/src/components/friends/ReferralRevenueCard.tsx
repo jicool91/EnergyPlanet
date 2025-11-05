@@ -44,16 +44,16 @@ const getEventSubtitle = (event: ReferralRevenueEvent) => {
 };
 
 const Placeholder = () => (
-  <Card className="flex flex-col gap-4 border-[rgba(255,255,255,0.08)] bg-[rgba(30,34,46,0.72)] animate-pulse">
-    <div className="h-5 w-1/3 rounded bg-[rgba(255,255,255,0.08)]" />
+  <Card className="flex flex-col gap-4 border-border-layer bg-surface-glass-strong animate-pulse">
+    <div className="h-5 w-1/3 rounded bg-layer-overlay-ghost-soft" />
     <div className="grid gap-3 md:grid-cols-2">
-      <div className="flex flex-col gap-2 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-        <div className="h-4 w-2/3 rounded bg-[rgba(255,255,255,0.08)]" />
-        <div className="h-6 w-1/3 rounded bg-[rgba(255,255,255,0.12)]" />
+      <div className="flex flex-col gap-2 rounded-2xl border border-border-layer bg-layer-overlay-ghost-soft p-4">
+        <div className="h-4 w-2/3 rounded bg-layer-overlay-ghost-soft" />
+        <div className="h-6 w-1/3 rounded bg-layer-overlay-ghost-strong" />
       </div>
-      <div className="flex flex-col gap-2 rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.04)] p-4">
-        <div className="h-4 w-1/2 rounded bg-[rgba(255,255,255,0.08)]" />
-        <div className="h-16 rounded bg-[rgba(255,255,255,0.08)]" />
+      <div className="flex flex-col gap-2 rounded-2xl border border-border-layer bg-layer-overlay-ghost-soft p-4">
+        <div className="h-4 w-1/2 rounded bg-layer-overlay-ghost-soft" />
+        <div className="h-16 rounded bg-layer-overlay-ghost-soft" />
       </div>
     </div>
   </Card>
@@ -80,9 +80,9 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
 
   if (error && !overview) {
     return (
-      <Card className="flex flex-col gap-3 border-[rgba(239,68,68,0.4)] bg-[rgba(239,68,68,0.12)] text-[var(--color-text-primary)]">
+      <Card className="flex flex-col gap-3 border-feedback-error/60 bg-feedback-error/15 text-text-primary">
         <div className="text-sm font-semibold">Не удалось загрузить реферальный доход</div>
-        <div className="text-xs text-[var(--color-text-secondary)]">{error}</div>
+        <div className="text-xs text-text-secondary">{error}</div>
         <Button size="sm" onClick={onRetry} variant="secondary">
           Попробовать ещё раз
         </Button>
@@ -95,31 +95,31 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
   }
 
   return (
-    <Card className="flex flex-col gap-4 border-[rgba(176,88,255,0.45)] bg-[rgba(46,26,84,0.68)]">
+    <Card className="flex flex-col gap-4 border-border-magenta bg-layer-overlay-strong">
       <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
+          <p className="text-sm uppercase tracking-[0.12em] text-text-secondary">
             Реферальный доход
           </p>
-          <h2 className="text-xl font-semibold text-[var(--color-text-primary)]">
+          <h2 className="text-xl font-semibold text-text-primary">
             +{formatStars(overview.totals.allTime)}★ за всё время
           </h2>
         </div>
-        <div className="flex flex-wrap gap-3 text-xs text-[var(--color-text-secondary)]">
-          <div className="rounded-xl border border-[rgba(255,255,255,0.14)] px-3 py-2">
+        <div className="flex flex-wrap gap-3 text-xs text-text-secondary">
+          <div className="rounded-xl border border-border-layer-strong px-3 py-2">
             Сегодня:{' '}
-            <span className="font-semibold text-[var(--color-text-primary)]">
+            <span className="font-semibold text-text-primary">
               +{formatStars(overview.totals.today)}★
             </span>
           </div>
-          <div className="rounded-xl border border-[rgba(255,255,255,0.14)] px-3 py-2">
+          <div className="rounded-xl border border-border-layer-strong px-3 py-2">
             За месяц:{' '}
-            <span className="font-semibold text-[var(--color-text-primary)]">
+            <span className="font-semibold text-text-primary">
               +{formatStars(overview.totals.month)}★
             </span>
           </div>
           {overview.revenueShare && (
-            <div className="rounded-xl border border-[rgba(255,255,255,0.14)] px-3 py-2">
+            <div className="rounded-xl border border-border-layer-strong px-3 py-2">
               Ставка: {(overview.revenueShare.percentage * 100).toFixed(1)}%
             </div>
           )}
@@ -127,15 +127,15 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
       </header>
 
       <div className="grid gap-4 lg:grid-cols-2">
-        <section className="flex flex-col gap-3 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.03)] p-4">
+        <section className="flex flex-col gap-3 rounded-2xl border border-border-layer-strong bg-layer-overlay-ghost p-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">Вклад друзей</h3>
-            <span className="text-[11px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+            <h3 className="text-sm font-semibold text-text-primary">Вклад друзей</h3>
+            <span className="text-[11px] uppercase tracking-wide text-text-secondary">
               Обновлено {formatDateTime(overview.updatedAt)}
             </span>
           </div>
           {topFriends.length === 0 ? (
-            <p className="text-sm text-[var(--color-text-secondary)]">
+            <p className="text-sm text-text-secondary">
               Как только ваши приглашённые совершат покупки, сюда попадут их результаты.
             </p>
           ) : (
@@ -143,18 +143,18 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
               {topFriends.map((friend, index) => (
                 <li
                   key={friend.referred.userId || friend.referred.username || `friend-${index}`}
-                  className="flex items-center justify-between rounded-xl bg-[rgba(255,255,255,0.04)] px-3 py-2 text-sm"
+                  className="flex items-center justify-between rounded-xl bg-layer-overlay-ghost-soft px-3 py-2 text-sm"
                 >
                   <div className="flex flex-col">
-                    <span className="font-medium text-[var(--color-text-primary)]">
+                    <span className="font-medium text-text-primary">
                       {getDisplayName(friend.referred)}
                     </span>
-                    <span className="text-xs text-[var(--color-text-secondary)]">
+                    <span className="text-xs text-text-secondary">
                       Последняя покупка:{' '}
                       {friend.lastPurchaseAt ? formatDateTime(friend.lastPurchaseAt) : '—'}
                     </span>
                   </div>
-                  <div className="text-right text-sm font-semibold text-[var(--color-text-primary)]">
+                  <div className="text-right text-sm font-semibold text-text-primary">
                     +{formatStars(friend.totalShare)}★
                   </div>
                 </li>
@@ -163,19 +163,17 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
           )}
         </section>
 
-        <section className="flex flex-col gap-3 rounded-2xl border border-[rgba(255,255,255,0.12)] bg-[rgba(17,20,32,0.62)] p-4">
+        <section className="flex flex-col gap-3 rounded-2xl border border-border-layer-strong bg-surface-glass-strong p-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-sm font-semibold text-[var(--color-text-primary)]">
-              Последние транзакции
-            </h3>
+            <h3 className="text-sm font-semibold text-text-primary">Последние транзакции</h3>
             {isLoading && (
-              <span className="text-[10px] uppercase tracking-wide text-[var(--color-text-secondary)]">
+              <span className="text-[10px] uppercase tracking-wide text-text-secondary">
                 Обновление…
               </span>
             )}
           </div>
           {recentEvents.length === 0 ? (
-            <p className="text-sm text-[var(--color-text-secondary)]">
+            <p className="text-sm text-text-secondary">
               История покупок появится после первой оплаты ваших друзей.
             </p>
           ) : (
@@ -183,14 +181,12 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
               {recentEvents.map(event => (
                 <li
                   key={event.id}
-                  className="flex flex-col gap-1 rounded-xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-3 py-2"
+                  className="flex flex-col gap-1 rounded-xl border border-border-layer bg-layer-overlay-ghost px-3 py-2"
                 >
-                  <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+                  <span className="text-sm font-semibold text-text-primary">
                     {getEventTitle(event)}
                   </span>
-                  <span className="text-xs text-[var(--color-text-secondary)]">
-                    {getEventSubtitle(event)}
-                  </span>
+                  <span className="text-xs text-text-secondary">{getEventSubtitle(event)}</span>
                 </li>
               ))}
             </ul>
@@ -199,12 +195,12 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
       </div>
 
       {error && (
-        <div className="rounded-xl border border-[rgba(239,68,68,0.4)] bg-[rgba(239,68,68,0.12)] px-3 py-2 text-xs text-[var(--color-text-primary)]">
+        <div className="rounded-xl border border-feedback-error/60 bg-feedback-error/15 px-3 py-2 text-xs text-text-primary">
           {error}
         </div>
       )}
 
-      <footer className="flex items-center justify-between text-xs text-[var(--color-text-secondary)]">
+      <footer className="flex items-center justify-between text-xs text-text-secondary">
         <span>
           Данные обновляются автоматически; при необходимости воспользуйтесь кнопкой обновления.
         </span>

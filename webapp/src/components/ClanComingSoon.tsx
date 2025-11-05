@@ -10,8 +10,8 @@ const ClanComingSoonComponent = () => {
         🛡️
       </span>
       <div className="flex flex-col gap-2 max-w-xs">
-        <h2 className="text-heading text-[var(--color-text-primary)]">Кланы скоро</h2>
-        <p className="text-body text-[var(--color-text-secondary)]">
+        <h2 className="text-heading text-text-primary">Кланы скоро</h2>
+        <p className="text-body text-text-secondary">
           Мы готовим систему кланов, чтобы вы могли объединяться и получать больше наград. Следите
           за обновлениями!
         </p>

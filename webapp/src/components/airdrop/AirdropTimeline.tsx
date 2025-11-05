@@ -29,11 +29,9 @@ function formatDate(date: string): string {
 export const AirdropTimeline = memo(function AirdropTimeline({ events }: AirdropTimelineProps) {
   if (!events.length) {
     return (
-      <Card className="flex flex-col gap-3 border-[rgba(255,255,255,0.08)] bg-[rgba(36,38,45,0.72)]">
-        <h3 className="m-0 text-heading font-semibold text-[var(--color-text-primary)]">
-          Пока событий нет
-        </h3>
-        <p className="m-0 text-sm text-[var(--color-text-secondary)]">
+      <Card className="flex flex-col gap-3 border-border-layer bg-layer-overlay-strong">
+        <h3 className="m-0 text-heading font-semibold text-text-primary">Пока событий нет</h3>
+        <p className="m-0 text-sm text-text-secondary">
           Следите за Telegram-каналом — мы скоро объявим новые сезоны и награды.
         </p>
       </Card>
@@ -47,22 +45,20 @@ export const AirdropTimeline = memo(function AirdropTimeline({ events }: Airdrop
         const isUpcoming = event.status === 'upcoming';
         const badgeText = isActive ? 'Активно' : isUpcoming ? 'Скоро' : 'Завершено';
         const badgeColor = isActive
-          ? 'bg-[rgba(74,222,128,0.16)] text-[var(--color-success)]'
+          ? 'bg-feedback-success/20 text-feedback-success'
           : isUpcoming
-            ? 'bg-[rgba(243,186,47,0.18)] text-[var(--color-accent-gold)]'
-            : 'bg-[rgba(255,255,255,0.08)] text-[var(--color-text-secondary)]';
+            ? 'bg-accent-gold/25 text-accent-gold'
+            : 'bg-layer-overlay-ghost text-text-secondary';
 
         return (
           <Card
             key={event.id}
-            className="flex flex-col gap-3 border-[rgba(255,255,255,0.08)] bg-[rgba(36,38,45,0.72)]"
+            className="flex flex-col gap-3 border-border-layer bg-layer-overlay-strong"
           >
             <header className="flex items-center justify-between gap-3">
               <div>
-                <h3 className="m-0 text-title font-semibold text-[var(--color-text-primary)]">
-                  {event.title}
-                </h3>
-                <p className="m-0 text-xs text-[var(--color-text-secondary)]">
+                <h3 className="m-0 text-title font-semibold text-text-primary">{event.title}</h3>
+                <p className="m-0 text-xs text-text-secondary">
                   {formatDate(event.startsAt)}
                   {event.endsAt ? ` — ${formatDate(event.endsAt)}` : ''}
                 </p>
@@ -71,9 +67,9 @@ export const AirdropTimeline = memo(function AirdropTimeline({ events }: Airdrop
                 {badgeText}
               </span>
             </header>
-            <p className="m-0 text-sm text-[var(--color-text-secondary)]">{event.description}</p>
+            <p className="m-0 text-sm text-text-secondary">{event.description}</p>
             {event.reward ? (
-              <div className="rounded-2xl border border-[rgba(243,186,47,0.35)] bg-[rgba(243,186,47,0.12)] px-4 py-2 text-xs text-[var(--color-accent-gold)]">
+              <div className="rounded-2xl border border-accent-gold/60 bg-accent-gold/20 px-4 py-2 text-xs text-accent-gold">
                 Награда: {event.reward}
               </div>
             ) : null}

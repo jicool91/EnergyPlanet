@@ -143,6 +143,12 @@
   }
 }
 
+@layer utilities {
+  .drop-shadow-glow {
+    filter: var(--shadow-drop-glow);
+  }
+}
+
 html {
   width: 100%;
   min-height: var(--tg-viewport-height, 100dvh);

@@ -47,52 +47,52 @@ export const DailyTasksBar = memo(function DailyTasksBar({
     'flex items-center justify-between rounded-3xl px-5 py-4 text-left transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     isDualAccent
       ? 'border border-state-card-highlight-border bg-gradient-soft hover:-translate-y-0.5 focus-visible:ring-state-card-highlight-border focus-visible:ring-offset-surface-primary shadow-state-card-highlight'
-      : 'border border-[rgba(255,255,255,0.08)] bg-[rgba(36,38,45,0.75)] hover:-translate-y-0.5 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-[var(--color-bg-primary)]'
+      : 'border border-border-layer bg-layer-overlay-strong hover:-translate-y-0.5 focus-visible:ring-text-accent focus-visible:ring-offset-surface-primary'
   );
 
   const boostBadgeClass = clsx(
     'flex h-10 w-10 items-center justify-center rounded-2xl text-lg',
-    isDualAccent ? 'bg-accent-cyan/20 text-accent-cyan' : 'bg-[rgba(74,222,128,0.18)]'
+    isDualAccent ? 'bg-accent-cyan/20 text-accent-cyan' : 'bg-feedback-success/20'
   );
 
   const openBadgeClass = clsx(
     'rounded-full px-3 py-1 text-xs font-semibold',
     isDualAccent
       ? 'bg-accent-magenta/25 text-accent-magenta'
-      : 'bg-[rgba(74,222,128,0.2)] text-[var(--color-success)]'
+      : 'bg-feedback-success/25 text-feedback-success'
   );
 
   const achievementsCardClass = clsx(
     'flex flex-col gap-3 rounded-3xl px-5 py-4',
     isDualAccent
       ? 'border border-state-card-highlight-border bg-gradient-soft shadow-state-card-highlight'
-      : 'border border-[rgba(255,255,255,0.08)] bg-[rgba(36,38,45,0.75)]'
+      : 'border border-border-layer bg-layer-overlay-strong'
   );
 
   const achievementsIconClass = clsx(
     'flex h-10 w-10 items-center justify-center rounded-2xl text-lg',
-    isDualAccent ? 'bg-accent-magenta/25 text-accent-magenta' : 'bg-[rgba(250,210,88,0.18)]'
+    isDualAccent ? 'bg-accent-magenta/25 text-accent-magenta' : 'bg-accent-gold/25'
   );
 
   const secondaryButtonClass = clsx(
     'rounded-2xl px-3 py-1 text-xs transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     isDualAccent
       ? 'border border-state-card-highlight-border text-text-primary hover:bg-layer-soft focus-visible:ring-state-card-highlight-border focus-visible:ring-offset-surface-primary'
-      : 'border border-[rgba(255,255,255,0.12)] text-[var(--color-text-primary)] hover:bg-[rgba(255,255,255,0.06)] focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-[var(--color-bg-primary)]'
+      : 'border border-border-layer-strong text-text-primary hover:bg-layer-overlay-ghost-soft focus-visible:ring-text-accent focus-visible:ring-offset-surface-primary'
   );
 
   const leaderboardCardClass = clsx(
     'flex items-center justify-between rounded-2xl border px-4 py-3 text-sm',
     isDualAccent
       ? 'border-state-card-highlight-border/60 bg-layer-soft text-text-secondary'
-      : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.02)]'
+      : 'border-border-layer bg-layer-overlay-ghost'
   );
 
   const leaderboardButtonClass = clsx(
     'rounded-2xl px-3 py-1 text-xs transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     isDualAccent
       ? 'bg-gradient-soft text-text-primary hover:brightness-110 focus-visible:ring-state-card-highlight-border focus-visible:ring-offset-surface-primary'
-      : 'bg-[rgba(255,255,255,0.08)] text-[var(--color-text-primary)] hover:bg-[rgba(255,255,255,0.12)] focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-[var(--color-bg-primary)]'
+      : 'bg-layer-overlay-ghost text-text-primary hover:bg-layer-overlay-ghost-strong focus-visible:ring-text-accent focus-visible:ring-offset-surface-primary'
   );
 
   return (
@@ -101,10 +101,8 @@ export const DailyTasksBar = memo(function DailyTasksBar({
         <div className="flex items-center gap-3">
           <span className={boostBadgeClass}>⚡</span>
           <div className="flex flex-col">
-            <span className="text-sm font-semibold text-[var(--color-text-primary)]">
-              Бусты и события
-            </span>
-            <span className="text-xs text-[var(--color-text-secondary)]">
+            <span className="text-sm font-semibold text-text-primary">Бусты и события</span>
+            <span className="text-xs text-text-secondary">
               Следующий через {formatDuration(nextBoostAvailabilityMs)}
             </span>
           </div>
@@ -117,10 +115,8 @@ export const DailyTasksBar = memo(function DailyTasksBar({
           <div className="flex items-center gap-3">
             <span className={achievementsIconClass}>🏆</span>
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-[var(--color-text-primary)]">
-                Достижения
-              </span>
-              <span className="text-xs text-[var(--color-text-secondary)]">
+              <span className="text-sm font-semibold text-text-primary">Достижения</span>
+              <span className="text-xs text-text-secondary">
                 Готово к выдаче: {claimableAchievements}
               </span>
             </div>
@@ -131,10 +127,8 @@ export const DailyTasksBar = memo(function DailyTasksBar({
         </div>
         <div className={leaderboardCardClass}>
           <div>
-            <p className="text-xs uppercase tracking-[0.1em] text-[var(--color-text-secondary)]">
-              Рейтинг друзей
-            </p>
-            <p className="text-sm font-semibold text-[var(--color-text-primary)]">
+            <p className="text-xs uppercase tracking-[0.1em] text-text-secondary">Рейтинг друзей</p>
+            <p className="text-sm font-semibold text-text-primary">
               {isSocialBlockLoading ? 'Загрузка…' : `${socialPlayerCount} игроков`}
             </p>
           </div>

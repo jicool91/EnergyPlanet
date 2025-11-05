@@ -79,11 +79,9 @@ export function AchievementsModal({
       actions={[{ label: 'Закрыть', onClick: onClose, variant: 'secondary' }]}
     >
       <div className="flex flex-col gap-sm-plus">
-        <div className="rounded-md bg-[var(--app-card-bg)] border border-[var(--color-border-subtle)] p-sm-plus">
-          <p className="text-caption text-[var(--color-text-secondary)]">
-            Постоянный бонус от достижений
-          </p>
-          <p className="text-lg font-semibold text-[var(--color-text-primary)]">
+        <div className="rounded-md border border-border-subtle bg-surface-secondary p-sm-plus">
+          <p className="text-caption text-text-secondary">Постоянный бонус от достижений</p>
+          <p className="text-lg font-semibold text-text-primary">
             {achievementMultiplier > 1 ? `+${Math.round((achievementMultiplier - 1) * 100)}%` : '—'}
           </p>
         </div>
@@ -94,16 +92,16 @@ export function AchievementsModal({
             {[0, 1, 2].map(index => (
               <div
                 key={`achievement-skeleton-${index}`}
-                className="animate-pulse rounded-2xl border border-[rgba(0,217,255,0.12)] bg-[rgba(12,18,40,0.5)] p-md"
+                className="animate-pulse rounded-2xl border border-tag-accent-border bg-layer-overlay-soft p-md"
               >
                 <div className="mb-sm flex items-center gap-sm">
-                  <div className="h-10 w-10 rounded-full bg-[rgba(0,217,255,0.18)]" />
+                  <div className="h-10 w-10 rounded-full bg-state-cyan-pill-strong" />
                   <div className="flex-1 space-y-2">
-                    <div className="h-3 w-3/4 rounded-full bg-[rgba(0,217,255,0.16)]" />
-                    <div className="h-3 w-1/2 rounded-full bg-[rgba(0,217,255,0.12)]" />
+                    <div className="h-3 w-3/4 rounded-full bg-tag-accent-soft" />
+                    <div className="h-3 w-1/2 rounded-full bg-state-cyan-pill-glow" />
                   </div>
                 </div>
-                <div className="h-2 w-full rounded-full bg-[rgba(0,217,255,0.1)]" />
+                <div className="h-2 w-full rounded-full bg-state-cyan-pill-soft" />
               </div>
             ))}
           </div>
@@ -111,7 +109,7 @@ export function AchievementsModal({
 
         {error && !loading && (
           <div className="flex flex-col gap-sm text-center">
-            <p className="text-body text-[var(--color-text-secondary)]">{error}</p>
+            <p className="text-body text-text-secondary">{error}</p>
             <Button variant="secondary" onClick={handleRetry}>
               Повторить
             </Button>
@@ -119,7 +117,7 @@ export function AchievementsModal({
         )}
 
         {!loading && !error && sorted.length === 0 && (
-          <p className="text-body text-[var(--color-text-secondary)]">
+          <p className="text-body text-text-secondary">
             Достижения появятся в следующих обновлениях.
           </p>
         )}
@@ -151,7 +149,7 @@ export function AchievementsModal({
               return (
                 <div
                   key={item.slug}
-                  className="flex flex-col gap-sm rounded-2xl border border-[rgba(0,217,255,0.24)] bg-[rgba(12,18,40,0.82)] p-md shadow-elevation-2"
+                  className="flex flex-col gap-sm rounded-2xl border border-tag-accent-border bg-surface-glass-strong p-md shadow-elevation-2"
                 >
                   <div className="flex items-start justify-between gap-sm-plus">
                     <div className="flex items-start gap-sm">
@@ -159,15 +157,11 @@ export function AchievementsModal({
                         {item.icon ?? '⭐'}
                       </div>
                       <div>
-                        <p className="text-body font-semibold text-[var(--color-text-primary)]">
-                          {item.name}
-                        </p>
+                        <p className="text-body font-semibold text-text-primary">{item.name}</p>
                         {item.description && (
-                          <p className="text-caption text-[var(--color-text-secondary)]">
-                            {item.description}
-                          </p>
+                          <p className="text-caption text-text-secondary">{item.description}</p>
                         )}
-                        <p className="text-caption text-[var(--color-text-tertiary)] mt-1">
+                        <p className="mt-1 text-caption text-text-tertiary">
                           {currentBonusPercent > 0
                             ? `Текущий бонус: +${currentBonusPercent}%`
                             : 'Бонус ещё не получен'}
@@ -188,13 +182,13 @@ export function AchievementsModal({
 
                   {tierMeta ? (
                     <>
-                      <div className="rounded-2xl border border-[rgba(0,217,255,0.24)] bg-[rgba(10,16,40,0.72)] px-sm-plus py-sm">
+                      <div className="rounded-2xl border border-tag-accent-border bg-surface-glass px-sm-plus py-sm">
                         {claimableTier ? (
-                          <p className="text-caption text-[var(--color-text-primary)] font-medium">
+                          <p className="text-caption font-medium text-text-primary">
                             Готово к получению: +{rewardPercent}% навсегда
                           </p>
                         ) : (
-                          <p className="text-caption text-[var(--color-text-secondary)]">
+                          <p className="text-caption text-text-secondary">
                             Следующая ступень: +{rewardPercent}% при{' '}
                             {formatNumberWithSpaces(Math.ceil(targetValue))} {item.unit}
                           </p>
@@ -203,13 +197,13 @@ export function AchievementsModal({
 
                       {!claimableTier && (
                         <div className="flex flex-col gap-xs">
-                          <div className="h-2 w-full overflow-hidden rounded-full bg-[rgba(0,217,255,0.18)]">
+                          <div className="h-2 w-full overflow-hidden rounded-full bg-state-cyan-pill-strong">
                             <div
-                              className="h-full rounded-full bg-gradient-to-r from-[var(--color-cyan)] via-[var(--color-success)] to-[var(--color-gold)] shadow-glow"
+                              className="h-full rounded-full bg-gradient-to-r from-accent-cyan via-feedback-success to-accent-gold shadow-glow"
                               style={{ width: `${progressPercent}%` }}
                             />
                           </div>
-                          <div className="flex justify-between text-caption text-[var(--color-text-secondary)]">
+                          <div className="flex justify-between text-caption text-text-secondary">
                             <span>
                               {formatNumberWithSpaces(Math.floor(item.progressValue))} {item.unit}
                             </span>
@@ -222,7 +216,7 @@ export function AchievementsModal({
                       )}
                     </>
                   ) : (
-                    <p className="text-caption text-[var(--color-text-secondary)]">
+                    <p className="text-caption text-text-secondary">
                       Все ступени завершены — спасибо!
                     </p>
                   )}

@@ -269,8 +269,8 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       tabIndex={selected ? 0 : -1}
       className={`px-sm-plus py-xs-plus rounded-2xl font-semibold uppercase tracking-[0.08em] transition-all border focus-ring ${
         selected
-          ? 'bg-gradient-to-r from-[rgba(0,255,136,0.82)] via-[rgba(0,217,255,0.82)] to-[rgba(120,63,255,0.82)] text-[var(--color-surface-primary)] border-[rgba(0,255,136,0.55)] shadow-glow-lime'
-          : 'bg-[rgba(12,18,40,0.72)] border-[rgba(0,217,255,0.18)] text-token-secondary hover:bg-[rgba(12,22,48,0.88)] hover:text-token-primary'
+          ? 'bg-gradient-to-r from-feedback-success/70 via-accent-cyan/70 to-accent-magenta/70 text-text-primary border-feedback-success/70 shadow-glow-lime'
+          : 'bg-surface-glass-strong border-border-cyan/50 text-token-secondary hover:bg-layer-overlay-strong hover:text-token-primary'
       }`}
     >
       {label}
@@ -522,9 +522,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       <SettingsSection title="О приложении" icon="ℹ️">
         <div className="flex flex-col gap-2 text-xs text-token-secondary">
           <div>Energy Planet v1.0.0</div>
-          <div className="text-[var(--color-text-secondary)]">
-            © 2025 Energy Planet. Все права защищены.
-          </div>
+          <div className="text-text-secondary">© 2025 Energy Planet. Все права защищены.</div>
           <div className="flex gap-2 mt-2">
             <button
               type="button"

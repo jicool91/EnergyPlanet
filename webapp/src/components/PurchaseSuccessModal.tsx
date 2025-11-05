@@ -80,7 +80,7 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
           >
             {/* Modal Content with Spring Animation */}
             <motion.div
-              className="w-full max-w-sm rounded-3xl border border-[rgba(0,255,136,0.45)] bg-gradient-to-br from-[rgba(16,32,64,0.94)] via-[rgba(10,20,48,0.92)] to-[rgba(20,8,52,0.88)] p-8 text-center shadow-elevation-4 backdrop-blur-md"
+              className="w-full max-w-sm rounded-3xl border border-feedback-success/70 bg-gradient-to-br from-feedback-success/20 via-surface-glass-strong to-accent-magenta/25 p-8 text-center shadow-elevation-4 backdrop-blur-md"
               initial={{ scale: 0.5, y: 30, opacity: 0 }}
               animate={{ scale: 1, y: 0, opacity: 1 }}
               exit={{ scale: 0.5, y: 30, opacity: 0 }}
@@ -100,7 +100,7 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
 
               {/* Success Text */}
               <motion.h2
-                className="m-0 mb-2 flex items-center justify-center gap-2 text-heading font-bold text-[var(--color-success)]"
+                className="m-0 mb-2 flex items-center justify-center gap-2 text-heading font-bold text-feedback-success"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.3 }}
@@ -113,7 +113,7 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
 
               {/* Item Info */}
               <motion.div
-                className="mb-6 text-body text-[var(--color-text-secondary)]"
+                className="mb-6 text-body text-text-secondary"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.3 }}

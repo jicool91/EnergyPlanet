@@ -34,7 +34,7 @@ import { initializePreferenceCloudSync } from './services/preferencesSync';
 import { logClientEvent } from './services/telemetry';
 import { logger } from './utils/logger';
 import { AdminMonetizationScreen } from './screens/AdminMonetizationScreen';
-import { ProgressBar } from './components';
+import { ProgressBar, Surface, Text, Button } from './components';
 import { AdminModalContext } from './contexts/AdminModalContext';
 import { ensureExperimentVariant } from '@/store/experimentsStore';
 
@@ -126,11 +126,7 @@ function NextUiRouter({ renderHeader }: NextUiRouterProps) {
       onTabSelect={handleTabSelect}
       header={headerNode}
     >
-      <Suspense
-        fallback={
-          <div className="px-4 py-6 text-sm text-[var(--color-text-secondary)]">Загрузка…</div>
-        }
-      >
+      <Suspense fallback={<div className="px-4 py-6 text-sm text-text-secondary">Загрузка…</div>}>
         <Routes>
           <Route path="/" element={<TapScreen />} />
           <Route path="/exchange" element={<ExchangeScreen />} />
@@ -344,16 +340,25 @@ function NextUiApp() {
 
       if (activeTab === 'tap') {
         return (
-          <div className="flex items-center justify-between gap-4 rounded-3xl border border-border-layer bg-layer-overlay-medium px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.38)]">
+          <Surface
+            tone="overlayMedium"
+            border="subtle"
+            shadow="strong"
+            padding="md"
+            rounded="3xl"
+            className="flex items-center justify-between gap-4"
+          >
             <div className="flex flex-col gap-1">
-              <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-accent)]">
+              <Text variant="label" weight="semibold" tone="accent" transform="uppercase">
                 Уровень {level}
-              </span>
-              <div className="flex items-center gap-3 text-sm text-[var(--color-text-primary)]">
-                <span className="flex items-center gap-1">⚡ {formatter.format(energy)}</span>
-                <span className="flex items-center gap-1 text-[var(--color-text-accent)]">
+              </Text>
+              <div className="flex items-center gap-3">
+                <Text as="span" variant="body" tone="primary" className="flex items-center gap-1">
+                  ⚡ {formatter.format(energy)}
+                </Text>
+                <Text as="span" variant="body" tone="accent" className="flex items-center gap-1">
                   ⭐ {formatter.format(stars)}
-                </span>
+                </Text>
               </div>
               <ProgressBar
                 value={xpIntoLevel}
@@ -362,31 +367,30 @@ function NextUiApp() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <button
+              <Button
                 type="button"
+                size="md"
+                variant="primary"
                 onClick={() => navigate('/exchange?section=star_packs')}
-                className="rounded-2xl bg-[var(--color-accent-gold)] px-4 py-2 text-sm font-semibold text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(243,186,47,0.26)] transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bg-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-accent-gold)]"
               >
                 Магазин
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate('/earn')}
-                className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
-              >
+              </Button>
+              <Button type="button" size="md" variant="secondary" onClick={() => navigate('/earn')}>
                 Профиль
-              </button>
+              </Button>
               {isAdmin && (
-                <button
+                <Button
                   type="button"
+                  size="md"
+                  variant="secondary"
+                  className="border-state-success-pill-strong text-feedback-success hover:bg-state-success-pill"
                   onClick={openAdminMetrics}
-                  className="rounded-2xl border border-state-success-pill-strong px-4 py-2 text-sm text-[var(--color-success)] transition-colors duration-150 hover:bg-state-success-pill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-success)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
                 >
                   Admin
-                </button>
+                </Button>
               )}
             </div>
-          </div>
+          </Surface>
         );
       }
 
@@ -399,18 +403,27 @@ function NextUiApp() {
       };
 
       return (
-        <div className="flex items-center justify-between rounded-3xl border border-border-layer bg-layer-overlay-medium px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.38)]">
-          <span className="text-lg font-semibold text-[var(--color-text-primary)]">
+        <Surface
+          tone="overlayMedium"
+          border="subtle"
+          shadow="strong"
+          padding="md"
+          rounded="3xl"
+          className="flex items-center justify-between"
+        >
+          <Text as="span" variant="title" tone="primary" weight="semibold">
             {titleMap[activeTab]}
-          </span>
-          <button
+          </Text>
+          <Button
             type="button"
+            size="md"
+            variant="secondary"
+            className="text-text-secondary"
             onClick={() => navigate('/')}
-            className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-[var(--color-text-secondary)] transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
           >
             На Tap
-          </button>
-        </div>
+          </Button>
+        </Surface>
       );
     },
     [energy, isAdmin, level, openAdminMetrics, stars, xpIntoLevel, xpToNextLevel]

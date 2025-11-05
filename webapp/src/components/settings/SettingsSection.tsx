@@ -14,7 +14,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
   icon,
 }) => {
   return (
-    <div className="flex flex-col gap-sm-plus rounded-2xl border border-[rgba(0,217,255,0.28)] bg-[rgba(12,18,40,0.82)] shadow-elevation-2 p-md">
+    <div className="flex flex-col gap-sm-plus rounded-2xl border border-border-cyan/60 bg-surface-glass-strong shadow-elevation-2 p-md">
       <div className="flex items-center gap-2">
         {icon && <span className="text-lg">{icon}</span>}
         <div className="flex-1">

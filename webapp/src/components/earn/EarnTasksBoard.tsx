@@ -19,10 +19,8 @@ export const EarnTasksBoard = memo(function EarnTasksBoard() {
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between gap-3">
         <div>
-          <h2 className="text-heading font-semibold text-[var(--color-text-primary)]">
-            Задания и бусты
-          </h2>
-          <p className="text-sm text-[var(--color-text-secondary)]">
+          <h2 className="text-heading font-semibold text-text-primary">Задания и бусты</h2>
+          <p className="text-sm text-text-secondary">
             Выполняйте ежедневные миссии, смотрите рекламу или активируйте премиум-бонусы, чтобы
             ускорить прогресс.
           </p>
@@ -33,7 +31,7 @@ export const EarnTasksBoard = memo(function EarnTasksBoard() {
       </header>
 
       <nav
-        className="flex flex-wrap gap-2 rounded-3xl border border-[rgba(255,255,255,0.08)] bg-[rgba(28,31,38,0.72)] p-2"
+        className="flex flex-wrap gap-2 rounded-3xl border border-border-layer bg-layer-overlay-strong p-2"
         aria-label="Фильтр заданий"
       >
         {FILTERS.map(option => {
@@ -43,10 +41,10 @@ export const EarnTasksBoard = memo(function EarnTasksBoard() {
               key={option.id}
               type="button"
               onClick={() => setFilter(option.id)}
-              className={`flex-1 rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)] ${
+              className={`flex-1 rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary ${
                 isActive
-                  ? 'bg-[rgba(243,186,47,0.18)] text-[var(--color-text-primary)]'
-                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(255,255,255,0.05)]'
+                  ? 'bg-accent-gold/25 text-text-primary'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-layer-overlay-ghost'
               }`}
               aria-pressed={isActive}
             >
@@ -56,7 +54,7 @@ export const EarnTasksBoard = memo(function EarnTasksBoard() {
         })}
       </nav>
 
-      <Card className="flex flex-col gap-4 border-[rgba(255,255,255,0.08)] bg-[rgba(36,38,45,0.72)]">
+      <Card className="flex flex-col gap-4 border-border-layer bg-layer-overlay-strong">
         <BoostHub
           showHeader={false}
           filter={filter === 'all' ? undefined : (filter as 'daily' | 'ad' | 'premium')}

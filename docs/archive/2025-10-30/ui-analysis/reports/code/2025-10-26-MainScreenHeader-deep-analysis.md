@@ -40,7 +40,7 @@
 
 4. **Хорошая accessibility** (строки 83-84, 96-97, 112, 139, 153)
    ```typescript
-   <span className="text-caption text-[var(--color-text-secondary)]">LV</span>
+   <span className="text-caption text-text-secondary">LV</span>
    <span className="text-subheading flex-shrink-0" role="img" aria-label="Energy">
      ⚡
    </span>

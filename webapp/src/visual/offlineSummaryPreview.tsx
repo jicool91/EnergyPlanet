@@ -15,7 +15,7 @@ const PreviewApp = () => {
   }, []);
 
   return (
-    <div className="min-h-screen w-full bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]">
+    <div className="min-h-screen w-full bg-surface-primary text-text-primary">
       <OfflineSummaryModal
         isOpen
         energy={125_000}

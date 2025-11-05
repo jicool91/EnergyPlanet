@@ -944,7 +944,7 @@ useMemo РАБОТАЕТ правильно, но не может помочь �
 
 **Описание:**
 ```typescript
-<p className="m-0 text-body font-semibold text-[var(--color-text-primary)] truncate">
+<p className="m-0 text-body font-semibold text-text-primary truncate">
   {energyCompact}
 </p>
 ```

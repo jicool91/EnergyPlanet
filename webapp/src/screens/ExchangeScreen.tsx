@@ -1,6 +1,9 @@
 import { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
+import clsx from 'clsx';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TabPageSurface, ShopPanel, BuildingsPanel } from '@/components';
+import { Surface } from '@/components/ui/Surface';
+import { Text } from '@/components/ui/Text';
 import type { ShopSection } from '@/components/ShopPanel';
 import { useAdminModal } from '@/contexts/AdminModalContext';
 
@@ -58,31 +61,50 @@ export function ExchangeScreen() {
 
   return (
     <div className="flex flex-col gap-4">
-      <nav
-        className="flex gap-2 rounded-3xl border border-border-layer bg-layer-overlay-soft p-2"
-        aria-label="Навигация магазина"
-      >
-        {EXCHANGE_TABS.map(tab => {
-          const isActive = exchangeTab === tab.id;
-          return (
-            <button
-              key={tab.id}
-              type="button"
-              onClick={() => handleTabChange(tab.id)}
-              className={`flex-1 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)] ${
-                isActive
-                  ? 'bg-state-accent-pill text-[var(--color-text-primary)] shadow-[0_12px_28px_rgba(243,186,47,0.25)]'
-                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-layer-overlay-ghost'
-              }`}
-              aria-pressed={isActive}
-            >
-              <span className="mr-2" aria-hidden="true">
-                {tab.icon}
-              </span>
-              {tab.label}
-            </button>
-          );
-        })}
+      <nav aria-label="Навигация магазина">
+        <Surface
+          tone="overlay"
+          border="subtle"
+          shadow="soft"
+          padding="sm"
+          rounded="3xl"
+          className="flex gap-2"
+        >
+          {EXCHANGE_TABS.map(tab => {
+            const isActive = exchangeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => handleTabChange(tab.id)}
+                className={clsx(
+                  'group flex-1 rounded-2xl px-4 py-3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary',
+                  isActive
+                    ? 'bg-state-accent-pill shadow-[0_12px_28px_rgba(243,186,47,0.25)]'
+                    : 'hover:bg-layer-overlay-ghost'
+                )}
+                aria-pressed={isActive}
+              >
+                <span className="mr-2" aria-hidden="true">
+                  {tab.icon}
+                </span>
+                <Text
+                  as="span"
+                  variant="body"
+                  weight="semibold"
+                  tone={isActive ? 'primary' : 'secondary'}
+                  className={
+                    !isActive
+                      ? 'transition-colors duration-150 group-hover:text-text-primary'
+                      : undefined
+                  }
+                >
+                  {tab.label}
+                </Text>
+              </button>
+            );
+          })}
+        </Surface>
       </nav>
 
       <TabPageSurface className="gap-6">
@@ -98,9 +120,11 @@ export function ExchangeScreen() {
             <button
               type="button"
               onClick={openAdminMetrics}
-              className="self-end rounded-2xl border border-state-success-pill-strong px-4 py-2 text-sm text-[var(--color-success)] transition-colors duration-150 hover:bg-state-success-pill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-success)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+              className="self-end rounded-2xl border border-state-success-pill-strong px-4 py-2 transition-colors duration-150 hover:bg-state-success-pill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-feedback-success focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
             >
-              Админ. метрики
+              <Text variant="body" tone="success" weight="semibold">
+                Админ. метрики
+              </Text>
             </button>
           </div>
         )}

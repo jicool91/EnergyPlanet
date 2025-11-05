@@ -44,10 +44,8 @@ const ProfileSettingsScreenComponent: React.FC<ProfileSettingsScreenProps> = ({
     <div className="flex flex-col gap-lg">
       <header className="flex items-start justify-between gap-sm">
         <div className="flex flex-col gap-xs">
-          <h2 className="m-0 text-heading font-semibold text-[var(--color-text-primary)]">
-            Аккаунт
-          </h2>
-          <p className="m-0 text-caption text-[var(--color-text-secondary)]">
+          <h2 className="m-0 text-heading font-semibold text-text-primary">Аккаунт</h2>
+          <p className="m-0 text-caption text-text-secondary">
             Управляйте настройками и смотрите прогресс профиля.
           </p>
         </div>
@@ -65,7 +63,7 @@ const ProfileSettingsScreenComponent: React.FC<ProfileSettingsScreenProps> = ({
       </header>
 
       <nav
-        className="flex gap-xs rounded-2xl border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.78)] p-xs"
+        className="flex gap-xs rounded-2xl border border-border-cyan/50 bg-surface-glass-strong p-xs"
         aria-label="Навигация по аккаунту"
       >
         {SECTIONS.map(tab => {
@@ -77,8 +75,8 @@ const ProfileSettingsScreenComponent: React.FC<ProfileSettingsScreenProps> = ({
               onClick={() => setSection(tab.id)}
               className={`flex-1 rounded-2xl px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
                 isActive
-                  ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
-                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
+                  ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
+                  : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
               }`}
               aria-pressed={isActive}
               aria-label={tab.label}

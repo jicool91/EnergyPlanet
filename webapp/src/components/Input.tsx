@@ -65,11 +65,11 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
     };
 
     const baseStyles =
-      'w-full border rounded-2xl bg-[rgba(12,18,40,0.82)] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-secondary)]/75 transition-colors duration-150 focus:outline-none focus:border-[var(--color-text-accent)] focus:bg-[rgba(18,24,52,0.92)] disabled:opacity-50 disabled:cursor-not-allowed shadow-elevation-1';
+      'w-full border rounded-2xl bg-surface-glass-strong text-text-primary placeholder:text-text-secondary/75 transition-colors duration-150 focus:outline-none focus:border-accent-gold focus:bg-surface-glass-strong disabled:opacity-50 disabled:cursor-not-allowed shadow-elevation-1';
 
     const borderStyles = error
-      ? 'border-[rgba(255,51,51,0.55)] focus:border-[var(--color-text-destructive)]'
-      : 'border-[rgba(0,217,255,0.22)] focus:border-[var(--color-text-accent)]';
+      ? 'border-feedback-error/70 focus:border-feedback-error'
+      : 'border-border-cyan/60 focus:border-accent-gold';
 
     return (
       <div className="flex flex-col gap-xs">
@@ -82,9 +82,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           className={clsx(baseStyles, borderStyles, sizeStyles[inputSize], className)}
           {...props}
         />
-        {error && errorMessage && (
-          <p className="text-micro text-[var(--color-text-destructive)]">{errorMessage}</p>
-        )}
+        {error && errorMessage && <p className="text-micro text-feedback-error">{errorMessage}</p>}
       </div>
     );
   }

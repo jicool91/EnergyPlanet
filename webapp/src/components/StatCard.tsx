@@ -17,11 +17,11 @@ export interface StatCardProps {
  */
 const toneStyles: Record<NonNullable<StatCardProps['tone']>, string> = {
   default:
-    'bg-[rgba(12,18,40,0.82)] border border-[rgba(0,217,255,0.22)] text-[var(--color-text-primary)] shadow-elevation-2',
+    'bg-surface-glass-strong border border-border-cyan/60 text-text-primary shadow-elevation-2',
   positive:
-    'bg-gradient-to-br from-[rgba(0,255,136,0.22)] to-[rgba(0,77,64,0.6)] border border-[rgba(0,255,136,0.45)] text-[var(--color-success)] shadow-glow-lime',
+    'bg-gradient-to-br from-feedback-success/25 to-layer-strong border border-feedback-success/70 text-feedback-success shadow-glow-lime',
   warning:
-    'bg-gradient-to-br from-[rgba(255,141,77,0.22)] to-[rgba(80,34,12,0.55)] border border-[rgba(255,141,77,0.45)] text-[var(--color-warning)] shadow-glow-gold',
+    'bg-gradient-to-br from-accent-gold/35 to-layer-overlay-strong border border-accent-gold/60 text-feedback-warning shadow-glow-gold',
 };
 
 function StatCardComponent({
@@ -50,11 +50,11 @@ function StatCardComponent({
   const sizeClass = sizeStyles[size];
   const labelTextClass =
     size === 'compact'
-      ? 'text-caption font-medium leading-tight tracking-[0.04em] text-[var(--color-text-secondary)]'
-      : 'text-label uppercase tracking-[0.16em] text-[var(--color-text-secondary)]';
+      ? 'text-caption font-medium leading-tight tracking-[0.04em] text-text-secondary'
+      : 'text-label uppercase tracking-[0.16em] text-text-secondary';
   const labelRowGap = size === 'compact' ? 'gap-xs' : 'gap-sm';
   const iconClass = size === 'compact' ? 'text-lg' : size === 'hero' ? 'text-2xl' : 'text-xl';
-  const valueClass = `${typography[size]} text-[var(--color-text-primary)] leading-tight`;
+  const valueClass = `${typography[size]} text-text-primary leading-tight`;
 
   const content = (
     <>
@@ -71,9 +71,7 @@ function StatCardComponent({
 
       {/* Optional subLabel: small, muted */}
       {subLabel && (
-        <div className="flex flex-col gap-xs text-body-sm text-[var(--color-text-secondary)]">
-          {subLabel}
-        </div>
+        <div className="flex flex-col gap-xs text-body-sm text-text-secondary">{subLabel}</div>
       )}
     </>
   );

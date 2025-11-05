@@ -151,7 +151,7 @@ export function ModalBase({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-[rgba(5,8,12,0.78)] backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-layer-overlay-strong backdrop-blur-sm"
             transition={{ duration: reduceMotion ? 0 : 0.2 }}
           />
 
@@ -168,23 +168,20 @@ export function ModalBase({
               exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
               transition={{ duration: reduceMotion ? 0 : 0.24, ease: 'easeOut' }}
               className={clsx(
-                'pointer-events-auto flex w-full max-h-[85vh] flex-col gap-5 rounded-4xl border border-[rgba(255,255,255,0.08)] bg-[rgba(19,22,28,0.96)] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.55)] backdrop-blur-xl sm:gap-6 sm:p-7',
+                'pointer-events-auto flex w-full max-h-[85vh] flex-col gap-5 rounded-4xl border border-border-layer bg-surface-glass-strong p-6 shadow-elevation-4 backdrop-blur-xl sm:gap-6 sm:p-7',
                 sizeStyles[size]
               )}
             >
               {/* Header */}
               <div className="flex items-center justify-between gap-4">
-                <h2
-                  id={titleId}
-                  className="flex-1 text-heading font-semibold text-[var(--color-text-primary)]"
-                >
+                <h2 id={titleId} className="flex-1 text-heading font-semibold text-text-primary">
                   {title}
                 </h2>
 
                 {showClose && (
                   <button
                     onClick={onClose}
-                    className="flex h-10 w-10 items-center justify-center rounded-full bg-[rgba(39,42,47,0.7)] text-[var(--color-text-secondary)] transition-colors hover:bg-[rgba(39,42,47,0.9)] hover:text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+                    className="flex h-10 w-10 items-center justify-center rounded-full bg-layer-overlay-ghost-strong text-text-secondary transition-colors hover:bg-layer-overlay-strong hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
                     aria-label="Close modal"
                   >
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -200,7 +197,7 @@ export function ModalBase({
               </div>
 
               {/* Content */}
-              <div className="flex-1 overflow-y-auto pr-1 text-body text-[var(--color-text-secondary)]">
+              <div className="flex-1 overflow-y-auto pr-1 text-body text-text-secondary">
                 {children}
               </div>
 

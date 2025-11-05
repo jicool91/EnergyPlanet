@@ -7,6 +7,7 @@
 
 // Core UI Components
 export { Button, type ButtonProps } from './Button';
+export { IconButton, type IconButtonProps } from './IconButton';
 export { Card, type CardProps } from './Card';
 export { Input, type InputProps } from './Input';
 export { Badge, type BadgeProps } from './Badge';
@@ -86,3 +87,4 @@ export { AnimatedNumber } from './AnimatedNumber';
 export { ErrorBoundary } from './ErrorBoundary';
 export { ProgressBar } from './ui/ProgressBar';
 export { Text } from './ui/Text';
+export { Surface, type SurfaceProps } from './ui/Surface';

@@ -634,7 +634,7 @@ export function ShopPanel({
 
   const sectionTabList = (
     <div
-      className="flex flex-wrap gap-xs rounded-2xl border border-[rgba(0,217,255,0.18)] bg-[rgba(8,12,28,0.6)] p-xs"
+      className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/50 bg-surface-glass p-xs"
       role="tablist"
       aria-label="Разделы магазина"
     >
@@ -656,8 +656,8 @@ export function ShopPanel({
             type="button"
             className={`flex-1 min-w-[120px] rounded-xl px-sm-plus py-xs-plus text-sm font-semibold transition-all duration-150 focus-ring ${
               isActive
-                ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.22)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
-                : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
+                ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/45 to-accent-magenta/55 text-text-primary shadow-glow'
+                : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
             }`}
           >
             {section.label}
@@ -670,11 +670,11 @@ export function ShopPanel({
   return (
     <div className="flex flex-col gap-lg">
       {showHeader ? (
-        <section className="rounded-3xl border border-[rgba(0,217,255,0.18)] bg-[rgba(10,14,34,0.85)] px-lg py-lg shadow-[0_32px_60px_rgba(0,0,0,0.35)]">
+        <section className="rounded-3xl border border-border-cyan/50 bg-surface-glass-strong px-lg py-lg shadow-elevation-4">
           <div className="flex flex-col gap-sm">
             {breadcrumbLabel ? (
               <div
-                className="inline-flex w-fit items-center gap-xs rounded-full border border-[rgba(0,217,255,0.24)] bg-[rgba(0,217,255,0.12)] px-sm-plus py-xs-plus text-xs font-semibold text-[var(--color-text-secondary)]"
+                className="inline-flex w-fit items-center gap-xs rounded-full border border-tag-accent-border bg-state-cyan-pill-glow px-sm-plus py-xs-plus text-xs font-semibold text-text-secondary"
                 role="status"
                 aria-live="polite"
               >
@@ -683,32 +683,28 @@ export function ShopPanel({
             ) : null}
             <div className="flex flex-wrap items-start justify-between gap-md">
               <div className="flex flex-col gap-xs max-w-[540px]">
-                <h2 className="m-0 text-2xl font-bold text-[var(--color-text-primary)]">
-                  {heroTitle}
-                </h2>
-                <p className="m-0 text-sm text-[var(--color-text-secondary)]">{sectionSubtitle}</p>
+                <h2 className="m-0 text-2xl font-bold text-text-primary">{heroTitle}</h2>
+                <p className="m-0 text-sm text-text-secondary">{sectionSubtitle}</p>
                 {sectionHelper ? (
-                  <p className="m-0 text-xs text-[var(--color-text-secondary)]/80">
-                    {sectionHelper}
-                  </p>
+                  <p className="m-0 text-xs text-text-secondary/80">{sectionHelper}</p>
                 ) : null}
               </div>
               {activeSection === 'star_packs' && featuredVisiblePack ? (
-                <div className="flex items-center gap-sm rounded-2xl border border-[rgba(255,215,0,0.32)] bg-[rgba(32,20,64,0.72)] px-md py-sm shadow-[0_18px_36px_rgba(255,215,0,0.25)]">
+                <div className="flex items-center gap-sm rounded-2xl border border-accent-gold/50 bg-layer-overlay-strong px-md py-sm shadow-glow-gold">
                   <div className="flex flex-col gap-xs">
-                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary">
                       Рекомендуем сегодня
                     </span>
-                    <span className="text-sm font-semibold text-[var(--color-text-primary)]">
+                    <span className="text-sm font-semibold text-text-primary">
                       {featuredVisiblePack.title}
                     </span>
-                    <span className="text-xs text-[var(--color-text-secondary)]">
+                    <span className="text-xs text-text-secondary">
                       +{featuredVisiblePack.bonus_stars ?? 0} бонусных ⭐ внутри
                     </span>
                   </div>
                   <button
                     onClick={() => handleStarPackSectionChange('bundles')}
-                    className="rounded-full border border-[rgba(255,215,0,0.42)] bg-[rgba(255,215,0,0.12)] px-sm-plus py-xs-plus text-xs font-semibold text-[var(--color-text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[rgba(32,20,64,0.72)]"
+                    className="rounded-full border border-accent-gold/70 bg-accent-gold/20 px-sm-plus py-xs-plus text-xs font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-layer-overlay-strong"
                     type="button"
                   >
                     Смотреть
@@ -725,7 +721,7 @@ export function ShopPanel({
         <div className="flex flex-col gap-sm">
           {breadcrumbLabel ? (
             <div
-              className="inline-flex w-fit items-center gap-xs rounded-full border border-[rgba(0,217,255,0.24)] bg-[rgba(0,217,255,0.12)] px-sm-plus py-xs-plus text-xs font-semibold text-[var(--color-text-secondary)]"
+              className="inline-flex w-fit items-center gap-xs rounded-full border border-tag-accent-border bg-state-cyan-pill-glow px-sm-plus py-xs-plus text-xs font-semibold text-text-secondary"
               role="status"
               aria-live="polite"
             >
@@ -738,12 +734,12 @@ export function ShopPanel({
 
       {/* Errors */}
       {activeSection === 'star_packs' && starPacksError && (
-        <Card className="bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)]">
+        <Card className="bg-state-danger-pill border-state-danger-pill text-feedback-error">
           {starPacksError}
         </Card>
       )}
       {activeSection === 'cosmetics' && cosmeticsError && (
-        <Card className="bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)]">
+        <Card className="bg-state-danger-pill border-state-danger-pill text-feedback-error">
           {cosmeticsError}
         </Card>
       )}
@@ -756,7 +752,7 @@ export function ShopPanel({
           aria-labelledby={getSectionTabId('star_packs')}
         >
           <nav
-            className="flex flex-wrap gap-xs rounded-2xl border border-[rgba(0,217,255,0.18)] bg-[rgba(8,12,28,0.62)] p-xs"
+            className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/50 bg-surface-glass p-xs"
             aria-label="Категории паков"
             role="tablist"
           >
@@ -771,8 +767,8 @@ export function ShopPanel({
                   aria-selected={isActive}
                   className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-xl px-sm-plus py-xs-plus text-sm font-semibold transition-all duration-150 focus-ring ${
                     isActive
-                      ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
-                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
+                      ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
                   }`}
                 >
                   {tab.label}
@@ -780,19 +776,14 @@ export function ShopPanel({
               );
             })}
           </nav>
-          <div className="rounded-2xl border border-[rgba(0,217,255,0.24)] bg-[rgba(8,12,28,0.78)] p-md shadow-[0_18px_36px_rgba(0,217,255,0.18)]">
-            <p className="m-0 text-sm font-semibold text-[var(--color-text-primary)]">
-              {starPackBannerText}
-            </p>
+          <div className="rounded-2xl border border-tag-accent-border bg-surface-glass-strong p-md shadow-glow">
+            <p className="m-0 text-sm font-semibold text-text-primary">{starPackBannerText}</p>
           </div>
           {featuredVisiblePack && !isStarPacksLoading && (
-            <Card className="relative flex flex-col md:flex-row gap-4 overflow-hidden rounded-2xl border border-[rgba(255,215,0,0.4)] bg-gradient-to-br from-[rgba(28,22,64,0.94)] via-[rgba(38,16,76,0.92)] to-[rgba(72,18,102,0.95)] shadow-glow-gold">
-              <div
-                className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(255,215,0,0.32),_transparent_60%)]"
-                aria-hidden
-              />
+            <Card className="relative flex flex-col md:flex-row gap-4 overflow-hidden rounded-2xl border border-accent-gold/60 bg-gradient-holographic shadow-glow-gold">
+              <div className="absolute inset-0 bg-gradient-premium opacity-40" aria-hidden />
               <div className="relative flex items-center justify-center md:justify-start">
-                <div className="w-[88px] h-[88px] rounded-2xl border border-[rgba(255,215,0,0.55)] bg-[rgba(12,16,45,0.6)] flex items-center justify-center overflow-hidden">
+                <div className="w-[88px] h-[88px] rounded-2xl border border-accent-gold/70 bg-surface-glass flex items-center justify-center overflow-hidden">
                   {featuredVisiblePack.icon_url ? (
                     <OptimizedImage
                       src={featuredVisiblePack.icon_url}
@@ -818,47 +809,47 @@ export function ShopPanel({
                     {featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0)} ⭐
                   </Badge>
                 </div>
-                <h3 className="m-0 text-heading font-bold text-[var(--color-text-primary)]">
+                <h3 className="m-0 text-heading font-bold text-text-primary">
                   {featuredVisiblePack.title}
                 </h3>
-                <p className="m-0 text-body text-[var(--color-text-secondary)]">
+                <p className="m-0 text-body text-text-secondary">
                   {featuredVisiblePack.description ??
                     'Получите максимум Stars и премиальные бонусы'}
                 </p>
 
-                <div className="grid gap-sm rounded-2xl border border-[rgba(255,215,0,0.32)] bg-[rgba(12,16,45,0.72)] p-md">
-                  <div className="flex items-center justify-between text-body text-[var(--color-text-secondary)]">
+                <div className="grid gap-sm rounded-2xl border border-accent-gold/50 bg-surface-glass-strong p-md">
+                  <div className="flex items-center justify-between text-body text-text-secondary">
                     <span className="flex items-center gap-sm">
                       <span className="text-title" aria-hidden>
                         ⭐
                       </span>
                       Базовых Stars
                     </span>
-                    <span className="text-title font-bold text-[var(--color-gold)]">
+                    <span className="text-title font-bold text-accent-gold">
                       {featuredVisiblePack.stars}
                     </span>
                   </div>
                   {(featuredVisiblePack.bonus_stars ?? 0) > 0 && (
                     <>
-                      <div className="flex items-center justify-between text-body text-[var(--color-text-secondary)]">
+                      <div className="flex items-center justify-between text-body text-text-secondary">
                         <span className="flex items-center gap-sm">
                           <span className="text-title" aria-hidden>
                             ✨
                           </span>
                           Бонусные Stars
                         </span>
-                        <span className="text-title font-bold text-[var(--color-success)]">
+                        <span className="text-title font-bold text-feedback-success">
                           +{featuredVisiblePack.bonus_stars}
                         </span>
                       </div>
-                      <div className="flex items-center justify-between border-t border-white/10 pt-sm text-body text-[var(--color-text-secondary)]">
+                      <div className="flex items-center justify-between border-t border-white/10 pt-sm text-body text-text-secondary">
                         <span className="flex items-center gap-sm">
                           <span className="text-title" aria-hidden>
                             🚀
                           </span>
                           Буст к доходу
                         </span>
-                        <span className="text-title font-bold text-[var(--color-success)]">
+                        <span className="text-title font-bold text-feedback-success">
                           +
                           {calculateBonusPercentage(
                             featuredVisiblePack.stars,
@@ -872,11 +863,11 @@ export function ShopPanel({
                 </div>
 
                 <div className="flex flex-wrap items-center gap-sm">
-                  <div className="text-title font-semibold text-[var(--color-gold)] flex-1">
+                  <div className="text-title font-semibold text-accent-gold flex-1">
                     {formatPriceLabel(featuredVisiblePack.price_rub, featuredVisiblePack.price_usd)}
                   </div>
                   {featuredVisiblePack.price_rub && (
-                    <div className="text-label rounded-full border border-[rgba(255,215,0,0.35)] bg-[rgba(255,215,0,0.12)] px-sm-plus py-xs text-[var(--color-gold)]">
+                    <div className="text-label rounded-full border border-accent-gold/60 bg-accent-gold/20 px-sm-plus py-xs text-accent-gold">
                       {(
                         featuredVisiblePack.price_rub /
                         (featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0))
@@ -961,16 +952,16 @@ export function ShopPanel({
                   key={pack.id}
                   className={`relative flex flex-col sm:flex-row gap-4 rounded-2xl border ${
                     isBestValue
-                      ? 'border-[rgba(0,255,136,0.45)] bg-gradient-to-br from-[rgba(16,32,64,0.92)] via-[rgba(13,40,58,0.9)] to-[rgba(17,54,68,0.92)] shadow-glow-lime'
-                      : 'border-[rgba(0,217,255,0.25)] bg-[rgba(12,16,45,0.85)] shadow-elevation-2'
+                      ? 'border-feedback-success/70 bg-gradient-soft shadow-glow-lime'
+                      : 'border-border-cyan/60 bg-surface-glass-strong shadow-elevation-2'
                   } overflow-hidden`}
                 >
                   <div className="relative flex-shrink-0">
                     <div
                       className={`w-[72px] h-[72px] rounded-2xl border ${
                         isBestValue
-                          ? 'border-[rgba(0,255,136,0.5)] bg-[rgba(0,255,136,0.08)]'
-                          : 'border-[rgba(0,217,255,0.3)] bg-[rgba(0,217,255,0.08)]'
+                          ? 'border-feedback-success/80 bg-feedback-success/15'
+                          : 'border-border-cyan/70 bg-accent-cyan/15'
                       } flex items-center justify-center overflow-hidden`}
                     >
                       {pack.icon_url ? (
@@ -992,8 +983,8 @@ export function ShopPanel({
                   <div className="flex-1 flex flex-col gap-sm">
                     <div className="flex flex-wrap items-center justify-between gap-sm">
                       <h3
-                        className={`m-0 text-title font-semibold text-[var(--color-text-primary)] ${
-                          isBestValue ? 'text-[var(--color-success)]' : ''
+                        className={`m-0 text-title font-semibold text-text-primary ${
+                          isBestValue ? 'text-feedback-success' : ''
                         }`}
                       >
                         {pack.title}
@@ -1002,30 +993,28 @@ export function ShopPanel({
                         {totalStars} ⭐
                       </Badge>
                     </div>
-                    <p className="m-0 text-body-sm text-[var(--color-text-secondary)]">
+                    <p className="m-0 text-body-sm text-text-secondary">
                       {pack.description ?? `Получите ${totalStars} Stars`}
                     </p>
 
-                    <div className="grid gap-xs rounded-xl border border-[rgba(255,255,255,0.1)] bg-[rgba(255,255,255,0.04)] px-sm-plus py-sm">
-                      <div className="flex items-center justify-between text-body-sm text-[var(--color-text-secondary)]">
+                    <div className="grid gap-xs rounded-xl border border-border-layer/60 bg-layer-overlay-ghost-soft px-sm-plus py-sm">
+                      <div className="flex items-center justify-between text-body-sm text-text-secondary">
                         <span>⭐ Базовых</span>
                         <span
-                          className={`font-semibold ${isBestValue ? 'text-[var(--color-success)]' : 'text-[var(--color-gold)]'}`}
+                          className={`font-semibold ${isBestValue ? 'text-feedback-success' : 'text-accent-gold'}`}
                         >
                           {pack.stars}
                         </span>
                       </div>
                       {bonus > 0 && (
                         <>
-                          <div className="flex items-center justify-between text-body-sm text-[var(--color-text-secondary)]">
+                          <div className="flex items-center justify-between text-body-sm text-text-secondary">
                             <span>✨ Бонус</span>
-                            <span className="font-semibold text-[var(--color-success)]">
-                              +{bonus}
-                            </span>
+                            <span className="font-semibold text-feedback-success">+{bonus}</span>
                           </div>
-                          <div className="flex items-center justify-between border-t border-white/10 pt-xs text-body-sm text-[var(--color-text-secondary)]">
+                          <div className="flex items-center justify-between border-t border-white/10 pt-xs text-body-sm text-text-secondary">
                             <span>🚀 Буст</span>
-                            <span className="font-semibold text-[var(--color-success)]">
+                            <span className="font-semibold text-feedback-success">
                               +{calculateBonusPercentage(pack.stars, bonus)}%
                             </span>
                           </div>
@@ -1037,8 +1026,8 @@ export function ShopPanel({
                       <div
                         className={`text-body-sm flex-1 ${
                           isBestValue
-                            ? 'text-[var(--color-success)] font-semibold'
-                            : 'text-[var(--color-text-secondary)]'
+                            ? 'text-feedback-success font-semibold'
+                            : 'text-text-secondary'
                         }`}
                       >
                         {priceLabel}
@@ -1047,8 +1036,8 @@ export function ShopPanel({
                         <div
                           className={`text-label rounded-full border px-sm-plus py-xs whitespace-nowrap ${
                             isBestValue
-                              ? 'border-[rgba(0,255,136,0.4)] bg-[rgba(0,255,136,0.12)] text-[var(--color-success)]'
-                              : 'border-[rgba(0,217,255,0.35)] bg-[rgba(0,217,255,0.12)] text-[var(--color-cyan)]'
+                              ? 'border-feedback-success/60 bg-feedback-success/15 text-feedback-success'
+                              : 'border-border-cyan bg-state-cyan-pill-glow text-accent-cyan'
                           }`}
                         >
                           {(pack.price_rub / totalStars).toFixed(1)} ₽/⭐
@@ -1082,7 +1071,7 @@ export function ShopPanel({
           aria-labelledby={getSectionTabId('boosts')}
         >
           <nav
-            className="flex flex-wrap gap-xs rounded-2xl border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.78)] p-xs"
+            className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/60 bg-surface-glass-strong p-xs"
             aria-label="Категории бустов"
             role="tablist"
           >
@@ -1097,8 +1086,8 @@ export function ShopPanel({
                   aria-selected={isActive}
                   className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-2xl px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
                     isActive
-                      ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
-                      : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
+                      ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
+                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
                   }`}
                 >
                   {tab.label}
@@ -1121,7 +1110,7 @@ export function ShopPanel({
           aria-labelledby={getSectionTabId('cosmetics')}
         >
           <nav
-            className="flex flex-wrap gap-xs rounded-2xl border border-[rgba(0,217,255,0.25)] bg-[rgba(12,18,40,0.78)] p-xs"
+            className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/60 bg-surface-glass-strong p-xs"
             role="tablist"
             aria-label="Категории косметики"
           >
@@ -1152,8 +1141,8 @@ export function ShopPanel({
                     isDisabled
                       ? 'cursor-not-allowed opacity-60'
                       : isActiveCategory
-                        ? 'bg-gradient-to-r from-[rgba(0,217,255,0.28)] via-[rgba(0,255,136,0.24)] to-[rgba(120,63,255,0.28)] text-[var(--color-text-primary)] shadow-glow'
-                        : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(12,20,48,0.68)]'
+                        ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
                   }`}
                 >
                   {category.label}

@@ -29,6 +29,8 @@ export default {
           secondary: colorVar('--color-surface-secondary'),
           tertiary: colorVar('--color-surface-tertiary'),
           accent: colorVar('--color-surface-accent'),
+          dual: colorVar('--surface-dual-highlight'),
+          'dual-soft': colorVar('--surface-dual-highlight-soft'),
           glass: colorVar('--surface-glass'),
           'glass-strong': colorVar('--surface-glass-strong'),
           'glass-light': colorVar('--surface-glass-light'),

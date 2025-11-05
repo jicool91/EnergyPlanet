@@ -224,6 +224,7 @@
   --shadow-glow-lime: 0 0 18px rgba(0, 255, 136, 0.35);
   --shadow-glow-gold: 0 0 18px rgba(255, 215, 0, 0.35);
   --shadow-glow-magenta: 0 0 18px rgba(255, 0, 255, 0.35);
+  --shadow-drop-glow: drop-shadow(0 0 30px rgba(0, 217, 255, 0.8));
 }
 
 @supports (color: color-mix(in srgb, black 50%, white 50%)) {
@@ -300,6 +301,7 @@
   --shadow-glow-lime: 0 0 18px rgba(82, 196, 26, 0.24);
   --shadow-glow-gold: 0 0 18px rgba(199, 131, 11, 0.3);
   --shadow-glow-magenta: 0 0 18px rgba(192, 38, 211, 0.28);
+  --shadow-drop-glow: drop-shadow(0 0 24px rgba(14, 165, 233, 0.55));
 }
 
 /* ===== UTILITY CLASSES FOR COMMON PATTERNS ===== */

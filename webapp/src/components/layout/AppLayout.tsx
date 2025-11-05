@@ -34,7 +34,7 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
   }, [safeBottom, safeLeft, safeRight]);
 
   return (
-    <div className="flex min-h-screen w-full justify-center bg-[var(--color-bg-primary)] text-[var(--color-text-primary)]">
+    <div className="flex min-h-screen w-full justify-center bg-surface-primary text-text-primary">
       <div className="relative flex min-h-screen w-full max-w-xl flex-col">
         {header ? (
           <header

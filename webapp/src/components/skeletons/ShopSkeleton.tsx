@@ -11,7 +11,7 @@ export const ShopSkeleton: React.FC<ShopSkeletonProps> = ({ count = 4 }) => {
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="flex flex-col gap-sm rounded-2xl border border-[rgba(0,217,255,0.22)] bg-[rgba(12,18,40,0.84)] p-md shadow-elevation-2"
+          className="flex flex-col gap-sm rounded-2xl border border-border-cyan/60 bg-surface-glass-strong p-md shadow-elevation-2"
         >
           {/* Item Image/Icon */}
           <Skeleton width="100%" height={80} variant="rect" />

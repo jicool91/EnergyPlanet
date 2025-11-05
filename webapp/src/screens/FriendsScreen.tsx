@@ -149,15 +149,15 @@ export function FriendsScreen() {
     <div className="flex flex-col gap-4">
       <header className="flex items-center justify-between">
         <div>
-          <h1 className="text-heading font-semibold text-[var(--color-text-primary)]">Рейтинг</h1>
-          <p className="text-sm text-[var(--color-text-secondary)]">
+          <h1 className="text-heading font-semibold text-text-primary">Рейтинг</h1>
+          <p className="text-sm text-text-secondary">
             Следите за прогрессом друзей и поднимайтесь выше в таблице.
           </p>
         </div>
         <button
           type="button"
           onClick={handleOpenShop}
-          className="rounded-2xl bg-[var(--color-accent-gold)] px-4 py-2 text-sm font-semibold text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(243,186,47,0.26)] transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bg-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-accent-gold)]"
+          className="rounded-2xl bg-accent-gold px-4 py-2 text-sm font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-gold"
         >
           В магазин бустов
         </button>
@@ -187,12 +187,12 @@ export function FriendsScreen() {
 
       <TabPageSurface>
         {leaderboardError && !isLeaderboardLoading ? (
-          <div className="flex flex-col items-center gap-3 text-center text-[var(--color-text-secondary)]">
+          <div className="flex flex-col items-center gap-3 text-center text-text-secondary">
             <p>Не удалось загрузить рейтинг.</p>
             <button
               type="button"
               onClick={handleRetry}
-              className="rounded-2xl border border-[rgba(255,255,255,0.12)] px-4 py-2 text-sm text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+              className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
             >
               Повторить
             </button>

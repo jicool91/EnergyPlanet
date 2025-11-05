@@ -1,6 +1,8 @@
 import { memo } from 'react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
+import { Text } from '@/components/ui/Text';
+import { Skeleton } from '@/components/skeletons/Skeleton';
 
 interface FriendsListProps {
   totalInvites: number;
@@ -25,9 +27,13 @@ export const FriendsList = memo(function FriendsList({
 }: FriendsListProps) {
   if (error) {
     return (
-      <Card className="flex flex-col gap-3 border-state-danger-border bg-[var(--state-danger-surface)] text-[var(--color-text-primary)]">
-        <p className="m-0 text-sm font-semibold">Не удалось загрузить рефералов.</p>
-        <span className="text-xs text-[var(--color-text-secondary)]">{error}</span>
+      <Card className="flex flex-col gap-3 border-state-danger-border bg-state-danger-surface text-text-primary">
+        <Text as="p" variant="body" weight="semibold" className="m-0">
+          Не удалось загрузить рефералов.
+        </Text>
+        <Text as="span" variant="bodySm" tone="secondary">
+          {error}
+        </Text>
         <Button size="sm" variant="secondary" onClick={onInvite}>
           Попробовать ещё раз
         </Button>
@@ -43,12 +49,12 @@ export const FriendsList = memo(function FriendsList({
         aria-live="polite"
         aria-busy="true"
       >
-        <div className="h-4 w-1/3 rounded bg-layer-overlay-ghost-soft" />
+        <Skeleton variant="text" className="w-1/3" />
         <div className="flex gap-3">
-          <div className="h-16 flex-1 rounded bg-layer-overlay-ghost-soft" />
-          <div className="h-16 flex-1 rounded bg-layer-overlay-ghost-soft" />
+          <Skeleton className="h-16 flex-1" />
+          <Skeleton className="h-16 flex-1" />
         </div>
-        <div className="h-10 w-32 rounded-full bg-layer-overlay-ghost-soft" />
+        <Skeleton className="h-10 w-32 rounded-full" />
       </Card>
     );
   }
@@ -57,12 +63,12 @@ export const FriendsList = memo(function FriendsList({
     <Card className="flex flex-col gap-4">
       <header className="flex items-center justify-between">
         <div>
-          <p className="text-sm uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
+          <Text variant="label" tone="secondary" transform="uppercase">
             Реферальная программа
-          </p>
-          <p className="text-lg font-semibold text-[var(--color-text-primary)]">
+          </Text>
+          <Text as="p" variant="title" weight="semibold" className="m-0">
             Приглашено друзей: {totalInvites}
-          </p>
+          </Text>
         </div>
         <Button size="sm" onClick={onInvite}>
           Пригласить друга
@@ -70,22 +76,34 @@ export const FriendsList = memo(function FriendsList({
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-border-layer bg-layer-soft px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+        <Text
+          as="div"
+          variant="body"
+          tone="secondary"
+          className="rounded-2xl border border-border-layer bg-layer-soft px-4 py-3"
+        >
           Сегодня: {dailyInvitesUsed}/{dailyInvitesLimit || '∞'}
-        </div>
+        </Text>
         <button
           type="button"
           onClick={onViewLeaderboard}
-          className="rounded-2xl border border-border-layer bg-layer-soft px-4 py-3 text-left text-sm text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-layer-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+          className="rounded-2xl border border-border-layer bg-layer-soft px-4 py-3 text-left text-sm text-text-primary transition-colors duration-150 hover:bg-layer-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
         >
-          Посмотреть друзей в рейтинге
+          <Text as="span" variant="body" tone="primary">
+            Посмотреть друзей в рейтинге
+          </Text>
         </button>
       </div>
 
       {referredByName && (
-        <div className="rounded-2xl border border-state-card-highlight-border bg-[var(--surface-dual-highlight-soft)] px-4 py-3 text-sm text-[var(--color-text-primary)]">
+        <Text
+          as="div"
+          variant="body"
+          tone="primary"
+          className="rounded-2xl border border-state-card-highlight-border bg-surface-dual-soft px-4 py-3"
+        >
           Вас пригласил <strong>{referredByName}</strong> — спасибо за поддержку!
-        </div>
+        </Text>
       )}
     </Card>
   );

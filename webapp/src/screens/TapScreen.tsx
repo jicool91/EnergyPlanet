@@ -10,6 +10,7 @@ import {
   Card,
   TabPageSurface,
 } from '@/components';
+import { Text } from '@/components/ui/Text';
 import { useNotification } from '@/hooks/useNotification';
 import { useHaptic } from '@/hooks/useHaptic';
 import { streakConfig, useGameStore } from '@/store/gameStore';
@@ -53,65 +54,67 @@ function PurchaseInsightCard({
   const containerClass = clsx(
     'flex flex-col gap-3',
     isDualAccent &&
-      'border border-state-card-highlight-border bg-[var(--surface-dual-highlight)] shadow-state-card-highlight'
+      'border border-state-card-highlight-border bg-surface-dual shadow-state-card-highlight'
   );
 
   const priceBadgeClass = clsx(
-    'px-3 py-1 text-xs',
+    'px-3 py-1 text-label',
     isDualAccent
-      ? 'rounded-full bg-state-cyan-pill-strong text-[var(--color-text-primary)]'
-      : 'rounded-full bg-layer-overlay-ghost-soft text-[var(--color-text-secondary)]'
+      ? 'rounded-full bg-state-cyan-pill-strong text-text-primary'
+      : 'rounded-full bg-layer-overlay-ghost-soft text-text-secondary'
   );
 
   const infoCardClass = clsx(
-    'rounded-2xl border px-4 py-3 text-sm',
+    'rounded-2xl border px-4 py-3',
     isDualAccent
-      ? 'border-state-card-highlight-border/70 bg-[var(--surface-dual-highlight-soft)] text-[var(--color-text-primary)]'
-      : 'border-border-layer bg-layer-overlay-ghost text-[var(--color-text-secondary)]'
+      ? 'border-state-card-highlight-border/70 bg-surface-dual-soft text-text-primary'
+      : 'border-border-layer bg-layer-overlay-ghost text-text-secondary'
   );
 
-  const secondaryTextClass = isDualAccent
-    ? 'text-[var(--color-text-primary)]'
-    : 'text-[var(--color-text-secondary)]';
-
   const ctaClass = clsx(
-    'rounded-2xl px-4 py-2 text-sm font-semibold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    'rounded-2xl px-4 py-2 text-label font-semibold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
     isDualAccent
       ? 'bg-gradient-ai text-text-inverse shadow-state-card-highlight hover:scale-105 focus-visible:ring-state-card-highlight-border focus-visible:ring-offset-surface-primary'
-      : 'bg-[var(--color-accent-gold)] text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(243,186,47,0.26)] hover:scale-105 focus-visible:ring-[var(--color-bg-primary)] focus-visible:ring-offset-[var(--color-accent-gold)]'
+      : 'bg-accent-gold text-text-inverse shadow-[0_14px_36px_rgba(243,186,47,0.26)] hover:scale-105 focus-visible:ring-text-inverse focus-visible:ring-offset-accent-gold'
   );
 
   return (
     <Card className={containerClass}>
       <div className="flex items-center justify-between">
         <div>
-          <p className={clsx('text-sm uppercase tracking-[0.12em]', secondaryTextClass)}>
+          <Text variant="label" tone={isDualAccent ? 'primary' : 'secondary'} transform="uppercase">
             Следующая цель
-          </p>
-          <p className="text-lg font-semibold text-[var(--color-text-primary)]">{name}</p>
+          </Text>
+          <Text variant="title" weight="semibold">
+            {name}
+          </Text>
         </div>
         <span className={priceBadgeClass}>Стоимость {cost.toLocaleString('ru-RU')}</span>
       </div>
-      <p className={clsx('text-sm', secondaryTextClass)}>
+      <Text variant="body" tone={isDualAccent ? 'primary' : 'secondary'}>
         Доход в секунду: +{incomeGain.toLocaleString('ru-RU')}
-      </p>
+      </Text>
       <div className="grid gap-3 sm:grid-cols-2">
         <div className={infoCardClass}>
           {affordable ? (
-            <span className="text-[var(--color-success)]">Можно купить прямо сейчас</span>
+            <Text variant="body" tone="success">
+              Можно купить прямо сейчас
+            </Text>
           ) : (
-            <span className={secondaryTextClass}>
+            <Text variant="body" tone={isDualAccent ? 'primary' : 'secondary'}>
               Осталось накопить: {remaining.toLocaleString('ru-RU')}
-            </span>
+            </Text>
           )}
         </div>
         <div className={infoCardClass}>
           {paybackSeconds ? (
-            <span className={secondaryTextClass}>
+            <Text variant="body" tone={isDualAccent ? 'primary' : 'secondary'}>
               Окупится за ~{Math.round(paybackSeconds / 60)} мин
-            </span>
+            </Text>
           ) : (
-            <span className={secondaryTextClass}>Окупаемость не указана</span>
+            <Text variant="body" tone={isDualAccent ? 'primary' : 'secondary'}>
+              Окупаемость не указана
+            </Text>
           )}
         </div>
       </div>
@@ -488,7 +491,7 @@ export function TapScreen() {
   if (isLoading && !isInitialized) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <p className="text-sm text-[var(--color-text-secondary)]">Загрузка Energy Planet…</p>
+        <p className="text-sm text-text-secondary">Загрузка Energy Planet…</p>
       </div>
     );
   }
@@ -546,22 +549,22 @@ export function TapScreen() {
           <Card className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
+                <p className="text-sm uppercase tracking-[0.12em] text-text-secondary">
                   Сообщество
                 </p>
-                <p className="text-lg font-semibold text-[var(--color-text-primary)]">
+                <p className="text-lg font-semibold text-text-primary">
                   {leaderboardTotal.toLocaleString('ru-RU')} игроков онлайн
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleViewLeaderboard}
-                className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+                className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
               >
                 Смотреть рейтинг
               </button>
             </div>
-            <p className="text-sm text-[var(--color-text-secondary)]">
+            <p className="text-sm text-text-secondary">
               Тапай быстрее, чтобы обогнать друзей и открыть новые награды.
             </p>
           </Card>

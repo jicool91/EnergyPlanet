@@ -187,26 +187,26 @@ export const ReferralInviteCard: React.FC = () => {
         </section>
 
         {error && (
-          <p className="m-0 text-xs text-[var(--color-text-destructive)]" role="alert">
+          <p className="m-0 text-xs text-feedback-error" role="alert">
             {error}
           </p>
         )}
 
         {referral && (
           <div className="grid gap-sm text-xs text-token-secondary sm:grid-cols-3">
-            <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] px-3 py-2">
+            <div className="rounded-xl border border-border-layer-strong bg-layer-overlay-ghost-soft px-3 py-2">
               Всего заработано:{' '}
               <strong className="text-token-primary">
                 +{formatNumberWithSpaces(referral.revenue.totalEarned)}★
               </strong>
             </div>
-            <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] px-3 py-2">
+            <div className="rounded-xl border border-border-layer-strong bg-layer-overlay-ghost-soft px-3 py-2">
               Месяц:{' '}
               <strong className="text-token-primary">
                 +{formatNumberWithSpaces(referral.revenue.monthEarned)}★
               </strong>
             </div>
-            <div className="rounded-xl border border-[rgba(255,255,255,0.12)] bg-[rgba(255,255,255,0.04)] px-3 py-2">
+            <div className="rounded-xl border border-border-layer-strong bg-layer-overlay-ghost-soft px-3 py-2">
               Сегодня:{' '}
               <strong className="text-token-primary">
                 +{formatNumberWithSpaces(referral.revenue.todayEarned)}★
@@ -250,7 +250,7 @@ export const ReferralInviteCard: React.FC = () => {
             {activeEvents.map(event => (
               <div
                 key={event.id}
-                className="flex flex-col gap-xs rounded-2xl border border-[rgba(255,215,0,0.35)] bg-[rgba(255,215,0,0.12)] p-sm"
+                className="flex flex-col gap-xs rounded-2xl border border-accent-gold/60 bg-accent-gold/20 p-sm"
               >
                 <div className="flex items-center justify-between gap-sm">
                   <span className="font-medium text-token-primary">{event.label}</span>

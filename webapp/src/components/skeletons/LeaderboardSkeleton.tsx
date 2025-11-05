@@ -11,7 +11,7 @@ export const LeaderboardSkeleton: React.FC<LeaderboardSkeletonProps> = ({ count 
       {Array.from({ length: count }).map((_, i) => (
         <div
           key={i}
-          className="flex items-center gap-sm-plus rounded-2xl border border-[rgba(0,217,255,0.22)] bg-[rgba(12,18,40,0.84)] p-md shadow-elevation-2"
+          className="flex items-center gap-sm-plus rounded-2xl border border-border-cyan/60 bg-surface-glass-strong p-md shadow-elevation-2"
         >
           {/* Rank Badge */}
           <Skeleton width={32} height={32} variant="circle" />

@@ -6,7 +6,7 @@
 - Фиксированная кнопка «Back to Tap» не использует безопасную зону (повтор проблем из [02-main-screen.md](./02-main-screen.md)), из-за чего закрывается системными элементами (`webapp/src/screens/MainScreen.tsx:373-388`).
 
 ## Recommendations
-- Перейти на тему-зависимые токены для фона и текста таб-бара (`bg-[var(--app-bottom-bar-bg)]`, `text-[var(--color-text-secondary)]` и пр.).
+- Перейти на тему-зависимые токены для фона и текста таб-бара (`bg-[var(--app-bottom-bar-bg)]`, `text-text-secondary` и пр.).
 - Добавить `role="tablist"` на `footer`, `role="tab"` на кнопки и `aria-controls` для связи с контентом вкладок.
 - Позиционировать плавающую кнопку через `calc`/CSS-переменные безопасной зоны, либо рендерить ее внутри контейнера, где `paddingBottom` уже учитывает inset.
 

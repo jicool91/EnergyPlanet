@@ -1,5 +1,6 @@
 import clsx from 'clsx';
 import { memo } from 'react';
+import { Text } from '@/components/ui/Text';
 
 export type BottomNavigationTabId = 'tap' | 'exchange' | 'friends' | 'earn' | 'airdrop';
 
@@ -36,7 +37,7 @@ export const BottomNavigation = memo(function BottomNavigation({
         className="pointer-events-auto w-full max-w-xl px-4"
         style={{ paddingBottom: `${paddingBottom}px` }}
       >
-        <div className="flex items-center justify-between rounded-[28px] border border-border-layer bg-layer-overlay-strong px-2 py-2 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-md">
+        <div className="flex items-center justify-between rounded-[28px] border border-border-layer bg-layer-overlay-strong px-2 py-2 shadow-elevation-3 backdrop-blur-md">
           {tabs.map(tab => {
             const isActive = tab.id === activeTab;
             const badgeContent = tab.badge && tab.badge > 0 ? tab.badge : null;
@@ -47,10 +48,10 @@ export const BottomNavigation = memo(function BottomNavigation({
                 type="button"
                 onClick={() => onSelect(tab)}
                 className={clsx(
-                  'flex h-14 w-14 flex-col items-center justify-center rounded-2xl text-xs font-medium transition-all duration-150 will-change-transform focus-outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]',
+                  'flex h-14 w-14 flex-col items-center justify-center rounded-2xl text-label font-medium transition-all duration-150 will-change-transform focus-outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary',
                   isActive
-                    ? 'bg-state-accent-pill text-[var(--color-accent-gold)]'
-                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-layer-overlay-ghost-soft'
+                    ? 'bg-state-accent-pill text-accent-gold'
+                    : 'text-text-secondary hover:text-text-primary hover:bg-layer-overlay-ghost-soft'
                 )}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}
@@ -59,12 +60,19 @@ export const BottomNavigation = memo(function BottomNavigation({
                 <span className="relative text-lg">
                   {tab.icon}
                   {badgeContent ? (
-                    <span className="absolute -right-2 -top-1 min-w-[18px] rounded-full bg-[var(--color-accent-gold)] px-1 text-[10px] font-semibold leading-[14px] text-[var(--color-bg-primary)] shadow-[0_2px_8px_rgba(243,186,47,0.45)]">
+                    <span className="absolute -right-2 -top-1 min-w-[18px] rounded-full bg-accent-gold px-1 text-[10px] font-semibold leading-[14px] text-text-inverse shadow-glow-gold">
                       {badgeContent > 99 ? '99+' : badgeContent}
                     </span>
                   ) : null}
                 </span>
-                <span className="mt-1 text-[11px]">{tab.label}</span>
+                <Text
+                  as="span"
+                  variant="label"
+                  tone={isActive ? 'accent' : 'secondary'}
+                  className="mt-1"
+                >
+                  {tab.label}
+                </Text>
               </button>
             );
           })}

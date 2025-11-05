@@ -65,7 +65,7 @@ export function OfflineSummaryModal({
       actions={[{ label: 'Продолжить', variant: 'primary', onClick: onClose }]}
     >
       <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden space-y-4">
-        <section className="flex flex-col gap-2 bg-[var(--color-surface-secondary)]/70 border border-[var(--color-border-subtle)]/60 rounded-xl p-4">
+        <section className="flex flex-col gap-2 bg-surface-secondary/70 border border-border-subtle/60 rounded-xl p-4">
           <p className="m-0 text-body text-token-primary font-semibold">Пока вас не было</p>
           <p className="m-0 text-sm text-token-secondary leading-relaxed">
             {durationSec > 0 ? (

@@ -6,7 +6,7 @@
 - При смене вкладок контентный `ScreenTransition` получает `overflow-auto`, тогда как родитель уже `overflow-y-auto`; двойное колесо прокрутки ломает скролл-инерцию и makes scroll chaining непредсказуемым (`webapp/src/screens/MainScreen.tsx:298-339`).
 
 ## Recommendations
-- Перевести `h2`/`p` на токены (`text-[var(--color-text-primary)]`, `text-[var(--color-text-secondary)]`) или Tailwind-утилиты, зависящие от темы.
+- Перевести `h2`/`p` на токены (`text-text-primary`, `text-text-secondary`) или Tailwind-утилиты, зависящие от темы.
 - Расчитать отступ кнопки через `safeArea.safe.bottom` или CSS-переменные (`calc(16px + var(--safe-area-bottom))`) вместо жесткого `bottom-20`.
 - Удалить внутренний `overflow-auto` из `ScreenTransition` и позволить скроллу жить на уровне `scrollRef`, либо задать `overflow-visible` внутри, чтобы не создавать nested scrolling.
 

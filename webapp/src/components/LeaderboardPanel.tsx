@@ -160,7 +160,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
   if (leaderboardError) {
     return (
       <div className="flex flex-col gap-md" role="alert">
-        <Card className="flex items-start gap-sm-plus bg-[var(--color-text-destructive)]/10 border-[var(--color-text-destructive)]/40 text-[var(--color-text-destructive)]">
+        <Card className="flex items-start gap-sm-plus bg-state-danger-pill border-state-danger-pill text-feedback-error">
           <span className="text-xl" role="img" aria-label="Leaderboard error">
             ❌
           </span>
@@ -168,7 +168,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
             <p className="m-0 mb-sm font-semibold text-token-primary">
               Не удалось получить рейтинг
             </p>
-            <small className="text-[var(--color-text-secondary)]">{leaderboardError}</small>
+            <small className="text-text-secondary">{leaderboardError}</small>
           </div>
         </Card>
       </div>
@@ -188,22 +188,19 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
       {/* Header */}
       <div className="flex items-center justify-between gap-sm-plus">
         <h3 className="m-0 text-heading font-semibold">Топ игроков</h3>
-        <span className="text-caption text-[var(--color-text-secondary)]">
+        <span className="text-caption text-text-secondary">
           Всего: {leaderboardTotal.toLocaleString()}
         </span>
       </div>
 
       {/* User Rank Progress (if user exists) */}
       {userLeaderboardEntry && (
-        <Card className="relative overflow-hidden rounded-2xl border border-[rgba(0,217,255,0.35)] bg-gradient-to-br from-[rgba(0,26,63,0.9)] via-[rgba(15,30,72,0.88)] to-[rgba(17,58,92,0.92)] shadow-glow">
-          <div
-            className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(0,217,255,0.24),_transparent_60%)]"
-            aria-hidden
-          />
+        <Card className="relative overflow-hidden rounded-2xl border border-border-cyan bg-surface-glass-strong shadow-glow">
+          <div className="absolute inset-0 bg-gradient-soft opacity-40" aria-hidden />
           <div className="relative flex flex-col gap-md">
             <div className="flex flex-wrap items-start justify-between gap-sm-plus">
               <div className="flex flex-col gap-xs">
-                <span className="inline-flex items-center gap-xs rounded-full bg-[rgba(0,0,0,0.22)] px-sm py-xs text-label uppercase text-white/70">
+                <span className="inline-flex items-center gap-xs rounded-full bg-layer-overlay-ghost-strong px-sm py-xs text-label uppercase text-white/70">
                   Ваша позиция
                 </span>
                 <h3 className="m-0 text-title font-bold text-white">
@@ -224,9 +221,9 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
             </div>
 
             <div className="flex flex-col gap-sm">
-              <div className="h-3 rounded-full bg-[rgba(255,255,255,0.12)] shadow-inner">
+              <div className="h-3 rounded-full bg-layer-overlay-ghost-soft shadow-inner">
                 <motion.div
-                  className="h-full rounded-full bg-gradient-to-r from-[var(--color-cyan)] via-[var(--color-success)] to-[var(--color-gold)] shadow-glow"
+                  className="h-full rounded-full bg-gradient-to-r from-accent-cyan via-feedback-success to-accent-gold shadow-glow"
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.max(6, userRankProgress)}%` }}
                   transition={{ duration: 0.8, ease: 'easeOut' }}
@@ -258,21 +255,21 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
       )}
 
       {/* Table Container */}
-      <Card className="overflow-hidden rounded-2xl border border-[rgba(0,217,255,0.2)] bg-[rgba(12,16,45,0.85)] shadow-elevation-2 p-0">
+      <Card className="overflow-hidden rounded-2xl border border-border-cyan bg-surface-glass-strong shadow-elevation-2 p-0">
         <div className="hidden sm:block overflow-x-auto">
           <table className="w-full min-w-[540px] border-collapse text-body-sm text-white/75">
             <thead>
               <tr>
-                <th className="px-md py-sm-plus text-left border-b border-[rgba(255,255,255,0.08)] font-semibold text-white/60 text-label">
+                <th className="px-md py-sm-plus text-left border-b border-border-layer font-semibold text-white/60 text-label">
                   #
                 </th>
-                <th className="px-md py-sm-plus text-left border-b border-[rgba(255,255,255,0.08)] font-semibold text-white/60 text-label">
+                <th className="px-md py-sm-plus text-left border-b border-border-layer font-semibold text-white/60 text-label">
                   Игрок
                 </th>
-                <th className="px-md py-sm-plus text-left border-b border-[rgba(255,255,255,0.08)] font-semibold text-white/60 text-label">
+                <th className="px-md py-sm-plus text-left border-b border-border-layer font-semibold text-white/60 text-label">
                   Уровень
                 </th>
-                <th className="px-md py-sm-plus text-left border-b border-[rgba(255,255,255,0.08)] font-semibold text-white/60 text-label">
+                <th className="px-md py-sm-plus text-left border-b border-border-layer font-semibold text-white/60 text-label">
                   Энергия
                 </th>
               </tr>
@@ -287,12 +284,12 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                     key={entry.user_id}
                     initial={false}
                     animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.18)' } : {}}
-                    className={`border-b border-[rgba(255,255,255,0.05)] hover:bg-[rgba(0,217,255,0.08)] transition-colors ${
-                      isCurrentUser ? 'bg-[rgba(0,217,255,0.12)] font-semibold text-white' : ''
+                    className={`border-b border-border-subtle hover:bg-state-cyan-pill-soft transition-colors ${
+                      isCurrentUser ? 'bg-state-cyan-pill-glow font-semibold text-white' : ''
                     }`}
                   >
                     {/* Rank with Medal */}
-                    <td className="px-md py-sm-plus text-center text-[var(--color-text-primary)]">
+                    <td className="px-md py-sm-plus text-center text-text-primary">
                       <div className="flex items-center justify-center gap-xs">
                         {medal && (
                           <span className="text-lg" role="img" aria-label={medal.label}>
@@ -309,9 +306,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                         <div className="flex flex-col gap-[2px] flex-1">
                           <span
                             className={`font-semibold ${
-                              isCurrentUser
-                                ? 'text-[var(--color-cyan)]'
-                                : 'text-[var(--color-text-primary)]'
+                              isCurrentUser ? 'text-accent-cyan' : 'text-text-primary'
                             }`}
                           >
                             {entry.username || entry.first_name || 'Игрок'}
@@ -325,13 +320,13 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                     </td>
 
                     {/* Level */}
-                    <td className="px-md py-sm-plus text-left font-semibold text-[var(--color-text-primary)]">
+                    <td className="px-md py-sm-plus text-left font-semibold text-text-primary">
                       {entry.level}
                     </td>
 
                     {/* Energy + Diff */}
                     <td className="px-md py-sm-plus text-left">
-                      <div className="flex flex-col gap-[2px] text-[var(--color-text-primary)]">
+                      <div className="flex flex-col gap-[2px] text-text-primary">
                         <span className="font-semibold">{entry.energyDisplay}</span>
                         {entry.energyDiffDisplay && (
                           <span className="text-micro text-white/60">
@@ -356,10 +351,10 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                 key={entry.user_id}
                 initial={false}
                 animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
-                className={`rounded-xl border border-[rgba(255,255,255,0.12)] backdrop-blur-sm px-md py-sm-plus flex flex-col gap-sm transition-colors max-[360px]:px-sm-plus max-[320px]:px-xs ${
+                className={`rounded-xl border border-layer-strong backdrop-blur-sm px-md py-sm-plus flex flex-col gap-sm transition-colors max-[360px]:px-sm-plus max-[320px]:px-xs ${
                   isCurrentUser
-                    ? 'bg-[rgba(0,217,255,0.18)] text-white'
-                    : 'bg-[rgba(12,16,45,0.85)] text-white/80'
+                    ? 'bg-state-cyan-pill-strong text-white'
+                    : 'bg-surface-glass-strong text-white/80'
                 }`}
               >
                 <div className="flex flex-wrap items-center justify-between gap-sm">
@@ -372,7 +367,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                     <div className="flex flex-col leading-tight">
                       <span
                         className={`font-semibold ${
-                          isCurrentUser ? 'text-[var(--color-cyan)]' : 'text-white'
+                          isCurrentUser ? 'text-accent-cyan' : 'text-white'
                         } max-[360px]:text-sm max-[320px]:text-xs`}
                       >
                         #{entry.rank} {entry.username || entry.first_name || 'Игрок'}

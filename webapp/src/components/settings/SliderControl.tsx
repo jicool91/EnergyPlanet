@@ -33,7 +33,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
           value={value}
           onChange={e => onChange(Number(e.target.value))}
           disabled={disabled}
-          className="flex-1 h-2 appearance-none rounded-full bg-[rgba(12,22,48,0.7)] focus:outline-none focus:ring-2 focus:ring-[var(--color-text-accent)] focus:ring-offset-2 focus:ring-offset-[rgba(8,12,24,0.9)]"
+          className="flex-1 h-2 appearance-none rounded-full bg-surface-glass-strong focus:outline-none focus:ring-2 focus:ring-text-accent focus:ring-offset-2 focus:ring-offset-surface-primary"
           style={{
             background: `linear-gradient(to right, var(--color-success) 0%, var(--color-success) ${percentage}%, color-mix(in srgb, var(--color-border-subtle) 40%, transparent) ${percentage}%, color-mix(in srgb, var(--color-border-subtle) 40%, transparent) 100%)`,
           }}

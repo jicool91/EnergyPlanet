@@ -258,7 +258,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                 />
 
                 <motion.div
-                  className="relative text-hero-display font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan via-lime to-gold drop-shadow-[0_0_30px_rgba(0,217,255,0.8)]"
+                  className="relative text-hero-display font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan via-lime to-gold drop-shadow-glow"
                   animate={levelNumberAnimation}
                   transition={{
                     duration: prefersReducedMotion ? 0.3 : 0.8,
@@ -335,7 +335,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
               </motion.div>
 
               <motion.p
-                className="m-0 text-caption text-[var(--color-text-secondary)] mt-8"
+                className="m-0 text-caption text-text-secondary mt-8"
                 initial={{ opacity: 0 }}
                 animate={prefersReducedMotion ? { opacity: 0.8 } : { opacity: [0.3, 0.8, 0.3] }}
                 transition={

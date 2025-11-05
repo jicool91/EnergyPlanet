@@ -45,11 +45,11 @@
 
 ## 3. План внедрения
 ### Этап A — Фундамент (1 неделя)
-**Статус:** в работе (неделя 1)
+**Статус:** неделя 1 завершена
 
-1. ✅ Token freeze: ревизия `tokens.css`, добавлены `--layer-overlay-*`, `--surface-glass*`, `--state-*-pill`, обновлены tailwind-цвета и документация.
-2. ⚠️ Lint & tooling: ESLint предупреждает об arbitrary цветах (`bg-[...]`, `border-[...]`); текстовые размеры остаются на этапе B. Предстоит миграция существующих классов для снятия ~100 предупреждений.
-3. ✅ Theme runtime: font scale уже подхватывается; добавлен визуальный тест для light mode (`tests/visual/offline-summary.spec.ts`). Дополнительно требуется покрытие остальных экранов (перенесено в Этап D).
+1. ✅ Token freeze: ревизия `tokens.css`, заведены поверхностные/тематические токены (`--layer-overlay-*`, `--surface-glass*`, `--state-*-pill`, dual-палитра); Tailwind понимает новые цвета/фоны, `Surface`/`Text` обновлены и задокументированы.
+2. ✅ Lint & tooling: включён запрет на arbitrary цвета, токенизированы все компоненты и экраны — `npm run lint` проходит без предупреждений; добавлены утилиты (`drop-shadow-glow`, grad tokens) и обновлены skeleton/Shop/nav карточки для соответствия freeze.
+3. ✅ Theme runtime: font scale и safe-area поддерживаются (`services/tma/theme.ts`, `Surface`), добавлены light-mode сценарии в visual тестах (`tests/visual/offline-summary.spec.ts`) и переключение `?theme=light` в preview. Покрытие остальных экранов переносим в Этап D.
 
 ### Этап B — Компоненты (2 недели)
 1. Actions: унифицировать `Button`/`IconButton`/`MainButtonBridge`.
