@@ -161,7 +161,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
     return (
       <div className="flex flex-col gap-md" role="alert">
         <Card className="flex items-start gap-sm-plus bg-state-danger-pill border-state-danger-pill text-feedback-error">
-          <span className="text-xl" role="img" aria-label="Leaderboard error">
+          <span className="text-heading" role="img" aria-label="Leaderboard error">
             ❌
           </span>
           <div>
@@ -292,7 +292,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                     <td className="px-md py-sm-plus text-center text-text-primary">
                       <div className="flex items-center justify-center gap-xs">
                         {medal && (
-                          <span className="text-lg" role="img" aria-label={medal.label}>
+                          <span className="text-title" role="img" aria-label={medal.label}>
                             {medal.icon}
                           </span>
                         )}
@@ -360,7 +360,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                 <div className="flex flex-wrap items-center justify-between gap-sm">
                   <div className="flex items-center gap-sm max-[360px]:gap-xs">
                     {medal && (
-                      <span className="text-lg" role="img" aria-label={medal.label}>
+                      <span className="text-title" role="img" aria-label={medal.label}>
                         {medal.icon}
                       </span>
                     )}
@@ -368,7 +368,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                       <span
                         className={`font-semibold ${
                           isCurrentUser ? 'text-accent-cyan' : 'text-white'
-                        } max-[360px]:text-sm max-[320px]:text-xs`}
+                        } max-[360px]:text-body max-[320px]:text-caption`}
                       >
                         #{entry.rank} {entry.username || entry.first_name || 'Игрок'}
                       </span>
@@ -377,11 +377,11 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                       </span>
                     </div>
                   </div>
-                  <span className="text-title font-semibold max-[360px]:text-base text-white">
+                  <span className="text-title font-semibold max-[360px]:text-body text-white">
                     {entry.level}
                   </span>
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-xs text-body-sm text-white/75 max-[360px]:text-xs">
+                <div className="flex flex-wrap items-center justify-between gap-xs text-body-sm text-white/75 max-[360px]:text-caption">
                   <span>Энергия</span>
                   <span className="font-medium text-white">{entry.energyDisplay}</span>
                 </div>

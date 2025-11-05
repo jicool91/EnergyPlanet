@@ -105,7 +105,7 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.3, duration: 0.3 }}
               >
-                <span role="img" aria-label="Success" className="text-2xl">
+                <span role="img" aria-label="Success" className="text-heading">
                   ✅
                 </span>
                 Успешно!
@@ -120,12 +120,12 @@ export const PurchaseSuccessModal: React.FC<PurchaseSuccessModalProps> = ({
               >
                 <p className="m-0 text-heading font-semibold text-token-primary mb-1">{itemName}</p>
                 {quantity > 1 && (
-                  <p className="m-0 text-sm">
+                  <p className="m-0 text-body">
                     Количество: <span className="text-cyan font-semibold">×{quantity}</span>
                   </p>
                 )}
                 {cost !== undefined && (
-                  <p className="m-0 text-sm">
+                  <p className="m-0 text-body">
                     Стоимость:{' '}
                     <span className="text-gold font-semibold">{cost.toLocaleString()} E</span>
                   </p>

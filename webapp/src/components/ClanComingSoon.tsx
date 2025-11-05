@@ -6,7 +6,7 @@ import { memo } from 'react';
 const ClanComingSoonComponent = () => {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-center">
-      <span className="text-4xl" role="img" aria-label="Clan emblem">
+      <span className="text-display" role="img" aria-label="Clan emblem">
         🛡️
       </span>
       <div className="flex flex-col gap-2 max-w-xs">

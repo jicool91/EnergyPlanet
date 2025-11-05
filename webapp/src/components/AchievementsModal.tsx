@@ -2,6 +2,7 @@ import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { ModalBase } from './ModalBase';
 import { Button } from './Button';
 import { formatNumberWithSpaces } from '../utils/number';
+import { Text } from '@/components/ui/Text';
 import type { AchievementView } from '@/services/achievements';
 import { logClientEvent } from '@/services/telemetry';
 
@@ -81,9 +82,9 @@ export function AchievementsModal({
       <div className="flex flex-col gap-sm-plus">
         <div className="rounded-md border border-border-subtle bg-surface-secondary p-sm-plus">
           <p className="text-caption text-text-secondary">Постоянный бонус от достижений</p>
-          <p className="text-lg font-semibold text-text-primary">
+          <Text as="p" variant="title" weight="semibold">
             {achievementMultiplier > 1 ? `+${Math.round((achievementMultiplier - 1) * 100)}%` : '—'}
-          </p>
+          </Text>
         </div>
 
         {loading && (
@@ -153,7 +154,7 @@ export function AchievementsModal({
                 >
                   <div className="flex items-start justify-between gap-sm-plus">
                     <div className="flex items-start gap-sm">
-                      <div className="text-xl" aria-hidden="true">
+                      <div className="text-heading" aria-hidden="true">
                         {item.icon ?? '⭐'}
                       </div>
                       <div>

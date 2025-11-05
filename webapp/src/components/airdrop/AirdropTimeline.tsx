@@ -1,5 +1,6 @@
 import { memo } from 'react';
 import { Card } from '@/components/Card';
+import { Text } from '@/components/ui/Text';
 
 export interface AirdropEvent {
   id: string;
@@ -31,9 +32,9 @@ export const AirdropTimeline = memo(function AirdropTimeline({ events }: Airdrop
     return (
       <Card className="flex flex-col gap-3 border-border-layer bg-layer-overlay-strong">
         <h3 className="m-0 text-heading font-semibold text-text-primary">Пока событий нет</h3>
-        <p className="m-0 text-sm text-text-secondary">
+        <Text as="p" variant="body" tone="secondary" className="m-0">
           Следите за Telegram-каналом — мы скоро объявим новые сезоны и награды.
-        </p>
+        </Text>
       </Card>
     );
   }
@@ -58,20 +59,32 @@ export const AirdropTimeline = memo(function AirdropTimeline({ events }: Airdrop
             <header className="flex items-center justify-between gap-3">
               <div>
                 <h3 className="m-0 text-title font-semibold text-text-primary">{event.title}</h3>
-                <p className="m-0 text-xs text-text-secondary">
+                <Text as="p" variant="caption" tone="secondary" className="m-0">
                   {formatDate(event.startsAt)}
                   {event.endsAt ? ` — ${formatDate(event.endsAt)}` : ''}
-                </p>
+                </Text>
               </div>
-              <span className={`rounded-full px-3 py-1 text-xs font-semibold ${badgeColor}`}>
+              <Text
+                as="span"
+                variant="caption"
+                weight="semibold"
+                className={`rounded-full px-3 py-1 ${badgeColor}`}
+              >
                 {badgeText}
-              </span>
+              </Text>
             </header>
-            <p className="m-0 text-sm text-text-secondary">{event.description}</p>
+            <Text as="p" variant="body" tone="secondary" className="m-0">
+              {event.description}
+            </Text>
             {event.reward ? (
-              <div className="rounded-2xl border border-accent-gold/60 bg-accent-gold/20 px-4 py-2 text-xs text-accent-gold">
+              <Text
+                as="div"
+                variant="caption"
+                tone="accent"
+                className="rounded-2xl border border-accent-gold/60 bg-accent-gold/20 px-4 py-2"
+              >
                 Награда: {event.reward}
-              </div>
+              </Text>
             ) : null}
           </Card>
         );

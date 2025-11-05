@@ -16,7 +16,7 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
   return (
     <div className="flex flex-col gap-sm-plus rounded-2xl border border-border-cyan/60 bg-surface-glass-strong shadow-elevation-2 p-md">
       <div className="flex items-center gap-2">
-        {icon && <span className="text-lg">{icon}</span>}
+        {icon && <span className="text-title">{icon}</span>}
         <div className="flex-1">
           <h3 className="m-0 text-subheading font-semibold text-token-primary">{title}</h3>
           {description && (

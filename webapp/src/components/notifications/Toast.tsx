@@ -118,7 +118,7 @@ export function Toast({ notification }: ToastProps) {
 
       {/* Icon Badge */}
       <div
-        className={`relative flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-base shadow-md ${theme.iconBg}`}
+        className={`relative flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center font-bold text-body shadow-md ${theme.iconBg}`}
         role="img"
         aria-label={ICON_LABELS[icon] || ICON_LABELS.info}
       >
@@ -126,11 +126,11 @@ export function Toast({ notification }: ToastProps) {
       </div>
 
       {/* Message */}
-      <div className={`flex-1 text-sm font-medium leading-snug ${theme.text}`} role="status">
-        <span className="font-semibold tracking-wide uppercase text-xs sm:text-[13px]">
+      <div className={`flex-1 text-body font-medium leading-snug ${theme.text}`} role="status">
+        <span className="font-semibold tracking-wide uppercase text-caption sm:text-[13px]">
           {prefix}
         </span>
-        <span className="block text-sm sm:text-base text-white/90">{notification.message}</span>
+        <span className="block text-body sm:text-body text-white/90">{notification.message}</span>
       </div>
 
       {/* Close Button */}
@@ -139,7 +139,7 @@ export function Toast({ notification }: ToastProps) {
         className={`flex-shrink-0 transition-colors p-1 focus-ring ${theme.close}`}
         aria-label="Close notification"
       >
-        <span className="text-lg leading-none">✕</span>
+        <span className="text-title leading-none">✕</span>
       </button>
     </motion.div>
   );

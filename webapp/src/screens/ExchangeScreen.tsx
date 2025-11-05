@@ -65,7 +65,7 @@ export function ExchangeScreen() {
         <Surface
           tone="overlay"
           border="subtle"
-          shadow="soft"
+          elevation="soft"
           padding="sm"
           rounded="3xl"
           className="flex gap-2"

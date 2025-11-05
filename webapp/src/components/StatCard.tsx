@@ -53,7 +53,8 @@ function StatCardComponent({
       ? 'text-caption font-medium leading-tight tracking-[0.04em] text-text-secondary'
       : 'text-label uppercase tracking-[0.16em] text-text-secondary';
   const labelRowGap = size === 'compact' ? 'gap-xs' : 'gap-sm';
-  const iconClass = size === 'compact' ? 'text-lg' : size === 'hero' ? 'text-2xl' : 'text-xl';
+  const iconClass =
+    size === 'compact' ? 'text-title' : size === 'hero' ? 'text-heading' : 'text-heading';
   const valueClass = `${typography[size]} text-text-primary leading-tight`;
 
   const content = (

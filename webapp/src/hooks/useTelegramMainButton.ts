@@ -1,12 +1,14 @@
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { hideTmaMainButton, withTmaMainButton } from '@/services/tma/mainButton';
+import type { ActionTone } from '@/components/ui/actionTheme';
 
 type UseTelegramMainButtonOptions = {
   text: string;
   onClick: () => void;
   color?: string;
   textColor?: string;
+  tone?: ActionTone;
   disabled?: boolean;
   showProgress?: boolean;
   enabled?: boolean;
@@ -19,6 +21,7 @@ export function useTelegramMainButton(options: UseTelegramMainButtonOptions) {
     onClick,
     color,
     textColor,
+    tone,
     disabled = false,
     showProgress = false,
     enabled = true,
@@ -38,6 +41,7 @@ export function useTelegramMainButton(options: UseTelegramMainButtonOptions) {
       onClick,
       color,
       textColor,
+      tone,
       disabled,
       showProgress,
       keepVisibleOnUnmount,
@@ -48,6 +52,7 @@ export function useTelegramMainButton(options: UseTelegramMainButtonOptions) {
     onClick,
     color,
     textColor,
+    tone,
     disabled,
     showProgress,
     keepVisibleOnUnmount,

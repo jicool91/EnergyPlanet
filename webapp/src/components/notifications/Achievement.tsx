@@ -58,7 +58,7 @@ export function Achievement({ notification }: AchievementProps) {
       >
         {/* Trophy Icon */}
         <motion.div
-          className="text-5xl mb-3 text-center"
+          className="text-display mb-3 text-center"
           animate={trophyAnimation}
           transition={trophyTransition}
         >
@@ -69,7 +69,7 @@ export function Achievement({ notification }: AchievementProps) {
 
         {/* Title */}
         <motion.h3
-          className="text-xl font-bold text-yellow-300 text-center mb-1"
+          className="text-heading font-bold text-yellow-300 text-center mb-1"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
@@ -79,7 +79,7 @@ export function Achievement({ notification }: AchievementProps) {
 
         {/* Message */}
         <motion.p
-          className="text-sm text-gray-300 text-center mb-4"
+          className="text-body text-gray-300 text-center mb-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
@@ -92,7 +92,7 @@ export function Achievement({ notification }: AchievementProps) {
           {[0, 1, 2].map(i => (
             <motion.span
               key={i}
-              className="text-2xl"
+              className="text-heading"
               aria-hidden="true"
               animate={
                 isLowPerformance
@@ -119,7 +119,7 @@ export function Achievement({ notification }: AchievementProps) {
 
         {/* Tap to dismiss hint */}
         <motion.p
-          className="text-xs text-gray-500 text-center mt-4"
+          className="text-caption text-gray-500 text-center mt-4"
           animate={{ opacity: [0.5, 1] }}
           transition={{ duration: 1, repeat: Infinity }}
         >

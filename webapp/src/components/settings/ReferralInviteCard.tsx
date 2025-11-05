@@ -136,11 +136,11 @@ export const ReferralInviteCard: React.FC = () => {
       <Card className="flex flex-col gap-sm bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 border-indigo-400/30">
         <header className="flex items-center justify-between gap-sm">
           <div className="flex flex-col gap-1">
-            <span className="text-xs uppercase tracking-wide text-token-secondary">
+            <span className="text-caption uppercase tracking-wide text-token-secondary">
               Ваш реферальный код
             </span>
             <div className="flex items-center gap-sm">
-              <span className="font-mono text-lg font-semibold text-token-primary">
+              <span className="font-mono text-title font-semibold text-token-primary">
                 {referral?.code ?? '------'}
               </span>
               <Button
@@ -165,7 +165,7 @@ export const ReferralInviteCard: React.FC = () => {
 
         <section className="flex flex-wrap items-end gap-sm">
           <div className="flex-1 min-w-[200px]">
-            <label htmlFor="referral-input" className="text-xs uppercase text-token-secondary">
+            <label htmlFor="referral-input" className="text-caption uppercase text-token-secondary">
               Активируй код друга
             </label>
             <Input
@@ -187,13 +187,13 @@ export const ReferralInviteCard: React.FC = () => {
         </section>
 
         {error && (
-          <p className="m-0 text-xs text-feedback-error" role="alert">
+          <p className="m-0 text-caption text-feedback-error" role="alert">
             {error}
           </p>
         )}
 
         {referral && (
-          <div className="grid gap-sm text-xs text-token-secondary sm:grid-cols-3">
+          <div className="grid gap-sm text-caption text-token-secondary sm:grid-cols-3">
             <div className="rounded-xl border border-border-layer-strong bg-layer-overlay-ghost-soft px-3 py-2">
               Всего заработано:{' '}
               <strong className="text-token-primary">
@@ -215,7 +215,7 @@ export const ReferralInviteCard: React.FC = () => {
           </div>
         )}
 
-        <footer className="flex flex-wrap items-center justify-between gap-sm text-xs text-token-secondary">
+        <footer className="flex flex-wrap items-center justify-between gap-sm text-caption text-token-secondary">
           <span>
             Друзей:{' '}
             <strong className="text-token-primary">{referral?.totalActivations ?? 0}</strong>
@@ -242,8 +242,8 @@ export const ReferralInviteCard: React.FC = () => {
       </Card>
 
       {activeEvents.length > 0 && (
-        <Card className="flex flex-col gap-sm border-amber-400/40 bg-amber-400/10 text-sm">
-          <span className="text-xs uppercase tracking-wide text-amber-600 font-semibold">
+        <Card className="flex flex-col gap-sm border-amber-400/40 bg-amber-400/10 text-body">
+          <span className="text-caption uppercase tracking-wide text-amber-600 font-semibold">
             Активные бонусы
           </span>
           <div className="flex flex-col gap-xs">
@@ -259,9 +259,9 @@ export const ReferralInviteCard: React.FC = () => {
                   </Badge>
                 </div>
                 {event.description && (
-                  <span className="text-xs text-token-secondary">{event.description}</span>
+                  <span className="text-caption text-token-secondary">{event.description}</span>
                 )}
-                <div className="flex flex-wrap gap-sm text-xs text-amber-700">
+                <div className="flex flex-wrap gap-sm text-caption text-amber-700">
                   {event.inviteeRewardMultiplier && event.inviteeRewardMultiplier !== 1 && (
                     <span>Новичкам ×{event.inviteeRewardMultiplier}</span>
                   )}
@@ -280,9 +280,9 @@ export const ReferralInviteCard: React.FC = () => {
 
       <section className="flex flex-col gap-sm">
         <header className="flex items-center justify-between gap-sm">
-          <h4 className="m-0 text-sm font-semibold text-token-primary">Этапы и награды</h4>
+          <h4 className="m-0 text-body font-semibold text-token-primary">Этапы и награды</h4>
           {nextMilestone && (
-            <span className="text-xs text-token-secondary">
+            <span className="text-caption text-token-secondary">
               Следующий этап через{' '}
               {Math.max(0, nextMilestone.threshold - (referral?.totalActivations ?? 0))} приглашений
             </span>
@@ -294,10 +294,10 @@ export const ReferralInviteCard: React.FC = () => {
             <Card key={milestone.id} className="flex flex-col gap-sm border-token-subtle">
               <div className="flex items-center justify-between gap-sm">
                 <div className="flex flex-col gap-1">
-                  <span className="text-sm font-semibold text-token-primary">
+                  <span className="text-body font-semibold text-token-primary">
                     {milestone.title}
                   </span>
-                  <span className="text-xs text-token-secondary">
+                  <span className="text-caption text-token-secondary">
                     Цель: {milestone.threshold} приглашений
                   </span>
                 </div>
@@ -318,11 +318,11 @@ export const ReferralInviteCard: React.FC = () => {
               </div>
 
               {milestone.description && (
-                <p className="m-0 text-xs text-token-secondary">{milestone.description}</p>
+                <p className="m-0 text-caption text-token-secondary">{milestone.description}</p>
               )}
 
               <ProgressBar value={milestone.progress.percentage} />
-              <div className="flex items-center justify-between text-xs text-token-secondary">
+              <div className="flex items-center justify-between text-caption text-token-secondary">
                 <span>
                   Прогресс: {milestone.progress.current}/{milestone.threshold}
                 </span>
@@ -337,7 +337,7 @@ export const ReferralInviteCard: React.FC = () => {
               </div>
 
               {milestone.reward.cosmeticId && (
-                <span className="text-xs text-token-secondary">
+                <span className="text-caption text-token-secondary">
                   Косметика: {milestone.reward.cosmeticId}
                 </span>
               )}

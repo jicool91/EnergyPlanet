@@ -276,7 +276,7 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
           <span>{buildingsError}</span>
           <button
             onClick={() => loadBuildingCatalog()}
-            className="text-xs px-sm py-xs-plus rounded-xl border border-state-danger-border bg-state-danger-pill text-text-primary font-semibold transition-all duration-150 focus-ring hover:bg-state-danger-pill-hover"
+            className="text-caption px-sm py-xs-plus rounded-xl border border-state-danger-border bg-state-danger-pill text-text-primary font-semibold transition-all duration-150 focus-ring hover:bg-state-danger-pill-hover"
           >
             Перезагрузить
           </button>

@@ -4,19 +4,21 @@ import { motion, type HTMLMotionProps } from 'framer-motion';
 import { cva, type VariantProps } from 'class-variance-authority';
 import clsx from 'clsx';
 import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
+import { ACTION_TONE_STYLES } from './ui/actionTheme';
+
+const iconVariantStyles = {
+  primary: ACTION_TONE_STYLES.primary.icon,
+  secondary: ACTION_TONE_STYLES.secondary.icon,
+  success: ACTION_TONE_STYLES.success.icon,
+  danger: ACTION_TONE_STYLES.danger.icon,
+  ghost: ACTION_TONE_STYLES.ghost.icon,
+};
 
 const iconButtonVariants = cva(
   'inline-flex items-center justify-center rounded-2xl transition-transform duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary disabled:cursor-not-allowed disabled:opacity-55',
   {
     variants: {
-      variant: {
-        primary:
-          'bg-accent-gold text-text-inverse shadow-glow-gold hover:brightness-105 active:scale-[0.97]',
-        secondary:
-          'border border-border-layer bg-layer-strong text-text-primary hover:border-border-layer-strong hover:bg-layer-elevated hover:shadow-elevation-2 active:scale-[0.97]',
-        ghost:
-          'bg-transparent text-text-primary hover:bg-layer-overlay-ghost-soft active:scale-[0.97]',
-      },
+      variant: iconVariantStyles,
       size: {
         sm: 'h-10 w-10',
         md: 'h-12 w-12',

@@ -57,7 +57,7 @@ export const BottomNavigation = memo(function BottomNavigation({
                 aria-label={tab.label}
                 data-active={isActive}
               >
-                <span className="relative text-lg">
+                <span className="relative text-title">
                   {tab.icon}
                   {badgeContent ? (
                     <span className="absolute -right-2 -top-1 min-w-[18px] rounded-full bg-accent-gold px-1 text-[10px] font-semibold leading-[14px] text-text-inverse shadow-glow-gold">

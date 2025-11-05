@@ -1,5 +1,5 @@
 import React from 'react';
-import { Skeleton } from './Skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface LeaderboardSkeletonProps {
   count?: number;

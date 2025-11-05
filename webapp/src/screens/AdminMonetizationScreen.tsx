@@ -186,10 +186,10 @@ export const AdminMonetizationScreen: React.FC = () => {
       <header className="flex flex-col gap-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <p className="m-0 text-sm text-token-secondary">
+            <p className="m-0 text-body text-token-secondary">
               Окно: последние {selectedWindow} дн. · Обновлено {renderDate(lastDayDate)}
             </p>
-            <p className="m-0 text-xs text-token-tertiary">
+            <p className="m-0 text-caption text-token-tertiary">
               Актуально с {renderDate(firstDayDate)} по {renderDate(lastDayDate)}
             </p>
           </div>
@@ -210,7 +210,7 @@ export const AdminMonetizationScreen: React.FC = () => {
           </div>
         </div>
         {metrics && (
-          <p className="m-0 text-xs text-token-tertiary">
+          <p className="m-0 text-caption text-token-tertiary">
             Последний экспорт:{' '}
             {metrics.generatedAt ? renderDate(metrics.generatedAt.slice(0, 10)) : '—'}
           </p>
@@ -218,43 +218,45 @@ export const AdminMonetizationScreen: React.FC = () => {
       </header>
 
       {loading && (
-        <Card className="text-sm text-token-secondary border-dashed border-token-subtle bg-token-surface-tertiary">
+        <Card className="text-body text-token-secondary border-dashed border-token-subtle bg-token-surface-tertiary">
           Загружаем метрики…
         </Card>
       )}
 
       {error && (
-        <Card className="text-sm text-red-error border-red-error/40 bg-red-error/5">{error}</Card>
+        <Card className="text-body text-red-error border-red-error/40 bg-red-error/5">{error}</Card>
       )}
 
       {!loading && !error && metrics && (
         <>
           <section className="grid sm:grid-cols-3 gap-4">
             <Card variant="elevated" className="flex flex-col gap-2 bg-cyan/5 border-cyan/20">
-              <span className="text-xs uppercase tracking-wide text-cyan/80">Shop visit rate</span>
-              <strong className="text-2xl text-token-primary">
+              <span className="text-caption uppercase tracking-wide text-cyan/80">
+                Shop visit rate
+              </span>
+              <strong className="text-heading text-token-primary">
                 {renderSummaryValue(latestDay?.shopVisitRate ?? null)}
               </strong>
-              <p className="m-0 text-xs text-token-secondary">
+              <p className="m-0 text-caption text-token-secondary">
                 Среднее: {renderSummaryValue(averages?.shopVisitRate ?? null)}
               </p>
-              <p className="m-0 text-xs text-token-tertiary">
+              <p className="m-0 text-caption text-token-tertiary">
                 Показы: {renderCount(latestDay?.shopTabImpressions ?? 0)} · Просмотры:{' '}
                 {renderCount(latestDay?.shopViews ?? 0)}
               </p>
             </Card>
 
             <Card variant="elevated" className="flex flex-col gap-2 bg-lime/5 border-lime/20">
-              <span className="text-xs uppercase tracking-wide text-lime/80">
+              <span className="text-caption uppercase tracking-wide text-lime/80">
                 Quest claim success
               </span>
-              <strong className="text-2xl text-token-primary">
+              <strong className="text-heading text-token-primary">
                 {renderSummaryValue(latestDay?.questClaimSuccessRate ?? null)}
               </strong>
-              <p className="m-0 text-xs text-token-secondary">
+              <p className="m-0 text-caption text-token-secondary">
                 Среднее: {renderSummaryValue(averages?.questClaimSuccessRate ?? null)}
               </p>
-              <p className="m-0 text-xs text-token-tertiary">
+              <p className="m-0 text-caption text-token-tertiary">
                 Стартов: {renderCount(latestDay?.questClaimStarts ?? 0)} · Успех:{' '}
                 {renderCount(latestDay?.questClaimSuccess ?? 0)}
               </p>
@@ -264,14 +266,16 @@ export const AdminMonetizationScreen: React.FC = () => {
               variant="elevated"
               className="flex flex-col gap-2 bg-amber-500/5 border-amber-500/20"
             >
-              <span className="text-xs uppercase tracking-wide text-amber-500/80">Upsell CTR</span>
-              <strong className="text-2xl text-token-primary">
+              <span className="text-caption uppercase tracking-wide text-amber-500/80">
+                Upsell CTR
+              </span>
+              <strong className="text-heading text-token-primary">
                 {renderSummaryValue(latestDay?.dailyBoostUpsellCtr ?? null)}
               </strong>
-              <p className="m-0 text-xs text-token-secondary">
+              <p className="m-0 text-caption text-token-secondary">
                 Среднее: {renderSummaryValue(averages?.upsellCtr ?? null)}
               </p>
-              <p className="m-0 text-xs text-token-tertiary">
+              <p className="m-0 text-caption text-token-tertiary">
                 Просмотров: {renderCount(latestDay?.dailyBoostUpsellViews ?? 0)} · Кликов:{' '}
                 {renderCount(latestDay?.dailyBoostUpsellClicks ?? 0)}
               </p>
@@ -279,9 +283,9 @@ export const AdminMonetizationScreen: React.FC = () => {
           </section>
 
           <section className="flex flex-col gap-3">
-            <h3 className="m-0 text-sm font-semibold text-token-primary">Динамика по дням</h3>
+            <h3 className="m-0 text-body font-semibold text-token-primary">Динамика по дням</h3>
             <div className="overflow-x-auto rounded-lg border border-token-subtle">
-              <table className="min-w-full text-xs text-left">
+              <table className="min-w-full text-caption text-left">
                 <thead className="bg-token-surface-tertiary text-token-secondary uppercase tracking-wide">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Дата</th>

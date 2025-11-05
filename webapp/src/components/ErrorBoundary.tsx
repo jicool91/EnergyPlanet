@@ -50,7 +50,7 @@ export class ErrorBoundary extends Component<Props, State> {
           className="flex flex-col items-center justify-center gap-md rounded-2xl border border-state-danger-pill bg-gradient-to-br from-feedback-error/80 via-surface-secondary to-layer-overlay-strong p-xl text-center shadow-elevation-3"
           role="alert"
         >
-          <div className="text-3xl" role="img" aria-label="Warning">
+          <div className="text-hero" role="img" aria-label="Warning">
             ⚠️
           </div>
           <div className="flex flex-col gap-sm">

@@ -68,15 +68,15 @@ export function Alert({ notification }: AlertProps) {
         <div
           className={`bg-gradient-to-r ${config.headerBg} border-b border-dark-border px-6 py-4 flex items-center gap-4`}
         >
-          <div className="text-4xl" role="img" aria-label={config.label}>
+          <div className="text-display" role="img" aria-label={config.label}>
             {config.icon}
           </div>
-          <h2 className="text-xl font-bold text-white">{notification.title || 'Alert'}</h2>
+          <h2 className="text-heading font-bold text-white">{notification.title || 'Alert'}</h2>
         </div>
 
         {/* Body */}
         <div className="px-6 py-4">
-          <p className="text-gray-300 text-sm leading-relaxed">{notification.message}</p>
+          <p className="text-gray-300 text-body leading-relaxed">{notification.message}</p>
         </div>
 
         {/* Footer */}

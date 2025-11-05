@@ -128,7 +128,7 @@ export const StatsSummary = memo(function StatsSummary({
             type="button"
             onClick={onPrestige}
             disabled={!isPrestigeAvailable || isPrestigeLoading}
-            className="rounded-2xl bg-accent-gold px-4 py-2 text-sm font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
+            className="rounded-2xl bg-accent-gold px-4 py-2 text-body font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 hover:scale-105 disabled:cursor-not-allowed disabled:opacity-60"
           >
             {isPrestigeLoading
               ? 'Считаем…'

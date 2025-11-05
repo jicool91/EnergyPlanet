@@ -13,15 +13,17 @@ export type SurfaceTone =
   | 'dual';
 
 export type SurfaceBorder = 'none' | 'subtle' | 'strong' | 'accent';
-export type SurfaceShadow = 'none' | 'soft' | 'medium' | 'strong';
+export type SurfaceElevation = 'none' | 'soft' | 'medium' | 'strong';
 export type SurfacePadding = 'none' | 'sm' | 'md' | 'lg';
 
 export interface SurfaceProps extends HTMLAttributes<HTMLDivElement> {
   tone?: SurfaceTone;
   border?: SurfaceBorder;
-  shadow?: SurfaceShadow;
+  elevation?: SurfaceElevation;
+  shadow?: SurfaceElevation;
   padding?: SurfacePadding;
   rounded?: 'none' | 'md' | 'lg' | 'xl' | '2xl' | '3xl';
+  interactive?: boolean;
 }
 
 const TONE_CLASS: Record<SurfaceTone, string> = {
@@ -42,7 +44,7 @@ const BORDER_CLASS: Record<SurfaceBorder, string> = {
   accent: 'border border-featured',
 };
 
-const SHADOW_CLASS: Record<SurfaceShadow, string> = {
+const ELEVATION_CLASS: Record<SurfaceElevation, string> = {
   none: '',
   soft: 'shadow-elevation-1',
   medium: 'shadow-elevation-2',
@@ -70,9 +72,11 @@ export const Surface = forwardRef<HTMLDivElement, SurfaceProps>(
     {
       tone = 'overlay',
       border = 'subtle',
-      shadow = 'medium',
+      elevation,
+      shadow,
       padding = 'md',
       rounded = 'xl',
+      interactive = false,
       className,
       children,
       ...rest
@@ -81,14 +85,26 @@ export const Surface = forwardRef<HTMLDivElement, SurfaceProps>(
   ) => {
     const toneClass = TONE_CLASS[tone];
     const borderClass = BORDER_CLASS[border];
-    const shadowClass = SHADOW_CLASS[shadow];
+    const elevationKey = (elevation ?? shadow ?? 'medium') as SurfaceElevation;
+    const elevationClass = ELEVATION_CLASS[elevationKey];
     const paddingClass = PADDING_CLASS[padding];
     const roundedClass = ROUNDED_CLASS[rounded];
+    const interactiveClass = interactive
+      ? 'transition-transform duration-150 ease-out will-change-transform hover:-translate-y-0.5'
+      : '';
 
     return (
       <div
         ref={ref}
-        className={clsx(toneClass, borderClass, shadowClass, paddingClass, roundedClass, className)}
+        className={clsx(
+          toneClass,
+          borderClass,
+          elevationClass,
+          paddingClass,
+          roundedClass,
+          interactiveClass,
+          className
+        )}
         {...rest}
       >
         {children}

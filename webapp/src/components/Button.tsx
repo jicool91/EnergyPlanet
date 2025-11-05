@@ -4,6 +4,7 @@ import { motion, type Transition } from 'framer-motion';
 import { cva, type VariantProps } from 'class-variance-authority';
 import clsx from 'clsx';
 import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
+import { ACTION_TONE_STYLES } from './ui/actionTheme';
 
 /**
  * Button Component
@@ -11,21 +12,25 @@ import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
  * Uses design system tokens
  */
 
+const buttonVariantStyles = {
+  primary: ACTION_TONE_STYLES.primary.solid,
+  secondary: ACTION_TONE_STYLES.secondary.solid,
+  success: ACTION_TONE_STYLES.success.solid,
+  danger: ACTION_TONE_STYLES.danger.solid,
+  ghost: ACTION_TONE_STYLES.ghost.solid,
+};
+
 const buttonVariants = cva(
   // Base classes: flex, center, text, cursor, transition
   'inline-flex items-center justify-center gap-2 rounded-2xl font-semibold text-center transition-transform duration-150 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary disabled:cursor-not-allowed disabled:opacity-55 data-[loading=true]:pointer-events-none',
   {
     variants: {
       variant: {
-        primary:
-          'bg-accent-gold text-text-inverse shadow-glow-gold hover:brightness-105 active:scale-[0.97]',
-        secondary:
-          'border border-border-layer bg-layer-strong text-text-primary hover:border-border-layer-strong hover:bg-layer-elevated hover:shadow-elevation-2 active:scale-[0.97]',
-        success:
-          'bg-feedback-success text-text-inverse shadow-glow-lime hover:brightness-105 active:scale-[0.97]',
-        danger:
-          'bg-feedback-error text-text-inverse shadow-lg hover:brightness-110 active:scale-[0.97]',
-        ghost: 'bg-transparent text-text-accent hover:text-text-primary active:scale-[0.97]',
+        primary: buttonVariantStyles.primary,
+        secondary: buttonVariantStyles.secondary,
+        success: buttonVariantStyles.success,
+        danger: buttonVariantStyles.danger,
+        ghost: buttonVariantStyles.ghost,
       },
 
       size: {

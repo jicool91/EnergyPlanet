@@ -126,7 +126,13 @@ function NextUiRouter({ renderHeader }: NextUiRouterProps) {
       onTabSelect={handleTabSelect}
       header={headerNode}
     >
-      <Suspense fallback={<div className="px-4 py-6 text-sm text-text-secondary">Загрузка…</div>}>
+      <Suspense
+        fallback={
+          <Text variant="body" tone="secondary" className="px-4 py-6">
+            Загрузка…
+          </Text>
+        }
+      >
         <Routes>
           <Route path="/" element={<TapScreen />} />
           <Route path="/exchange" element={<ExchangeScreen />} />
@@ -343,7 +349,7 @@ function NextUiApp() {
           <Surface
             tone="overlayMedium"
             border="subtle"
-            shadow="strong"
+            elevation="strong"
             padding="md"
             rounded="3xl"
             className="flex items-center justify-between gap-4"
@@ -406,7 +412,7 @@ function NextUiApp() {
         <Surface
           tone="overlayMedium"
           border="subtle"
-          shadow="strong"
+          elevation="strong"
           padding="md"
           rounded="3xl"
           className="flex items-center justify-between"

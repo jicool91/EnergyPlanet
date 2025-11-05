@@ -1,51 +1,24 @@
 import { forwardRef } from 'react';
-import type { HTMLAttributes } from 'react';
 import clsx from 'clsx';
+import {
+  Surface,
+  type SurfaceProps,
+  type SurfaceTone,
+  type SurfaceBorder,
+  type SurfaceElevation,
+  type SurfacePadding,
+} from './ui/Surface';
 
-/**
- * Card Component
- * Standardized container for content
- * Uses design system: border, shadow, padding, border-radius
- */
-
-export interface CardProps extends HTMLAttributes<HTMLDivElement> {
-  /**
-   * Highlight the card (featured/recommended items)
-   * Adds glow effect and lime border
-   */
+export interface CardProps extends Omit<SurfaceProps, 'children'> {
+  /** Highlight the card with accent ring */
   highlighted?: boolean;
-
-  /**
-   * Badge text for highlighted cards (default: "Featured")
-   */
+  /** Custom badge label for highlighted cards */
   highlightBadge?: string;
-
-  /**
-   * Card variant/style
-   */
+  /** Legacy presets kept for backwards compatibility */
   variant?: 'default' | 'elevated' | 'outlined';
+  children?: SurfaceProps['children'];
 }
 
-/**
- * Card Component
- *
- * @example
- * // Default card
- * <Card>Content here</Card>
- *
- * @example
- * // Highlighted card (featured item)
- * <Card highlighted>
- *   <h3>Featured Building</h3>
- *   <p>This is the best choice!</p>
- * </Card>
- *
- * @example
- * // Elevated card (more shadow)
- * <Card variant="elevated">
- *   Important info
- * </Card>
- */
 export const Card = forwardRef<HTMLDivElement, CardProps>(
   (
     {
@@ -53,34 +26,57 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
       highlighted = false,
       highlightBadge = 'Featured',
       variant = 'default',
+      tone,
+      border,
+      elevation,
+      padding,
+      rounded,
+      interactive,
       children,
       ...props
     },
     ref
   ) => {
-    const baseStyles =
-      'relative overflow-hidden rounded-3xl px-6 py-5 text-text-primary shadow-elevation-3 transition-transform duration-200 ease-out backdrop-blur-sm';
-
-    const variantStyles: Record<NonNullable<CardProps['variant']>, string> = {
-      default: 'border border-border-layer bg-layer-strong',
-      elevated: 'border border-border-layer-strong bg-layer-elevated shadow-elevation-4',
-      outlined: 'border border-border-featured bg-layer-soft backdrop-blur-md',
+    const variantDefaults: Record<
+      NonNullable<CardProps['variant']>,
+      {
+        tone: SurfaceTone;
+        border: SurfaceBorder;
+        elevation: SurfaceElevation;
+      }
+    > = {
+      default: { tone: 'overlay', border: 'subtle', elevation: 'medium' },
+      elevated: { tone: 'overlay', border: 'strong', elevation: 'strong' },
+      outlined: { tone: 'overlay', border: 'accent', elevation: 'soft' },
     };
 
-    const highlightStyles = highlighted ? 'ring-2 ring-accent-gold shadow-glow-gold' : '';
+    const preset = variantDefaults[variant];
+
+    const resolvedTone = tone ?? preset.tone;
+    const resolvedBorder = border ?? preset.border;
+    const resolvedElevation = elevation ?? preset.elevation;
+    const resolvedPadding: SurfacePadding = padding ?? 'lg';
+    const resolvedRadius = rounded ?? '3xl';
+
     const isInteractive =
       typeof props.onClick === 'function' ||
       props.role === 'button' ||
       props.tabIndex !== undefined;
 
+    const highlightStyles = highlighted ? 'ring-2 ring-accent-gold shadow-glow-gold' : '';
+
     return (
-      <div
+      <Surface
         ref={ref}
+        tone={resolvedTone}
+        border={resolvedBorder}
+        elevation={resolvedElevation}
+        padding={resolvedPadding}
+        rounded={resolvedRadius}
+        interactive={interactive ?? isInteractive}
         className={clsx(
-          baseStyles,
-          variantStyles[variant],
+          'relative overflow-hidden text-text-primary backdrop-blur-sm',
           highlightStyles,
-          isInteractive && 'transition-transform hover:-translate-y-0.5 hover:shadow-glow',
           className
         )}
         {...props}
@@ -91,7 +87,7 @@ export const Card = forwardRef<HTMLDivElement, CardProps>(
           </span>
         )}
         {children}
-      </div>
+      </Surface>
     );
   }
 );

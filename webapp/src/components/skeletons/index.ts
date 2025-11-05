@@ -1,4 +1,4 @@
-export { Skeleton } from './Skeleton';
+export { Skeleton } from '@/components/ui/Skeleton';
 export { BuildingSkeleton } from './BuildingSkeleton';
 export { LeaderboardSkeleton } from './LeaderboardSkeleton';
 export { ShopSkeleton } from './ShopSkeleton';

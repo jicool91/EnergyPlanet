@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
+import clsx from 'clsx';
 import { useShallow } from 'zustand/react/shallow';
 import { useCatalogStore } from '../store/catalogStore';
 import { Button } from './Button';
@@ -217,11 +218,11 @@ export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
 
       <div className="flex flex-col gap-md">
         {isBoostHubLoading && filteredItems.length === 0 ? (
-          <div className="p-6 text-center text-token-secondary text-sm">
+          <div className="p-6 text-center text-token-secondary text-body">
             Получаем данные о бустах…
           </div>
         ) : filteredItems.length === 0 ? (
-          <Card className="bg-token-surface-tertiary text-token-secondary text-sm">
+          <Card className="bg-token-surface-tertiary text-token-secondary text-body">
             В этом разделе пока нет бустов. Загляните позже — обновления не заставят себя ждать.
           </Card>
         ) : (

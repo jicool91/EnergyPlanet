@@ -20,7 +20,7 @@ export const EarnTasksBoard = memo(function EarnTasksBoard() {
       <header className="flex items-center justify-between gap-3">
         <div>
           <h2 className="text-heading font-semibold text-text-primary">Задания и бусты</h2>
-          <p className="text-sm text-text-secondary">
+          <p className="text-body text-text-secondary">
             Выполняйте ежедневные миссии, смотрите рекламу или активируйте премиум-бонусы, чтобы
             ускорить прогресс.
           </p>
@@ -41,7 +41,7 @@ export const EarnTasksBoard = memo(function EarnTasksBoard() {
               key={option.id}
               type="button"
               onClick={() => setFilter(option.id)}
-              className={`flex-1 rounded-2xl px-4 py-2 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary ${
+              className={`flex-1 rounded-2xl px-4 py-2 text-body font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary ${
                 isActive
                   ? 'bg-accent-gold/25 text-text-primary'
                   : 'text-text-secondary hover:text-text-primary hover:bg-layer-overlay-ghost'

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Skeleton } from './Skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface BuildingSkeletonProps {
   count?: number;
@@ -20,7 +20,7 @@ export const BuildingSkeleton: React.FC<BuildingSkeletonProps> = ({ count = 3 })
           </div>
 
           {/* Info: Level, Income, Payback */}
-          <div className="flex gap-4 text-xs flex-wrap">
+          <div className="flex gap-4 text-caption flex-wrap">
             <Skeleton width="60px" height={16} variant="text" />
             <Skeleton width="80px" height={16} variant="text" />
             <Skeleton width="70px" height={16} variant="text" />

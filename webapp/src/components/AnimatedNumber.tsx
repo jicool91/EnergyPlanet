@@ -27,14 +27,14 @@ interface AnimatedNumberProps {
  * - Optional delta display ("+500", "-100")
  *
  * Example:
- * <AnimatedNumber value={energy} className="text-2xl text-cyan font-bold" />
+ * <AnimatedNumber value={energy} className="text-heading text-cyan font-bold" />
  */
 export const AnimatedNumber: React.FC<AnimatedNumberProps> = ({
   value,
   className = '',
   duration = 300,
   showDelta = false,
-  deltaClassName = 'text-sm text-lime',
+  deltaClassName = 'text-body text-lime',
   formatter,
   deltaFormatter,
 }) => {

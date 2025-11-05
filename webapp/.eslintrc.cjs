@@ -41,6 +41,11 @@ module.exports = {
           "JSXAttribute[name.name='className'][value.type='Literal'][value.value=/\\b(?:bg|border|shadow|ring|outline)-\\[[^\\]]+\\]/]",
         message: 'Используй дизайн-токен вместо Tailwind arbitrary класса.',
       },
+      {
+        selector:
+          "JSXAttribute[name.name='className'][value.type='Literal'][value.value=/\\btext-(?:xs|sm|base|lg|xl|2xl|3xl|4xl|5xl)\\b/]",
+        message: 'Используй компонент Text и токенизированные размеры (text-body, text-heading и т.д.).',
+      },
     ],
   },
 };

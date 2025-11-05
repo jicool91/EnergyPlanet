@@ -287,7 +287,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       {/* Account Section */}
       <SettingsSection title="Аккаунт" icon="👤">
         {profile ? (
-          <div className="flex flex-col gap-2 text-sm">
+          <div className="flex flex-col gap-2 text-body">
             <div className="flex justify-between">
               <span className="text-token-secondary">Имя:</span>
               <span className="text-token-primary font-medium">
@@ -296,13 +296,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
             </div>
             <div className="flex justify-between">
               <span className="text-token-secondary">ID:</span>
-              <span className="text-token-secondary font-mono text-xs">
+              <span className="text-token-secondary font-mono text-caption">
                 {profile.user.id.slice(0, 8)}...
               </span>
             </div>
           </div>
         ) : (
-          <div className="flex flex-col gap-2 text-sm">
+          <div className="flex flex-col gap-2 text-body">
             <div className="flex justify-between">
               <span className="text-token-secondary">Имя:</span>
               <span className="text-token-primary font-medium">{username || 'Игрок'}</span>
@@ -310,7 +310,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
             {userId && (
               <div className="flex justify-between">
                 <span className="text-token-secondary">ID:</span>
-                <span className="text-token-secondary font-mono text-xs">
+                <span className="text-token-secondary font-mono text-caption">
                   {userId.slice(0, 8)}...
                 </span>
               </div>
@@ -320,15 +320,15 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       </SettingsSection>
 
       {isAdmin && (
-        <Card className="flex flex-col gap-3 border-cyan/40 bg-cyan/5 text-sm">
+        <Card className="flex flex-col gap-3 border-cyan/40 bg-cyan/5 text-body">
           <div className="flex items-center justify-between gap-2">
             <div className="flex flex-col">
-              <span className="text-sm font-semibold text-token-primary">Админ-панель</span>
-              <span className="text-xs text-token-secondary">
+              <span className="text-body font-semibold text-token-primary">Админ-панель</span>
+              <span className="text-caption text-token-secondary">
                 Следите за конверсией upsell, квестов и магазина.
               </span>
             </div>
-            <span className="text-lg" aria-hidden="true">
+            <span className="text-title" aria-hidden="true">
               📊
             </span>
           </div>
@@ -349,7 +349,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       {/* Audio & Sound Section */}
       <SettingsSection title="Звук" icon="🔊" description="Звуковые эффекты игры">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-token-secondary">Звуки включены</span>
+          <span className="text-body text-token-secondary">Звуки включены</span>
           <Toggle enabled={soundEnabled} onChange={setSoundEnabled} />
         </div>
 
@@ -365,13 +365,13 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       {/* Haptic Feedback Section */}
       <SettingsSection title="Вибрация" icon="📳" description="Тактильная обратная связь">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-token-secondary">Вибрация включена</span>
+          <span className="text-body text-token-secondary">Вибрация включена</span>
           <Toggle enabled={hapticEnabled} onChange={setHapticEnabled} />
         </div>
 
         {hapticEnabled && (
           <div className="flex flex-col gap-2">
-            <label className="text-sm font-medium text-token-secondary">Интенсивность</label>
+            <label className="text-body font-medium text-token-secondary">Интенсивность</label>
             <div
               className="grid grid-cols-3 gap-2"
               role="radiogroup"
@@ -400,12 +400,12 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       {/* Notifications Section */}
       <SettingsSection title="Уведомления" icon="🔔" description="Оповещения в игре">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-token-secondary">Уведомления включены</span>
+          <span className="text-body text-token-secondary">Уведомления включены</span>
           <Toggle enabled={notificationsEnabled} onChange={setNotificationsEnabled} />
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-sm text-token-secondary">Push-уведомления</span>
+          <span className="text-body text-token-secondary">Push-уведомления</span>
           <Toggle
             enabled={pushNotificationsEnabled}
             onChange={setPushNotificationsEnabled}
@@ -417,7 +417,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       {/* Display Section */}
       <SettingsSection title="Дисплей" icon="🎨" description="Внешний вид и язык">
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-token-secondary">Тема оформления</label>
+          <label className="text-body font-medium text-token-secondary">Тема оформления</label>
           <div className="grid grid-cols-3 gap-2" role="radiogroup" aria-label="Тема оформления">
             {THEME_OPTIONS.map((mode, index) => (
               <SelectButton
@@ -432,7 +432,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
         </div>
 
         <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium text-token-secondary">Язык</label>
+          <label className="text-body font-medium text-token-secondary">Язык</label>
           <div className="grid grid-cols-2 gap-2" role="radiogroup" aria-label="Выбор языка">
             {LANGUAGE_OPTIONS.map((lang, index) => (
               <SelectButton
@@ -450,7 +450,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       {/* Accessibility Section */}
       <SettingsSection title="Доступность" icon="♿" description="Параметры для комфорта">
         <div className="flex items-center justify-between">
-          <span className="text-sm text-token-secondary">Меньше анимаций</span>
+          <span className="text-body text-token-secondary">Меньше анимаций</span>
           <Toggle enabled={reduceMotion} onChange={setReduceMotion} />
         </div>
       </SettingsSection>
@@ -477,7 +477,9 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
       >
         {confirmLogout ? (
           <>
-            <p className="m-0 text-sm text-red-error">Вы уверены? Это действие нельзя отменить.</p>
+            <p className="m-0 text-body text-red-error">
+              Вы уверены? Это действие нельзя отменить.
+            </p>
             <div className="flex gap-2">
               <Button
                 variant="secondary"
@@ -520,7 +522,7 @@ export const SettingsScreen: React.FC<SettingsScreenProps> = ({ onClose, onShowA
 
       {/* About Section */}
       <SettingsSection title="О приложении" icon="ℹ️">
-        <div className="flex flex-col gap-2 text-xs text-token-secondary">
+        <div className="flex flex-col gap-2 text-caption text-token-secondary">
           <div>Energy Planet v1.0.0</div>
           <div className="text-text-secondary">© 2025 Energy Planet. Все права защищены.</div>
           <div className="flex gap-2 mt-2">

@@ -8,6 +8,7 @@
 // Core UI Components
 export { Button, type ButtonProps } from './Button';
 export { IconButton, type IconButtonProps } from './IconButton';
+export { Panel, type PanelProps } from './Panel';
 export { Card, type CardProps } from './Card';
 export { Input, type InputProps } from './Input';
 export { Badge, type BadgeProps } from './Badge';
@@ -48,7 +49,6 @@ export { CheckmarkAnimation } from './animations/CheckmarkAnimation';
 export { AnimationWrapper } from './animations/AnimationWrapper';
 
 // Skeletons (Loading states)
-export { Skeleton } from './skeletons/Skeleton';
 export { BuildingSkeleton } from './skeletons/BuildingSkeleton';
 export { ShopSkeleton } from './skeletons/ShopSkeleton';
 export { ProfileSkeleton } from './skeletons/ProfileSkeleton';
@@ -87,4 +87,6 @@ export { AnimatedNumber } from './AnimatedNumber';
 export { ErrorBoundary } from './ErrorBoundary';
 export { ProgressBar } from './ui/ProgressBar';
 export { Text } from './ui/Text';
+export { Skeleton, type SkeletonProps } from './ui/Skeleton';
+export { Loader, type LoaderProps } from './ui/Loader';
 export { Surface, type SurfaceProps } from './ui/Surface';

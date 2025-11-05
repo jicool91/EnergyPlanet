@@ -148,6 +148,7 @@ export default {
       fontSize: {
         display: ['48px', { lineHeight: '56px', fontWeight: '700' }],
         heading: ['24px', { lineHeight: '32px', fontWeight: '600' }],
+        hero: ['32px', { lineHeight: '36px', fontWeight: '700' }],
         title: ['20px', { lineHeight: '28px', fontWeight: '700' }],
         subheading: ['16px', { lineHeight: '24px', fontWeight: '600' }],
         body: ['14px', { lineHeight: '20px', fontWeight: '400' }],

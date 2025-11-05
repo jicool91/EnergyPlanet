@@ -67,14 +67,14 @@ export function OfflineSummaryModal({
       <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden space-y-4">
         <section className="flex flex-col gap-2 bg-surface-secondary/70 border border-border-subtle/60 rounded-xl p-4">
           <p className="m-0 text-body text-token-primary font-semibold">Пока вас не было</p>
-          <p className="m-0 text-sm text-token-secondary leading-relaxed">
+          <p className="m-0 text-body text-token-secondary leading-relaxed">
             {durationSec > 0 ? (
               <>Вы были офлайн {formatDuration(durationSec)}.</>
             ) : (
               <>Вы вернулись практически сразу — прогресс почти не копился.</>
             )}
           </p>
-          <ul className="m-0 list-none flex flex-col gap-2 text-sm text-token-secondary">
+          <ul className="m-0 list-none flex flex-col gap-2 text-body text-token-secondary">
             <li className="flex items-center justify-between gap-3">
               <span className="text-token-secondary">Энергия</span>
               <strong className="text-token-primary">+{energyLabel}</strong>
@@ -103,7 +103,7 @@ export function OfflineSummaryModal({
         </section>
 
         {gainedLevels === 0 && (energy > 0 || xp > 0) && (
-          <p className="m-0 text-xs text-token-secondary/80">
+          <p className="m-0 text-caption text-token-secondary/80">
             Уровень не изменился, но накопленная энергия уже добавлена на ваш счёт.
           </p>
         )}
@@ -111,7 +111,7 @@ export function OfflineSummaryModal({
         {capped && (
           <div className="flex flex-col gap-1 bg-orange/15 border border-orange/40 text-orange/90 rounded-xl px-4 py-3">
             <span className="font-semibold text-token-primary">Лимит офлайна достигнут</span>
-            <span className="text-xs uppercase tracking-wide text-orange/80">
+            <span className="text-caption uppercase tracking-wide text-orange/80">
               подключайтесь чаще, чтобы не терять доход
             </span>
           </div>

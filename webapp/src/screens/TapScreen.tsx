@@ -491,7 +491,7 @@ export function TapScreen() {
   if (isLoading && !isInitialized) {
     return (
       <div className="flex h-full w-full items-center justify-center">
-        <p className="text-sm text-text-secondary">Загрузка Energy Planet…</p>
+        <p className="text-body text-text-secondary">Загрузка Energy Planet…</p>
       </div>
     );
   }
@@ -549,22 +549,22 @@ export function TapScreen() {
           <Card className="flex flex-col gap-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm uppercase tracking-[0.12em] text-text-secondary">
+                <p className="text-body uppercase tracking-[0.12em] text-text-secondary">
                   Сообщество
                 </p>
-                <p className="text-lg font-semibold text-text-primary">
+                <p className="text-title font-semibold text-text-primary">
                   {leaderboardTotal.toLocaleString('ru-RU')} игроков онлайн
                 </p>
               </div>
               <button
                 type="button"
                 onClick={handleViewLeaderboard}
-                className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
+                className="rounded-2xl border border-border-layer-strong px-4 py-2 text-body text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
               >
                 Смотреть рейтинг
               </button>
             </div>
-            <p className="text-sm text-text-secondary">
+            <p className="text-body text-text-secondary">
               Тапай быстрее, чтобы обогнать друзей и открыть новые награды.
             </p>
           </Card>

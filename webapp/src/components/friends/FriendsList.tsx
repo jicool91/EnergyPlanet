@@ -2,7 +2,7 @@ import { memo } from 'react';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
 import { Text } from '@/components/ui/Text';
-import { Skeleton } from '@/components/skeletons/Skeleton';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 interface FriendsListProps {
   totalInvites: number;
@@ -87,7 +87,7 @@ export const FriendsList = memo(function FriendsList({
         <button
           type="button"
           onClick={onViewLeaderboard}
-          className="rounded-2xl border border-border-layer bg-layer-soft px-4 py-3 text-left text-sm text-text-primary transition-colors duration-150 hover:bg-layer-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
+          className="rounded-2xl border border-border-layer bg-layer-soft px-4 py-3 text-left text-body text-text-primary transition-colors duration-150 hover:bg-layer-elevated focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
         >
           <Text as="span" variant="body" tone="primary">
             Посмотреть друзей в рейтинге

@@ -150,14 +150,14 @@ export function FriendsScreen() {
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-heading font-semibold text-text-primary">Рейтинг</h1>
-          <p className="text-sm text-text-secondary">
+          <p className="text-body text-text-secondary">
             Следите за прогрессом друзей и поднимайтесь выше в таблице.
           </p>
         </div>
         <button
           type="button"
           onClick={handleOpenShop}
-          className="rounded-2xl bg-accent-gold px-4 py-2 text-sm font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-gold"
+          className="rounded-2xl bg-accent-gold px-4 py-2 text-body font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-gold"
         >
           В магазин бустов
         </button>
@@ -192,7 +192,7 @@ export function FriendsScreen() {
             <button
               type="button"
               onClick={handleRetry}
-              className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
+              className="rounded-2xl border border-border-layer-strong px-4 py-2 text-body text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
             >
               Повторить
             </button>

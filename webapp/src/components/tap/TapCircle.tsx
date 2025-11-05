@@ -51,7 +51,7 @@ export const TapCircle = memo(function TapCircle({
     <div className="flex flex-col items-center gap-4">
       <motion.button
         type="button"
-        className={`relative flex h-40 w-40 flex-col items-center justify-center rounded-full bg-gradient-to-br from-accent-gold via-accent-gold-light to-accent-gold text-4xl font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary ${
+        className={`relative flex h-40 w-40 flex-col items-center justify-center rounded-full bg-gradient-to-br from-accent-gold via-accent-gold-light to-accent-gold text-display font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary ${
           disabled ? 'cursor-not-allowed opacity-70' : 'hover:scale-105 active:scale-95'
         }`}
         onClick={disabled ? undefined : onTap}
@@ -69,10 +69,10 @@ export const TapCircle = memo(function TapCircle({
         <span role="img" aria-hidden="true">
           🌍
         </span>
-        <span className="mt-1 text-base font-semibold">Tap!</span>
+        <span className="mt-1 text-body font-semibold">Tap!</span>
       </motion.button>
 
-      <div className="flex items-center gap-3 text-sm text-text-secondary">
+      <div className="flex items-center gap-3 text-body text-text-secondary">
         <span className="flex items-center gap-1 rounded-full border border-border-layer-strong px-3 py-1 text-text-primary shadow-elevation-2">
           <span aria-hidden="true">⚙️</span>
           Tap Lv {tapLevel}

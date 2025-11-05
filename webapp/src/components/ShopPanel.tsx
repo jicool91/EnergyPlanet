@@ -654,7 +654,7 @@ export function ShopPanel({
             tabIndex={isActive ? 0 : -1}
             onKeyDown={event => handleSectionKeyDown(event, index)}
             type="button"
-            className={`flex-1 min-w-[120px] rounded-xl px-sm-plus py-xs-plus text-sm font-semibold transition-all duration-150 focus-ring ${
+            className={`flex-1 min-w-[120px] rounded-xl px-sm-plus py-xs-plus text-body font-semibold transition-all duration-150 focus-ring ${
               isActive
                 ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/45 to-accent-magenta/55 text-text-primary shadow-glow'
                 : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
@@ -674,7 +674,7 @@ export function ShopPanel({
           <div className="flex flex-col gap-sm">
             {breadcrumbLabel ? (
               <div
-                className="inline-flex w-fit items-center gap-xs rounded-full border border-tag-accent-border bg-state-cyan-pill-glow px-sm-plus py-xs-plus text-xs font-semibold text-text-secondary"
+                className="inline-flex w-fit items-center gap-xs rounded-full border border-tag-accent-border bg-state-cyan-pill-glow px-sm-plus py-xs-plus text-caption font-semibold text-text-secondary"
                 role="status"
                 aria-live="polite"
               >
@@ -683,28 +683,28 @@ export function ShopPanel({
             ) : null}
             <div className="flex flex-wrap items-start justify-between gap-md">
               <div className="flex flex-col gap-xs max-w-[540px]">
-                <h2 className="m-0 text-2xl font-bold text-text-primary">{heroTitle}</h2>
-                <p className="m-0 text-sm text-text-secondary">{sectionSubtitle}</p>
+                <h2 className="m-0 text-heading font-bold text-text-primary">{heroTitle}</h2>
+                <p className="m-0 text-body text-text-secondary">{sectionSubtitle}</p>
                 {sectionHelper ? (
-                  <p className="m-0 text-xs text-text-secondary/80">{sectionHelper}</p>
+                  <p className="m-0 text-caption text-text-secondary/80">{sectionHelper}</p>
                 ) : null}
               </div>
               {activeSection === 'star_packs' && featuredVisiblePack ? (
                 <div className="flex items-center gap-sm rounded-2xl border border-accent-gold/50 bg-layer-overlay-strong px-md py-sm shadow-glow-gold">
                   <div className="flex flex-col gap-xs">
-                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-text-secondary">
+                    <span className="text-caption font-semibold uppercase tracking-[0.12em] text-text-secondary">
                       Рекомендуем сегодня
                     </span>
-                    <span className="text-sm font-semibold text-text-primary">
+                    <span className="text-body font-semibold text-text-primary">
                       {featuredVisiblePack.title}
                     </span>
-                    <span className="text-xs text-text-secondary">
+                    <span className="text-caption text-text-secondary">
                       +{featuredVisiblePack.bonus_stars ?? 0} бонусных ⭐ внутри
                     </span>
                   </div>
                   <button
                     onClick={() => handleStarPackSectionChange('bundles')}
-                    className="rounded-full border border-accent-gold/70 bg-accent-gold/20 px-sm-plus py-xs-plus text-xs font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-layer-overlay-strong"
+                    className="rounded-full border border-accent-gold/70 bg-accent-gold/20 px-sm-plus py-xs-plus text-caption font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-layer-overlay-strong"
                     type="button"
                   >
                     Смотреть
@@ -721,7 +721,7 @@ export function ShopPanel({
         <div className="flex flex-col gap-sm">
           {breadcrumbLabel ? (
             <div
-              className="inline-flex w-fit items-center gap-xs rounded-full border border-tag-accent-border bg-state-cyan-pill-glow px-sm-plus py-xs-plus text-xs font-semibold text-text-secondary"
+              className="inline-flex w-fit items-center gap-xs rounded-full border border-tag-accent-border bg-state-cyan-pill-glow px-sm-plus py-xs-plus text-caption font-semibold text-text-secondary"
               role="status"
               aria-live="polite"
             >
@@ -765,7 +765,7 @@ export function ShopPanel({
                   onClick={() => handleStarPackSectionChange(tab.id)}
                   role="tab"
                   aria-selected={isActive}
-                  className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-xl px-sm-plus py-xs-plus text-sm font-semibold transition-all duration-150 focus-ring ${
+                  className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-xl px-sm-plus py-xs-plus text-body font-semibold transition-all duration-150 focus-ring ${
                     isActive
                       ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
                       : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
@@ -777,7 +777,7 @@ export function ShopPanel({
             })}
           </nav>
           <div className="rounded-2xl border border-tag-accent-border bg-surface-glass-strong p-md shadow-glow">
-            <p className="m-0 text-sm font-semibold text-text-primary">{starPackBannerText}</p>
+            <p className="m-0 text-body font-semibold text-text-primary">{starPackBannerText}</p>
           </div>
           {featuredVisiblePack && !isStarPacksLoading && (
             <Card className="relative flex flex-col md:flex-row gap-4 overflow-hidden rounded-2xl border border-accent-gold/60 bg-gradient-holographic shadow-glow-gold">
@@ -924,7 +924,7 @@ export function ShopPanel({
                 ))}
               </div>
             ) : activeStarPackSection === 'bundles' ? (
-              <Card className="text-sm text-token-secondary bg-token-surface-tertiary border-token-subtle">
+              <Card className="text-body text-token-secondary bg-token-surface-tertiary border-token-subtle">
                 <h3 className="m-0 text-body text-token-primary">{BUNDLE_PLACEHOLDER.title}</h3>
                 <p className="m-0 mt-2 text-caption text-token-secondary">
                   {BUNDLE_PLACEHOLDER.description}
@@ -934,7 +934,7 @@ export function ShopPanel({
                 </p>
               </Card>
             ) : (
-              <Card className="text-sm text-token-secondary bg-token-surface-tertiary border-token-subtle">
+              <Card className="text-body text-token-secondary bg-token-surface-tertiary border-token-subtle">
                 В этом разделе пока нет предложений. Следите за новостями, чтобы не пропустить
                 свежие пакеты.
               </Card>
@@ -1115,7 +1115,7 @@ export function ShopPanel({
             aria-label="Категории косметики"
           >
             {categories.length === 0 && !isCosmeticsLoading && (
-              <Card className="flex-1 text-sm text-token-secondary bg-token-surface-tertiary border-token-subtle">
+              <Card className="flex-1 text-body text-token-secondary bg-token-surface-tertiary border-token-subtle">
                 Косметика откроется после уровня 5. Продолжайте улучшать здания и активируйте бусты,
                 чтобы увидеть новые стили планеты.
               </Card>

@@ -1,4 +1,5 @@
 import { mainButton, themeParams } from '@tma.js/sdk';
+import { getActionToneHex, type ActionTone } from '@/components/ui/actionTheme';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
 
 type MainButtonOptions = {
@@ -9,6 +10,7 @@ type MainButtonOptions = {
   disabled?: boolean;
   showProgress?: boolean;
   keepVisibleOnUnmount?: boolean;
+  tone?: ActionTone;
 };
 
 const activeHandlers = new Set<() => void>();
@@ -28,6 +30,11 @@ function resolveButtonColors(options: MainButtonOptions): {
   background: `#${string}` | null;
   foreground: `#${string}` | null;
 } {
+  if (options.tone) {
+    const { background, foreground } = getActionToneHex(options.tone);
+    return { background, foreground };
+  }
+
   let themeBg: string | undefined;
   let themeFg: string | undefined;
 

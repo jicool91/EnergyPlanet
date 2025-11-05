@@ -118,19 +118,19 @@ export function ProfilePanel() {
               {referralStats.total_invites}
             </strong>
             {referralStats.daily_invites_limit ? (
-              <span className="text-xs text-token-secondary">
+              <span className="text-caption text-token-secondary">
                 Сегодня: {referralStats.daily_invites_used}/{referralStats.daily_invites_limit}
               </span>
             ) : (
-              <span className="text-xs text-token-secondary">Без лимита сегодня</span>
+              <span className="text-caption text-token-secondary">Без лимита сегодня</span>
             )}
           </Card>
         )}
       </section>
 
       {referralStats?.referred_by && (
-        <Card className="flex flex-col gap-xs text-sm border border-border-magenta bg-gradient-to-r from-accent-magenta/40 via-layer-overlay-strong to-accent-cyan/40">
-          <span className="text-xs uppercase tracking-[0.12em] text-text-secondary">
+        <Card className="flex flex-col gap-xs text-body border border-border-magenta bg-gradient-to-r from-accent-magenta/40 via-layer-overlay-strong to-accent-cyan/40">
+          <span className="text-caption uppercase tracking-[0.12em] text-text-secondary">
             Вас пригласил
           </span>
           <span className="text-token-primary font-medium">

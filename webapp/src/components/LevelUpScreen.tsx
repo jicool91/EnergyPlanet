@@ -271,7 +271,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                 {[...Array(8)].map((_, i) => (
                   <motion.div
                     key={i}
-                    className="absolute text-3xl"
+                    className="absolute text-hero"
                     initial={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: prefersReducedMotion ? 1 : 0 }}
@@ -313,13 +313,13 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                 id="levelup-title"
               >
                 <motion.h1
-                  className="m-0 text-5xl font-black text-lime tracking-wider"
+                  className="m-0 text-display font-black text-lime tracking-wider"
                   variants={textVariants.item}
                 >
                   УРОВЕНЬ
                 </motion.h1>
                 <motion.h1
-                  className="m-0 text-5xl font-black text-lime tracking-wider"
+                  className="m-0 text-display font-black text-lime tracking-wider"
                   variants={textVariants.item}
                 >
                   ПОВЫШЕН!
@@ -353,7 +353,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
               <motion.button
                 ref={primaryActionRef}
                 type="button"
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan to-lime text-dark-bg font-semibold text-base shadow-lg focus-ring"
+                className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan to-lime text-dark-bg font-semibold text-body shadow-lg focus-ring"
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
                 onClick={onDismiss}

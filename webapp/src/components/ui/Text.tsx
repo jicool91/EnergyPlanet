@@ -4,6 +4,7 @@ import clsx from 'clsx';
 
 export type TextVariant =
   | 'display'
+  | 'hero'
   | 'heading'
   | 'title'
   | 'body'
@@ -29,6 +30,7 @@ type TextTransform = 'none' | 'uppercase' | 'capitalize';
 
 const VARIANT_CLASS: Record<TextVariant, string> = {
   display: 'text-display',
+  hero: 'text-hero',
   heading: 'text-heading',
   title: 'text-title',
   body: 'text-body',
