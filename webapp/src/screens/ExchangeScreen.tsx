@@ -59,7 +59,7 @@ export function ExchangeScreen() {
   return (
     <div className="flex flex-col gap-4">
       <nav
-        className="flex gap-2 rounded-3xl border border-[rgba(255,255,255,0.08)] bg-[rgba(25,28,34,0.72)] p-2"
+        className="flex gap-2 rounded-3xl border border-border-layer bg-layer-overlay-soft p-2"
         aria-label="Навигация магазина"
       >
         {EXCHANGE_TABS.map(tab => {
@@ -71,8 +71,8 @@ export function ExchangeScreen() {
               onClick={() => handleTabChange(tab.id)}
               className={`flex-1 rounded-2xl px-4 py-3 text-sm font-semibold transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)] ${
                 isActive
-                  ? 'bg-[rgba(243,186,47,0.18)] text-[var(--color-text-primary)] shadow-[0_12px_28px_rgba(243,186,47,0.25)]'
-                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-[rgba(255,255,255,0.05)]'
+                  ? 'bg-state-accent-pill text-[var(--color-text-primary)] shadow-[0_12px_28px_rgba(243,186,47,0.25)]'
+                  : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-layer-overlay-ghost'
               }`}
               aria-pressed={isActive}
             >
@@ -98,7 +98,7 @@ export function ExchangeScreen() {
             <button
               type="button"
               onClick={openAdminMetrics}
-              className="self-end rounded-2xl border border-[rgba(74,222,128,0.32)] px-4 py-2 text-sm text-[var(--color-success)] transition-colors duration-150 hover:bg-[rgba(74,222,128,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-success)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+              className="self-end rounded-2xl border border-state-success-pill-strong px-4 py-2 text-sm text-[var(--color-success)] transition-colors duration-150 hover:bg-state-success-pill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-success)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
             >
               Админ. метрики
             </button>

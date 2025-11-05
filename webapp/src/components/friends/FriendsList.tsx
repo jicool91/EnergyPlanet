@@ -43,12 +43,12 @@ export const FriendsList = memo(function FriendsList({
         aria-live="polite"
         aria-busy="true"
       >
-        <div className="h-4 w-1/3 rounded bg-[rgba(255,255,255,0.12)]" />
+        <div className="h-4 w-1/3 rounded bg-layer-overlay-ghost-soft" />
         <div className="flex gap-3">
-          <div className="h-16 flex-1 rounded bg-[rgba(255,255,255,0.12)]" />
-          <div className="h-16 flex-1 rounded bg-[rgba(255,255,255,0.12)]" />
+          <div className="h-16 flex-1 rounded bg-layer-overlay-ghost-soft" />
+          <div className="h-16 flex-1 rounded bg-layer-overlay-ghost-soft" />
         </div>
-        <div className="h-10 w-32 rounded-full bg-[rgba(255,255,255,0.12)]" />
+        <div className="h-10 w-32 rounded-full bg-layer-overlay-ghost-soft" />
       </Card>
     );
   }

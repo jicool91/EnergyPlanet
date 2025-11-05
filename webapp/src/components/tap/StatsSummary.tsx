@@ -50,7 +50,7 @@ export const StatsSummary = memo(function StatsSummary({
           <span className="text-sm uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
             Текущие показатели
           </span>
-          <span className="rounded-full bg-[rgba(255,255,255,0.08)] px-3 py-1 text-xs text-[var(--color-text-secondary)]">
+          <span className="rounded-full bg-layer-overlay-ghost-soft px-3 py-1 text-xs text-[var(--color-text-secondary)]">
             Лучшая серия: {bestStreak}
           </span>
         </header>
@@ -74,7 +74,7 @@ export const StatsSummary = memo(function StatsSummary({
             </span>
           </div>
         </div>
-        <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-4 py-3">
+        <div className="rounded-2xl border border-border-layer bg-layer-overlay-ghost px-4 py-3">
           <p className="text-sm font-semibold text-[var(--color-text-primary)]">
             {multiplierLabel}
           </p>
@@ -83,10 +83,10 @@ export const StatsSummary = memo(function StatsSummary({
           </p>
         </div>
         <div className="flex items-center gap-3 text-sm text-[var(--color-text-secondary)]">
-          <span className="rounded-full border border-[rgba(255,255,255,0.12)] px-3 py-1">
+          <span className="rounded-full border border-border-layer-strong px-3 py-1">
             Серия {streakCount}
           </span>
-          <span className="rounded-full border border-[rgba(255,255,255,0.12)] px-3 py-1">
+          <span className="rounded-full border border-border-layer-strong px-3 py-1">
             Множитель ×{prestigeMultiplier.toFixed(2)}
           </span>
         </div>
@@ -128,7 +128,7 @@ export const StatsSummary = memo(function StatsSummary({
             До следующего улучшения: {formatNumber(prestigeEnergyToNext)}
           </span>
         </div>
-        <div className="rounded-2xl border border-[rgba(74,222,128,0.35)] bg-[rgba(74,222,128,0.1)] px-4 py-3 text-sm text-[var(--color-success)]">
+        <div className="rounded-2xl border border-state-success-pill-strong bg-state-success-pill px-4 py-3 text-sm text-[var(--color-success)]">
           Потенциальный множитель: +{prestigeGainAvailable.toFixed(2)}×
         </div>
       </Card>

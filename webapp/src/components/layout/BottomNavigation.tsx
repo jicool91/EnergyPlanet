@@ -36,7 +36,7 @@ export const BottomNavigation = memo(function BottomNavigation({
         className="pointer-events-auto w-full max-w-xl px-4"
         style={{ paddingBottom: `${paddingBottom}px` }}
       >
-        <div className="flex items-center justify-between rounded-[28px] border border-[rgba(255,255,255,0.06)] bg-[rgba(20,22,28,0.85)] px-2 py-2 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-md">
+        <div className="flex items-center justify-between rounded-[28px] border border-border-layer bg-layer-overlay-strong px-2 py-2 shadow-[0_12px_32px_rgba(0,0,0,0.35)] backdrop-blur-md">
           {tabs.map(tab => {
             const isActive = tab.id === activeTab;
             const badgeContent = tab.badge && tab.badge > 0 ? tab.badge : null;
@@ -49,8 +49,8 @@ export const BottomNavigation = memo(function BottomNavigation({
                 className={clsx(
                   'flex h-14 w-14 flex-col items-center justify-center rounded-2xl text-xs font-medium transition-all duration-150 will-change-transform focus-outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-accent-gold)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]',
                   isActive
-                    ? 'bg-[rgba(243,186,47,0.14)] text-[var(--color-accent-gold)]'
-                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                    ? 'bg-state-accent-pill text-[var(--color-accent-gold)]'
+                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] hover:bg-layer-overlay-ghost-soft'
                 )}
                 aria-current={isActive ? 'page' : undefined}
                 aria-label={tab.label}

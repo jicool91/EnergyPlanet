@@ -5,6 +5,12 @@ import '@/index.css';
 
 const PreviewApp = () => {
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const theme = params.get('theme');
+    if (theme === 'light') {
+      document.documentElement.style.colorScheme = 'light';
+      document.documentElement.dataset.previewTheme = 'light';
+    }
     document.body.style.background = 'var(--color-bg-primary)';
   }, []);
 

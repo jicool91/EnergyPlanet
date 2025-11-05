@@ -344,7 +344,7 @@ function NextUiApp() {
 
       if (activeTab === 'tap') {
         return (
-          <div className="flex items-center justify-between gap-4 rounded-3xl border border-[rgba(255,255,255,0.06)] bg-[rgba(20,22,28,0.72)] px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.38)]">
+          <div className="flex items-center justify-between gap-4 rounded-3xl border border-border-layer bg-layer-overlay-medium px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.38)]">
             <div className="flex flex-col gap-1">
               <span className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-text-accent)]">
                 Уровень {level}
@@ -372,7 +372,7 @@ function NextUiApp() {
               <button
                 type="button"
                 onClick={() => navigate('/earn')}
-                className="rounded-2xl border border-[rgba(255,255,255,0.12)] px-4 py-2 text-sm text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+                className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
               >
                 Профиль
               </button>
@@ -380,7 +380,7 @@ function NextUiApp() {
                 <button
                   type="button"
                   onClick={openAdminMetrics}
-                  className="rounded-2xl border border-[rgba(74,222,128,0.35)] px-4 py-2 text-sm text-[var(--color-success)] transition-colors duration-150 hover:bg-[rgba(74,222,128,0.1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-success)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+                  className="rounded-2xl border border-state-success-pill-strong px-4 py-2 text-sm text-[var(--color-success)] transition-colors duration-150 hover:bg-state-success-pill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-success)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
                 >
                   Admin
                 </button>
@@ -399,14 +399,14 @@ function NextUiApp() {
       };
 
       return (
-        <div className="flex items-center justify-between rounded-3xl border border-[rgba(255,255,255,0.06)] bg-[rgba(20,22,28,0.72)] px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.38)]">
+        <div className="flex items-center justify-between rounded-3xl border border-border-layer bg-layer-overlay-medium px-4 py-3 shadow-[0_16px_40px_rgba(0,0,0,0.38)]">
           <span className="text-lg font-semibold text-[var(--color-text-primary)]">
             {titleMap[activeTab]}
           </span>
           <button
             type="button"
             onClick={() => navigate('/')}
-            className="rounded-2xl border border-[rgba(255,255,255,0.12)] px-4 py-2 text-sm text-[var(--color-text-secondary)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+            className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-[var(--color-text-secondary)] transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
           >
             На Tap
           </button>

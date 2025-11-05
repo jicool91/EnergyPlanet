@@ -34,5 +34,13 @@ module.exports = {
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
     'prettier/prettier': 'error',
+    'no-restricted-syntax': [
+      'warn',
+      {
+        selector:
+          "JSXAttribute[name.name='className'][value.type='Literal'][value.value=/\\b(?:bg|border|shadow|ring|outline)-\\[[^\\]]+\\]/]",
+        message: 'Используй дизайн-токен вместо Tailwind arbitrary класса.',
+      },
+    ],
   },
 };

@@ -59,15 +59,15 @@ function PurchaseInsightCard({
   const priceBadgeClass = clsx(
     'px-3 py-1 text-xs',
     isDualAccent
-      ? 'rounded-full bg-[rgba(45,226,255,0.28)] text-[var(--color-text-primary)]'
-      : 'rounded-full bg-[rgba(255,255,255,0.08)] text-[var(--color-text-secondary)]'
+      ? 'rounded-full bg-state-cyan-pill-strong text-[var(--color-text-primary)]'
+      : 'rounded-full bg-layer-overlay-ghost-soft text-[var(--color-text-secondary)]'
   );
 
   const infoCardClass = clsx(
     'rounded-2xl border px-4 py-3 text-sm',
     isDualAccent
       ? 'border-state-card-highlight-border/70 bg-[var(--surface-dual-highlight-soft)] text-[var(--color-text-primary)]'
-      : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] text-[var(--color-text-secondary)]'
+      : 'border-border-layer bg-layer-overlay-ghost text-[var(--color-text-secondary)]'
   );
 
   const secondaryTextClass = isDualAccent
@@ -556,7 +556,7 @@ export function TapScreen() {
               <button
                 type="button"
                 onClick={handleViewLeaderboard}
-                className="rounded-2xl border border-[rgba(255,255,255,0.12)] px-4 py-2 text-sm text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-[rgba(255,255,255,0.06)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
+                className="rounded-2xl border border-border-layer-strong px-4 py-2 text-sm text-[var(--color-text-primary)] transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-text-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]"
               >
                 Смотреть рейтинг
               </button>

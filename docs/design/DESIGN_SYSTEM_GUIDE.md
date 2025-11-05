@@ -23,6 +23,8 @@ Updated: 5 Nov 2025
   - Provide light-mode overrides where Telegram supplies alternate values.
   - Document every addition with usage notes inside `tokens.css`.
 - **Gradient usage:** reserve holographic gradients for prestige/legendary states; keep primary CTAs in solid accent colors for contrast compliance.citeturn8search0
+- **Overlay tokens:** используем новые токены `--layer-overlay-*`, `--surface-glass*`, `--state-*-pill` для всех полупрозрачных backdrops, чтобы убрать `bg-[rgba(...)]` и обеспечить единую адаптацию к light/dark.
+- **Lint guard:** ESLint `no-restricted-syntax` теперь предупреждает об arbitrary Tailwind цветах (`bg-[...]`, `border-[...]` и т.д.); конвертируйте такие классы в дизайн-токены. Проверку типографики подключим на следующем этапе.
 - **Dual-accent palette:** `--color-accent-cyan`, `--color-accent-magenta`, и `--gradient-ai`/`--gradient-soft` обеспечивают второй акцент для ROI/бустов — подключайте их через Tailwind (`bg-accent-cyan`, `bg-gradient-ai`).
 - **Новые ключи платформы:** расширяйте `TELEGRAM_THEME_VARIABLES` (`utils/telegramTheme.ts`) под `tertiary_bg_color`, `text_color_contrast` и другие обновления v6.10.citeturn14search2
 

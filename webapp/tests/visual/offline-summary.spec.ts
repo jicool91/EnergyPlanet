@@ -22,4 +22,14 @@ test.describe('Offline summary modal', () => {
       maxDiffPixelRatio: 0.02,
     });
   });
+
+  test('respects light color scheme overrides', async ({ page }) => {
+    await page.emulateMedia({ colorScheme: 'light' });
+    await page.goto(ROUTE + '?theme=light', { waitUntil: 'networkidle' });
+    await waitForFonts(page);
+    await expect(page.getByRole('dialog', { name: 'Возврат офлайн' })).toBeVisible();
+    await expect(page).toHaveScreenshot('offline-summary.light.png', {
+      maxDiffPixelRatio: 0.02,
+    });
+  });
 });
