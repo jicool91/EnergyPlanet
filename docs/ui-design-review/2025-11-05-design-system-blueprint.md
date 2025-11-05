@@ -58,7 +58,7 @@
 4. ✅ Typography: классические `text-*` заменены на `Text` + токены, добавлено eslint-правило против legacy размеров.
 
 ### Этап C — Паттерны (2 недели)
-1. ✅ Economy: обновлены `StatsSummary` и `PurchaseInsight` в Tap, остальное следует унифицировать в том же ключе.
+1. ✅ Economy: `StatsSummary`, `PurchaseInsight`, `LeaderboardPanel` и `ExchangeScreen` собраны на Surface/Panel, actionTheme и Text; осталось пройти QA empty/error-сценариев и зафиксировать метрики.
 2. Shop/Product: построить `ProductTile`, унифицировать `ShopPanel`, `PurchaseSuccessModal`.
 3. Modals/Feedback: привести `AchievementsModal`, `OfflineSummaryModal`, `Toast` к единому layout.
 
@@ -73,7 +73,7 @@
 3. Создать Jira epic «Design System Unification» с задачами по этапам.
 
 ## 4. Инвентаризация текущих расхождений (snapshot)
-- Typography drift: ~120 случаев `text-lg`, `text-sm` в компонентах (LeaderboardPanel, BottomNavigation, Toast) — требуется миграция на `Text` variants.
+- Typography drift: ~120 случаев `text-lg`, `text-sm` в компонентах (BottomNavigation, Toast) — требуется миграция на `Text` variants.
 - Inline colors: `bg-[rgba(...)]`/`border-[rgba(...)]` в Friends/Tap/Shop — перенести в токены.
 - Skeleton variance: разные `animate-pulse` без ARIA, нет общего компонента.
 - Light mode coverage: нет визуальных тестов и документации для светлой темы.

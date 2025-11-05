@@ -1,19 +1,22 @@
 import { useEffect, useMemo, useRef, useCallback, useReducer } from 'react';
+import clsx from 'clsx';
 import { motion } from 'framer-motion';
+import { useShallow } from 'zustand/react/shallow';
 import { useGameStore } from '../store/gameStore';
 import { LeaderboardSkeleton, ErrorBoundary } from './skeletons';
-import { Card } from './Card';
+import { Panel } from './Panel';
+import { Surface } from './ui/Surface';
+import { Text } from './ui/Text';
+import { Badge } from './Badge';
+import { Button } from './Button';
 import { formatCompactNumber } from '../utils/number';
 import { logClientEvent } from '@/services/telemetry';
-import { useShallow } from 'zustand/react/shallow';
-import { Button } from './Button';
 import { canShowCap, consumeCap } from '@/utils/frequencyCap';
 
-// Medal emojis for top 3
 const MEDAL_MAP: Record<number, { icon: string; label: string }> = {
-  1: { icon: '🥇', label: 'First place' },
-  2: { icon: '🥈', label: 'Second place' },
-  3: { icon: '🥉', label: 'Third place' },
+  1: { icon: '🥇', label: 'Первое место' },
+  2: { icon: '🥈', label: 'Второе место' },
+  3: { icon: '🥉', label: 'Третье место' },
 };
 
 interface LeaderboardPanelProps {
@@ -40,6 +43,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
       userId: state.userId,
     }))
   );
+
   const [, forceLeaderboardCapRefresh] = useReducer((state: number) => state + 1, 0);
   const leaderboardCtaAllowed = canShowCap('leaderboard_shop_cta', { limit: 2 });
 
@@ -70,7 +74,6 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
 
   const rows = useMemo(() => leaderboard.slice(0, 100), [leaderboard]);
 
-  // Calculate energy difference to next player
   const rowsWithDiff = useMemo(
     () =>
       rows.map((entry, index) => {
@@ -90,7 +93,6 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
     [rows]
   );
 
-  // Calculate player progress in leaderboard (what percentage is their rank)
   const userRankProgress = userLeaderboardEntry
     ? Math.max(0, 100 - (userLeaderboardEntry.rank / leaderboardTotal) * 100)
     : 0;
@@ -159,69 +161,108 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
 
   if (leaderboardError) {
     return (
-      <div className="flex flex-col gap-md" role="alert">
-        <Card className="flex items-start gap-sm-plus bg-state-danger-pill border-state-danger-pill text-feedback-error">
-          <span className="text-heading" role="img" aria-label="Leaderboard error">
+      <Panel
+        variant="muted"
+        tone="overlayStrong"
+        border="accent"
+        spacing="sm"
+        role="alert"
+        aria-live="assertive"
+        className="text-text-primary"
+      >
+        <div className="flex items-start gap-sm">
+          <Text as="span" variant="title" aria-hidden="true">
             ❌
-          </span>
-          <div>
-            <p className="m-0 mb-sm font-semibold text-token-primary">
+          </Text>
+          <div className="flex flex-col gap-xs">
+            <Text as="p" variant="body" weight="semibold" className="m-0">
               Не удалось получить рейтинг
-            </p>
-            <small className="text-text-secondary">{leaderboardError}</small>
+            </Text>
+            <Text as="p" variant="bodySm" tone="secondary" className="m-0">
+              {leaderboardError}
+            </Text>
           </div>
-        </Card>
-      </div>
+        </div>
+      </Panel>
     );
   }
 
   if (rows.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center gap-md text-center text-token-secondary">
-        <p>Ещё никто не попал в рейтинг. Будь первым!</p>
-      </div>
+      <Panel tone="overlay" border="subtle" spacing="md" className="items-center text-center">
+        <Text variant="body" tone="secondary">
+          Таблица пустая — станьте первым, кто произведёт энергию и попадёт в топ!
+        </Text>
+      </Panel>
     );
   }
 
   return (
-    <div className="flex flex-col gap-md text-token-primary">
-      {/* Header */}
-      <div className="flex items-center justify-between gap-sm-plus">
-        <h3 className="m-0 text-heading font-semibold">Топ игроков</h3>
-        <span className="text-caption text-text-secondary">
-          Всего: {leaderboardTotal.toLocaleString()}
-        </span>
-      </div>
+    <Panel
+      tone="overlayStrong"
+      border="subtle"
+      elevation="medium"
+      spacing="lg"
+      className="text-text-primary"
+    >
+      <header className="flex flex-col gap-xs sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-xs">
+          <Text as="h2" variant="title" weight="semibold" className="m-0">
+            Топ игроков
+          </Text>
+          <Text variant="caption" tone="secondary" className="m-0">
+            Обновляем лидерборд каждые 10 минут, значения приводятся в энергиях (E).
+          </Text>
+        </div>
+        <Text as="span" variant="caption" tone="secondary">
+          Всего: {leaderboardTotal.toLocaleString('ru-RU')}
+        </Text>
+      </header>
 
-      {/* User Rank Progress (if user exists) */}
       {userLeaderboardEntry && (
-        <Card className="relative overflow-hidden rounded-2xl border border-border-cyan bg-surface-glass-strong shadow-glow">
-          <div className="absolute inset-0 bg-gradient-soft opacity-40" aria-hidden />
-          <div className="relative flex flex-col gap-md">
-            <div className="flex flex-wrap items-start justify-between gap-sm-plus">
-              <div className="flex flex-col gap-xs">
-                <span className="inline-flex items-center gap-xs rounded-full bg-layer-overlay-ghost-strong px-sm py-xs text-label uppercase text-white/70">
+        <Panel
+          variant="accent"
+          tone="accent"
+          border="accent"
+          elevation="medium"
+          spacing="md"
+          className="relative overflow-hidden text-text-inverse"
+        >
+          <div
+            className="pointer-events-none absolute inset-0 bg-gradient-to-r from-accent-cyan/30 via-feedback-success/25 to-accent-magenta/30 opacity-90"
+            aria-hidden="true"
+          />
+          <div className="relative flex flex-col gap-lg">
+            <div className="flex flex-wrap items-start justify-between gap-md">
+              <div className="flex flex-col gap-sm">
+                <Badge
+                  variant="primary"
+                  size="sm"
+                  className="bg-white/12 text-text-inverse border-white/20 font-medium uppercase tracking-[0.14em]"
+                >
                   Ваша позиция
-                </span>
-                <h3 className="m-0 text-title font-bold text-white">
-                  #{userLeaderboardEntry.rank} из {leaderboardTotal}
-                </h3>
-                <p className="m-0 text-body-sm text-white/75">
+                </Badge>
+                <Text as="p" variant="hero" weight="bold" className="m-0">
+                  #{userLeaderboardEntry.rank} из {leaderboardTotal.toLocaleString('ru-RU')}
+                </Text>
+                <Text as="p" variant="body" tone="inverse" className="m-0 opacity-80">
                   {userEnergyDiffDisplay
-                    ? `До следующего места осталось ${userEnergyDiffDisplay} E`
+                    ? `До следующего места: ${userEnergyDiffDisplay} E`
                     : 'Вы на вершине рейтинга — так держать!'}
-                </p>
+                </Text>
               </div>
-              <div className="text-right">
-                <span className="block text-label uppercase text-white/60">Top</span>
-                <span className="block text-heading font-bold text-white">
+              <div className="flex flex-col items-end gap-xs">
+                <Text variant="label" tone="inverse" transform="uppercase" className="opacity-70">
+                  Прогресс
+                </Text>
+                <Text variant="heading" weight="bold" tone="inverse">
                   {Math.round(userRankProgress)}%
-                </span>
+                </Text>
               </div>
             </div>
 
             <div className="flex flex-col gap-sm">
-              <div className="h-3 rounded-full bg-layer-overlay-ghost-soft shadow-inner">
+              <div className="h-3 rounded-full bg-white/15">
                 <motion.div
                   className="h-full rounded-full bg-gradient-to-r from-accent-cyan via-feedback-success to-accent-gold shadow-glow"
                   initial={{ width: 0 }}
@@ -229,47 +270,52 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                   transition={{ duration: 0.8, ease: 'easeOut' }}
                 />
               </div>
-              <div className="flex flex-wrap items-center justify-between gap-sm text-body-sm text-white/75">
-                <span>Всего игроков: {leaderboardTotal.toLocaleString()}</span>
-                <span>Текущая энергия: {userLeaderboardRow?.energyDisplay}</span>
+              <div className="flex flex-wrap items-center justify-between gap-sm">
+                <Text variant="caption" tone="inverse" className="opacity-80">
+                  Всего игроков: {leaderboardTotal.toLocaleString('ru-RU')}
+                </Text>
+                <Text variant="caption" tone="inverse" className="opacity-80">
+                  Текущая энергия: {userLeaderboardRow?.energyDisplay ?? '—'}
+                </Text>
               </div>
             </div>
 
             {showShopCta && (
               <div className="flex flex-wrap items-center justify-between gap-sm">
-                <span className="text-body-sm text-white/70">
-                  Усилитесь, чтобы обойти соперников
-                </span>
-                <Button
-                  size="sm"
-                  variant="primary"
-                  className="shadow-glow"
-                  onClick={handleShopCtaClick}
-                >
+                <Text variant="bodySm" tone="inverse" className="opacity-80">
+                  Усильтесь, чтобы обойти соперников
+                </Text>
+                <Button size="sm" variant="primary" onClick={handleShopCtaClick}>
                   🚀 Усилить меня
                 </Button>
               </div>
             )}
           </div>
-        </Card>
+        </Panel>
       )}
 
-      {/* Table Container */}
-      <Card className="overflow-hidden rounded-2xl border border-border-cyan bg-surface-glass-strong shadow-elevation-2 p-0">
-        <div className="hidden sm:block overflow-x-auto">
-          <table className="w-full min-w-[540px] border-collapse text-body-sm text-white/75">
-            <thead>
+      <Panel
+        tone="overlay"
+        border="strong"
+        elevation="soft"
+        padding="none"
+        spacing="none"
+        className="overflow-hidden"
+      >
+        <div className="hidden overflow-x-auto sm:block">
+          <table className="w-full min-w-[560px] border-collapse text-body-sm text-text-secondary">
+            <thead className="bg-layer-overlay-ghost-soft">
               <tr>
-                <th className="px-md py-sm-plus text-left border-b border-border-layer font-semibold text-white/60 text-label">
+                <th className="px-lg py-sm-plus text-left text-label font-semibold uppercase tracking-[0.1em] text-text-tertiary">
                   #
                 </th>
-                <th className="px-md py-sm-plus text-left border-b border-border-layer font-semibold text-white/60 text-label">
+                <th className="px-lg py-sm-plus text-left text-label font-semibold uppercase tracking-[0.1em] text-text-tertiary">
                   Игрок
                 </th>
-                <th className="px-md py-sm-plus text-left border-b border-border-layer font-semibold text-white/60 text-label">
+                <th className="px-lg py-sm-plus text-left text-label font-semibold uppercase tracking-[0.1em] text-text-tertiary">
                   Уровень
                 </th>
-                <th className="px-md py-sm-plus text-left border-b border-border-layer font-semibold text-white/60 text-label">
+                <th className="px-lg py-sm-plus text-left text-label font-semibold uppercase tracking-[0.1em] text-text-tertiary">
                   Энергия
                 </th>
               </tr>
@@ -278,61 +324,62 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
               {rowsWithDiff.map(entry => {
                 const isCurrentUser = entry.user_id === userLeaderboardEntry?.user_id;
                 const medal = MEDAL_MAP[entry.rank];
-
                 return (
                   <motion.tr
                     key={entry.user_id}
                     initial={false}
-                    animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.18)' } : {}}
-                    className={`border-b border-border-subtle hover:bg-state-cyan-pill-soft transition-colors ${
-                      isCurrentUser ? 'bg-state-cyan-pill-glow font-semibold text-white' : ''
-                    }`}
+                    animate={isCurrentUser ? { backgroundColor: 'rgba(31, 196, 215, 0.22)' } : {}}
+                    className={clsx(
+                      'border-t border-border-layer transition-colors',
+                      isCurrentUser
+                        ? 'bg-state-cyan-pill-soft font-semibold text-text-primary'
+                        : 'hover:bg-layer-overlay-ghost-soft'
+                    )}
                   >
-                    {/* Rank with Medal */}
-                    <td className="px-md py-sm-plus text-center text-text-primary">
-                      <div className="flex items-center justify-center gap-xs">
-                        {medal && (
+                    <td className="px-lg py-sm-plus">
+                      <div className="flex items-center gap-sm">
+                        {medal ? (
                           <span className="text-title" role="img" aria-label={medal.label}>
                             {medal.icon}
                           </span>
-                        )}
-                        <span className="font-bold">{entry.rank}</span>
+                        ) : null}
+                        <Text as="span" variant="bodySm" weight="semibold">
+                          {entry.rank}
+                        </Text>
                       </div>
                     </td>
-
-                    {/* Player Name */}
-                    <td className="px-md py-sm-plus text-left">
-                      <div className="flex items-center gap-sm">
-                        <div className="flex flex-col gap-[2px] flex-1">
-                          <span
-                            className={`font-semibold ${
-                              isCurrentUser ? 'text-accent-cyan' : 'text-text-primary'
-                            }`}
-                          >
-                            {entry.username || entry.first_name || 'Игрок'}
-                            {isCurrentUser && ' ⭐'}
-                          </span>
-                          <span className="text-micro text-white/60">
-                            #{entry.user_id.slice(0, 6)}
-                          </span>
-                        </div>
+                    <td className="px-lg py-sm-plus">
+                      <div className="flex flex-col gap-[2px]">
+                        <Text
+                          as="span"
+                          variant="bodySm"
+                          weight="semibold"
+                          tone={isCurrentUser ? 'accent' : 'primary'}
+                          className="truncate"
+                        >
+                          {entry.username || entry.first_name || 'Игрок'}
+                          {isCurrentUser ? ' ⭐' : ''}
+                        </Text>
+                        <Text as="span" variant="micro" tone="tertiary">
+                          #{entry.user_id.slice(0, 6)}
+                        </Text>
                       </div>
                     </td>
-
-                    {/* Level */}
-                    <td className="px-md py-sm-plus text-left font-semibold text-text-primary">
-                      {entry.level}
+                    <td className="px-lg py-sm-plus">
+                      <Text as="span" variant="bodySm" weight="semibold">
+                        {entry.level}
+                      </Text>
                     </td>
-
-                    {/* Energy + Diff */}
-                    <td className="px-md py-sm-plus text-left">
-                      <div className="flex flex-col gap-[2px] text-text-primary">
-                        <span className="font-semibold">{entry.energyDisplay}</span>
-                        {entry.energyDiffDisplay && (
-                          <span className="text-micro text-white/60">
+                    <td className="px-lg py-sm-plus">
+                      <div className="flex flex-col gap-[2px]">
+                        <Text as="span" variant="bodySm" weight="semibold">
+                          {entry.energyDisplay}
+                        </Text>
+                        {entry.energyDiffDisplay ? (
+                          <Text as="span" variant="micro" tone="tertiary">
                             До следующего: {entry.energyDiffDisplay}
-                          </span>
-                        )}
+                          </Text>
+                        ) : null}
                       </div>
                     </td>
                   </motion.tr>
@@ -341,69 +388,114 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
             </tbody>
           </table>
         </div>
-        <div className="sm:hidden flex flex-col gap-sm p-sm-plus">
+
+        <div className="flex flex-col gap-sm p-md sm:hidden">
           {rowsWithDiff.map(entry => {
             const isCurrentUser = entry.user_id === userLeaderboardEntry?.user_id;
             const medal = MEDAL_MAP[entry.rank];
-
             return (
               <motion.div
                 key={entry.user_id}
                 initial={false}
-                animate={isCurrentUser ? { backgroundColor: 'rgba(0, 217, 255, 0.2)' } : {}}
-                className={`rounded-xl border border-layer-strong backdrop-blur-sm px-md py-sm-plus flex flex-col gap-sm transition-colors max-[360px]:px-sm-plus max-[320px]:px-xs ${
+                animate={
                   isCurrentUser
-                    ? 'bg-state-cyan-pill-strong text-white'
-                    : 'bg-surface-glass-strong text-white/80'
-                }`}
+                    ? { backgroundColor: 'rgba(31, 196, 215, 0.28)', scale: 1.01 }
+                    : { scale: 1 }
+                }
+                transition={{ duration: 0.3 }}
               >
-                <div className="flex flex-wrap items-center justify-between gap-sm">
-                  <div className="flex items-center gap-sm max-[360px]:gap-xs">
-                    {medal && (
-                      <span className="text-title" role="img" aria-label={medal.label}>
-                        {medal.icon}
-                      </span>
-                    )}
-                    <div className="flex flex-col leading-tight">
-                      <span
-                        className={`font-semibold ${
-                          isCurrentUser ? 'text-accent-cyan' : 'text-white'
-                        } max-[360px]:text-body max-[320px]:text-caption`}
-                      >
-                        #{entry.rank} {entry.username || entry.first_name || 'Игрок'}
-                      </span>
-                      <span className="text-micro text-white/60">
-                        ID {entry.user_id.slice(0, 6)}
-                      </span>
+                <Surface
+                  tone={isCurrentUser ? 'accent' : 'overlay'}
+                  border={isCurrentUser ? 'accent' : 'subtle'}
+                  elevation={isCurrentUser ? 'medium' : 'soft'}
+                  padding="md"
+                  rounded="3xl"
+                  className={clsx(
+                    'flex flex-col gap-sm',
+                    isCurrentUser ? 'text-text-inverse' : 'text-text-primary'
+                  )}
+                >
+                  <div className="flex items-start justify-between gap-sm">
+                    <div className="flex items-center gap-sm">
+                      {medal ? (
+                        <span className="text-title" role="img" aria-label={medal.label}>
+                          {medal.icon}
+                        </span>
+                      ) : null}
+                      <div className="flex flex-col leading-tight">
+                        <Text
+                          as="span"
+                          variant="body"
+                          weight="semibold"
+                          tone={isCurrentUser ? 'inverse' : 'primary'}
+                          className="truncate"
+                        >
+                          #{entry.rank} {entry.username || entry.first_name || 'Игрок'}
+                        </Text>
+                        <Text
+                          as="span"
+                          variant="micro"
+                          tone={isCurrentUser ? 'inverse' : 'tertiary'}
+                          className="opacity-80"
+                        >
+                          ID {entry.user_id.slice(0, 6)}
+                        </Text>
+                      </div>
                     </div>
+                    <Text
+                      as="span"
+                      variant="title"
+                      weight="semibold"
+                      tone={isCurrentUser ? 'inverse' : 'primary'}
+                    >
+                      {entry.level}
+                    </Text>
                   </div>
-                  <span className="text-title font-semibold max-[360px]:text-body text-white">
-                    {entry.level}
-                  </span>
-                </div>
-                <div className="flex flex-wrap items-center justify-between gap-xs text-body-sm text-white/75 max-[360px]:text-caption">
-                  <span>Энергия</span>
-                  <span className="font-medium text-white">{entry.energyDisplay}</span>
-                </div>
-                {entry.energyDiffDisplay && (
-                  <div className="text-micro text-white/60">
-                    До следующего: {entry.energyDiffDisplay}
+                  <div className="flex items-center justify-between text-body-sm">
+                    <Text variant="bodySm" tone={isCurrentUser ? 'inverse' : 'secondary'}>
+                      Энергия
+                    </Text>
+                    <Text
+                      variant="bodySm"
+                      weight="semibold"
+                      tone={isCurrentUser ? 'inverse' : 'primary'}
+                    >
+                      {entry.energyDisplay}
+                    </Text>
                   </div>
-                )}
+                  {entry.energyDiffDisplay ? (
+                    <Text variant="micro" tone={isCurrentUser ? 'inverse' : 'tertiary'}>
+                      До следующего: {entry.energyDiffDisplay}
+                    </Text>
+                  ) : null}
+                </Surface>
               </motion.div>
             );
           })}
         </div>
-      </Card>
-      {/* User Rank (if not in top 100) */}
+      </Panel>
+
       {userLeaderboardEntry &&
         !rows.some(entry => entry.user_id === userLeaderboardEntry.user_id) && (
-          <Card className="bg-cyan/15 flex items-center justify-center gap-sm-plus py-sm-plus">
-            <span className="text-caption">Место</span>
-            <strong className="text-heading">{userLeaderboardEntry.rank}</strong>
-            <span className="text-caption">{userLeaderboardEntry.username || 'Вы'}</span>
-          </Card>
+          <Surface
+            tone="overlay"
+            border="accent"
+            elevation="soft"
+            padding="md"
+            rounded="3xl"
+            className="flex items-center justify-center gap-sm"
+          >
+            <Text variant="caption" tone="secondary">
+              Место
+            </Text>
+            <Text variant="heading" weight="bold">
+              {userLeaderboardEntry.rank}
+            </Text>
+            <Text variant="caption" tone="secondary">
+              {userLeaderboardEntry.username ?? userLeaderboardEntry.first_name ?? 'Вы'}
+            </Text>
+          </Surface>
         )}
-    </div>
+    </Panel>
   );
 }

@@ -1,9 +1,7 @@
 import { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { TabPageSurface, ShopPanel, BuildingsPanel } from '@/components';
-import { Surface } from '@/components/ui/Surface';
-import { Text } from '@/components/ui/Text';
+import { TabPageSurface, ShopPanel, BuildingsPanel, Panel, Button, Text } from '@/components';
 import type { ShopSection } from '@/components/ShopPanel';
 import { useAdminModal } from '@/contexts/AdminModalContext';
 
@@ -60,75 +58,87 @@ export function ExchangeScreen() {
   );
 
   return (
-    <div className="flex flex-col gap-4">
+    <TabPageSurface className="gap-6">
       <nav aria-label="Навигация магазина">
-        <Surface
+        <Panel
           tone="overlay"
           border="subtle"
           elevation="soft"
           padding="sm"
-          rounded="3xl"
-          className="flex gap-2"
+          spacing="none"
+          className="grid grid-cols-1 gap-sm sm:grid-cols-2"
         >
           {EXCHANGE_TABS.map(tab => {
             const isActive = exchangeTab === tab.id;
             return (
-              <button
+              <Button
                 key={tab.id}
                 type="button"
+                size="sm"
+                variant={isActive ? 'primary' : 'ghost'}
                 onClick={() => handleTabChange(tab.id)}
-                className={clsx(
-                  'group flex-1 rounded-2xl px-4 py-3 transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary',
-                  isActive
-                    ? 'bg-state-accent-pill shadow-[0_12px_28px_rgba(243,186,47,0.25)]'
-                    : 'hover:bg-layer-overlay-ghost'
-                )}
                 aria-pressed={isActive}
+                className={clsx(
+                  'group flex-1 min-w-0 justify-center rounded-2xl px-4 py-3',
+                  !isActive && 'hover:bg-layer-overlay-ghost-soft'
+                )}
               >
-                <span className="mr-2" aria-hidden="true">
+                <Text as="span" variant="title" aria-hidden="true">
                   {tab.icon}
-                </span>
+                </Text>
                 <Text
                   as="span"
                   variant="body"
                   weight="semibold"
-                  tone={isActive ? 'primary' : 'secondary'}
-                  className={
-                    !isActive
-                      ? 'transition-colors duration-150 group-hover:text-text-primary'
-                      : undefined
-                  }
+                  tone={isActive ? 'inverse' : 'accent'}
+                  className={clsx(
+                    'transition-colors duration-150',
+                    !isActive && 'group-hover:text-text-primary'
+                  )}
                 >
                   {tab.label}
                 </Text>
-              </button>
+              </Button>
             );
           })}
-        </Surface>
+        </Panel>
       </nav>
 
-      <TabPageSurface className="gap-6">
-        {exchangeTab === 'shop' ? (
+      {exchangeTab === 'shop' ? (
+        <Panel
+          tone="overlayStrong"
+          border="subtle"
+          elevation="medium"
+          padding="lg"
+          spacing="none"
+          className="w-full"
+        >
           <ShopPanel
             showHeader={false}
             activeSection={shopSection}
             onSectionChange={handleSectionChange}
           />
-        ) : (
-          <div className="flex flex-col gap-4">
-            <BuildingsPanel showHeader={false} />
-            <button
-              type="button"
-              onClick={openAdminMetrics}
-              className="self-end rounded-2xl border border-state-success-pill-strong px-4 py-2 transition-colors duration-150 hover:bg-state-success-pill focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-feedback-success focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
-            >
-              <Text variant="body" tone="success" weight="semibold">
-                Админ. метрики
-              </Text>
-            </button>
-          </div>
-        )}
-      </TabPageSurface>
-    </div>
+        </Panel>
+      ) : (
+        <Panel
+          tone="overlayStrong"
+          border="subtle"
+          elevation="medium"
+          spacing="lg"
+          className="w-full"
+        >
+          <BuildingsPanel showHeader={false} />
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            className="self-end"
+            onClick={openAdminMetrics}
+          >
+            Админ. метрики
+          </Button>
+        </Panel>
+      )}
+    </TabPageSurface>
   );
 }
