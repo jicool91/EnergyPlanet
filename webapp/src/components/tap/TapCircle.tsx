@@ -1,6 +1,7 @@
-import { memo } from 'react';
+import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
+import { useGyroscope } from '@/hooks/useGyroscope';
 
 interface TapCircleProps {
   onTap: () => void;
@@ -20,11 +21,26 @@ export const TapCircle = memo(function TapCircle({
   disabled = false,
 }: TapCircleProps) {
   const reduceMotion = useAppReducedMotion();
+  const gyroscope = useGyroscope({ enabled: !disabled, refreshRate: 60 });
+
+  const gyroOffset = useMemo(() => {
+    if (!gyroscope || reduceMotion) {
+      return { x: 0, y: 0 };
+    }
+
+    const clamp = (value: number, limit: number) => Math.max(-limit, Math.min(limit, value));
+    const x = clamp(gyroscope.y * 6, 10);
+    const y = clamp(-gyroscope.x * 6, 10);
+    return { x, y };
+  }, [gyroscope, reduceMotion]);
+
   const glowAnimation = reduceMotion
     ? undefined
     : {
         scale: [1, 1.15, 1],
         opacity: [0.12, 0.28, 0.12],
+        x: gyroOffset.x * 0.4,
+        y: gyroOffset.y * 0.4,
         transition: {
           duration: isCriticalStreak ? 1.2 : 1.8,
           repeat: Infinity,
@@ -41,6 +57,8 @@ export const TapCircle = memo(function TapCircle({
         onClick={disabled ? undefined : onTap}
         disabled={disabled}
         aria-label="Тапнуть планету, чтобы добыть энергию"
+        animate={!reduceMotion && !disabled ? { x: gyroOffset.x, y: gyroOffset.y } : { x: 0, y: 0 }}
+        transition={{ type: 'spring', stiffness: 120, damping: 18, mass: 0.6 }}
       >
         {!reduceMotion && (
           <motion.div

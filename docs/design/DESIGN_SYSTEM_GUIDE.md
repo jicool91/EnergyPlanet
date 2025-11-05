@@ -1,6 +1,6 @@
 # Design System Guide — Energy Planet TMA
 
-Updated: 3 Nov 2025
+Updated: 5 Nov 2025
 
 ## Quick Start
 - Keep this file open with `docs/design/UI_UX_ANALYSIS.md` when working on UI tickets.
@@ -51,6 +51,7 @@ Updated: 3 Nov 2025
 - Add telemetry for frame duration and dropped frames so we can regression-test animations.
 - Honour `prefers-reduced-motion` by disabling particle bursts and replacing them with subtle fades.citeturn16search0
 - Wire the in-app `preferencesStore.reduceMotion` flag into `TapCircle`, `TapParticles`, `ProgressBar` and any new animation hooks — fallback to subtle opacity fades when true.
+- При необходимости наклонов используйте `useGyroscope` (`services/tma/motion`) — гироскоп включаем даже при full-screen; не забывайте отключать его при `reduceMotion` или отсутствии поддержки.citeturn1search1turn6view0
 - Ленивая загрузка: тяжёлые анимации из `components/animations` подключайте через `React.lazy`, а звуки — по событию, чтобы не блокировать первый тап.
 
 ## Accessibility Checklist

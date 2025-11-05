@@ -1,6 +1,6 @@
 # UI & UX Analysis — Energy Planet Telegram Mini App
 
-Updated: 2 Nov 2025
+Updated: 5 Nov 2025
 
 ## Executive Takeaways
 - Energy Planet already leans on Telegram theme tokens and adaptive safe-area handling; the next шаг — углубить динамическую тему, ритм и отзывчивость с учётом Mini Apps 2.0, где приложения могут занимать полный экран и считывать движения устройства.citeturn2news12
@@ -16,9 +16,9 @@ Updated: 2 Nov 2025
 - **Performance expectations:** Для ощущения нативности интерфейсы должны держать 60 fps и укладываться в 16.7 мс на кадр.citeturn7search0
 
 ## Current Experience Snapshot (Repository Audit)
-- Тема и безопасные зоны: `webapp/src/styles/tokens.css` и `webapp/src/index.css` правильно подтягивают Telegram-переменные и рассчитывают safe-area; ключевые компоненты переведены на токены, но остаточные RGBA ещё встречаются в `ShopPanel` и второстепенных баннерах.
+- Тема и безопасные зоны: `webapp/src/styles/tokens.css` и `webapp/src/index.css` правильно подтягивают Telegram-переменные и рассчитывают safe-area; `services/tma/viewport.ts` слушает как SDK (`viewport.state`), так и нативный `viewportChanged`/`safeAreaChanged`, обновляя алиасы `--layout-viewport-*`. Остаточные RGBA ещё встречаются в `ShopPanel` и второстепенных баннерах.citeturn1search0
 - Компоненты ввода: `webapp/src/components/Button.tsx` гарантирует высоты 40–56 px, но дочерние элементы (напр. `touch-target-sm`) и иконки в `StatsSummary`/`TapCircle` не всегда достигают 44 px по обеим осям.
-- Анимации и эффекты: `TapCircle`, `TapParticles`, `ProgressBar`, `ModalBase`, `LevelUpScreen` теперь учитывают `preferencesStore.reduceMotion`; остаётся привязать второстепенные Lottie и наградные экраны.
+- Анимации и эффекты: `TapCircle`, `TapParticles`, `ProgressBar`, `ModalBase`, `LevelUpScreen` учитывают `preferencesStore.reduceMotion`; добавлен гироскопический параллакс через `useGyroscope`, отключающийся при reduce motion. Требуется подключить оставшиеся Lottie и наградные экраны.citeturn1search1turn6view0
 - Стор и телеметрия: `webapp/src/store/gameStore.ts` и `services/telemetry.ts` уже буферизуют события, что позволяет вводить UX-метрики (FPS, конверсия улучшений) без блокирующих запросов.
 - Telegram SDK: `services/tma/theme.ts` и `utils/telegramTheme.ts` корректно подписываются на `themeParams` и `miniApp` события, но не учитывают новые ключи (например, `tertiary_bg_color`) и не пробрасывают изменение `colorScheme` в UI-слой.
 
@@ -31,7 +31,7 @@ Updated: 2 Nov 2025
 - **Token drift:** Остаточные RGBA в витрине (`ShopPanel`) и событиях всё ещё расходятся с новой цветовой схемой Telegram.citeturn14search2
 - **Touch compliance:** Иконки и сегментные контролы легко падают ниже 44 px, что нарушает WCAG 2.5.5.citeturn2search3
 - **Contrast debt:** Вторичные тексты часто опускаются ниже 4.5 : 1; без автоматической проверки легко нарушить WCAG 1.4.3.citeturn8search0
-- **Full-screen readiness:** Жёсткий `overflow: hidden` и фиксированный запас под заголовок мешают `web_app_request_fullscreen` и динамическим safe-area.citeturn2news12
+- **Full-screen readiness:** Обновлённые `index.css` и сервис `tma/viewport` реагируют на `viewportChanged` и дают алиасы для `--layout-viewport-*`, но остаётся проверить все экраны на планшетах и довести планшетную типографику.citeturn2news12turn1search0
 - **Motion pacing:** Частицы и Lottie не управляются метриками; без учёта 16.7 мс на кадр будет лаг.citeturn7search0
 
 ## Opportunity Themes & Recommendations

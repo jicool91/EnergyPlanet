@@ -33,6 +33,16 @@ const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
 let currentSafeArea: SafeAreaSnapshot = { safe: ZERO_INSETS, content: ZERO_INSETS };
 let currentViewport: ViewportMetrics = { ...DEFAULT_VIEWPORT_METRICS };
 
+type TelegramWebApp = any;
+
+function getTelegramWebApp(): TelegramWebApp | undefined {
+  if (typeof window === 'undefined') {
+    return undefined;
+  }
+
+  return window.Telegram?.WebApp;
+}
+
 function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
   if (typeof document === 'undefined') {
     return;
@@ -88,13 +98,19 @@ function applyViewportCss(metrics: ViewportMetrics): void {
 
   const root = document.documentElement;
   if (typeof metrics.height === 'number') {
-    root.style.setProperty('--tg-viewport-height', `${metrics.height}px`);
+    const value = `${metrics.height}px`;
+    root.style.setProperty('--tg-viewport-height', value);
+    root.style.setProperty('--layout-viewport-height', value);
   }
   if (typeof metrics.stableHeight === 'number') {
-    root.style.setProperty('--tg-viewport-stable-height', `${metrics.stableHeight}px`);
+    const value = `${metrics.stableHeight}px`;
+    root.style.setProperty('--tg-viewport-stable-height', value);
+    root.style.setProperty('--layout-viewport-stable-height', value);
   }
   if (typeof metrics.width === 'number') {
-    root.style.setProperty('--tg-viewport-width', `${metrics.width}px`);
+    const value = `${metrics.width}px`;
+    root.style.setProperty('--tg-viewport-width', value);
+    root.style.setProperty('--layout-viewport-width', value);
   }
   root.style.setProperty('--tg-viewport-is-expanded', metrics.isExpanded ? '1' : '0');
   root.style.setProperty('--tg-viewport-is-stable', metrics.isStateStable ? '1' : '0');
@@ -168,9 +184,25 @@ export function onTmaSafeAreaChange(listener: Listener<SafeAreaSnapshot>): VoidF
 
   const notify = () => listener(updateSafeArea(readSafeAreaSnapshot()));
   const unsubscribe = viewport.state.sub(notify);
+  const webApp = getTelegramWebApp();
+  let offNative: VoidFunction | null = null;
+
+  if (webApp?.onEvent) {
+    const handler = () => notify();
+    webApp.onEvent('safeAreaChanged', handler);
+    offNative = () => {
+      try {
+        webApp.offEvent?.('safeAreaChanged', handler);
+      } catch {
+        // ignore
+      }
+    };
+  }
+
   notify();
   return () => {
     unsubscribe();
+    offNative?.();
   };
 }
 
@@ -183,9 +215,25 @@ export function onTmaViewportChange(listener: Listener<ViewportMetrics>): VoidFu
 
   const notify = () => listener(updateViewport(readViewportMetrics()));
   const unsubscribe = viewport.state.sub(notify);
+  const webApp = getTelegramWebApp();
+  let offNative: VoidFunction | null = null;
+
+  if (webApp?.onEvent) {
+    const handler = () => notify();
+    webApp.onEvent('viewportChanged', handler);
+    offNative = () => {
+      try {
+        webApp.offEvent?.('viewportChanged', handler);
+      } catch {
+        // ignore
+      }
+    };
+  }
+
   notify();
   return () => {
     unsubscribe();
+    offNative?.();
   };
 }
 
@@ -195,4 +243,75 @@ export function getCachedSafeArea(): SafeAreaSnapshot {
 
 export function getCachedViewportMetrics(): ViewportMetrics {
   return currentViewport;
+}
+
+export function expandViewport(): void {
+  ensureTmaSdkReady();
+  if (isTmaSdkAvailable()) {
+    try {
+      viewport.expand();
+      return;
+    } catch {
+      // ignore failure, fallback below
+    }
+  }
+
+  const webApp = getTelegramWebApp();
+  try {
+    webApp?.expand?.();
+  } catch {
+    // ignore
+  }
+}
+
+export function isFullscreenAvailable(): boolean {
+  const webApp = getTelegramWebApp();
+  if (webApp?.isVersionAtLeast) {
+    return webApp.isVersionAtLeast('8.0');
+  }
+  return isTmaSdkAvailable();
+}
+
+export async function requestFullscreen(): Promise<void> {
+  ensureTmaSdkReady();
+
+  if (isTmaSdkAvailable() && typeof viewport.requestFullscreen === 'function') {
+    try {
+      await viewport.requestFullscreen();
+      return;
+    } catch {
+      // fallback to raw postEvent
+    }
+  }
+
+  const webApp = getTelegramWebApp();
+  if (webApp?.postEvent) {
+    try {
+      webApp.postEvent('web_app_enable_fullscreen');
+    } catch {
+      // ignore
+    }
+  }
+}
+
+export async function exitFullscreen(): Promise<void> {
+  ensureTmaSdkReady();
+
+  if (isTmaSdkAvailable() && typeof viewport.exitFullscreen === 'function') {
+    try {
+      await viewport.exitFullscreen();
+      return;
+    } catch {
+      // fallback to raw postEvent
+    }
+  }
+
+  const webApp = getTelegramWebApp();
+  if (webApp?.postEvent) {
+    try {
+      webApp.postEvent('web_app_disable_fullscreen');
+    } catch {
+      // ignore
+    }
+  }
 }
