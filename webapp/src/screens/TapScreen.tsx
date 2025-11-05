@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
+import clsx from 'clsx';
 import {
   AchievementsModal,
   TapCircle,
@@ -17,6 +18,7 @@ import { useAuthStore } from '@/store/authStore';
 import { describeError } from '@/store/storeUtils';
 import { logClientEvent } from '@/services/telemetry';
 import type { ShopSection } from '@/components/ShopPanel';
+import { useExperimentVariant } from '@/store/experimentsStore';
 
 const SECTION_QUERY_PARAM = 'section';
 
@@ -39,13 +41,44 @@ interface PurchaseInsight {
 function PurchaseInsightCard({
   insight,
   onOpenShop,
+  paletteVariant = 'classic',
 }: {
   insight: PurchaseInsight;
   onOpenShop: (section?: ShopSection) => void;
+  paletteVariant?: string;
 }) {
   const { name, cost, affordable, remaining, paybackSeconds, incomeGain } = insight;
+  const isDualAccent = paletteVariant === 'dual-accent';
+
+  const containerClass = clsx(
+    'flex flex-col gap-3',
+    isDualAccent &&
+      'border border-state-card-highlight-border bg-gradient-soft shadow-state-card-highlight'
+  );
+
+  const priceBadgeClass = clsx(
+    'px-3 py-1 text-xs',
+    isDualAccent
+      ? 'rounded-full bg-accent-cyan/20 text-accent-cyan'
+      : 'rounded-full bg-[rgba(255,255,255,0.08)] text-[var(--color-text-secondary)]'
+  );
+
+  const infoCardClass = clsx(
+    'rounded-2xl border px-4 py-3 text-sm',
+    isDualAccent
+      ? 'border-state-card-highlight-border/70 bg-layer-soft text-text-secondary'
+      : 'border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] text-[var(--color-text-secondary)]'
+  );
+
+  const ctaClass = clsx(
+    'rounded-2xl px-4 py-2 text-sm font-semibold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2',
+    isDualAccent
+      ? 'bg-gradient-ai text-text-inverse shadow-state-card-highlight hover:scale-105 focus-visible:ring-state-card-highlight-border focus-visible:ring-offset-surface-primary'
+      : 'bg-[var(--color-accent-gold)] text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(243,186,47,0.26)] hover:scale-105 focus-visible:ring-[var(--color-bg-primary)] focus-visible:ring-offset-[var(--color-accent-gold)]'
+  );
+
   return (
-    <Card className="flex flex-col gap-3">
+    <Card className={containerClass}>
       <div className="flex items-center justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.12em] text-[var(--color-text-secondary)]">
@@ -53,33 +86,27 @@ function PurchaseInsightCard({
           </p>
           <p className="text-lg font-semibold text-[var(--color-text-primary)]">{name}</p>
         </div>
-        <span className="rounded-full bg-[rgba(255,255,255,0.08)] px-3 py-1 text-xs text-[var(--color-text-secondary)]">
-          Стоимость {cost.toLocaleString('ru-RU')}
-        </span>
+        <span className={priceBadgeClass}>Стоимость {cost.toLocaleString('ru-RU')}</span>
       </div>
       <p className="text-sm text-[var(--color-text-secondary)]">
         Доход в секунду: +{incomeGain.toLocaleString('ru-RU')}
       </p>
       <div className="grid gap-3 sm:grid-cols-2">
-        <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+        <div className={infoCardClass}>
           {affordable ? (
             <span className="text-[var(--color-success)]">Можно купить прямо сейчас</span>
           ) : (
             <>Осталось накопить: {remaining.toLocaleString('ru-RU')}</>
           )}
         </div>
-        <div className="rounded-2xl border border-[rgba(255,255,255,0.08)] bg-[rgba(255,255,255,0.03)] px-4 py-3 text-sm text-[var(--color-text-secondary)]">
+        <div className={infoCardClass}>
           {paybackSeconds
             ? `Окупится за ~${Math.round(paybackSeconds / 60)} мин`
             : 'Окупаемость не указана'}
         </div>
       </div>
       <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => onOpenShop('boosts')}
-          className="rounded-2xl bg-[var(--color-accent-gold)] px-4 py-2 text-sm font-semibold text-[var(--color-bg-primary)] shadow-[0_14px_36px_rgba(243,186,47,0.26)] transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--color-bg-primary)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-accent-gold)]"
-        >
+        <button type="button" onClick={() => onOpenShop('boosts')} className={ctaClass}>
           Улучшить сейчас
         </button>
       </div>
@@ -91,6 +118,8 @@ export function TapScreen() {
   const navigate = useNavigate();
   const { toast } = useNotification();
   const { tap: hapticTap } = useHaptic();
+  const paletteVariant = useExperimentVariant('palette_v1') ?? 'classic';
+  const experimentExposureLoggedRef = useRef(false);
 
   const {
     energy,
@@ -434,6 +463,18 @@ export function TapScreen() {
     navigate('/friends');
   }, [navigate]);
 
+  useEffect(() => {
+    if (!isInitialized || experimentExposureLoggedRef.current) {
+      return;
+    }
+    experimentExposureLoggedRef.current = true;
+    void logClientEvent('experiment_exposure', {
+      experiment: 'palette_v1',
+      variant: paletteVariant,
+      screen: 'tap',
+    });
+  }, [isInitialized, paletteVariant]);
+
   if (isLoading && !isInitialized) {
     return (
       <div className="flex h-full w-full items-center justify-center">
@@ -480,10 +521,15 @@ export function TapScreen() {
           onViewLeaderboard={handleViewLeaderboard}
           socialPlayerCount={leaderboardTotal}
           isSocialBlockLoading={!leaderboardLoaded && isLeaderboardLoading}
+          paletteVariant={paletteVariant}
         />
 
         {purchaseInsight ? (
-          <PurchaseInsightCard insight={purchaseInsight} onOpenShop={handleOpenShop} />
+          <PurchaseInsightCard
+            insight={purchaseInsight}
+            onOpenShop={handleOpenShop}
+            paletteVariant={paletteVariant}
+          />
         ) : null}
 
         <TabPageSurface className="gap-4">

@@ -36,6 +36,7 @@ import { logger } from './utils/logger';
 import { AdminMonetizationScreen } from './screens/AdminMonetizationScreen';
 import { ProgressBar } from './components';
 import { AdminModalContext } from './contexts/AdminModalContext';
+import { ensureExperimentVariant } from '@/store/experimentsStore';
 
 const NAVIGATION_TABS: BottomNavigationTab[] = [
   { id: 'tap', label: 'Tap', icon: '⚡️', path: '/' },
@@ -154,6 +155,13 @@ function NextUiApp() {
     const metrics = window.__renderMetrics ?? { app: 0 };
     metrics.app += 1;
     window.__renderMetrics = metrics;
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+    ensureExperimentVariant('palette_v1', () => (Math.random() < 0.5 ? 'classic' : 'dual-accent'));
   }, []);
 
   useEffect(() => {

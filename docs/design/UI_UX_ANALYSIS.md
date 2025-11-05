@@ -16,9 +16,10 @@ Updated: 5 Nov 2025
 - **Performance expectations:** Для ощущения нативности интерфейсы должны держать 60 fps и укладываться в 16.7 мс на кадр.citeturn7search0
 
 ## Current Experience Snapshot (Repository Audit)
-- Тема и безопасные зоны: `webapp/src/styles/tokens.css` и `webapp/src/index.css` правильно подтягивают Telegram-переменные и рассчитывают safe-area; `services/tma/viewport.ts` слушает как SDK (`viewport.state`), так и нативный `viewportChanged`/`safeAreaChanged`, обновляя алиасы `--layout-viewport-*`. Остаточные RGBA ещё встречаются в `ShopPanel` и второстепенных баннерах.citeturn1search0
+- Тема и безопасные зоны: `webapp/src/styles/tokens.css` и `webapp/src/index.css` правильно подтягивают Telegram-переменные и рассчитывают safe-area; `services/tma/viewport.ts` слушает как SDK (`viewport.state`), так и нативный `viewportChanged`/`safeAreaChanged`, обновляя алиасы `--layout-viewport-*`. Остаточные RGBA ещё встречаются в `ShopPanel` и второстепенных баннерах.
+- Эксперименты: `experimentsStore` фиксирует вариант `palette_v1` (classic vs dual-accent), `TapScreen` декорирует CTA/панели под вариант и логирует exposure.
 - Компоненты ввода: `webapp/src/components/Button.tsx` гарантирует высоты 40–56 px, но дочерние элементы (напр. `touch-target-sm`) и иконки в `StatsSummary`/`TapCircle` не всегда достигают 44 px по обеим осям.
-- Анимации и эффекты: `TapCircle`, `TapParticles`, `ProgressBar`, `ModalBase`, `LevelUpScreen` учитывают `preferencesStore.reduceMotion`; добавлен гироскопический параллакс через `useGyroscope`, отключающийся при reduce motion. Требуется подключить оставшиеся Lottie и наградные экраны.citeturn1search1turn6view0
+- Анимации и эффекты: `TapCircle`, `TapParticles`, `ProgressBar`, `ModalBase`, `LevelUpScreen` учитывают `preferencesStore.reduceMotion`; добавлен гироскопический параллакс через `useGyroscope`, отключающийся при reduce motion. Требуется подключить оставшиеся Lottie и наградные экраны.
 - Стор и телеметрия: `webapp/src/store/gameStore.ts` и `services/telemetry.ts` уже буферизуют события, что позволяет вводить UX-метрики (FPS, конверсия улучшений) без блокирующих запросов.
 - Telegram SDK: `services/tma/theme.ts` и `utils/telegramTheme.ts` корректно подписываются на `themeParams` и `miniApp` события, но не учитывают новые ключи (например, `tertiary_bg_color`) и не пробрасывают изменение `colorScheme` в UI-слой.
 
@@ -31,7 +32,7 @@ Updated: 5 Nov 2025
 - **Token drift:** Остаточные RGBA в витрине (`ShopPanel`) и событиях всё ещё расходятся с новой цветовой схемой Telegram.citeturn14search2
 - **Touch compliance:** Иконки и сегментные контролы легко падают ниже 44 px, что нарушает WCAG 2.5.5.citeturn2search3
 - **Contrast debt:** Вторичные тексты часто опускаются ниже 4.5 : 1; без автоматической проверки легко нарушить WCAG 1.4.3.citeturn8search0
-- **Full-screen readiness:** Обновлённые `index.css` и сервис `tma/viewport` реагируют на `viewportChanged` и дают алиасы для `--layout-viewport-*`, но остаётся проверить все экраны на планшетах и довести планшетную типографику.citeturn2news12turn1search0
+- **Full-screen readiness:** Обновлённые `index.css` и сервис `tma/viewport` реагируют на `viewportChanged` и дают алиасы для `--layout-viewport-*`, но остаётся проверить все экраны на планшетах и довести планшетную типографику.citeturn2news12
 - **Motion pacing:** Частицы и Lottie не управляются метриками; без учёта 16.7 мс на кадр будет лаг.citeturn7search0
 
 ## Opportunity Themes & Recommendations
@@ -45,7 +46,7 @@ Updated: 5 Nov 2025
    - Обновите layout-примитивы, чтобы учитывать `web_app_expand`, `web_app_request_fullscreen` и `viewportHeight`.citeturn2news12
    - Ограничьте интенсивные эффекты метриками FPS с деградацией на слабых устройствах.citeturn7search0
 4. **Contrast & readability**
-   - Добавьте линтер/визуальные тесты, валящие сборку при контрасте <4.5 : 1; предусмотрите светлые fallback'и.citeturn4search3
+- Добавьте линтер/визуальные тесты, валящие сборку при контрасте <4.5 : 1; предусмотрите светлые fallback'и. Скриншотные прогоны идут через `npm run test:visual` (Playwright + `visual.html`).citeturn4search3
    - Provide fallback palettes for prestige and warning states that stay ≥4.5 : 1 under both theme extremes.
 5. **Feedback & telemetry**
    - Connect haptic feedback to milestone events (level-ups, boost completions) and register analytics for tap cadence, upgrade conversion, and tutorial completion to validate UX improvements.
@@ -71,6 +72,7 @@ Updated: 5 Nov 2025
 - Upgrade conversion rate after insight card resurfacing.
 - Accessibility bug count per release (target: ≤1 open issue).
 - Session frame pacing (p95 frame time under 20 ms).
+- Визуальные регрессии (`npm run test:visual`) — следим за diffs по ключевым экранам (офлайн-модалка, dual-accent CTA).
 
 ## Source Appendix
 - Telegram Mini App design tokens update — TON Docs, Sep 2025.citeturn14search2

@@ -46,6 +46,7 @@
 - [x] **Reduce motion на практике:** `TapCircle`, `TapParticles`, `ModalBase`, `ProgressBar`, `LevelUpScreen` и capabilities-хук учитывают `preferencesStore.reduceMotion` + системный `prefers-reduced-motion`.citeturn10search2
 - [x] **Контраст в CI:** добавлен `npm run test:contrast`, который парсит токены и проверяет пары текста/фона на ≥4.5 : 1 (включая светлую тему).citeturn8search0
 - [x] **Viewport + gyro:** сервис `tma/viewport` слушает как SDK, так и нативный `viewportChanged`/`safeAreaChanged`, обновляет алиасы `--layout-viewport-*`, добавлены методы `requestFullscreen/exitFullscreen/expandViewport`. Появился сервис `tma/motion` и хук `useGyroscope`, TapCircle получает параллакс от гироскопа.citeturn1search0turn1search1turn6view0
+- [x] **A/B + визуал-тесты:** реализован `experimentsStore` с экспериментом `palette_v1` (dual-accent vs classic), CTA на TapScreen реагируют на вариант, в Playwright настроен `npm run test:visual` (превью `visual.html`) со скриншотами офлайн-модалки.
 
 ## 5. Приоритетные действия (roadmap)
 | Спринт | Что сделать | Сутки | Метрика |
@@ -68,7 +69,7 @@
 - **Продуктовые:** retention вкладки “Постройки” (переходы → покупки), конверсия в апгрейд.
 - **UX:** доля пользователей, видящих список построек, bounce rate в Exchange.
 - **Технические:** средний FPS при включенных анимациях, количество accessibility-ошибок (axe).
-- **Цвет/тема:** автоматические snapshot-тесты (Chromatic/Storybook) + `npm run test:contrast` в CI.
+- **Цвет/тема:** автоматические snapshot-тесты (Chromatic/Storybook) + `npm run test:contrast` в CI; визуальные проверки `npm run test:visual` для ключевых модалок.
 
 ## 8. План A/B-эксперимента по новой палитре
 - **Гипотеза:** двухакцентная палитра (золото + неон-циан/магент) увеличит конверсию в покупку/апгрейд без потери читабельности, подсвечивая лучшие ROI-карточки и бусты.citeturn11search0

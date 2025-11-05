@@ -24,5 +24,11 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     sourcemap: true,
+    rollupOptions: {
+      input: {
+        index: path.resolve(__dirname, 'index.html'),
+        visual: path.resolve(__dirname, 'visual.html'),
+      },
+    },
   },
 });

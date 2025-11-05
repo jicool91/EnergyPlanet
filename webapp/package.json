@@ -14,7 +14,8 @@
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "typecheck": "tsc --noEmit",
     "test:perf": "playwright test tests/performance/tap-loop.spec.ts",
-    "test:contrast": "node ./scripts/check-contrast.mjs"
+    "test:contrast": "node ./scripts/check-contrast.mjs",
+    "test:visual": "npm run build && playwright test -c playwright.visual.config.ts"
   },
   "dependencies": {
     "@tma.js/sdk-react": "^3.0.8",

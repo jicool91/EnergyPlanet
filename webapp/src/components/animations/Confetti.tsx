@@ -7,6 +7,7 @@
 import React, { useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useDeviceCapabilities } from '@/hooks/useDeviceCapabilities';
+import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 
 interface ConfettiProps {
   count?: number;
@@ -43,6 +44,7 @@ const createPseudoRandom = (seed: number) => {
  */
 export const Confetti: React.FC<ConfettiProps> = ({ count = 30, duration = 2.5 }) => {
   const capabilities = useDeviceCapabilities();
+  const reduceMotion = useAppReducedMotion();
 
   // Use adaptive particle count based on device capabilities
   const adaptiveCount = Math.min(count, capabilities.maxParticles);
@@ -75,6 +77,17 @@ export const Confetti: React.FC<ConfettiProps> = ({ count = 30, duration = 2.5 }
     });
   }, [adaptiveCount, duration]);
 
+  if (reduceMotion || adaptiveCount <= 0) {
+    return null;
+  }
+
+  const viewportHeight =
+    typeof window !== 'undefined'
+      ? window.innerHeight
+      : typeof document !== 'undefined'
+        ? document.documentElement.clientHeight
+        : 800;
+
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden">
       {particles.map(particle => (
@@ -94,7 +107,7 @@ export const Confetti: React.FC<ConfettiProps> = ({ count = 30, duration = 2.5 }
             rotate: 0,
           }}
           animate={{
-            y: window.innerHeight + 50,
+            y: viewportHeight + 50,
             opacity: 0,
             rotate: particle.rotation,
           }}

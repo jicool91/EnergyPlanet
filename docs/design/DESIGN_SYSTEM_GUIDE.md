@@ -6,7 +6,7 @@ Updated: 5 Nov 2025
 - Keep this file open with `docs/design/UI_UX_ANALYSIS.md` when working on UI tickets.
 - Source of truth for tokens lives in `webapp/src/styles/tokens.css`; Tailwind utilities mirror these values.
 - Run `npm run lint` and `npm run typecheck` in `webapp/` after any design token or component change.
-- Use `npm run test:contrast` before PRs that touch colors to validate AA ratios for core pairs.
+- Use `npm run test:contrast` перед PR, чтобы зафиксировать контраст, и `npm run test:visual` для скриншотных регрессий (визуальный превью `visual.html`).
 
 ## Pillars
 1. **Platform-native theming:** respect Telegram theme parameters first, then overlay brand flair.
@@ -52,6 +52,7 @@ Updated: 5 Nov 2025
 - Honour `prefers-reduced-motion` by disabling particle bursts and replacing them with subtle fades.citeturn16search0
 - Wire the in-app `preferencesStore.reduceMotion` flag into `TapCircle`, `TapParticles`, `ProgressBar` and any new animation hooks — fallback to subtle opacity fades when true.
 - При необходимости наклонов используйте `useGyroscope` (`services/tma/motion`) — гироскоп включаем даже при full-screen; не забывайте отключать его при `reduceMotion` или отсутствии поддержки.citeturn1search1turn6view0
+- Конфетти/чекмарк/обёртки анимаций теперь уважают reduce motion; новые компоненты должны проверять `useAppReducedMotion` и предлагать статичную альтернативу.
 - Ленивая загрузка: тяжёлые анимации из `components/animations` подключайте через `React.lazy`, а звуки — по событию, чтобы не блокировать первый тап.
 
 ## Accessibility Checklist

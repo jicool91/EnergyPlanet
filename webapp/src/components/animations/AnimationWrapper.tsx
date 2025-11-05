@@ -5,6 +5,7 @@
 
 import React from 'react';
 import { motion, type MotionProps, type Transition } from 'framer-motion';
+import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 
 type AnimationType =
   | 'fadeIn'
@@ -79,13 +80,14 @@ export const AnimationWrapper: React.FC<AnimationWrapperProps> = ({
   ...props
 }) => {
   const config = animationConfigs[type];
+  const reduceMotion = useAppReducedMotion();
 
   return (
     <motion.div
-      initial={config.initial}
-      animate={config.animate}
-      exit={config.exit}
-      transition={config.transition}
+      initial={reduceMotion ? undefined : config.initial}
+      animate={reduceMotion ? undefined : config.animate}
+      exit={reduceMotion ? undefined : config.exit}
+      transition={reduceMotion ? undefined : config.transition}
       className={className}
       {...props}
     >
@@ -100,17 +102,19 @@ export const AnimationWrapper: React.FC<AnimationWrapperProps> = ({
 export const GlowWrapper: React.FC<{ children: React.ReactNode; className?: string }> = ({
   children,
   className = '',
-}) => (
-  <motion.div
-    className={`${className}`}
-    whileHover={{
-      boxShadow: '0 0 40px rgba(0, 217, 255, 0.6)',
-    }}
-    transition={{ duration: 0.3 }}
-  >
-    {children}
-  </motion.div>
-);
+}) => {
+  const reduceMotion = useAppReducedMotion();
+
+  return (
+    <motion.div
+      className={className}
+      whileHover={reduceMotion ? undefined : { boxShadow: '0 0 40px rgba(0, 217, 255, 0.6)' }}
+      transition={reduceMotion ? undefined : { duration: 0.3 }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 /**
  * Tap effect wrapper - scales down on tap
@@ -118,15 +122,19 @@ export const GlowWrapper: React.FC<{ children: React.ReactNode; className?: stri
 export const TapWrapper: React.FC<{ children: React.ReactNode; className?: string }> = ({
   children,
   className = '',
-}) => (
-  <motion.div
-    className={className}
-    whileTap={{ scale: 0.95 }}
-    transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-  >
-    {children}
-  </motion.div>
-);
+}) => {
+  const reduceMotion = useAppReducedMotion();
+
+  return (
+    <motion.div
+      className={className}
+      whileTap={reduceMotion ? undefined : { scale: 0.95 }}
+      transition={reduceMotion ? undefined : { type: 'spring', stiffness: 400, damping: 17 }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 /**
  * Stagger container for list animations
@@ -136,25 +144,33 @@ export const StaggerContainer: React.FC<{
   className?: string;
   delayChildren?: number;
   staggerChildren?: number;
-}> = ({ children, className = '', delayChildren = 0, staggerChildren = 0.1 }) => (
-  <motion.div
-    className={className}
-    initial="hidden"
-    animate="show"
-    variants={{
-      hidden: { opacity: 0 },
-      show: {
-        opacity: 1,
-        transition: {
-          delayChildren,
-          staggerChildren,
+}> = ({ children, className = '', delayChildren = 0, staggerChildren = 0.1 }) => {
+  const reduceMotion = useAppReducedMotion();
+
+  if (reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
+  return (
+    <motion.div
+      className={className}
+      initial="hidden"
+      animate="show"
+      variants={{
+        hidden: { opacity: 0 },
+        show: {
+          opacity: 1,
+          transition: {
+            delayChildren,
+            staggerChildren,
+          },
         },
-      },
-    }}
-  >
-    {children}
-  </motion.div>
-);
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
 
 /**
  * Stagger item - child of StaggerContainer
@@ -162,17 +178,25 @@ export const StaggerContainer: React.FC<{
 export const StaggerItem: React.FC<{ children: React.ReactNode; className?: string }> = ({
   children,
   className = '',
-}) => (
-  <motion.div
-    className={className}
-    variants={{
-      hidden: { opacity: 0, y: 20 },
-      show: {
-        opacity: 1,
-        y: 0,
-      },
-    }}
-  >
-    {children}
-  </motion.div>
-);
+}) => {
+  const reduceMotion = useAppReducedMotion();
+
+  if (reduceMotion) {
+    return <div className={className}>{children}</div>;
+  }
+
+  return (
+    <motion.div
+      className={className}
+      variants={{
+        hidden: { opacity: 0, y: 20 },
+        show: {
+          opacity: 1,
+          y: 0,
+        },
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+};
