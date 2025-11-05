@@ -17,14 +17,19 @@ const listeners = new Set<GyroscopeListener>();
 let isActive = false;
 let webAppHandler: ((payload?: unknown) => void) | null = null;
 
-type TelegramWebApp = any;
+interface TelegramWebAppLite {
+  onEvent?: (event: string, handler: (payload?: unknown) => void) => void;
+  offEvent?: (event: string, handler: (payload?: unknown) => void) => void;
+  postEvent?: (event: string, payload?: string) => void;
+  isVersionAtLeast?: (version: string) => boolean;
+}
 
-function getTelegramWebApp(): TelegramWebApp | undefined {
+function getTelegramWebApp(): TelegramWebAppLite | undefined {
   if (typeof window === 'undefined') {
     return undefined;
   }
 
-  return window.Telegram?.WebApp;
+  return window.Telegram?.WebApp as TelegramWebAppLite | undefined;
 }
 
 function parsePayload(payload: unknown): GyroscopeVector | null {

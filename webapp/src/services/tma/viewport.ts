@@ -33,14 +33,20 @@ const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
 let currentSafeArea: SafeAreaSnapshot = { safe: ZERO_INSETS, content: ZERO_INSETS };
 let currentViewport: ViewportMetrics = { ...DEFAULT_VIEWPORT_METRICS };
 
-type TelegramWebApp = any;
+interface TelegramWebAppLite {
+  onEvent?: (event: string, handler: (payload?: unknown) => void) => void;
+  offEvent?: (event: string, handler: (payload?: unknown) => void) => void;
+  postEvent?: (event: string, payload?: string) => void;
+  expand?: () => void;
+  isVersionAtLeast?: (version: string) => boolean;
+}
 
-function getTelegramWebApp(): TelegramWebApp | undefined {
+function getTelegramWebApp(): TelegramWebAppLite | undefined {
   if (typeof window === 'undefined') {
     return undefined;
   }
 
-  return window.Telegram?.WebApp;
+  return window.Telegram?.WebApp as TelegramWebAppLite | undefined;
 }
 
 function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
@@ -91,27 +97,37 @@ function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
   root.style.setProperty('--app-content-padding-top', `${contentPaddingTop}px`);
 }
 
+function resolveViewportDimension(value: number | null | undefined, fallback: number): number {
+  if (typeof value === 'number' && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+  return fallback;
+}
+
 function applyViewportCss(metrics: ViewportMetrics): void {
   if (typeof document === 'undefined') {
     return;
   }
 
   const root = document.documentElement;
-  if (typeof metrics.height === 'number') {
-    const value = `${metrics.height}px`;
-    root.style.setProperty('--tg-viewport-height', value);
-    root.style.setProperty('--layout-viewport-height', value);
-  }
-  if (typeof metrics.stableHeight === 'number') {
-    const value = `${metrics.stableHeight}px`;
-    root.style.setProperty('--tg-viewport-stable-height', value);
-    root.style.setProperty('--layout-viewport-stable-height', value);
-  }
-  if (typeof metrics.width === 'number') {
-    const value = `${metrics.width}px`;
-    root.style.setProperty('--tg-viewport-width', value);
-    root.style.setProperty('--layout-viewport-width', value);
-  }
+  const fallbackHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+  const fallbackWidth = typeof window !== 'undefined' ? window.innerWidth : 480;
+  const resolvedHeight = resolveViewportDimension(metrics.height, fallbackHeight);
+  const resolvedStableHeight = resolveViewportDimension(metrics.stableHeight, resolvedHeight);
+  const resolvedWidth = resolveViewportDimension(metrics.width, fallbackWidth);
+
+  const heightValue = `${resolvedHeight}px`;
+  root.style.setProperty('--tg-viewport-height', heightValue);
+  root.style.setProperty('--layout-viewport-height', heightValue);
+
+  const stableValue = `${resolvedStableHeight}px`;
+  root.style.setProperty('--tg-viewport-stable-height', stableValue);
+  root.style.setProperty('--layout-viewport-stable-height', stableValue);
+
+  const widthValue = `${resolvedWidth}px`;
+  root.style.setProperty('--tg-viewport-width', widthValue);
+  root.style.setProperty('--layout-viewport-width', widthValue);
+
   root.style.setProperty('--tg-viewport-is-expanded', metrics.isExpanded ? '1' : '0');
   root.style.setProperty('--tg-viewport-is-stable', metrics.isStateStable ? '1' : '0');
   root.style.setProperty('--tg-viewport-is-fullscreen', metrics.isFullscreen ? '1' : '0');
