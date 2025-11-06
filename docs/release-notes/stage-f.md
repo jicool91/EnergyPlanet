@@ -24,5 +24,9 @@
 - Playwright QA расширен (`tests/qa/stage-f.spec.ts`) для премиум-покупок и PvP events preview; Chromatic build #3 зафиксировал новые stories.
 - Бэкенд: `/admin/seasons/snapshot` и `/admin/seasons/:seasonId/reward` возвращают актуальный снапшот сезона и принимают команды на выдачу наград (логируются события `season_reward_granted`).
 
+## Прогресс 2025-11-07
+- FriendsScreen приведён к дизайн-системе: единые `Surface`, новая Chromatic story, обновлённый `FriendsList` и `ReferralRevenueCard`.
+- Seasonal Rewards UX финализирован: утверждены призовые пакеты, добавлены купонные скрипты и тексты (`docs/design/seasonal-rewards.md`, i18n `season.reward.*`).
+
 ## История
 - _Заполнить после релиза_
