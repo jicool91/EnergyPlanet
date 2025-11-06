@@ -60,6 +60,13 @@ const mockSessionResponse = {
     tap_income: 45,
     passive_income_per_sec: 120,
     passive_income_multiplier: 1,
+    boost_multiplier: 1.15,
+    prestige_multiplier: 1.05,
+    achievement_multiplier: 1.1,
+    prestige_gain_available: 0,
+    prestige_energy_since_reset: 0,
+    prestige_energy_to_next: 5000,
+    prestige_next_threshold: 5000,
     total_energy_produced: 25_000,
   },
   offline_gains: null,
@@ -95,6 +102,13 @@ const mockProfileResponse = {
     tap_income: 45,
     passive_income_per_sec: 120,
     passive_income_multiplier: 1,
+    boost_multiplier: 1.15,
+    prestige_multiplier: 1.05,
+    achievement_multiplier: 1.1,
+    prestige_gain_available: 0,
+    prestige_energy_since_reset: 0,
+    prestige_energy_to_next: 5000,
+    prestige_next_threshold: 5000,
     last_login: MOCK_NOW_ISO,
     last_logout: null,
   },
@@ -395,16 +409,6 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
         await fulfillJson(200, {
           packs: [
             {
-              id: 'starter-pack',
-              title: 'Starter Stars',
-              description: 'Базовый набор без бонусов',
-              stars: 450,
-              bonus_stars: 0,
-              price_rub: 199,
-              icon_url: null,
-              featured: false,
-            },
-            {
               id: 'bonus-pack',
               title: 'Bonus Pack',
               description: 'Includes extra bonus Stars',
@@ -412,7 +416,7 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
               bonus_stars: 120,
               price_rub: 299,
               icon_url: null,
-              featured: false,
+              featured: true,
             },
             {
               id: 'mega-pack',
@@ -421,6 +425,16 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
               stars: 5000,
               bonus_stars: 1200,
               price_rub: 1990,
+              icon_url: null,
+              featured: false,
+            },
+            {
+              id: 'starter-pack',
+              title: 'Starter Stars',
+              description: 'Базовый набор без бонусов',
+              stars: 450,
+              bonus_stars: 0,
+              price_rub: 199,
               icon_url: null,
               featured: false,
             },
@@ -549,10 +563,28 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
     if (pathname.endsWith('/referrals/revenue') && method === 'GET') {
       await fulfillJson(200, {
         revenue: {
-          revenue_share: null,
-          totals: { all_time: 0, month: 0, today: 0 },
-          recent: [],
-          friends: [],
+          revenue_share: { percentage: 0.025 },
+          totals: { all_time: 320, month: 80, today: 12 },
+          recent: [
+            {
+              id: 'event-1',
+              purchase_amount: 199,
+              share_amount: 40,
+              purchase_type: 'starter-pack',
+              granted_at: MOCK_NOW_ISO,
+              referred: { user_id: 'friend-1', username: 'ally_cat', first_name: 'Ally' },
+            },
+          ],
+          friends: [
+            {
+              referred: { user_id: 'friend-1', username: 'ally_cat', first_name: 'Ally' },
+              total_share: 200,
+              total_purchase: 800,
+              last_share: 40,
+              last_purchase: 199,
+              last_purchase_at: MOCK_NOW_ISO,
+            },
+          ],
           updated_at: MOCK_NOW_ISO,
         },
       });
@@ -570,7 +602,7 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
         prestige_multiplier: 1,
         energy_since_reset: 0,
         next_threshold: 100_000,
-        gain_available: 0,
+        potential_multiplier_gain: 0,
       });
       return;
     }
