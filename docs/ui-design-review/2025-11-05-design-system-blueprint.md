@@ -72,7 +72,7 @@
 - Подготовка пакета Stage D: визуальные регрессии, контрастные проверки, телеметрия UX (см. `docs/qa/stage-d-checklist.md`).
 
 ### Этап D — QA и авто-тесты (1 неделя)
-**Статус:** не начат  
+**Статус:** в работе (авто-скрипт `npm run test:qa`, чек-лист см. `docs/qa/stage-d-checklist.md`)  
 1. ☐ Storybook snapshot’ы + Chromatic/Percy pipeline (см. `docs/qa/stage-d-checklist.md`).  
 2. ☐ Расширенный `npm run test:contrast`, Playwright визуальные тесты (все палитры, light mode).  
 3. ☐ UX-телеметрия: измерять render latency, tap-success.
