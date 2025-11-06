@@ -62,15 +62,22 @@
 2. ✅ Shop/Product: введён `ProductTile`, `ShopPanel` и `PurchaseSuccessModal` перешли на Panel/Surface, цены/метрики стандартизированы.
 3. ✅ Modals/Feedback: `AchievementsModal`, `OfflineSummaryModal`, `Toast` собраны на ModalBase/Panel, остался аудит второстепенных модалок (`AuthErrorModal`, `LevelUpScreen`) для выравнивания.
 
+**Что осталось после Этапа C**
+- QA пустых/ошибочных сценариев Economy и Shop, фиксация метрик перед стартом Stage D.
+- Доведённые модалки второго порядка (`AuthErrorModal`, `LevelUpScreen`, `NotificationContainer`) на новую сетку и motion.
+- Подготовка пакета Stage D: визуальные регрессии, контрастные проверки, телеметрия UX.
+
 ### Этап D — QA и авто-тесты (1 неделя)
-1. Storybook snapshot’ы + Chromatic/Percy pipeline.
-2. Расширенный `npm run test:contrast`, Playwright визуальные тесты (все палитры, light mode).
-3. UX-телеметрия: измерять render latency, tap-success.
+**Статус:** не начат  
+1. ☐ Storybook snapshot’ы + Chromatic/Percy pipeline.  
+2. ☐ Расширенный `npm run test:contrast`, Playwright визуальные тесты (все палитры, light mode).  
+3. ☐ UX-телеметрия: измерять render latency, tap-success.
 
 ### Этап E — Rollout и обучение (3–4 дня)
-1. Обновить документацию (`docs/design/...`, Confluence) и записать walkthrough.
-2. Провести командный воркшоп, собрать обратную связь.
-3. Создать Jira epic «Design System Unification» с задачами по этапам.
+**Статус:** не начат  
+1. ☐ Обновить документацию (`docs/design/...`, Confluence) и записать walkthrough.  
+2. ☐ Провести командный воркшоп, собрать обратную связь.  
+3. ☐ Создать Jira epic «Design System Unification» с задачами по этапам.
 
 ## 4. Инвентаризация текущих расхождений (snapshot)
 - Typography drift: ~90 случаев `text-lg`, `text-sm` в старых навигационных компонентах (BottomNavigation, Drawer) — требуется миграция на `Text` variants.
