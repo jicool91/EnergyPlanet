@@ -521,7 +521,7 @@ export function TapScreen() {
 
   return (
     <>
-      <div className="flex flex-col gap-6">
+      <TabPageSurface className="gap-6">
         <TapCircle
           onTap={handleTap}
           streakCount={streakCount}
@@ -568,31 +568,29 @@ export function TapScreen() {
           />
         ) : null}
 
-        <TabPageSurface className="gap-4">
-          <Card className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-body uppercase tracking-[0.12em] text-text-secondary">
-                  Сообщество
-                </p>
-                <p className="text-title font-semibold text-text-primary">
-                  {leaderboardTotal.toLocaleString('ru-RU')} игроков онлайн
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={handleViewLeaderboard}
-                className="rounded-2xl border border-border-layer-strong px-4 py-2 text-body text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
-              >
-                Смотреть рейтинг
-              </button>
+        <Card className="flex flex-col gap-3">
+          <div className="flex items-center justify-between gap-4">
+            <div>
+              <p className="text-body uppercase tracking-[0.12em] text-text-secondary">
+                Сообщество
+              </p>
+              <p className="text-title font-semibold text-text-primary">
+                {leaderboardTotal.toLocaleString('ru-RU')} игроков онлайн
+              </p>
             </div>
-            <p className="text-body text-text-secondary">
-              Тапай быстрее, чтобы обогнать друзей и открыть новые награды.
-            </p>
-          </Card>
-        </TabPageSurface>
-      </div>
+            <button
+              type="button"
+              onClick={handleViewLeaderboard}
+              className="rounded-2xl border border-border-layer-strong px-4 py-2 text-body text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
+            >
+              Смотреть рейтинг
+            </button>
+          </div>
+          <p className="text-body text-text-secondary">
+            Тапай быстрее, чтобы обогнать друзей и открыть новые награды.
+          </p>
+        </Card>
+      </TabPageSurface>
 
       <AchievementsModal
         isOpen={isAchievementsOpen}

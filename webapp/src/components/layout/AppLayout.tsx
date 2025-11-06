@@ -1,6 +1,8 @@
 import type { ReactNode } from 'react';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
+import { miniApp } from '@tma.js/sdk';
 import { useSafeArea } from '@/hooks/useSafeArea';
+import { useTheme } from '@/hooks/useTheme';
 import {
   BottomNavigation,
   type BottomNavigationTab,
@@ -19,38 +21,73 @@ interface AppLayoutProps {
 
 export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: AppLayoutProps) {
   const { safeArea } = useSafeArea();
+  const { theme } = useTheme();
   const safeTop = Math.max(0, safeArea.safe.top ?? 0);
   const safeBottom = Math.max(0, safeArea.safe.bottom ?? 0);
   const safeLeft = Math.max(0, safeArea.safe.left ?? 0);
   const safeRight = Math.max(0, safeArea.safe.right ?? 0);
 
+  useEffect(() => {
+    const headerColor =
+      theme.header_color ?? theme.secondary_bg_color ?? theme.section_bg_color ?? theme.bg_color;
+    const backgroundColor = theme.bg_color ?? headerColor;
+    try {
+      if (headerColor) {
+        miniApp.setHeaderColor(headerColor);
+      } else {
+        miniApp.setHeaderColor('bg_color');
+      }
+    } catch {
+      // ignore
+    }
+    try {
+      if (backgroundColor) {
+        miniApp.setBackgroundColor(backgroundColor);
+      }
+    } catch {
+      // ignore
+    }
+  }, [theme]);
+
+  const containerClassName =
+    'relative flex min-h-screen w-full flex-col max-w-screen-md lg:max-w-screen-lg';
+
+  const sharedHorizontalPadding = useMemo(
+    () => ({
+      paddingLeft: `${safeLeft + 16}px`,
+      paddingRight: `${safeRight + 16}px`,
+    }),
+    [safeLeft, safeRight]
+  );
+
+  const headerStyle = useMemo(
+    () => ({
+      ...sharedHorizontalPadding,
+      paddingTop: `${safeTop + 12}px`,
+    }),
+    [safeTop, sharedHorizontalPadding]
+  );
+
   const mainPadding = useMemo(() => {
     const bottomPadding = NAVIGATION_RESERVE_PX + safeBottom;
     return {
+      ...sharedHorizontalPadding,
       paddingBottom: `${bottomPadding}px`,
-      paddingLeft: `${safeLeft + 16}px`,
-      paddingRight: `${safeRight + 16}px`,
+      paddingTop: '12px',
     };
-  }, [safeBottom, safeLeft, safeRight]);
+  }, [safeBottom, sharedHorizontalPadding]);
 
   return (
     <div className="flex min-h-screen w-full justify-center bg-surface-primary text-text-primary">
-      <div className="relative flex min-h-screen w-full max-w-xl flex-col">
+      <div className={containerClassName}>
         {header ? (
-          <header
-            className="z-10 flex flex-col gap-1 px-4 pb-3 pt-6"
-            style={{ paddingTop: `${safeTop + 12}px` }}
-          >
+          <header className="z-10 flex flex-col gap-1 pb-3" style={headerStyle}>
             {header}
           </header>
         ) : (
           <div style={{ height: `${safeTop}px` }} aria-hidden />
         )}
-        <main
-          className="flex-1 overflow-y-auto pb-8 pt-2"
-          style={mainPadding}
-          data-testid="next-ui-main"
-        >
+        <main className="flex-1 overflow-y-auto" style={mainPadding} data-testid="next-ui-main">
           {children}
         </main>
         <BottomNavigation

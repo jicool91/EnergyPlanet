@@ -149,7 +149,7 @@ export function FriendsScreen() {
   useRenderLatencyMetric({ screen: 'friends_screen' });
 
   return (
-    <div className="flex flex-col gap-4">
+    <TabPageSurface className="gap-4">
       <header className="flex items-center justify-between">
         <div>
           <h1 className="text-heading font-semibold text-text-primary">Рейтинг</h1>
@@ -188,22 +188,20 @@ export function FriendsScreen() {
         }}
       />
 
-      <TabPageSurface>
-        {leaderboardError && !isLeaderboardLoading ? (
-          <div className="flex flex-col items-center gap-3 text-center text-text-secondary">
-            <p>Не удалось загрузить рейтинг.</p>
-            <button
-              type="button"
-              onClick={handleRetry}
-              className="rounded-2xl border border-border-layer-strong px-4 py-2 text-body text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
-            >
-              Повторить
-            </button>
-          </div>
-        ) : (
-          <LeaderboardPanel onOpenShop={handleOpenShop} />
-        )}
-      </TabPageSurface>
-    </div>
+      {leaderboardError && !isLeaderboardLoading ? (
+        <div className="flex flex-col items-center gap-3 text-center text-text-secondary">
+          <p>Не удалось загрузить рейтинг.</p>
+          <button
+            type="button"
+            onClick={handleRetry}
+            className="rounded-2xl border border-border-layer-strong px-4 py-2 text-body text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
+          >
+            Повторить
+          </button>
+        </div>
+      ) : (
+        <LeaderboardPanel onOpenShop={handleOpenShop} />
+      )}
+    </TabPageSurface>
   );
 }

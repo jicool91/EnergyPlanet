@@ -2,7 +2,7 @@ import clsx from 'clsx';
 import { memo } from 'react';
 import { Text } from '@/components/ui/Text';
 
-export type BottomNavigationTabId = 'tap' | 'exchange' | 'friends' | 'earn' | 'airdrop';
+export type BottomNavigationTabId = 'tap' | 'exchange' | 'friends' | 'earn' | 'chat';
 
 export interface BottomNavigationTab {
   id: BottomNavigationTabId;
@@ -34,7 +34,7 @@ export const BottomNavigation = memo(function BottomNavigation({
       aria-label="Главная навигация"
     >
       <div
-        className="pointer-events-auto w-full max-w-xl px-4"
+        className="pointer-events-auto w-full max-w-screen-md px-4 lg:max-w-screen-lg"
         style={{ paddingBottom: `${paddingBottom}px` }}
       >
         <div className="flex items-center justify-between rounded-[28px] border border-border-layer bg-layer-overlay-strong px-2 py-2 shadow-elevation-3 backdrop-blur-md">

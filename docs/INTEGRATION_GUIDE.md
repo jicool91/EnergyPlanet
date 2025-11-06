@@ -100,7 +100,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-type TabType = 'tap' | 'exchange' | 'friends' | 'earn' | 'airdrop';
+type TabType = 'tap' | 'exchange' | 'chat' | 'friends' | 'earn';
 
 interface BottomNavigationProps {
   activeTab: TabType;
@@ -119,14 +119,14 @@ export const BottomNavigation: React.FC<BottomNavigationProps> = ({
   }> = [
     { id: 'tap', label: 'Mine', icon: '⛏️', path: '/' },
     { id: 'exchange', label: 'Exchange', icon: '🏢', path: '/exchange' },
+    { id: 'chat', label: 'Chat', icon: '💬', path: '/chat' },
     { id: 'friends', label: 'Friends', icon: '👥', path: '/friends' },
     { id: 'earn', label: 'Earn', icon: '💰', path: '/earn' },
-    { id: 'airdrop', label: 'Airdrop', icon: '🎁', path: '/airdrop' },
   ];
 
   return (
     <div className="fixed bottom-0 left-1/2 transform -translate-x-1/2
-                    w-[calc(100%-2rem)] max-w-xl
+                    w-[calc(100%-2rem)] max-w-screen-md
                     bg-slate-800 flex justify-around items-center
                     z-50 rounded-3xl text-xs m-4 mb-4">
       {tabs.map((tab) => (
@@ -163,12 +163,12 @@ function AppContent() {
   const location = useLocation();
 
   // Определите текущую вкладку по пути
-  const getCurrentTab = (): 'tap' | 'exchange' | 'friends' | 'earn' | 'airdrop' => {
+  const getCurrentTab = (): 'tap' | 'exchange' | 'chat' | 'friends' | 'earn' => {
     if (location.pathname === '/') return 'tap';
     if (location.pathname.startsWith('/exchange')) return 'exchange';
+    if (location.pathname.startsWith('/chat')) return 'chat';
     if (location.pathname.startsWith('/friends')) return 'friends';
     if (location.pathname.startsWith('/earn')) return 'earn';
-    if (location.pathname.startsWith('/airdrop')) return 'airdrop';
     return 'tap';
   };
 

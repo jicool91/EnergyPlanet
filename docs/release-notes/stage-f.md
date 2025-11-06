@@ -13,6 +13,10 @@
 - [ ] Release QA пройден по `docs/qa/stage-f-checklist.md`.
 
 ## Прогресс 2025-11-06
+- Навигация приведена к мобильным гайдлайнам Telegram: вкладка `Airdrop` заменена на `Chat`, бар растянут до `max-w-screen-md`, safe area учитывается для padding.
+- Добавлен экран `ChatScreen` с переключением Global/Clan (плейсхолдер до запуска чатов), обновлены роуты и guard.
+- Верхний статус-бар синхронизирован с `setHeaderColor`/`setBackgroundColor`, safe area пересчитывается через `viewport_changed`.
+- Админские действия спрятаны из Tap/Exchange/Friends/Earn; вход в админку доступен только через профиль и проверку роли.
 - Добавлены компоненты `MatchLobby`, `EventSchedule`, экран `PvPEventsScreen` и preview для быстрой валидации темной/светлой тем.
 - `PurchaseSuccessModal` поддерживает варианты `standard/premium/subscription`, локализацию RU/EN, произвольные награды и вспомогательные ссылки; добавлены storybook-примеры и visual preview параметры `variant`, `locale`, `currency`.
 - Storybook пополнен сценариями `MatchLobby`, `EventSchedule`, `LeaderboardPanel`, `SeasonRewardsAdminPanel`; линтер и форматирование проходят (`npm run lint`).

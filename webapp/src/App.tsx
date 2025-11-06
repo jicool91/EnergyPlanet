@@ -19,7 +19,7 @@ import { TapScreen } from './screens/TapScreen';
 import { ExchangeScreen } from './screens/ExchangeScreen';
 import { FriendsScreen } from './screens/FriendsScreen';
 import { EarnScreen } from './screens/EarnScreen';
-import { AirdropScreen } from './screens/AirdropScreen';
+import { ChatScreen } from './screens/ChatScreen';
 import { AuthErrorModal } from './components/AuthErrorModal';
 import { OfflineSummaryModal } from './components/OfflineSummaryModal';
 import { LevelUpScreen } from './components/LevelUpScreen';
@@ -42,9 +42,9 @@ import { ensureExperimentVariant } from '@/store/experimentsStore';
 const NAVIGATION_TABS: BottomNavigationTab[] = [
   { id: 'tap', label: 'Tap', icon: '⚡️', path: '/' },
   { id: 'exchange', label: 'Exchange', icon: '🏢', path: '/exchange' },
+  { id: 'chat', label: 'Chat', icon: '💬', path: '/chat' },
   { id: 'friends', label: 'Friends', icon: '🤝', path: '/friends' },
   { id: 'earn', label: 'Earn', icon: '💼', path: '/earn' },
-  { id: 'airdrop', label: 'Airdrop', icon: '🎁', path: '/airdrop' },
 ];
 
 const PATH_TO_TAB: Record<string, BottomNavigationTabId> = {
@@ -52,7 +52,7 @@ const PATH_TO_TAB: Record<string, BottomNavigationTabId> = {
   '/exchange': 'exchange',
   '/friends': 'friends',
   '/earn': 'earn',
-  '/airdrop': 'airdrop',
+  '/chat': 'chat',
 };
 
 const shouldShowMajorLevel = (level: number): boolean => {
@@ -139,7 +139,7 @@ function NextUiRouter({ renderHeader }: NextUiRouterProps) {
           <Route path="/exchange" element={<ExchangeScreen />} />
           <Route path="/friends" element={<FriendsScreen />} />
           <Route path="/earn" element={<EarnScreen />} />
-          <Route path="/airdrop" element={<AirdropScreen />} />
+          <Route path="/chat" element={<ChatScreen />} />
           <Route path="/events" element={<PvPEventsScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -386,17 +386,6 @@ function NextUiApp() {
               <Button type="button" size="md" variant="secondary" onClick={() => navigate('/earn')}>
                 Профиль
               </Button>
-              {isAdmin && (
-                <Button
-                  type="button"
-                  size="md"
-                  variant="secondary"
-                  className="border-state-success-pill-strong text-feedback-success hover:bg-state-success-pill"
-                  onClick={openAdminMetrics}
-                >
-                  Admin
-                </Button>
-              )}
             </div>
           </Surface>
         );
@@ -407,7 +396,7 @@ function NextUiApp() {
         exchange: 'Exchange',
         friends: 'Friends',
         earn: 'Earn',
-        airdrop: 'Airdrop',
+        chat: 'Chat',
       };
 
       return (
@@ -434,7 +423,7 @@ function NextUiApp() {
         </Surface>
       );
     },
-    [energy, isAdmin, level, openAdminMetrics, stars, xpIntoLevel, xpToNextLevel]
+    [energy, level, stars, xpIntoLevel, xpToNextLevel]
   );
 
   return (

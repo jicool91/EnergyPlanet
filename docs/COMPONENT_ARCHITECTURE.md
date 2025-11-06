@@ -15,7 +15,8 @@ webapp/src/
 │   │   ├── ExchangeScreen.tsx    # Магазин (/exchange)
 │   │   ├── FriendsScreen.tsx     # Рефералы (/friends)
 │   │   ├── EarnScreen.tsx        # Заработок (/earn)
-│   │   └── AirdropScreen.tsx     # События (/airdrop)
+│   │   ├── ChatScreen.tsx        # Социальный чат (/chat, WIP)
+│   │   └── AirdropScreen.tsx     # Исторический экран airdrop (legacy)
 │   │
 │   ├── ui/                       # Переиспользуемые UI компоненты
 │   │   ├── Button.tsx            # Кнопки (Primary, Secondary, Disabled)

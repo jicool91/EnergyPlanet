@@ -9,7 +9,7 @@
 ## Каркас и навигация
 - [x] `AppLayout` центрирует приложение (`max-w-xl`), корректно учитывает safe-area на iOS/Android в Telegram, использует `motion-safe`/`motion-reduce` классы.[^telegram-viewport][^tailwind-best]
 - [x] `BottomNavigation` содержит 5 вкладок, состояния выделяются по макету, `aria-label`, `aria-current="page"`, стрелочная навигация и `startTransition` при переключении.
-- [x] Маршруты `/`, `/exchange`, `/friends`, `/earn`, `/airdrop` рендерятся через `React.Suspense` без ошибок в консоли.
+- [x] Маршруты `/`, `/exchange`, `/chat`, `/friends`, `/earn` рендерятся через `React.Suspense` без ошибок в консоли.
 - [ ] Legacy `MainScreen` остаётся доступным при выключенном фичефлаге. _(неприменимо, legacy UI удалён 31.10.2025)_
 
 ## Экран Tap

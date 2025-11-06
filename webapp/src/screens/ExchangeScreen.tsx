@@ -1,9 +1,8 @@
 import { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
 import clsx from 'clsx';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { TabPageSurface, ShopPanel, BuildingsPanel, Panel, Button, Text } from '@/components';
+import { TabPageSurface, ShopPanel, BuildingsPanel, Surface, Button, Text } from '@/components';
 import type { ShopSection } from '@/components/ShopPanel';
-import { useAdminModal } from '@/contexts/AdminModalContext';
 import { useRenderLatencyMetric } from '@/hooks/useRenderLatencyMetric';
 
 type ExchangeTab = 'shop' | 'builds';
@@ -16,7 +15,6 @@ const EXCHANGE_TABS: Array<{ id: ExchangeTab; label: string; icon: string }> = [
 export function ExchangeScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { openAdminMetrics } = useAdminModal();
   const [shopSection, setShopSection] = useState<ShopSection>('star_packs');
   const [exchangeTab, setExchangeTab] = useState<ExchangeTab>('shop');
   const validSections = useMemo<ShopSection[]>(() => ['star_packs', 'boosts'], []);
@@ -70,13 +68,13 @@ export function ExchangeScreen() {
   return (
     <TabPageSurface className="gap-6">
       <nav aria-label="Навигация магазина">
-        <Panel
-          tone="overlay"
+        <Surface
+          tone="secondary"
           border="subtle"
           elevation="soft"
           padding="sm"
-          spacing="none"
-          className="grid grid-cols-1 gap-sm sm:grid-cols-2"
+          rounded="3xl"
+          className="grid w-full grid-cols-1 gap-sm sm:grid-cols-2"
         >
           {EXCHANGE_TABS.map(tab => {
             const isActive = exchangeTab === tab.id;
@@ -111,43 +109,35 @@ export function ExchangeScreen() {
               </Button>
             );
           })}
-        </Panel>
+        </Surface>
       </nav>
 
       {exchangeTab === 'shop' ? (
-        <Panel
-          tone="overlayStrong"
+        <Surface
+          tone="secondary"
           border="subtle"
-          elevation="medium"
+          elevation="soft"
           padding="lg"
-          spacing="none"
-          className="w-full"
+          rounded="3xl"
+          className="flex w-full flex-col gap-lg"
         >
           <ShopPanel
             showHeader={false}
             activeSection={shopSection}
             onSectionChange={handleSectionChange}
           />
-        </Panel>
+        </Surface>
       ) : (
-        <Panel
-          tone="overlayStrong"
+        <Surface
+          tone="secondary"
           border="subtle"
-          elevation="medium"
-          spacing="lg"
-          className="w-full"
+          elevation="soft"
+          padding="lg"
+          rounded="3xl"
+          className="flex w-full flex-col gap-lg"
         >
           <BuildingsPanel showHeader={false} />
-          <Button
-            type="button"
-            variant="secondary"
-            size="sm"
-            className="self-end"
-            onClick={openAdminMetrics}
-          >
-            Админ. метрики
-          </Button>
-        </Panel>
+        </Surface>
       )}
     </TabPageSurface>
   );

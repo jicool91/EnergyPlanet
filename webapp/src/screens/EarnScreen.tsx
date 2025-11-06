@@ -4,6 +4,7 @@ import {
   ProfileSettingsScreen,
   ProfileSkeleton,
   EarnTasksBoard,
+  Surface,
 } from '@/components';
 import { useGameStore } from '@/store/gameStore';
 import { useAuthStore } from '@/store/authStore';
@@ -32,17 +33,24 @@ export function EarnScreen() {
   }, [loadProfile]);
 
   return (
-    <div className="flex flex-col gap-4">
+    <TabPageSurface className="gap-4">
       <EarnTasksBoard />
 
-      <header>
+      <header className="flex flex-col gap-1">
         <h2 className="text-heading font-semibold text-text-primary">Профиль</h2>
         <p className="text-body text-text-secondary">
           Управляйте аккаунтом, подключайте уведомления и проверяйте прогресс.
         </p>
       </header>
 
-      <TabPageSurface>
+      <Surface
+        tone="secondary"
+        border="subtle"
+        elevation="soft"
+        padding="lg"
+        rounded="3xl"
+        className="flex flex-col gap-lg"
+      >
         {profileError && !isProfileLoading ? (
           <div className="flex flex-col items-center gap-3 text-center text-text-secondary">
             <p>Не удалось загрузить профиль.</p>
@@ -59,7 +67,7 @@ export function EarnScreen() {
         ) : (
           <ProfileSettingsScreen onShowAdminPanel={openAdminMetrics} />
         )}
-      </TabPageSurface>
-    </div>
+      </Surface>
+    </TabPageSurface>
   );
 }
