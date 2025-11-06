@@ -33,7 +33,7 @@ export function ChatScreen() {
           tone="overlay"
           border="subtle"
           elevation="soft"
-          padding="xs"
+          padding="sm"
           spacing="none"
           aria-label="Навигация по чатам"
           className="grid grid-cols-2 gap-xs"

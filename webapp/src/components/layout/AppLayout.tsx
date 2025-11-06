@@ -31,6 +31,21 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
     const headerColor =
       theme.header_color ?? theme.secondary_bg_color ?? theme.section_bg_color ?? theme.bg_color;
     const backgroundColor = theme.bg_color ?? headerColor;
+
+    const webApp =
+      typeof window !== 'undefined'
+        ? ((
+            window as typeof window & {
+              Telegram?: {
+                WebApp?: {
+                  setHeaderColor?: (color: string) => void;
+                  setBackgroundColor?: (color: string) => void;
+                };
+              };
+            }
+          ).Telegram?.WebApp ?? null)
+        : null;
+
     try {
       if (headerColor) {
         miniApp.setHeaderColor(headerColor);
@@ -38,14 +53,15 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
         miniApp.setHeaderColor('bg_color');
       }
     } catch {
-      // ignore
-    }
-    try {
-      if (backgroundColor) {
-        miniApp.setBackgroundColor(backgroundColor);
+      if (headerColor) {
+        webApp?.setHeaderColor?.(headerColor);
+      } else {
+        webApp?.setHeaderColor?.('bg_color');
       }
-    } catch {
-      // ignore
+    }
+
+    if (backgroundColor) {
+      webApp?.setBackgroundColor?.(backgroundColor);
     }
   }, [theme]);
 
