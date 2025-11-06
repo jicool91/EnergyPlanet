@@ -1,7 +1,5 @@
 import { memo } from 'react';
-import { Card } from '@/components/Card';
-import { Button } from '@/components/Button';
-import { Text } from '@/components/ui/Text';
+import { Button, Surface, Text } from '@/components';
 import { Skeleton } from '@/components/ui/Skeleton';
 
 interface FriendsListProps {
@@ -27,23 +25,35 @@ export const FriendsList = memo(function FriendsList({
 }: FriendsListProps) {
   if (error) {
     return (
-      <Card className="flex flex-col gap-3 border-state-danger-border bg-state-danger-surface text-text-primary">
-        <Text as="p" variant="body" weight="semibold" className="m-0">
+      <Surface
+        tone="secondary"
+        border="strong"
+        elevation="soft"
+        padding="lg"
+        rounded="3xl"
+        className="flex flex-col gap-3 border-feedback-error/50 bg-feedback-error/15 text-text-primary"
+      >
+        <Text variant="body" weight="semibold">
           Не удалось загрузить рефералов.
         </Text>
-        <Text as="span" variant="bodySm" tone="secondary">
+        <Text variant="bodySm" tone="secondary">
           {error}
         </Text>
         <Button size="sm" variant="secondary" onClick={onInvite}>
           Попробовать ещё раз
         </Button>
-      </Card>
+      </Surface>
     );
   }
 
   if (isLoading) {
     return (
-      <Card
+      <Surface
+        tone="secondary"
+        border="subtle"
+        elevation="soft"
+        padding="lg"
+        rounded="3xl"
         className="flex flex-col gap-3 animate-pulse"
         role="status"
         aria-live="polite"
@@ -55,18 +65,25 @@ export const FriendsList = memo(function FriendsList({
           <Skeleton className="h-16 flex-1" />
         </div>
         <Skeleton className="h-10 w-32 rounded-full" />
-      </Card>
+      </Surface>
     );
   }
 
   return (
-    <Card className="flex flex-col gap-4">
+    <Surface
+      tone="secondary"
+      border="subtle"
+      elevation="soft"
+      padding="lg"
+      rounded="3xl"
+      className="flex flex-col gap-4"
+    >
       <header className="flex items-center justify-between">
         <div>
           <Text variant="label" tone="secondary" transform="uppercase">
             Реферальная программа
           </Text>
-          <Text as="p" variant="title" weight="semibold" className="m-0">
+          <Text variant="title" weight="semibold">
             Приглашено друзей: {totalInvites}
           </Text>
         </div>
@@ -105,6 +122,6 @@ export const FriendsList = memo(function FriendsList({
           Вас пригласил <strong>{referredByName}</strong> — спасибо за поддержку!
         </Text>
       )}
-    </Card>
+    </Surface>
   );
 });

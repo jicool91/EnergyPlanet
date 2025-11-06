@@ -1,7 +1,15 @@
 import { useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
-import { TabPageSurface, LeaderboardPanel, FriendsList, ReferralRevenueCard } from '@/components';
+import {
+  TabPageSurface,
+  Surface,
+  LeaderboardPanel,
+  FriendsList,
+  ReferralRevenueCard,
+  Button,
+  Text,
+} from '@/components';
 import { useGameStore } from '@/store/gameStore';
 import { useAuthStore } from '@/store/authStore';
 import { useReferralStore } from '@/store/referralStore';
@@ -149,22 +157,27 @@ export function FriendsScreen() {
   useRenderLatencyMetric({ screen: 'friends_screen' });
 
   return (
-    <TabPageSurface className="gap-4">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-heading font-semibold text-text-primary">Рейтинг</h1>
-          <p className="text-body text-text-secondary">
+    <TabPageSurface className="gap-6">
+      <Surface
+        tone="secondary"
+        border="subtle"
+        elevation="soft"
+        padding="lg"
+        rounded="3xl"
+        className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+      >
+        <div className="flex flex-col gap-1">
+          <Text variant="title" weight="semibold">
+            Рейтинг
+          </Text>
+          <Text variant="body" tone="secondary">
             Следите за прогрессом друзей и поднимайтесь выше в таблице.
-          </p>
+          </Text>
         </div>
-        <button
-          type="button"
-          onClick={handleOpenShop}
-          className="rounded-2xl bg-accent-gold px-4 py-2 text-body font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-surface-primary focus-visible:ring-offset-2 focus-visible:ring-offset-accent-gold"
-        >
+        <Button size="md" variant="primary" onClick={handleOpenShop}>
           В магазин бустов
-        </button>
-      </header>
+        </Button>
+      </Surface>
 
       <FriendsList
         totalInvites={referralStats?.total_invites ?? 0}
@@ -189,18 +202,32 @@ export function FriendsScreen() {
       />
 
       {leaderboardError && !isLeaderboardLoading ? (
-        <div className="flex flex-col items-center gap-3 text-center text-text-secondary">
-          <p>Не удалось загрузить рейтинг.</p>
-          <button
-            type="button"
-            onClick={handleRetry}
-            className="rounded-2xl border border-border-layer-strong px-4 py-2 text-body text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
-          >
+        <Surface
+          tone="secondary"
+          border="subtle"
+          elevation="soft"
+          padding="lg"
+          rounded="3xl"
+          className="flex flex-col items-center gap-3 text-center text-text-secondary"
+        >
+          <Text variant="body" tone="secondary">
+            Не удалось загрузить рейтинг.
+          </Text>
+          <Button size="sm" variant="secondary" onClick={handleRetry}>
             Повторить
-          </button>
-        </div>
+          </Button>
+        </Surface>
       ) : (
-        <LeaderboardPanel onOpenShop={handleOpenShop} />
+        <Surface
+          tone="secondary"
+          border="subtle"
+          elevation="soft"
+          padding="lg"
+          rounded="3xl"
+          className="flex flex-col gap-4"
+        >
+          <LeaderboardPanel onOpenShop={handleOpenShop} />
+        </Surface>
       )}
     </TabPageSurface>
   );

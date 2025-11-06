@@ -95,7 +95,7 @@ export const friendsProfileMock: ProfileResponse = {
 
 let initialized = false;
 
-function bootstrapFriendsPreviewState() {
+export function bootstrapFriendsPreviewState() {
   if (initialized) {
     return;
   }

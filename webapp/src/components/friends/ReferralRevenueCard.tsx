@@ -1,6 +1,5 @@
 import { memo, useMemo } from 'react';
-import { Card } from '@/components/Card';
-import { Button } from '@/components/Button';
+import { Button, Surface } from '@/components';
 import type {
   ReferralRevenueOverview,
   ReferralRevenueEvent,
@@ -44,7 +43,14 @@ const getEventSubtitle = (event: ReferralRevenueEvent) => {
 };
 
 const Placeholder = () => (
-  <Card className="flex flex-col gap-4 border-border-layer bg-surface-glass-strong animate-pulse">
+  <Surface
+    tone="secondary"
+    border="subtle"
+    elevation="soft"
+    padding="lg"
+    rounded="3xl"
+    className="flex flex-col gap-4 bg-surface-glass-strong animate-pulse"
+  >
     <div className="h-5 w-1/3 rounded bg-layer-overlay-ghost-soft" />
     <div className="grid gap-3 md:grid-cols-2">
       <div className="flex flex-col gap-2 rounded-2xl border border-border-layer bg-layer-overlay-ghost-soft p-4">
@@ -56,7 +62,7 @@ const Placeholder = () => (
         <div className="h-16 rounded bg-layer-overlay-ghost-soft" />
       </div>
     </div>
-  </Card>
+  </Surface>
 );
 
 export const ReferralRevenueCard = memo(function ReferralRevenueCard({
@@ -80,13 +86,20 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
 
   if (error && !overview) {
     return (
-      <Card className="flex flex-col gap-3 border-feedback-error/60 bg-feedback-error/15 text-text-primary">
+      <Surface
+        tone="secondary"
+        border="strong"
+        elevation="soft"
+        padding="lg"
+        rounded="3xl"
+        className="flex flex-col gap-3 border-feedback-error/60 bg-feedback-error/15 text-text-primary"
+      >
         <div className="text-body font-semibold">Не удалось загрузить реферальный доход</div>
         <div className="text-caption text-text-secondary">{error}</div>
         <Button size="sm" onClick={onRetry} variant="secondary">
           Попробовать ещё раз
         </Button>
-      </Card>
+      </Surface>
     );
   }
 
@@ -95,7 +108,14 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
   }
 
   return (
-    <Card className="flex flex-col gap-4 border-border-magenta bg-layer-overlay-strong">
+    <Surface
+      tone="secondary"
+      border="subtle"
+      elevation="soft"
+      padding="lg"
+      rounded="3xl"
+      className="flex flex-col gap-4 border-border-magenta bg-layer-overlay-strong"
+    >
       <header className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-body uppercase tracking-[0.12em] text-text-secondary">
@@ -210,6 +230,6 @@ export const ReferralRevenueCard = memo(function ReferralRevenueCard({
           Обновить
         </Button>
       </footer>
-    </Card>
+    </Surface>
   );
 });
