@@ -3,14 +3,20 @@ import { useUIStore } from '../../store/uiStore';
 import { Toast } from './Toast';
 import { Achievement } from './Achievement';
 import { Alert } from './Alert';
+import { useSafeArea } from '@/hooks/useSafeArea';
 
 export function NotificationContainer() {
   const notifications = useUIStore(state => state.notifications);
+  const { safeArea } = useSafeArea();
 
   // Separate notifications by type
   const toasts = notifications.filter(n => n.type === 'toast');
   const achievements = notifications.filter(n => n.type === 'achievement');
   const alerts = notifications.filter(n => n.type === 'alert');
+
+  const toastOffsetRight = safeArea.content.right + 16;
+  const toastOffsetBottom = safeArea.content.bottom + 80;
+  const achievementOffsetTop = safeArea.content.top + 72;
 
   return (
     <>
@@ -18,8 +24,8 @@ export function NotificationContainer() {
       <div
         className="fixed z-50 flex flex-col gap-2 pointer-events-auto"
         style={{
-          right: 'calc(var(--safe-area-right) + 16px)',
-          bottom: 'calc(var(--safe-area-bottom) + 80px)',
+          right: `${toastOffsetRight}px`,
+          bottom: `${toastOffsetBottom}px`,
         }}
       >
         <AnimatePresence mode="popLayout">
@@ -34,7 +40,7 @@ export function NotificationContainer() {
         className="fixed z-50 pointer-events-auto -translate-x-1/2"
         style={{
           left: '50%',
-          top: 'calc(var(--safe-area-top) + 72px)',
+          top: `${achievementOffsetTop}px`,
         }}
       >
         <AnimatePresence mode="wait">

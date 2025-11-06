@@ -328,7 +328,6 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
                   <motion.tr
                     key={entry.user_id}
                     initial={false}
-                    animate={isCurrentUser ? { backgroundColor: 'rgba(31, 196, 215, 0.22)' } : {}}
                     className={clsx(
                       'border-t border-border-layer transition-colors',
                       isCurrentUser
@@ -397,11 +396,7 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
               <motion.div
                 key={entry.user_id}
                 initial={false}
-                animate={
-                  isCurrentUser
-                    ? { backgroundColor: 'rgba(31, 196, 215, 0.28)', scale: 1.01 }
-                    : { scale: 1 }
-                }
+                animate={isCurrentUser ? { scale: 1.01 } : { scale: 1 }}
                 transition={{ duration: 0.3 }}
               >
                 <Surface

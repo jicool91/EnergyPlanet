@@ -9,6 +9,10 @@ import { Confetti } from './animations/Confetti';
 import { useSoundEffect } from '@/hooks/useSoundEffect';
 import { usePreferencesStore } from '@/store/preferencesStore';
 import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
+import { Text } from './ui/Text';
+import { Button } from './Button';
+
+const MotionButton = motion(Button);
 
 interface LevelUpScreenProps {
   isOpen: boolean;
@@ -258,14 +262,21 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                 />
 
                 <motion.div
-                  className="relative text-hero-display font-black text-transparent bg-clip-text bg-gradient-to-br from-cyan via-lime to-gold drop-shadow-glow"
+                  className="relative"
                   animate={levelNumberAnimation}
                   transition={{
                     duration: prefersReducedMotion ? 0.3 : 0.8,
                     times: [0, 0.5, 1],
                   }}
                 >
-                  {newLevel}
+                  <Text
+                    as="span"
+                    variant="hero"
+                    weight="bold"
+                    className="text-transparent bg-clip-text bg-gradient-to-br from-cyan via-lime to-gold drop-shadow-glow font-black"
+                  >
+                    {newLevel}
+                  </Text>
                 </motion.div>
 
                 {[...Array(8)].map((_, i) => (
@@ -312,30 +323,36 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                 animate="show"
                 id="levelup-title"
               >
-                <motion.h1
-                  className="m-0 text-display font-black text-lime tracking-wider"
-                  variants={textVariants.item}
-                >
-                  УРОВЕНЬ
-                </motion.h1>
-                <motion.h1
-                  className="m-0 text-display font-black text-lime tracking-wider"
-                  variants={textVariants.item}
-                >
-                  ПОВЫШЕН!
-                </motion.h1>
+                <motion.div variants={textVariants.item}>
+                  <Text
+                    as="h1"
+                    variant="display"
+                    weight="bold"
+                    className="m-0 font-black text-lime tracking-wider"
+                  >
+                    УРОВЕНЬ
+                  </Text>
+                </motion.div>
+                <motion.div variants={textVariants.item}>
+                  <Text
+                    as="h1"
+                    variant="display"
+                    weight="bold"
+                    className="m-0 font-black text-lime tracking-wider"
+                  >
+                    ПОВЫШЕН!
+                  </Text>
+                </motion.div>
 
-                <motion.p
-                  className="m-0 mt-4 text-body font-semibold text-token-secondary"
-                  variants={textVariants.item}
-                  id="levelup-message"
-                >
-                  Доступны новые постройки
-                </motion.p>
+                <motion.div variants={textVariants.item} className="mt-4" id="levelup-message">
+                  <Text variant="body" weight="semibold" tone="secondary">
+                    Доступны новые постройки
+                  </Text>
+                </motion.div>
               </motion.div>
 
-              <motion.p
-                className="m-0 text-caption text-text-secondary mt-8"
+              <motion.div
+                className="mt-8"
                 initial={{ opacity: 0 }}
                 animate={prefersReducedMotion ? { opacity: 0.8 } : { opacity: [0.3, 0.8, 0.3] }}
                 transition={
@@ -347,20 +364,24 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
                       }
                 }
               >
-                Коснитесь для продолжения
-              </motion.p>
+                <Text variant="caption" tone="secondary">
+                  Коснитесь для продолжения
+                </Text>
+              </motion.div>
 
-              <motion.button
+              <MotionButton
                 ref={primaryActionRef}
                 type="button"
-                className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan to-lime text-dark-bg font-semibold text-body shadow-lg focus-ring"
+                variant="primary"
+                size="md"
+                className="shadow-glow"
                 whileHover={prefersReducedMotion ? undefined : { scale: 1.05 }}
                 whileTap={prefersReducedMotion ? undefined : { scale: 0.95 }}
                 onClick={onDismiss}
                 aria-label="Закрыть поздравительный экран и вернуться в игру"
               >
                 Продолжить
-              </motion.button>
+              </MotionButton>
             </div>
           </motion.div>
         </>

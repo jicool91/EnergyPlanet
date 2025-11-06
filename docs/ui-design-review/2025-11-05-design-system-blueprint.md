@@ -73,7 +73,7 @@
 
 ### Этап D — QA и авто-тесты (1 неделя)
 **Статус:** не начат  
-1. ☐ Storybook snapshot’ы + Chromatic/Percy pipeline.  
+1. ☐ Storybook snapshot’ы + Chromatic/Percy pipeline (см. `docs/qa/stage-d-checklist.md`).  
 2. ☐ Расширенный `npm run test:contrast`, Playwright визуальные тесты (все палитры, light mode).  
 3. ☐ UX-телеметрия: измерять render latency, tap-success.
 
