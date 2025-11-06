@@ -130,6 +130,14 @@ cd webapp && npm run lint
 # Type checking
 cd backend && npm run typecheck
 cd webapp && npm run typecheck
+
+# Storybook / Chromatic
+cd webapp && npm run storybook        # локальный просмотр
+cd webapp && npm run test:storybook   # публикация снапшотов
+
+# Visual previews (static build)
+# Примеры: http://localhost:5173/visual.html?view=events&theme=light
+# Доступные view: offline, friends, tap, exchange, levelup, auth-error, purchase-success, events
 ```
 
 ### Сборка

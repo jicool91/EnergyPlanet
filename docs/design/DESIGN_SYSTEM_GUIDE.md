@@ -1,12 +1,13 @@
 # Design System Guide — Energy Planet TMA
 
-Updated: 5 Nov 2025
+Updated: 6 Nov 2025
 
 ## Quick Start
 - Keep this file open with `docs/design/UI_UX_ANALYSIS.md` when working on UI tickets.
 - Source of truth for tokens lives in `webapp/src/styles/tokens.css`; Tailwind utilities mirror these values.
 - Run `npm run lint` and `npm run typecheck` in `webapp/` after any design token or component change.
 - Use `npm run test:contrast` перед PR, чтобы зафиксировать контраст, и `npm run test:visual` для скриншотных регрессий (визуальный превью `visual.html`).
+- Перед финалом запускайте `npm run test:storybook` — Chromatic снимет актуальные снапшоты компонентов.
 
 ## Pillars
 1. **Platform-native theming:** respect Telegram theme parameters first, then overlay brand flair.
@@ -70,7 +71,8 @@ Updated: 5 Nov 2025
 3. Implement components, using hooks (`useTheme`, `useSafeArea`) instead of `window.Telegram` references.
 4. Validate in Telegram test clients (iOS & Android) plus web preview to ensure theme parity.
 5. Run `npm run lint`, `typecheck`, and manual accessibility spot checks before opening PR.
-6. Во вложениях к PR добавляйте скриншоты тёмной/светлой темы, короткий клип immersive-режима и результаты проверки контраста.
+6. Прогоните `npm run test:storybook` — диффы в Chromatic должны быть аппрувнуты или описаны в PR.
+7. Во вложениях к PR добавляйте скриншоты тёмной/светлой темы, короткий клип immersive-режима и результаты проверки контраста.
 
 ## Module Reference
 - `webapp/src/styles/tokens.css`: держите единую палитру и обновляйте комментарии при добавлении токена.
@@ -79,3 +81,5 @@ Updated: 5 Nov 2025
 - `webapp/src/components/Button.tsx`, `Card.tsx`, `tap/TapCircle.tsx`: эталонные реализации высот, фокусов и анимаций — при доработке копируйте паттерны сюда.
 - `webapp/src/hooks/useHaptic.ts` + `store/preferencesStore.ts`: хранение пользовательских настроек и включение/выключение эффектов; расширяйте при добавлении новых паттернов.
 - `webapp/src/services/telemetry.ts`: буферизация UX-событий; добавляйте события для новых фич, чтобы мерить влияние на экономику и retention.
+- `docs/design/migration-guide.md`: пошаговая инструкция по переносу экранов на DS (используйте на Stage E/F).
+- `docs/setup/storybook.md`: как запускать Storybook локально и публиковать снапшоты Chromatic.

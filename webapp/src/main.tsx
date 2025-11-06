@@ -19,11 +19,19 @@ import {
   onTmaViewportChange,
 } from '@/services/tma/viewport';
 import { sessionManager } from './services/sessionManager';
+import { useGameStore } from './store/gameStore';
+import { usePreferencesStore } from './store/preferencesStore';
 
 // Export logger to window for debugging
 declare global {
   interface Window {
     _energyLogs?: typeof logger;
+    __APP_TEST_HOOKS__?: {
+      openAuthError: (message?: string) => void;
+      dismissAuthError: () => void;
+      simulateLevelUp: (targetLevel?: number) => void;
+      setReduceMotion: (enabled: boolean) => void;
+    };
   }
 }
 
@@ -81,6 +89,29 @@ if (import.meta.hot) {
 authStore.hydrate();
 sessionManager.syncFromStore();
 onTmaThemeChange(theme => uiStore.updateTheme(theme));
+
+if (typeof window !== 'undefined' && (import.meta.env.DEV || import.meta.env.MODE === 'test')) {
+  const hooks = {
+    openAuthError(message = 'Тестовая ошибка авторизации') {
+      uiStore.openAuthError(message);
+    },
+    dismissAuthError() {
+      uiStore.dismissAuthError();
+    },
+    simulateLevelUp(targetLevel: number = useGameStore.getState().level + 1) {
+      const current = useGameStore.getState();
+      const nextLevel = Number.isFinite(targetLevel)
+        ? Math.max(current.level + 1, Math.floor(targetLevel))
+        : current.level + 1;
+      useGameStore.setState({ level: nextLevel });
+    },
+    setReduceMotion(enabled: boolean) {
+      usePreferencesStore.setState({ reduceMotion: enabled });
+    },
+  };
+
+  window.__APP_TEST_HOOKS__ = hooks;
+}
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

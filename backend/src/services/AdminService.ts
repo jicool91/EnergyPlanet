@@ -59,11 +59,73 @@ export interface HealthStatus {
   timestamp: string;
 }
 
+export interface SeasonLeaderboardEntry {
+  userId: string;
+  username: string | null;
+  firstName: string | null;
+  lastName: string | null;
+  finalRank: number | null;
+  finalElo: number | null;
+  finalTier: string | null;
+  rewardTier: 'gold' | 'silver' | 'bronze';
+  couponCode: string | null;
+  rewards: Record<string, unknown>;
+  claimed: boolean;
+  claimedAt: string | null;
+  energyTotal: number;
+}
+
+export interface SeasonSnapshot {
+  seasonId: string;
+  seasonNumber: number;
+  name: string;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+  rewards: Record<string, unknown>;
+  leaderboard: SeasonLeaderboardEntry[];
+  generatedAt: string;
+}
+
 const MIGRATIONS_DIR = path.join(__dirname, '../../migrations');
 
 const hasErrorCode = (error: unknown, code: string): boolean => {
   return typeof error === 'object' && error !== null && 'code' in error && (error as { code?: unknown }).code === code;
 };
+
+const toIsoString = (value: string | Date | null | undefined): string => {
+  if (!value) {
+    return new Date(0).toISOString();
+  }
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isNaN(date.getTime()) ? new Date(0).toISOString() : date.toISOString();
+};
+
+const isPlainRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+interface SeasonSnapshotRow extends QueryResultRow {
+  season_id: string | null;
+  season_number: number | null;
+  season_name: string | null;
+  start_time: string | Date | null;
+  end_time: string | Date | null;
+  is_active: boolean | null;
+  season_rewards: Record<string, unknown> | null;
+  user_id: string | null;
+  final_rank: number | null;
+  final_elo: number | null;
+  final_tier: string | null;
+  reward_payload: Record<string, unknown> | null;
+  claimed: boolean | null;
+  claimed_at: string | Date | null;
+  reward_tier: string | null;
+  reward_coupon_code: string | null;
+  energy_total: number | null;
+  username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+}
 
 export class AdminService {
   async getMigrationStatus(): Promise<MigrationStatus> {
@@ -136,6 +198,120 @@ export class AdminService {
         },
       },
       timestamp: new Date().toISOString(),
+    };
+  }
+
+  async getLatestSeasonSnapshot(): Promise<SeasonSnapshot | null> {
+    const result = await query<SeasonSnapshotRow>(
+      `
+        WITH latest_season AS (
+          SELECT *
+          FROM arena_seasons
+          ORDER BY is_active DESC, end_time DESC
+          LIMIT 1
+        )
+        SELECT
+          s.id AS season_id,
+          s.season_number,
+          s.name AS season_name,
+          s.start_time,
+          s.end_time,
+          s.is_active,
+          s.rewards AS season_rewards,
+          r.user_id,
+          r.final_rank,
+          r.final_elo,
+          r.final_tier,
+          r.rewards AS reward_payload,
+          r.claimed,
+          r.claimed_at,
+          r.reward_tier,
+          r.reward_coupon_code,
+          r.energy_total,
+          u.username,
+          u.first_name,
+          u.last_name
+        FROM latest_season s
+        LEFT JOIN LATERAL (
+          SELECT
+            asr.user_id,
+            asr.final_rank,
+            asr.final_elo,
+            asr.final_tier,
+            asr.rewards,
+            asr.claimed,
+            asr.claimed_at,
+            CASE
+              WHEN asr.final_rank = 1 THEN 'gold'
+              WHEN asr.final_rank = 2 THEN 'silver'
+              WHEN asr.final_rank = 3 THEN 'bronze'
+              ELSE 'custom'
+            END AS reward_tier,
+            COALESCE(asr.rewards->>'coupon_code', NULL) AS reward_coupon_code,
+            COALESCE((asr.rewards->>'energy_total')::bigint, 0) AS energy_total
+          FROM arena_season_rewards asr
+          WHERE asr.season_id = s.id
+          ORDER BY asr.final_rank ASC NULLS LAST, asr.created_at ASC
+          LIMIT 3
+        ) r ON TRUE
+        LEFT JOIN users u ON u.id = r.user_id;
+      `
+    );
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    const firstRow = result.rows[0];
+    if (!firstRow?.season_id) {
+      return null;
+    }
+
+    const rewardsPayload = isPlainRecord(firstRow.season_rewards)
+      ? firstRow.season_rewards
+      : {};
+
+    const leaderboard = result.rows
+      .filter(
+        (row): row is SeasonSnapshotRow & { user_id: string } =>
+          typeof row.user_id === 'string' && row.user_id.length > 0
+      )
+      .map(row => {
+        const rankBasedTier =
+          row.final_rank === 1 ? 'gold' : row.final_rank === 2 ? 'silver' : 'bronze';
+        const rewardTier =
+          row.reward_tier === 'gold' || row.reward_tier === 'silver' || row.reward_tier === 'bronze'
+            ? (row.reward_tier as 'gold' | 'silver' | 'bronze')
+            : rankBasedTier;
+        const rewardPayload = isPlainRecord(row.reward_payload) ? row.reward_payload : {};
+
+        return {
+          userId: row.user_id,
+          username: row.username ?? null,
+          firstName: row.first_name ?? null,
+          lastName: row.last_name ?? null,
+          finalRank: row.final_rank ?? null,
+          finalElo: row.final_elo ?? null,
+          finalTier: row.final_tier ?? null,
+          rewardTier,
+          couponCode: row.reward_coupon_code ?? null,
+          rewards: rewardPayload,
+          claimed: Boolean(row.claimed),
+          claimedAt: row.claimed_at ? toIsoString(row.claimed_at) : null,
+          energyTotal: typeof row.energy_total === 'number' ? row.energy_total : 0,
+        };
+      });
+
+    return {
+      seasonId: firstRow.season_id,
+      seasonNumber: firstRow.season_number ?? 0,
+      name: firstRow.season_name ?? 'Unknown season',
+      startTime: toIsoString(firstRow.start_time),
+      endTime: toIsoString(firstRow.end_time),
+      isActive: Boolean(firstRow.is_active),
+      rewards: rewardsPayload,
+      leaderboard,
+      generatedAt: new Date().toISOString(),
     };
   }
 
@@ -241,6 +417,61 @@ export class AdminService {
         userId: summary.userId,
         reason: revocationLabel,
         lastUsedAt: summary.lastUsedAt ? summary.lastUsedAt.toISOString() : null,
+      };
+    });
+  }
+
+  async rewardSeasonPlacement(params: {
+    seasonId: string;
+    userId: string;
+    rewardTier: 'gold' | 'silver' | 'bronze';
+    couponCode?: string | null;
+    note?: string | null;
+    grantedBy?: string | null;
+  }): Promise<{ rewardId: string | null }> {
+    const rewardPayload = {
+      reward_tier: params.rewardTier,
+      coupon_code: params.couponCode ?? null,
+      note: params.note ?? null,
+      granted_by: params.grantedBy ?? null,
+      granted_at: new Date().toISOString(),
+    };
+
+    const inferredRank =
+      params.rewardTier === 'gold' ? 1 : params.rewardTier === 'silver' ? 2 : 3;
+
+    return transaction(async client => {
+      const upsertResult = await client.query<{ id: string }>(
+        `
+          INSERT INTO arena_season_rewards (season_id, user_id, final_rank, final_elo, final_tier, rewards, claimed, claimed_at)
+          VALUES ($1, $2, $3, NULL, NULL, $4::jsonb, TRUE, NOW())
+          ON CONFLICT (season_id, user_id)
+          DO UPDATE SET
+            claimed = TRUE,
+            claimed_at = NOW(),
+            rewards = COALESCE(arena_season_rewards.rewards, '{}'::jsonb) || EXCLUDED.rewards,
+            final_rank = COALESCE(arena_season_rewards.final_rank, EXCLUDED.final_rank),
+            final_tier = COALESCE(arena_season_rewards.final_tier, EXCLUDED.final_tier)
+          RETURNING id
+        `,
+        [params.seasonId, params.userId, inferredRank, JSON.stringify(rewardPayload)]
+      );
+
+      await logEvent(
+        params.userId,
+        'season_reward_granted',
+        {
+          season_id: params.seasonId,
+          reward_tier: params.rewardTier,
+          coupon_code: params.couponCode ?? null,
+          note: params.note ?? null,
+          granted_by: params.grantedBy ?? null,
+        },
+        { client }
+      );
+
+      return {
+        rewardId: upsertResult.rows[0]?.id ?? null,
       };
     });
   }

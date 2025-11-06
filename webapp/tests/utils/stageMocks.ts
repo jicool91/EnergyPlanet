@@ -16,6 +16,33 @@ export type StageMockOptions = {
   }>;
   starPackError?: boolean;
   colorScheme?: 'light' | 'dark';
+  seasonSnapshot?: SeasonSnapshotMock;
+};
+
+type SeasonSnapshotMock = {
+  seasonId: string;
+  seasonNumber: number;
+  name: string;
+  startTime: string;
+  endTime: string;
+  isActive: boolean;
+  rewards: Record<string, unknown>;
+  leaderboard: Array<{
+    userId: string;
+    username: string | null;
+    firstName: string | null;
+    lastName: string | null;
+    finalRank: number | null;
+    finalElo: number | null;
+    finalTier: string | null;
+    rewardTier: 'gold' | 'silver' | 'bronze';
+    couponCode: string | null;
+    rewards: Record<string, unknown>;
+    claimed: boolean;
+    claimedAt: string | null;
+    energyTotal: number;
+  }>;
+  generatedAt: string;
 };
 
 const mockSessionResponse = {
@@ -73,6 +100,68 @@ const mockProfileResponse = {
   },
   boosts: [],
   buildings: [],
+};
+
+const defaultSeasonSnapshot: SeasonSnapshotMock = {
+  seasonId: 'season-2025-10',
+  seasonNumber: 10,
+  name: 'Октябрь 2025',
+  startTime: '2025-10-01T00:00:00.000Z',
+  endTime: '2025-10-31T21:00:00.000Z',
+  isActive: false,
+  rewards: {
+    gold: { coupon: 'WB-1000' },
+    silver: { coupon: 'WB-600' },
+    bronze: { coupon: 'WB-300' },
+  },
+  leaderboard: [
+    {
+      userId: 'season-user-1',
+      username: 'Lilia',
+      firstName: 'Лилия',
+      lastName: null,
+      finalRank: 1,
+      finalElo: 2450,
+      finalTier: 'legendary',
+      rewardTier: 'gold',
+      couponCode: 'WB-GOLD-2025',
+      rewards: { coupon_code: 'WB-GOLD-2025', energy_total: 38200000 },
+      claimed: false,
+      claimedAt: null,
+      energyTotal: 38_200_000,
+    },
+    {
+      userId: 'season-user-2',
+      username: 'Stormrider',
+      firstName: 'Игорь',
+      lastName: 'Буревестник',
+      finalRank: 2,
+      finalElo: 2310,
+      finalTier: 'diamond',
+      rewardTier: 'silver',
+      couponCode: 'WB-SILVER-2025',
+      rewards: { coupon_code: 'WB-SILVER-2025', energy_total: 31_500_000 },
+      claimed: false,
+      claimedAt: null,
+      energyTotal: 31_500_000,
+    },
+    {
+      userId: 'season-user-3',
+      username: 'QuantumFox',
+      firstName: 'Алекс',
+      lastName: 'Фоксов',
+      finalRank: 3,
+      finalElo: 2190,
+      finalTier: 'platinum',
+      rewardTier: 'bronze',
+      couponCode: null,
+      rewards: { coupon_code: null, energy_total: 28_100_000 },
+      claimed: true,
+      claimedAt: '2025-11-01T09:30:00.000Z',
+      energyTotal: 28_100_000,
+    },
+  ],
+  generatedAt: MOCK_NOW_ISO,
 };
 
 export async function setupStageMocks(page: Page, options: StageMockOptions = {}) {
@@ -275,6 +364,26 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
       return;
     }
 
+    if (pathname.endsWith('/admin/seasons/snapshot') && method === 'GET') {
+      const snapshot = options.seasonSnapshot ?? defaultSeasonSnapshot;
+      await fulfillJson(200, snapshot);
+      return;
+    }
+
+    const seasonRewardMatch = pathname.match(/\/admin\/seasons\/([^/]+)\/reward$/);
+    if (seasonRewardMatch && method === 'POST') {
+      const bodyText = request.postData() ?? '{}';
+      console.log('[mock] season reward payload', {
+        seasonId: seasonRewardMatch[1],
+        payload: bodyText,
+      });
+      await fulfillJson(202, {
+        status: 'accepted',
+        rewardId: `mock-reward-${Date.now()}`,
+      });
+      return;
+    }
+
     if (pathname.endsWith('/purchase/packs') && method === 'GET') {
       if (options.starPackError) {
         await route.fulfill({
@@ -287,13 +396,23 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
           packs: [
             {
               id: 'starter-pack',
-              title: 'Starter Pack',
-              description: 'Small boost to kick things off',
-              stars: 500,
-              bonus_stars: 50,
+              title: 'Starter Stars',
+              description: 'Базовый набор без бонусов',
+              stars: 450,
+              bonus_stars: 0,
               price_rub: 199,
               icon_url: null,
-              featured: true,
+              featured: false,
+            },
+            {
+              id: 'bonus-pack',
+              title: 'Bonus Pack',
+              description: 'Includes extra bonus Stars',
+              stars: 600,
+              bonus_stars: 120,
+              price_rub: 299,
+              icon_url: null,
+              featured: false,
             },
             {
               id: 'mega-pack',
@@ -308,6 +427,43 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
           ],
         });
       }
+      return;
+    }
+
+    if (pathname.endsWith('/purchase/invoice') && method === 'POST') {
+      const bodyText = request.postData() ?? '{}';
+      try {
+        const payload = JSON.parse(bodyText);
+        console.log('[mock] purchase invoice payload', payload);
+      } catch (error) {
+        console.warn('[mock] failed to parse invoice payload', { bodyText, error });
+      }
+      await fulfillJson(200, {
+        success: true,
+        invoice: {
+          purchase_id: `mock-purchase-${Date.now()}`,
+          status: 'pending',
+          pay_url: 'https://t.me/energyplanetbot',
+        },
+      });
+      return;
+    }
+
+    if (pathname.endsWith('/purchase') && method === 'POST') {
+      const bodyText = request.postData() ?? '{}';
+      try {
+        const payload = JSON.parse(bodyText);
+        console.log('[mock] purchase complete payload', payload);
+      } catch (error) {
+        console.warn('[mock] failed to parse purchase payload', { bodyText, error });
+      }
+      await fulfillJson(200, {
+        success: true,
+        purchase: {
+          purchase_id: `mock-purchase-${Date.now()}`,
+          status: 'completed',
+        },
+      });
       return;
     }
 

@@ -67,24 +67,32 @@
 3. ✅ Modals/Feedback: `AchievementsModal`, `OfflineSummaryModal`, `Toast` собраны на ModalBase/Panel, остался аудит второстепенных модалок (`AuthErrorModal`, `LevelUpScreen`) для выравнивания.
 
 **Что осталось после Этапа C**
-- QA пустых/ошибочных сценариев Economy и Shop, фиксация метрик перед стартом Stage D.
+- ✅ QA пустых/ошибочных сценариев Economy и Shop, фиксация метрик (перенесено в Stage D чеклист, артефакты от 2025-11-06).
 - Ревью навигации/гридов на предмет типографики и цветовых токенов (BottomNavigation, Drawer) + устранить оставшиеся inline градиенты (LevelUp splash).
-- Подготовка пакета Stage D: визуальные регрессии, контрастные проверки, телеметрия UX (см. `docs/qa/stage-d-checklist.md`).
+- ✅ Подготовка пакета Stage D: визуальные регрессии, контрастные проверки, телеметрия UX (см. `docs/qa/stage-d-checklist.md`).
 
 ### Этап D — QA и авто-тесты (1 неделя)
-**Статус:** в работе (авто-скрипт `npm run test:qa`, чек-лист см. `docs/qa/stage-d-checklist.md`)  
-1. ☐ Storybook snapshot’ы + Chromatic/Percy pipeline (см. `docs/qa/stage-d-checklist.md`).  
+**Статус:** завершён (CI: Playwright QA + Chromatic)  
+1. ✅ Storybook stories заведены; Chromatic (`npm run test:storybook`) публикует снапшоты на каждый PR.  
 2. ✅ Расширенный `npm run test:contrast`, Playwright визуальные тесты (dual-accent + light) закреплены через `/visual.html?view=…`.  
 3. ✅ UX-телеметрия: измеряем `render_latency` и `tap_success`, данные выведены на QA-дэшборд.  
-4. ✅ Stabilize Playwright QA harness (`npm run test:qa`) — добавлен заголовок «Топ игроков» для пустого лидерборда и выровнен текст ошибки «Не удалось загрузить паки Stars».
-5. ✅ Ввели визуальные превью `/visual.html?view=…` (tap, exchange, friends, offline) + экспорт базлайнов (`npm run baseline:visual`) в `docs/qa/baseline/2025-11-06`.  
+4. ✅ Stabilize Playwright QA harness (`npm run test:qa`) — StageMocks покрывают invoice/purchase, ошибки Star Packs отдают toast+retry, пустой лидерборд фиксируется c dark/light скринами.  
+5. ✅ Добавлены визуальные превью `/visual.html?view=levelup|auth-error|purchase-success|tap|exchange|friends|offline`, baseline-снимки лежат в `docs/qa/baseline/2025-11-06`.  
 6. ✅ Графана-дэшборд пополнен панелями по клиентской телеметрии (render latency, tap success, auth errors) — см. `infra/grafana/dashboards/telegram-miniapp-product.json`.
 
 ### Этап E — Rollout и обучение (3–4 дня)
-**Статус:** не начат  
-1. ☐ Обновить документацию (`docs/design/...`, Confluence) и записать walkthrough.  
-2. ☐ Провести командный воркшоп, собрать обратную связь.  
-3. ☐ Создать Jira epic «Design System Unification» с задачами по этапам.
+**Статус:** не начат (чеклист: `docs/qa/stage-e-checklist.md`)  
+1. ☐ Обновить документацию (`docs/design/...`), подготовить walkthrough.  
+2. ☐ Провести воркшоп, зафиксировать FAQ/feedback в `docs/training/`.  
+3. ☐ Обновить PR-шаблоны/Contributing, настроить напоминания и собрать roadmap в `docs/roadmap/migration-plan.md`.
+
+### Этап F — Feature Integration (2–3 недели)
+**Статус:** планирование (чеклист: `docs/qa/stage-f-checklist.md`)  
+1. ☐ PvP/Events: миграция экранов на DS, Chromatic stories, контраст QA.  
+2. ☐ Premium Shop: обновление Admin/Premium flows, QA mock-покупок, локали.  
+3. ☐ Leaderboards/Social: унификация Friends/Clan, stories + visual QA.  
+4. ☐ Seasonal Rewards: ежемесячные сезоны, итоговые рейтинги и админ-награждение топ-3 купонами (`docs/design/seasonal-rewards.md`).  
+5. ☐ Release readiness: вычистить legacy UI, обновить `docs/release-notes/stage-f.md`, перейти к Stage G.
 
 ## 4. Инвентаризация текущих расхождений (snapshot)
 - Typography drift: ~90 случаев `text-lg`, `text-sm` в старых навигационных компонентах (BottomNavigation, Drawer) — требуется миграция на `Text` variants.

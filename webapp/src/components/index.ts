@@ -36,6 +36,18 @@ export { BoostHub } from './BoostHub';
 export { LeaderboardPanel } from './LeaderboardPanel';
 export { ClanComingSoon } from './ClanComingSoon';
 export { ProfileSettingsScreen } from './ProfileSettingsScreen';
+export { MatchLobby, type MatchLobbyProps, type LobbyMode } from './pvp/MatchLobby';
+export {
+  EventSchedule,
+  type EventScheduleProps,
+  type EventScheduleEntry,
+} from './events/EventSchedule';
+export {
+  SeasonRewardsAdminPanel,
+  type SeasonRewardsAdminPanelProps,
+  type SeasonRewardEntry,
+  type RewardTier,
+} from './seasonal/SeasonRewardsAdminPanel';
 
 // Notifications & Feedback
 export { NotificationContainer } from './notifications/NotificationContainer';

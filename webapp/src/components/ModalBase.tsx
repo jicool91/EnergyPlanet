@@ -118,6 +118,7 @@ export function ModalBase({
   const reduceMotion = useAppReducedMotion();
   const titleId = useId();
   const dialogRef = useRef<HTMLDivElement | null>(null);
+  const previouslyFocusedElementRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
     if (!isOpen) {
@@ -136,9 +137,82 @@ export function ModalBase({
   }, [isOpen, onClose]);
 
   useEffect(() => {
-    if (isOpen && dialogRef.current) {
-      dialogRef.current.focus();
+    if (isOpen) {
+      previouslyFocusedElementRef.current = document.activeElement as HTMLElement | null;
     }
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !dialogRef.current) {
+      return;
+    }
+
+    const dialog = dialogRef.current;
+    const focusableElements = dialog.querySelectorAll<HTMLElement>(
+      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+    );
+    const focusTarget = focusableElements[0] ?? dialog;
+
+    const focusTimer = window.setTimeout(() => {
+      focusTarget.focus();
+    }, 0);
+
+    return () => window.clearTimeout(focusTimer);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (isOpen || !previouslyFocusedElementRef.current) {
+      return;
+    }
+
+    const element = previouslyFocusedElementRef.current;
+    previouslyFocusedElementRef.current = null;
+    element.focus();
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen || !dialogRef.current) {
+      return;
+    }
+
+    const dialog = dialogRef.current;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== 'Tab') {
+        return;
+      }
+
+      const focusableElements = dialog.querySelectorAll<HTMLElement>(
+        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+      );
+
+      if (focusableElements.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
+      const firstElement = focusableElements[0];
+      const lastElement = focusableElements[focusableElements.length - 1];
+      const activeElement = document.activeElement as HTMLElement | null;
+      const isShiftPressed = event.shiftKey;
+
+      if (!isShiftPressed && activeElement === lastElement) {
+        event.preventDefault();
+        firstElement.focus();
+        return;
+      }
+
+      if (isShiftPressed && activeElement === firstElement) {
+        event.preventDefault();
+        lastElement.focus();
+      }
+    };
+
+    dialog.addEventListener('keydown', handleKeyDown);
+    return () => {
+      dialog.removeEventListener('keydown', handleKeyDown);
+    };
   }, [isOpen]);
 
   const modalContent = (
@@ -163,6 +237,7 @@ export function ModalBase({
               role="dialog"
               aria-modal="true"
               aria-labelledby={titleId}
+              data-prefers-reduced-motion={reduceMotion ? 'true' : 'false'}
               initial={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}
               animate={reduceMotion ? { opacity: 1 } : { opacity: 1, scale: 1, y: 0 }}
               exit={reduceMotion ? { opacity: 0 } : { opacity: 0, scale: 0.95, y: 20 }}

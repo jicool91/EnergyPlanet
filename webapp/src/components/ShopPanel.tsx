@@ -1,4 +1,12 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ComponentProps,
+  type ReactNode,
+} from 'react';
 import clsx from 'clsx';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useShallow } from 'zustand/react/shallow';
@@ -13,6 +21,7 @@ import { Text } from './ui/Text';
 import { useHaptic } from '../hooks/useHaptic';
 import { useNotification } from '../hooks/useNotification';
 import { describeError } from '../store/storeUtils';
+import { PurchaseSuccessModal } from './PurchaseSuccessModal';
 import { BoostHub } from './BoostHub';
 import type { StarPack } from '@/services/starPacks';
 import { logClientEvent } from '@/services/telemetry';
@@ -53,6 +62,147 @@ const BOOST_SECTION_LABELS: Record<BoostSubSection, string> = {
   daily: 'Ежедневные бусты',
   ad: 'Рекламные бусты',
   premium: 'Премиум бусты',
+};
+
+type PurchaseSuccessModalProps = ComponentProps<typeof PurchaseSuccessModal>;
+type SuccessVariant = NonNullable<PurchaseSuccessModalProps['variant']>;
+type SuccessLocale = NonNullable<PurchaseSuccessModalProps['locale']>;
+type SuccessReward = NonNullable<PurchaseSuccessModalProps['rewards']>[number];
+type SuccessSupportLink = PurchaseSuccessModalProps['supportLink'];
+
+interface PurchaseSuccessState {
+  itemName: string;
+  quantity: number;
+  cost?: number;
+  costCurrency?: string;
+  variant: SuccessVariant;
+  locale: SuccessLocale;
+  rewards?: SuccessReward[];
+  supportLink?: SuccessSupportLink;
+}
+
+const resolveLocaleFromNavigator = (): SuccessLocale => {
+  if (typeof navigator !== 'undefined') {
+    const lang = navigator.language?.toLowerCase() ?? '';
+    if (lang.startsWith('en')) {
+      return 'en';
+    }
+  }
+  return 'ru';
+};
+
+const resolvePackCost = (pack: StarPack): { cost?: number; currency?: string } => {
+  if (typeof pack.price_rub === 'number') {
+    return { cost: pack.price_rub, currency: 'RUB' };
+  }
+  if (typeof pack.price_usd === 'number') {
+    return { cost: pack.price_usd, currency: 'USD' };
+  }
+  const totalStars = pack.stars + (pack.bonus_stars ?? 0);
+  return totalStars > 0 ? { cost: totalStars, currency: 'STARS' } : {};
+};
+
+const resolvePackVariant = (
+  pack: StarPack,
+  section: ShopSection,
+  starPackSection: StarPackSubSection
+): SuccessVariant => {
+  if (section === 'star_packs') {
+    if (starPackSection === 'subscriptions') {
+      return 'subscription';
+    }
+    if (starPackSection === 'bundles' || pack.featured || (pack.bonus_stars ?? 0) > 0) {
+      return 'premium';
+    }
+  }
+  return 'standard';
+};
+
+const buildRewardItems = (
+  pack: StarPack,
+  locale: SuccessLocale,
+  variant: SuccessVariant
+): SuccessReward[] => {
+  const localeKey = locale === 'ru' ? 'ru-RU' : 'en-US';
+  const numberFormatter = new Intl.NumberFormat(localeKey);
+  const rewards: SuccessReward[] = [
+    {
+      label: locale === 'ru' ? 'Товар' : 'Item',
+      value: pack.title ?? 'Star Pack',
+      tone: 'primary',
+    },
+    {
+      label: locale === 'ru' ? 'Stars' : 'Stars',
+      value: `${numberFormatter.format(pack.stars)} ⭐`,
+      icon: '⭐',
+      tone: 'accent',
+    },
+  ];
+
+  if ((pack.bonus_stars ?? 0) > 0) {
+    rewards.push({
+      label: locale === 'ru' ? 'Бонус' : 'Bonus',
+      value: `+${numberFormatter.format(pack.bonus_stars ?? 0)} ⭐`,
+      icon: '🎁',
+      tone: 'success',
+    });
+  }
+
+  const { cost, currency } = resolvePackCost(pack);
+  if (typeof cost === 'number' && currency) {
+    if (currency === 'STARS') {
+      rewards.push({
+        label: locale === 'ru' ? 'Всего Stars' : 'Total Stars',
+        value: `${numberFormatter.format(cost)} ⭐`,
+        icon: '⚡',
+        tone: 'secondary',
+      });
+    } else {
+      const currencyFormatter = new Intl.NumberFormat(localeKey, {
+        style: 'currency',
+        currency,
+        maximumFractionDigits: currency === 'RUB' ? 0 : 2,
+      });
+      rewards.push({
+        label: locale === 'ru' ? 'Оплата' : 'Charged',
+        value: currencyFormatter.format(cost),
+        icon: '💳',
+        tone: 'secondary',
+      });
+    }
+  }
+
+  if (variant === 'subscription') {
+    rewards.push({
+      label: locale === 'ru' ? 'Подписка' : 'Subscription',
+      value: locale === 'ru' ? 'Автопродление активно' : 'Auto-renew enabled',
+      icon: '🔁',
+      tone: 'tertiary',
+    });
+  }
+
+  return rewards;
+};
+
+const resolveSupportLink = (
+  variant: SuccessVariant,
+  locale: SuccessLocale
+): SuccessSupportLink | undefined => {
+  if (variant === 'subscription') {
+    return {
+      label: locale === 'ru' ? 'Управление подпиской' : 'Manage subscription',
+      href: 'https://t.me/energy_planet_bot/settings',
+    };
+  }
+
+  if (variant === 'premium') {
+    return {
+      label: locale === 'ru' ? 'Поддержка премиума' : 'Premium support',
+      href: 'https://t.me/energy_planet_bot/support',
+    };
+  }
+
+  return undefined;
 };
 
 const getSectionTabId = (id: ShopSection) => `shop-tab-${id}`;
@@ -166,6 +316,7 @@ export function ShopPanel({
   const [activeStarPackSection, setActiveStarPackSection] =
     useState<StarPackSubSection>('one_time');
   const [activeBoostSection, setActiveBoostSection] = useState<BoostSubSection>('daily');
+  const [purchaseSuccess, setPurchaseSuccess] = useState<PurchaseSuccessState | null>(null);
   const sectionSourceRef = useRef<'initial' | 'user' | 'programmatic'>('initial');
   const lastActiveSectionRef = useRef<ShopSection | null>(null);
   const starPackSectionSourceRef = useRef<'user' | 'programmatic'>('programmatic');
@@ -448,6 +599,10 @@ export function ShopPanel({
     [equipCosmetic, hapticError, hapticSuccess, notifyError, notifySuccess]
   );
 
+  const handleDismissPurchaseSuccess = useCallback(() => {
+    setPurchaseSuccess(null);
+  }, []);
+
   const handlePurchaseStarPack = useCallback(
     async (packId: string) => {
       const pack = starPacks.find(item => item.id === packId) ?? null;
@@ -463,6 +618,25 @@ export function ShopPanel({
         await purchaseStarPack(packId);
         hapticSuccess();
         notifySuccess('Stars начислены на баланс!');
+        if (pack) {
+          const locale = resolveLocaleFromNavigator();
+          const variant = resolvePackVariant(pack, activeSection, activeStarPackSection);
+          if (variant !== 'standard') {
+            const { cost, currency } = resolvePackCost(pack);
+            const rewards = buildRewardItems(pack, locale, variant);
+            const supportLink = resolveSupportLink(variant, locale);
+            setPurchaseSuccess({
+              itemName: pack.title ?? 'Star Pack',
+              quantity: 1,
+              cost,
+              costCurrency: currency,
+              variant,
+              locale,
+              rewards,
+              supportLink,
+            });
+          }
+        }
         void logClientEvent('star_pack_checkout_success', {
           pack_id: packId,
           section: activeSection,
@@ -669,10 +843,69 @@ export function ShopPanel({
     </div>
   );
 
+  const lastStarPackErrorRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (starPacksError && starPacksError !== lastStarPackErrorRef.current) {
+      notifyError(starPacksError, 4000);
+      lastStarPackErrorRef.current = starPacksError;
+    } else if (!starPacksError) {
+      lastStarPackErrorRef.current = null;
+    }
+  }, [notifyError, starPacksError]);
+
   return (
-    <div className="flex flex-col gap-lg">
-      {showHeader ? (
-        <section className="rounded-3xl border border-border-cyan/50 bg-surface-glass-strong px-lg py-lg shadow-elevation-4">
+    <>
+      <div className="flex flex-col gap-lg">
+        {showHeader ? (
+          <section className="rounded-3xl border border-border-cyan/50 bg-surface-glass-strong px-lg py-lg shadow-elevation-4">
+            <div className="flex flex-col gap-sm">
+              {breadcrumbLabel ? (
+                <div
+                  className="inline-flex w-fit items-center gap-xs rounded-full border border-tag-accent-border bg-state-cyan-pill-glow px-sm-plus py-xs-plus text-caption font-semibold text-text-secondary"
+                  role="status"
+                  aria-live="polite"
+                >
+                  {breadcrumbLabel}
+                </div>
+              ) : null}
+              <div className="flex flex-wrap items-start justify-between gap-md">
+                <div className="flex flex-col gap-xs max-w-[540px]">
+                  <h2 className="m-0 text-heading font-bold text-text-primary">{heroTitle}</h2>
+                  <p className="m-0 text-body text-text-secondary">{sectionSubtitle}</p>
+                  {sectionHelper ? (
+                    <p className="m-0 text-caption text-text-secondary/80">{sectionHelper}</p>
+                  ) : null}
+                </div>
+                {activeSection === 'star_packs' && featuredVisiblePack ? (
+                  <div className="flex items-center gap-sm rounded-2xl border border-accent-gold/50 bg-layer-overlay-strong px-md py-sm shadow-glow-gold">
+                    <div className="flex flex-col gap-xs">
+                      <span className="text-caption font-semibold uppercase tracking-[0.12em] text-text-secondary">
+                        Рекомендуем сегодня
+                      </span>
+                      <span className="text-body font-semibold text-text-primary">
+                        {featuredVisiblePack.title}
+                      </span>
+                      <span className="text-caption text-text-secondary">
+                        +{featuredVisiblePack.bonus_stars ?? 0} бонусных ⭐ внутри
+                      </span>
+                    </div>
+                    <button
+                      onClick={() => handleStarPackSectionChange('bundles')}
+                      className="rounded-full border border-accent-gold/70 bg-accent-gold/20 px-sm-plus py-xs-plus text-caption font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-layer-overlay-strong"
+                      type="button"
+                    >
+                      Смотреть
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+              {sectionTabList}
+            </div>
+          </section>
+        ) : null}
+
+        {!showHeader && (
           <div className="flex flex-col gap-sm">
             {breadcrumbLabel ? (
               <div
@@ -683,606 +916,583 @@ export function ShopPanel({
                 {breadcrumbLabel}
               </div>
             ) : null}
-            <div className="flex flex-wrap items-start justify-between gap-md">
-              <div className="flex flex-col gap-xs max-w-[540px]">
-                <h2 className="m-0 text-heading font-bold text-text-primary">{heroTitle}</h2>
-                <p className="m-0 text-body text-text-secondary">{sectionSubtitle}</p>
-                {sectionHelper ? (
-                  <p className="m-0 text-caption text-text-secondary/80">{sectionHelper}</p>
-                ) : null}
-              </div>
-              {activeSection === 'star_packs' && featuredVisiblePack ? (
-                <div className="flex items-center gap-sm rounded-2xl border border-accent-gold/50 bg-layer-overlay-strong px-md py-sm shadow-glow-gold">
-                  <div className="flex flex-col gap-xs">
-                    <span className="text-caption font-semibold uppercase tracking-[0.12em] text-text-secondary">
-                      Рекомендуем сегодня
-                    </span>
-                    <span className="text-body font-semibold text-text-primary">
-                      {featuredVisiblePack.title}
-                    </span>
-                    <span className="text-caption text-text-secondary">
-                      +{featuredVisiblePack.bonus_stars ?? 0} бонусных ⭐ внутри
-                    </span>
-                  </div>
-                  <button
-                    onClick={() => handleStarPackSectionChange('bundles')}
-                    className="rounded-full border border-accent-gold/70 bg-accent-gold/20 px-sm-plus py-xs-plus text-caption font-semibold text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-primary focus-visible:ring-offset-2 focus-visible:ring-offset-layer-overlay-strong"
-                    type="button"
-                  >
-                    Смотреть
-                  </button>
-                </div>
-              ) : null}
-            </div>
             {sectionTabList}
           </div>
-        </section>
-      ) : null}
+        )}
 
-      {!showHeader && (
-        <div className="flex flex-col gap-sm">
-          {breadcrumbLabel ? (
-            <div
-              className="inline-flex w-fit items-center gap-xs rounded-full border border-tag-accent-border bg-state-cyan-pill-glow px-sm-plus py-xs-plus text-caption font-semibold text-text-secondary"
-              role="status"
-              aria-live="polite"
+        {/* Errors */}
+        {activeSection === 'star_packs' && starPacksError && (
+          <Card className="flex flex-col gap-sm bg-state-danger-pill border-state-danger-pill text-feedback-error">
+            <span>{starPacksError}</span>
+            <Button
+              variant="secondary"
+              size="sm"
+              className="self-start"
+              onClick={() => loadStarPacks(true)}
             >
-              {breadcrumbLabel}
-            </div>
-          ) : null}
-          {sectionTabList}
-        </div>
-      )}
+              Повторить загрузку
+            </Button>
+          </Card>
+        )}
+        {activeSection === 'cosmetics' && cosmeticsError && (
+          <Card className="bg-state-danger-pill border-state-danger-pill text-feedback-error">
+            {cosmeticsError}
+          </Card>
+        )}
 
-      {/* Errors */}
-      {activeSection === 'star_packs' && starPacksError && (
-        <Card className="bg-state-danger-pill border-state-danger-pill text-feedback-error">
-          {starPacksError}
-        </Card>
-      )}
-      {activeSection === 'cosmetics' && cosmeticsError && (
-        <Card className="bg-state-danger-pill border-state-danger-pill text-feedback-error">
-          {cosmeticsError}
-        </Card>
-      )}
-
-      {activeSection === 'star_packs' && (
-        <div
-          className="flex flex-col gap-md"
-          id={getSectionPanelId('star_packs')}
-          role="tabpanel"
-          aria-labelledby={getSectionTabId('star_packs')}
-        >
-          <nav
-            className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/50 bg-surface-glass p-xs"
-            aria-label="Категории паков"
-            role="tablist"
+        {activeSection === 'star_packs' && (
+          <div
+            className="flex flex-col gap-md"
+            id={getSectionPanelId('star_packs')}
+            role="tabpanel"
+            aria-labelledby={getSectionTabId('star_packs')}
           >
-            {STAR_PACK_TABS.map(tab => {
-              const isActive = tab.id === activeStarPackSection;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => handleStarPackSectionChange(tab.id)}
-                  role="tab"
-                  aria-selected={isActive}
-                  className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-xl px-sm-plus py-xs-plus text-body font-semibold transition-all duration-150 focus-ring ${
-                    isActive
-                      ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
-                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav>
-          <div className="rounded-2xl border border-tag-accent-border bg-surface-glass-strong p-md shadow-glow">
-            <p className="m-0 text-body font-semibold text-text-primary">{starPackBannerText}</p>
-          </div>
-          {featuredVisiblePack && !isStarPacksLoading && (
-            <ProductTile
-              highlighted
-              highlightLabel="Лучший выбор"
-              title={featuredVisiblePack.title ?? 'Премиум пакет'}
-              description={
-                featuredVisiblePack.description ?? 'Получите максимум Stars и премиальные бонусы'
-              }
-              priceLabel={formatPriceLabel(
-                featuredVisiblePack.price_rub,
-                featuredVisiblePack.price_usd
-              )}
-              media={
-                featuredVisiblePack.icon_url ? (
-                  <OptimizedImage
-                    src={featuredVisiblePack.icon_url}
-                    alt={featuredVisiblePack.title ?? 'Star Pack'}
-                    width={88}
-                    height={88}
-                    className="h-full w-full rounded-2xl object-cover"
-                  />
-                ) : (
-                  <Text variant="hero" tone="inverse" aria-hidden="true">
-                    ⭐
-                  </Text>
-                )
-              }
-              badge={{
-                label: `${(
-                  featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0)
-                ).toLocaleString('ru-RU')} ⭐`,
-                variant: 'legendary',
-              }}
-              metrics={[
-                {
-                  label: 'Базовых Stars',
-                  value: featuredVisiblePack.stars.toLocaleString('ru-RU'),
-                  icon: '⭐',
-                },
-                ...(featuredVisiblePack.bonus_stars && featuredVisiblePack.bonus_stars > 0
-                  ? [
-                      {
-                        label: 'Бонус',
-                        value: `+${featuredVisiblePack.bonus_stars.toLocaleString('ru-RU')} ⭐`,
-                        icon: '✨',
-                        tone: 'success' as const,
-                      },
-                      {
-                        label: 'Буст',
-                        value: `+${calculateBonusPercentage(
-                          featuredVisiblePack.stars,
-                          featuredVisiblePack.bonus_stars ?? 0
-                        )}%`,
-                        icon: '🚀',
-                        tone: 'accent' as const,
-                      },
-                    ]
-                  : []),
-              ]}
-              meta={
-                featuredVisiblePack.price_rub ? (
-                  <div className="flex items-center justify-between rounded-2xl border border-white/30 bg-white/10 px-sm py-xs">
-                    <Text variant="caption" tone="inverse">
-                      Цена за ⭐
-                    </Text>
-                    <Text variant="bodySm" weight="bold" tone="inverse">
-                      {(
-                        featuredVisiblePack.price_rub /
-                        (featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0))
-                      ).toFixed(1)}{' '}
-                      ₽/⭐
-                    </Text>
-                  </div>
-                ) : null
-              }
-              actions={
-                <Button
-                  variant="success"
-                  size="lg"
-                  fullWidth
-                  className="shadow-glow"
-                  loading={isProcessingStarPackId === featuredVisiblePack.id}
-                  onClick={() => handlePurchaseStarPack(featuredVisiblePack.id)}
-                >
-                  Купить пакет
-                </Button>
-              }
-            />
-          )}
-
-          {isStarPacksLoading && visibleStarPacks.length === 0 ? (
-            <ErrorBoundary>
-              <ShopSkeleton count={3} />
-            </ErrorBoundary>
-          ) : visibleStarPacks.length === 0 ? (
-            activeStarPackSection === 'subscriptions' ? (
-              <div className="grid gap-md md:grid-cols-2">
-                {SUBSCRIPTION_PLACEHOLDERS.map(plan => (
-                  <ProductTile
-                    key={plan.id}
-                    orientation="vertical"
-                    title={plan.title}
-                    description={plan.description}
-                    priceLabel={plan.priceLabel}
-                    badge={{ label: 'Скоро', variant: 'warning' }}
-                    media={
-                      <Text variant="heading" tone="accent" aria-hidden>
-                        🕒
-                      </Text>
-                    }
-                    actions={
-                      <Button
-                        variant="secondary"
-                        size="sm"
-                        onClick={() =>
-                          notifyWarning(
-                            'Подписки появятся позже. Мы сообщим о запуске через уведомление и соцсети.'
-                          )
-                        }
-                      >
-                        Сообщить о старте
-                      </Button>
-                    }
-                  />
-                ))}
-              </div>
-            ) : activeStarPackSection === 'bundles' ? (
+            <nav
+              className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/50 bg-surface-glass p-xs"
+              aria-label="Категории паков"
+              role="tablist"
+            >
+              {STAR_PACK_TABS.map(tab => {
+                const isActive = tab.id === activeStarPackSection;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => handleStarPackSectionChange(tab.id)}
+                    role="tab"
+                    aria-selected={isActive}
+                    className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-xl px-sm-plus py-xs-plus text-body font-semibold transition-all duration-150 focus-ring ${
+                      isActive
+                        ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
+            <div className="rounded-2xl border border-tag-accent-border bg-surface-glass-strong p-md shadow-glow">
+              <p className="m-0 text-body font-semibold text-text-primary">{starPackBannerText}</p>
+            </div>
+            {featuredVisiblePack && !isStarPacksLoading && (
               <ProductTile
-                title={BUNDLE_PLACEHOLDER.title}
-                description={BUNDLE_PLACEHOLDER.description}
-                helper={BUNDLE_PLACEHOLDER.note}
-                badge={{ label: 'В разработке', variant: 'primary' }}
-                media={
-                  <Text variant="heading" tone="accent" aria-hidden>
-                    🛠️
-                  </Text>
+                highlighted
+                highlightLabel="Лучший выбор"
+                title={featuredVisiblePack.title ?? 'Премиум пакет'}
+                description={
+                  featuredVisiblePack.description ?? 'Получите максимум Stars и премиальные бонусы'
                 }
-              />
-            ) : (
-              <ProductTile
-                title="Предложения появятся позже"
-                description="Свежие паки уже в работе — следите за новостями, чтобы не пропустить запуск."
+                priceLabel={formatPriceLabel(
+                  featuredVisiblePack.price_rub,
+                  featuredVisiblePack.price_usd
+                )}
                 media={
-                  <Text variant="heading" tone="accent" aria-hidden>
-                    🛰️
-                  </Text>
+                  featuredVisiblePack.icon_url ? (
+                    <OptimizedImage
+                      src={featuredVisiblePack.icon_url}
+                      alt={featuredVisiblePack.title ?? 'Star Pack'}
+                      width={88}
+                      height={88}
+                      className="h-full w-full rounded-2xl object-cover"
+                    />
+                  ) : (
+                    <Text variant="hero" tone="inverse" aria-hidden="true">
+                      ⭐
+                    </Text>
+                  )
                 }
-              />
-            )
-          ) : (
-            <div className="grid gap-md">
-              {regularVisiblePacks.map(pack => {
-                const processing = isProcessingStarPackId === pack.id;
-                const totalStars = pack.stars + (pack.bonus_stars ?? 0);
-                const bonus = pack.bonus_stars ?? 0;
-                const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
-                const isBestValue = bestValuePackId === pack.id;
-                const costPerStar =
-                  pack.price_rub && totalStars > 0
-                    ? (pack.price_rub / totalStars).toFixed(1)
-                    : null;
-
-                const metrics: ProductMetric[] =
-                  bonus > 0
+                badge={{
+                  label: `${(
+                    featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0)
+                  ).toLocaleString('ru-RU')} ⭐`,
+                  variant: 'legendary',
+                }}
+                metrics={[
+                  {
+                    label: 'Базовых Stars',
+                    value: featuredVisiblePack.stars.toLocaleString('ru-RU'),
+                    icon: '⭐',
+                  },
+                  ...(featuredVisiblePack.bonus_stars && featuredVisiblePack.bonus_stars > 0
                     ? [
                         {
-                          label: 'Всего',
-                          value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
-                          icon: '🌌',
-                          tone: isBestValue ? 'accent' : 'primary',
-                        },
-                        {
                           label: 'Бонус',
-                          value: `+${bonus.toLocaleString('ru-RU')} ⭐`,
+                          value: `+${featuredVisiblePack.bonus_stars.toLocaleString('ru-RU')} ⭐`,
                           icon: '✨',
                           tone: 'success' as const,
                         },
                         {
                           label: 'Буст',
-                          value: `+${calculateBonusPercentage(pack.stars, bonus)}%`,
+                          value: `+${calculateBonusPercentage(
+                            featuredVisiblePack.stars,
+                            featuredVisiblePack.bonus_stars ?? 0
+                          )}%`,
                           icon: '🚀',
                           tone: 'accent' as const,
                         },
                       ]
-                    : [
-                        {
-                          label: 'Всего',
-                          value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
-                          icon: '🌌',
-                          tone: isBestValue ? 'accent' : 'primary',
-                        },
-                      ];
-
-                return (
-                  <ProductTile
-                    key={pack.id}
-                    title={pack.title}
-                    description={
-                      pack.description ?? `Получите ${totalStars.toLocaleString('ru-RU')} Stars`
-                    }
-                    priceLabel={priceLabel}
-                    highlighted={isBestValue}
-                    highlightLabel={isBestValue ? 'Лучшее соотношение' : undefined}
-                    badge={{
-                      label: `${totalStars.toLocaleString('ru-RU')} ⭐`,
-                      variant: isBestValue ? 'success' : 'primary',
-                    }}
-                    media={
-                      pack.icon_url ? (
-                        <OptimizedImage
-                          src={pack.icon_url}
-                          alt={pack.title ?? 'Star pack'}
-                          width={72}
-                          height={72}
-                          className="h-full w-full rounded-2xl object-cover"
-                        />
-                      ) : (
-                        <Text
-                          variant="heading"
-                          tone={isBestValue ? 'inverse' : 'accent'}
-                          aria-hidden
-                        >
-                          ⭐
-                        </Text>
-                      )
-                    }
-                    metrics={metrics}
-                    helper={`Базовых Stars: ${pack.stars.toLocaleString('ru-RU')}`}
-                    meta={
-                      costPerStar ? (
-                        <div
-                          className={clsx(
-                            'flex items-center justify-between rounded-2xl px-sm py-xs',
-                            isBestValue
-                              ? 'bg-white/10 text-text-inverse'
-                              : 'border border-border-layer bg-layer-overlay-soft text-text-primary'
-                          )}
-                        >
-                          <Text variant="caption" tone={isBestValue ? 'inverse' : 'secondary'}>
-                            Стоимость за ⭐
-                          </Text>
-                          <Text
-                            variant="bodySm"
-                            weight="semibold"
-                            tone={isBestValue ? 'inverse' : 'accent'}
-                          >
-                            {costPerStar} ₽/⭐
-                          </Text>
-                        </div>
-                      ) : null
-                    }
-                    actions={
-                      <Button
-                        variant="success"
-                        size="md"
-                        fullWidth
-                        className={isBestValue ? 'shadow-glow' : undefined}
-                        loading={processing}
-                        onClick={() => handlePurchaseStarPack(pack.id)}
-                      >
-                        Купить Stars
-                      </Button>
-                    }
-                  />
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-      {activeSection === 'boosts' && (
-        <div
-          className="flex flex-col gap-md"
-          id={getSectionPanelId('boosts')}
-          role="tabpanel"
-          aria-labelledby={getSectionTabId('boosts')}
-        >
-          <nav
-            className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/60 bg-surface-glass-strong p-xs"
-            aria-label="Категории бустов"
-            role="tablist"
-          >
-            {BOOST_TABS.map(tab => {
-              const isActive = tab.id === activeBoostSection;
-              return (
-                <button
-                  key={tab.id}
-                  type="button"
-                  onClick={() => handleBoostSectionChange(tab.id)}
-                  role="tab"
-                  aria-selected={isActive}
-                  className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-2xl px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
-                    isActive
-                      ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
-                      : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              );
-            })}
-          </nav>
-
-          <ErrorBoundary>
-            <BoostHub showHeader={false} filter={activeBoostSection} />
-          </ErrorBoundary>
-        </div>
-      )}
-
-      {activeSection === 'cosmetics' && (
-        <div
-          className="flex flex-col gap-md"
-          id={getSectionPanelId('cosmetics')}
-          role="tabpanel"
-          aria-labelledby={getSectionTabId('cosmetics')}
-        >
-          <nav
-            className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/60 bg-surface-glass-strong p-xs"
-            role="tablist"
-            aria-label="Категории косметики"
-          >
-            {categories.length === 0 && !isCosmeticsLoading && (
-              <Card className="flex-1 text-body text-token-secondary bg-token-surface-tertiary border-token-subtle">
-                Косметика откроется после уровня 5. Продолжайте улучшать здания и активируйте бусты,
-                чтобы увидеть новые стили планеты.
-              </Card>
+                    : []),
+                ]}
+                meta={
+                  featuredVisiblePack.price_rub ? (
+                    <div className="flex items-center justify-between rounded-2xl border border-white/30 bg-white/10 px-sm py-xs">
+                      <Text variant="caption" tone="inverse">
+                        Цена за ⭐
+                      </Text>
+                      <Text variant="bodySm" weight="bold" tone="inverse">
+                        {(
+                          featuredVisiblePack.price_rub /
+                          (featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0))
+                        ).toFixed(1)}{' '}
+                        ₽/⭐
+                      </Text>
+                    </div>
+                  ) : null
+                }
+                actions={
+                  <Button
+                    variant="success"
+                    size="lg"
+                    fullWidth
+                    className="shadow-glow"
+                    loading={isProcessingStarPackId === featuredVisiblePack.id}
+                    onClick={() => handlePurchaseStarPack(featuredVisiblePack.id)}
+                  >
+                    Купить пакет
+                  </Button>
+                }
+              />
             )}
 
-            {categories.map((category, index) => {
-              const isActiveCategory = category.id === activeCategory;
-              const isDisabled = isCosmeticsLoading && !isActiveCategory;
-
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  disabled={isDisabled}
-                  role="tab"
-                  aria-selected={isActiveCategory}
-                  aria-controls={COSMETICS_GRID_ID}
-                  id={`cosmetics-category-${category.id}`}
-                  tabIndex={isActiveCategory ? 0 : -1}
-                  onKeyDown={event => handleCategoryKeyDown(event, index)}
-                  type="button"
-                  className={`flex-1 sm:flex-none min-w-[140px] rounded-2xl px-sm-plus py-xs-plus text-center text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
-                    isDisabled
-                      ? 'cursor-not-allowed opacity-60'
-                      : isActiveCategory
-                        ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
-                  }`}
-                >
-                  {category.label}
-                </button>
-              );
-            })}
-          </nav>
-
-          <div id={COSMETICS_GRID_ID} className="flex flex-col gap-md">
-            {isCosmeticsLoading && filteredCosmetics.length === 0 ? (
+            {isStarPacksLoading && visibleStarPacks.length === 0 ? (
               <ErrorBoundary>
-                <ShopSkeleton count={4} />
+                <ShopSkeleton count={3} />
               </ErrorBoundary>
-            ) : (
-              filteredCosmetics.map(cosmetic => {
-                const processing = isProcessingCosmeticId === cosmetic.id;
-                const price = cosmetic.price_stars ?? 0;
-                const isMostPopular = cosmetic.id === mostPopularCosmeticId;
-
-                const rarityMap: Record<
-                  string,
-                  'default' | 'primary' | 'success' | 'warning' | 'error' | 'epic' | 'legendary'
-                > = {
-                  common: 'default',
-                  rare: 'primary',
-                  epic: 'epic',
-                  legendary: 'legendary',
-                };
-
-                let actionNode: ReactNode;
-                if (cosmetic.equipped) {
-                  actionNode = (
-                    <Button variant="success" size="sm" disabled>
-                      Экипировано
-                    </Button>
-                  );
-                } else if (cosmetic.owned) {
-                  actionNode = (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      loading={processing}
-                      onClick={() => handleEquip(cosmetic.id)}
-                    >
-                      Экипировать
-                    </Button>
-                  );
-                } else if (cosmetic.status === 'purchase_required' && price > 0) {
-                  actionNode = (
-                    <Button
-                      variant="success"
-                      size="sm"
-                      loading={processing}
-                      onClick={() => handlePurchaseCosmetic(cosmetic.id)}
-                    >
-                      Купить {price} ⭐
-                    </Button>
-                  );
-                } else if (cosmetic.status === 'locked' && cosmetic.unlock_requirement?.level) {
-                  actionNode = (
-                    <Text variant="caption" tone={isMostPopular ? 'inverse' : 'secondary'}>
-                      Откроется с {cosmetic.unlock_requirement.level} уровня
-                    </Text>
-                  );
-                } else if (cosmetic.status === 'event_locked') {
-                  actionNode = (
-                    <Text variant="caption" tone={isMostPopular ? 'inverse' : 'secondary'}>
-                      Доступно на событии
-                    </Text>
-                  );
-                } else {
-                  actionNode = (
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      loading={processing}
-                      onClick={() => handlePurchaseCosmetic(cosmetic.id)}
-                    >
-                      Получить
-                    </Button>
-                  );
-                }
-
-                return (
-                  <ProductTile
-                    key={cosmetic.id}
-                    orientation="horizontal"
-                    highlighted={isMostPopular}
-                    highlightLabel={isMostPopular ? '⭐ Popular' : undefined}
-                    title={cosmetic.name}
-                    description={cosmetic.description ?? ''}
-                    badge={{
-                      label: isMostPopular ? '⭐ Popular' : cosmetic.rarity,
-                      variant: isMostPopular
-                        ? 'primary'
-                        : (rarityMap[cosmetic.rarity] ?? 'default'),
-                    }}
-                    media={
-                      cosmetic.preview_url ? (
-                        <OptimizedImage
-                          src={cosmetic.preview_url}
-                          alt={cosmetic.name}
-                          width={72}
-                          height={72}
-                          className="h-full w-full rounded-2xl object-cover"
-                        />
-                      ) : (
-                        <Text
-                          variant="heading"
-                          tone={isMostPopular ? 'inverse' : 'accent'}
-                          aria-hidden
-                        >
-                          ✦
+            ) : visibleStarPacks.length === 0 ? (
+              activeStarPackSection === 'subscriptions' ? (
+                <div className="grid gap-md md:grid-cols-2">
+                  {SUBSCRIPTION_PLACEHOLDERS.map(plan => (
+                    <ProductTile
+                      key={plan.id}
+                      orientation="vertical"
+                      title={plan.title}
+                      description={plan.description}
+                      priceLabel={plan.priceLabel}
+                      badge={{ label: 'Скоро', variant: 'warning' }}
+                      media={
+                        <Text variant="heading" tone="accent" aria-hidden>
+                          🕒
                         </Text>
-                      )
-                    }
-                    helper={
-                      cosmetic.owned && !cosmetic.equipped
-                        ? 'Уже в коллекции — экипируйте, чтобы выделиться.'
-                        : undefined
-                    }
-                    meta={
-                      price > 0 ? (
-                        <div
-                          className={clsx(
-                            'flex items-center justify-between rounded-2xl px-sm py-xs',
-                            isMostPopular
-                              ? 'bg-white/10 text-text-inverse'
-                              : 'border border-border-layer bg-layer-overlay-soft text-text-primary'
-                          )}
+                      }
+                      actions={
+                        <Button
+                          variant="secondary"
+                          size="sm"
+                          onClick={() =>
+                            notifyWarning(
+                              'Подписки появятся позже. Мы сообщим о запуске через уведомление и соцсети.'
+                            )
+                          }
                         >
-                          <Text variant="caption" tone={isMostPopular ? 'inverse' : 'secondary'}>
-                            Стоимость
-                          </Text>
+                          Сообщить о старте
+                        </Button>
+                      }
+                    />
+                  ))}
+                </div>
+              ) : activeStarPackSection === 'bundles' ? (
+                <ProductTile
+                  title={BUNDLE_PLACEHOLDER.title}
+                  description={BUNDLE_PLACEHOLDER.description}
+                  helper={BUNDLE_PLACEHOLDER.note}
+                  badge={{ label: 'В разработке', variant: 'primary' }}
+                  media={
+                    <Text variant="heading" tone="accent" aria-hidden>
+                      🛠️
+                    </Text>
+                  }
+                />
+              ) : (
+                <ProductTile
+                  title="Предложения появятся позже"
+                  description="Свежие паки уже в работе — следите за новостями, чтобы не пропустить запуск."
+                  media={
+                    <Text variant="heading" tone="accent" aria-hidden>
+                      🛰️
+                    </Text>
+                  }
+                />
+              )
+            ) : (
+              <div className="grid gap-md">
+                {regularVisiblePacks.map(pack => {
+                  const processing = isProcessingStarPackId === pack.id;
+                  const totalStars = pack.stars + (pack.bonus_stars ?? 0);
+                  const bonus = pack.bonus_stars ?? 0;
+                  const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
+                  const isBestValue = bestValuePackId === pack.id;
+                  const costPerStar =
+                    pack.price_rub && totalStars > 0
+                      ? (pack.price_rub / totalStars).toFixed(1)
+                      : null;
+
+                  const metrics: ProductMetric[] =
+                    bonus > 0
+                      ? [
+                          {
+                            label: 'Всего',
+                            value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
+                            icon: '🌌',
+                            tone: isBestValue ? 'accent' : 'primary',
+                          },
+                          {
+                            label: 'Бонус',
+                            value: `+${bonus.toLocaleString('ru-RU')} ⭐`,
+                            icon: '✨',
+                            tone: 'success' as const,
+                          },
+                          {
+                            label: 'Буст',
+                            value: `+${calculateBonusPercentage(pack.stars, bonus)}%`,
+                            icon: '🚀',
+                            tone: 'accent' as const,
+                          },
+                        ]
+                      : [
+                          {
+                            label: 'Всего',
+                            value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
+                            icon: '🌌',
+                            tone: isBestValue ? 'accent' : 'primary',
+                          },
+                        ];
+
+                  return (
+                    <ProductTile
+                      key={pack.id}
+                      title={pack.title}
+                      description={
+                        pack.description ?? `Получите ${totalStars.toLocaleString('ru-RU')} Stars`
+                      }
+                      priceLabel={priceLabel}
+                      highlighted={isBestValue}
+                      highlightLabel={isBestValue ? 'Лучшее соотношение' : undefined}
+                      badge={{
+                        label: `${totalStars.toLocaleString('ru-RU')} ⭐`,
+                        variant: isBestValue ? 'success' : 'primary',
+                      }}
+                      media={
+                        pack.icon_url ? (
+                          <OptimizedImage
+                            src={pack.icon_url}
+                            alt={pack.title ?? 'Star pack'}
+                            width={72}
+                            height={72}
+                            className="h-full w-full rounded-2xl object-cover"
+                          />
+                        ) : (
                           <Text
-                            variant="bodySm"
-                            weight="semibold"
-                            tone={isMostPopular ? 'inverse' : 'accent'}
+                            variant="heading"
+                            tone={isBestValue ? 'inverse' : 'accent'}
+                            aria-hidden
                           >
-                            {price.toLocaleString('ru-RU')} ⭐
+                            ⭐
                           </Text>
-                        </div>
-                      ) : null
-                    }
-                    actions={actionNode}
-                  />
-                );
-              })
+                        )
+                      }
+                      metrics={metrics}
+                      helper={`Базовых Stars: ${pack.stars.toLocaleString('ru-RU')}`}
+                      meta={
+                        costPerStar ? (
+                          <div
+                            className={clsx(
+                              'flex items-center justify-between rounded-2xl px-sm py-xs',
+                              isBestValue
+                                ? 'bg-white/10 text-text-inverse'
+                                : 'border border-border-layer bg-layer-overlay-soft text-text-primary'
+                            )}
+                          >
+                            <Text variant="caption" tone={isBestValue ? 'inverse' : 'secondary'}>
+                              Стоимость за ⭐
+                            </Text>
+                            <Text
+                              variant="bodySm"
+                              weight="semibold"
+                              tone={isBestValue ? 'inverse' : 'accent'}
+                            >
+                              {costPerStar} ₽/⭐
+                            </Text>
+                          </div>
+                        ) : null
+                      }
+                      actions={
+                        <Button
+                          variant="success"
+                          size="md"
+                          fullWidth
+                          className={isBestValue ? 'shadow-glow' : undefined}
+                          loading={processing}
+                          onClick={() => handlePurchaseStarPack(pack.id)}
+                        >
+                          Купить Stars
+                        </Button>
+                      }
+                    />
+                  );
+                })}
+              </div>
             )}
           </div>
-        </div>
-      )}
-    </div>
+        )}
+        {activeSection === 'boosts' && (
+          <div
+            className="flex flex-col gap-md"
+            id={getSectionPanelId('boosts')}
+            role="tabpanel"
+            aria-labelledby={getSectionTabId('boosts')}
+          >
+            <nav
+              className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/60 bg-surface-glass-strong p-xs"
+              aria-label="Категории бустов"
+              role="tablist"
+            >
+              {BOOST_TABS.map(tab => {
+                const isActive = tab.id === activeBoostSection;
+                return (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => handleBoostSectionChange(tab.id)}
+                    role="tab"
+                    aria-selected={isActive}
+                    className={`flex-1 sm:flex-none min-w-[140px] text-center rounded-2xl px-sm-plus py-xs-plus text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
+                      isActive
+                        ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
+                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <ErrorBoundary>
+              <BoostHub showHeader={false} filter={activeBoostSection} />
+            </ErrorBoundary>
+          </div>
+        )}
+
+        {activeSection === 'cosmetics' && (
+          <div
+            className="flex flex-col gap-md"
+            id={getSectionPanelId('cosmetics')}
+            role="tabpanel"
+            aria-labelledby={getSectionTabId('cosmetics')}
+          >
+            <nav
+              className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/60 bg-surface-glass-strong p-xs"
+              role="tablist"
+              aria-label="Категории косметики"
+            >
+              {categories.length === 0 && !isCosmeticsLoading && (
+                <Card className="flex-1 text-body text-token-secondary bg-token-surface-tertiary border-token-subtle">
+                  Косметика откроется после уровня 5. Продолжайте улучшать здания и активируйте
+                  бусты, чтобы увидеть новые стили планеты.
+                </Card>
+              )}
+
+              {categories.map((category, index) => {
+                const isActiveCategory = category.id === activeCategory;
+                const isDisabled = isCosmeticsLoading && !isActiveCategory;
+
+                return (
+                  <button
+                    key={category.id}
+                    onClick={() => setSelectedCategory(category.id)}
+                    disabled={isDisabled}
+                    role="tab"
+                    aria-selected={isActiveCategory}
+                    aria-controls={COSMETICS_GRID_ID}
+                    id={`cosmetics-category-${category.id}`}
+                    tabIndex={isActiveCategory ? 0 : -1}
+                    onKeyDown={event => handleCategoryKeyDown(event, index)}
+                    type="button"
+                    className={`flex-1 sm:flex-none min-w-[140px] rounded-2xl px-sm-plus py-xs-plus text-center text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
+                      isDisabled
+                        ? 'cursor-not-allowed opacity-60'
+                        : isActiveCategory
+                          ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
+                          : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
+                    }`}
+                  >
+                    {category.label}
+                  </button>
+                );
+              })}
+            </nav>
+
+            <div id={COSMETICS_GRID_ID} className="flex flex-col gap-md">
+              {isCosmeticsLoading && filteredCosmetics.length === 0 ? (
+                <ErrorBoundary>
+                  <ShopSkeleton count={4} />
+                </ErrorBoundary>
+              ) : (
+                filteredCosmetics.map(cosmetic => {
+                  const processing = isProcessingCosmeticId === cosmetic.id;
+                  const price = cosmetic.price_stars ?? 0;
+                  const isMostPopular = cosmetic.id === mostPopularCosmeticId;
+
+                  const rarityMap: Record<
+                    string,
+                    'default' | 'primary' | 'success' | 'warning' | 'error' | 'epic' | 'legendary'
+                  > = {
+                    common: 'default',
+                    rare: 'primary',
+                    epic: 'epic',
+                    legendary: 'legendary',
+                  };
+
+                  let actionNode: ReactNode;
+                  if (cosmetic.equipped) {
+                    actionNode = (
+                      <Button variant="success" size="sm" disabled>
+                        Экипировано
+                      </Button>
+                    );
+                  } else if (cosmetic.owned) {
+                    actionNode = (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        loading={processing}
+                        onClick={() => handleEquip(cosmetic.id)}
+                      >
+                        Экипировать
+                      </Button>
+                    );
+                  } else if (cosmetic.status === 'purchase_required' && price > 0) {
+                    actionNode = (
+                      <Button
+                        variant="success"
+                        size="sm"
+                        loading={processing}
+                        onClick={() => handlePurchaseCosmetic(cosmetic.id)}
+                      >
+                        Купить {price} ⭐
+                      </Button>
+                    );
+                  } else if (cosmetic.status === 'locked' && cosmetic.unlock_requirement?.level) {
+                    actionNode = (
+                      <Text variant="caption" tone={isMostPopular ? 'inverse' : 'secondary'}>
+                        Откроется с {cosmetic.unlock_requirement.level} уровня
+                      </Text>
+                    );
+                  } else if (cosmetic.status === 'event_locked') {
+                    actionNode = (
+                      <Text variant="caption" tone={isMostPopular ? 'inverse' : 'secondary'}>
+                        Доступно на событии
+                      </Text>
+                    );
+                  } else {
+                    actionNode = (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        loading={processing}
+                        onClick={() => handlePurchaseCosmetic(cosmetic.id)}
+                      >
+                        Получить
+                      </Button>
+                    );
+                  }
+
+                  return (
+                    <ProductTile
+                      key={cosmetic.id}
+                      orientation="horizontal"
+                      highlighted={isMostPopular}
+                      highlightLabel={isMostPopular ? '⭐ Popular' : undefined}
+                      title={cosmetic.name}
+                      description={cosmetic.description ?? ''}
+                      badge={{
+                        label: isMostPopular ? '⭐ Popular' : cosmetic.rarity,
+                        variant: isMostPopular
+                          ? 'primary'
+                          : (rarityMap[cosmetic.rarity] ?? 'default'),
+                      }}
+                      media={
+                        cosmetic.preview_url ? (
+                          <OptimizedImage
+                            src={cosmetic.preview_url}
+                            alt={cosmetic.name}
+                            width={72}
+                            height={72}
+                            className="h-full w-full rounded-2xl object-cover"
+                          />
+                        ) : (
+                          <Text
+                            variant="heading"
+                            tone={isMostPopular ? 'inverse' : 'accent'}
+                            aria-hidden
+                          >
+                            ✦
+                          </Text>
+                        )
+                      }
+                      helper={
+                        cosmetic.owned && !cosmetic.equipped
+                          ? 'Уже в коллекции — экипируйте, чтобы выделиться.'
+                          : undefined
+                      }
+                      meta={
+                        price > 0 ? (
+                          <div
+                            className={clsx(
+                              'flex items-center justify-between rounded-2xl px-sm py-xs',
+                              isMostPopular
+                                ? 'bg-white/10 text-text-inverse'
+                                : 'border border-border-layer bg-layer-overlay-soft text-text-primary'
+                            )}
+                          >
+                            <Text variant="caption" tone={isMostPopular ? 'inverse' : 'secondary'}>
+                              Стоимость
+                            </Text>
+                            <Text
+                              variant="bodySm"
+                              weight="semibold"
+                              tone={isMostPopular ? 'inverse' : 'accent'}
+                            >
+                              {price.toLocaleString('ru-RU')} ⭐
+                            </Text>
+                          </div>
+                        ) : null
+                      }
+                      actions={actionNode}
+                    />
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+      {purchaseSuccess ? (
+        <PurchaseSuccessModal
+          isOpen
+          itemName={purchaseSuccess.itemName}
+          quantity={purchaseSuccess.quantity}
+          cost={purchaseSuccess.cost}
+          costCurrency={purchaseSuccess.costCurrency}
+          variant={purchaseSuccess.variant}
+          locale={purchaseSuccess.locale}
+          rewards={purchaseSuccess.rewards}
+          supportLink={purchaseSuccess.supportLink}
+          autoClose={false}
+          onDismiss={handleDismissPurchaseSuccess}
+        />
+      ) : null}
+    </>
   );
 }

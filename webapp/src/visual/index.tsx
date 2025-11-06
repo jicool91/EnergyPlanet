@@ -3,6 +3,10 @@ import { renderOfflineSummaryPreview } from './previews/offlineSummary';
 import { renderFriendsPreview } from './previews/friendsScreen';
 import { renderTapPreview } from './previews/tapScreen';
 import { renderExchangePreview } from './previews/exchangeScreen';
+import { renderPurchaseSuccessPreview } from './previews/purchaseSuccess';
+import { renderLevelUpPreview } from './previews/levelUpScreen';
+import { renderAuthErrorPreview } from './previews/authErrorModal';
+import { renderPvPEventsPreview } from './previews/pvpEvents';
 
 type PreviewRenderer = (container: HTMLElement, params: URLSearchParams) => void;
 
@@ -11,6 +15,10 @@ const PREVIEWS: Record<string, PreviewRenderer> = {
   friends: renderFriendsPreview,
   tap: renderTapPreview,
   exchange: renderExchangePreview,
+  levelup: renderLevelUpPreview,
+  'auth-error': renderAuthErrorPreview,
+  'purchase-success': renderPurchaseSuccessPreview,
+  events: renderPvPEventsPreview,
 };
 
 const params = new URLSearchParams(window.location.search);

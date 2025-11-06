@@ -1,9 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { isAxiosError } from 'axios';
 import { Card } from '@/components/Card';
 import { Button } from '@/components/Button';
-import { fetchMonetizationMetrics, type MonetizationMetrics } from '@/services/admin';
+import {
+  fetchMonetizationMetrics,
+  fetchSeasonSnapshot,
+  rewardSeasonPlacement,
+  type MonetizationMetrics,
+  type SeasonSnapshot,
+} from '@/services/admin';
 import { logClientEvent } from '@/services/telemetry';
+import {
+  SeasonRewardsAdminPanel,
+  type SeasonRewardEntry,
+} from '@/components/seasonal/SeasonRewardsAdminPanel';
 
 const WINDOW_PRESETS = [7, 14, 30] as const;
 
@@ -35,6 +45,11 @@ export const AdminMonetizationScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [refreshNonce, setRefreshNonce] = useState(0);
+  const [seasonSnapshot, setSeasonSnapshot] = useState<SeasonSnapshot | null>(null);
+  const [seasonLoading, setSeasonLoading] = useState(false);
+  const [seasonError, setSeasonError] = useState<string | null>(null);
+  const [seasonRefreshNonce, setSeasonRefreshNonce] = useState(0);
+  const [rewardingSeasonUserId, setRewardingSeasonUserId] = useState<string | null>(null);
 
   useEffect(() => {
     void logClientEvent('admin_monetization_window_select', { days: selectedWindow });
@@ -93,6 +108,48 @@ export const AdminMonetizationScreen: React.FC = () => {
       cancelled = true;
     };
   }, [selectedWindow, refreshNonce]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      setSeasonLoading(true);
+      setSeasonError(null);
+      try {
+        const snapshot = await fetchSeasonSnapshot();
+        if (!cancelled) {
+          setSeasonSnapshot(snapshot);
+        }
+      } catch (err) {
+        if (cancelled) {
+          return;
+        }
+
+        let message = 'Не удалось загрузить данные сезона.';
+        if (isAxiosError(err)) {
+          const serverMessage =
+            (err.response?.data && (err.response.data as { message?: string }).message) ??
+            err.message;
+          message = serverMessage ?? message;
+        } else if (err instanceof Error) {
+          message = err.message;
+        }
+
+        setSeasonError(message);
+        setSeasonSnapshot(null);
+      } finally {
+        if (!cancelled) {
+          setSeasonLoading(false);
+        }
+      }
+    };
+
+    void run();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [seasonRefreshNonce]);
 
   const latestDay = useMemo(() => {
     if (!metrics) {
@@ -153,6 +210,42 @@ export const AdminMonetizationScreen: React.FC = () => {
     };
   }, [metrics]);
 
+  const seasonEntries = useMemo<SeasonRewardEntry[]>(() => {
+    if (!seasonSnapshot) {
+      return [];
+    }
+
+    return seasonSnapshot.leaderboard.map(entry => {
+      const fullName = [entry.firstName, entry.lastName]
+        .filter((part): part is string => Boolean(part))
+        .join(' ')
+        .trim();
+      const displayName =
+        entry.username ?? (fullName.length > 0 ? fullName : `Игрок ${entry.userId.slice(0, 6)}`);
+
+      const mappedTier: SeasonRewardEntry['rewardTier'] =
+        entry.rewardTier === 'gold' ||
+        entry.rewardTier === 'silver' ||
+        entry.rewardTier === 'bronze'
+          ? entry.rewardTier
+          : entry.finalRank === 1
+            ? 'gold'
+            : entry.finalRank === 2
+              ? 'silver'
+              : 'bronze';
+
+      return {
+        rank: entry.finalRank ?? 0,
+        userId: entry.userId,
+        player: displayName,
+        energyTotal: entry.energyTotal ?? 0,
+        rewardStatus: entry.claimed ? 'granted' : 'pending',
+        rewardTier: mappedTier,
+        couponCode: entry.couponCode ?? null,
+      };
+    });
+  }, [seasonSnapshot]);
+
   const handleChangeWindow = (preset: WindowPreset) => {
     setSelectedWindow(preset);
   };
@@ -160,6 +253,84 @@ export const AdminMonetizationScreen: React.FC = () => {
   const handleRefresh = () => {
     setRefreshNonce(previous => previous + 1);
   };
+
+  const handleRefreshSeason = useCallback(() => {
+    setSeasonRefreshNonce(previous => previous + 1);
+  }, []);
+
+  const isProcessingSeasonReward = rewardingSeasonUserId !== null;
+
+  const handleRewardSeasonPlayer = useCallback(
+    async (entry: SeasonRewardEntry) => {
+      if (!seasonSnapshot) {
+        throw new Error('Сезон не загружен');
+      }
+
+      setRewardingSeasonUserId(entry.userId);
+      try {
+        await rewardSeasonPlacement(seasonSnapshot.seasonId, {
+          userId: entry.userId,
+          rewardTier: entry.rewardTier,
+          couponCode: entry.couponCode ?? undefined,
+        });
+
+        const grantedAt = new Date().toISOString();
+        setSeasonSnapshot(prev => {
+          if (!prev) {
+            return prev;
+          }
+          return {
+            ...prev,
+            leaderboard: prev.leaderboard.map(item =>
+              item.userId === entry.userId
+                ? {
+                    ...item,
+                    claimed: true,
+                    claimedAt: grantedAt,
+                    couponCode: entry.couponCode ?? item.couponCode ?? null,
+                  }
+                : item
+            ),
+          };
+        });
+
+        void logClientEvent('admin_season_reward_grant', {
+          season_id: seasonSnapshot.seasonId,
+          user_id: entry.userId,
+          reward_tier: entry.rewardTier,
+        });
+      } finally {
+        setRewardingSeasonUserId(null);
+      }
+    },
+    [seasonSnapshot]
+  );
+
+  const handleExportSeasonSnapshot = useCallback(() => {
+    if (!seasonSnapshot) {
+      return;
+    }
+    if (typeof window === 'undefined' || typeof document === 'undefined') {
+      return;
+    }
+
+    const snapshotBlob = new Blob([JSON.stringify(seasonSnapshot, null, 2)], {
+      type: 'application/json',
+    });
+    const url = URL.createObjectURL(snapshotBlob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `season-${seasonSnapshot.seasonNumber}-snapshot.json`;
+    document.body.appendChild(anchor);
+    anchor.click();
+    document.body.removeChild(anchor);
+    URL.revokeObjectURL(url);
+
+    void logClientEvent('admin_season_snapshot_export', {
+      season_id: seasonSnapshot.seasonId,
+      season_number: seasonSnapshot.seasonNumber,
+    });
+  }, [seasonSnapshot]);
 
   const renderSummaryValue = (value: number | null) => {
     if (value === null || Number.isNaN(value)) {
@@ -326,6 +497,41 @@ export const AdminMonetizationScreen: React.FC = () => {
           </section>
         </>
       )}
+
+      <section className="flex flex-col gap-4">
+        <div className="flex items-center justify-between flex-wrap gap-2">
+          <h3 className="m-0 text-body font-semibold text-token-primary">
+            Seasonal rewards overview
+          </h3>
+          <Button variant="ghost" size="sm" onClick={handleRefreshSeason} disabled={seasonLoading}>
+            🔄 Обновить сезон
+          </Button>
+        </div>
+
+        {seasonLoading ? (
+          <Card className="border-dashed border-token-subtle bg-token-surface-tertiary text-token-secondary">
+            Загружаем данные сезона…
+          </Card>
+        ) : seasonError ? (
+          <Card className="border border-feedback-error/40 bg-feedback-error/5 text-feedback-error">
+            {seasonError}
+          </Card>
+        ) : seasonSnapshot && seasonEntries.length > 0 ? (
+          <SeasonRewardsAdminPanel
+            seasonTitle={`${seasonSnapshot.name} · #${seasonSnapshot.seasonNumber}`}
+            seasonId={seasonSnapshot.seasonId}
+            endedAt={seasonSnapshot.endTime}
+            snapshotPlayers={seasonEntries}
+            isProcessing={isProcessingSeasonReward}
+            onRewardPlayer={handleRewardSeasonPlayer}
+            onExportSnapshot={handleExportSeasonSnapshot}
+          />
+        ) : (
+          <Card className="border border-token-subtle bg-token-surface-tertiary text-token-secondary">
+            Нет данных по завершённым сезонам — проверьте позже.
+          </Card>
+        )}
+      </section>
     </div>
   );
 };

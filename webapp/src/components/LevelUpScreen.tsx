@@ -223,6 +223,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
             aria-modal="true"
             aria-labelledby="levelup-title"
             aria-describedby="levelup-message"
+            data-prefers-reduced-motion={prefersReducedMotion ? 'true' : 'false'}
           >
             <div className="flex flex-col items-center gap-6">
               <motion.div

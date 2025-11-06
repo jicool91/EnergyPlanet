@@ -35,6 +35,7 @@ import { logClientEvent } from './services/telemetry';
 import { logger } from './utils/logger';
 import { AdminMonetizationScreen } from './screens/AdminMonetizationScreen';
 import { ProgressBar, Surface, Text, Button } from './components';
+import { PvPEventsScreen } from './screens/PvPEventsScreen';
 import { AdminModalContext } from './contexts/AdminModalContext';
 import { ensureExperimentVariant } from '@/store/experimentsStore';
 
@@ -139,6 +140,7 @@ function NextUiRouter({ renderHeader }: NextUiRouterProps) {
           <Route path="/friends" element={<FriendsScreen />} />
           <Route path="/earn" element={<EarnScreen />} />
           <Route path="/airdrop" element={<AirdropScreen />} />
+          <Route path="/events" element={<PvPEventsScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </Suspense>

@@ -12,6 +12,8 @@ router.get('/health/full', adminController.getFullHealth);
 router.get('/monetization/metrics', adminController.getMonetizationMetrics);
 router.get('/auth/session-families', adminController.listAuthSessionFamilies);
 router.post('/auth/session-families/:familyId/revoke', adminController.revokeSessionFamily);
+router.get('/seasons/snapshot', adminController.getSeasonSnapshot);
+router.post('/seasons/:seasonId/reward', adminController.rewardSeasonPlacement);
 
 router.patch('/flags', (_req, res) => {
   res.json({ message: 'Update flags endpoint - TODO' });
