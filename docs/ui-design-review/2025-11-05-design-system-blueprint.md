@@ -52,12 +52,16 @@
 3. ✅ Theme runtime: font scale и safe-area поддерживаются (`services/tma/theme.ts`, `Surface`), добавлены light-mode сценарии в visual тестах (`tests/visual/offline-summary.spec.ts`) и переключение `?theme=light` в preview. Покрытие остальных экранов переносим в Этап D.
 
 ### Этап B — Компоненты (2 недели)
+**Статус:** завершён
+
 1. ✅ Actions: `Button`/`IconButton`/`MainButtonBridge` перешли на общую токенизированную систему (`actionTheme`, shared spinners, tone API).
 2. ✅ Containers: `Surface` получил elevation/interactive, `Card` оборачивает `Surface`, добавлен `Panel` как стандартный контейнер.
 3. ✅ Feedback: реализованы `Skeleton`/`Loader` с ARIA, обновлены skeletons и Barrel-экспорты.
 4. ✅ Typography: классические `text-*` заменены на `Text` + токены, добавлено eslint-правило против legacy размеров.
 
 ### Этап C — Паттерны (2 недели)
+**Статус:** завершён (готово к старту Stage D)
+
 1. ✅ Economy: `StatsSummary`, `PurchaseInsight`, `LeaderboardPanel` и `ExchangeScreen` собраны на Surface/Panel, actionTheme и Text; осталось пройти QA empty/error-сценариев и зафиксировать метрики.
 2. ✅ Shop/Product: введён `ProductTile`, `ShopPanel` и `PurchaseSuccessModal` перешли на Panel/Surface, цены/метрики стандартизированы.
 3. ✅ Modals/Feedback: `AchievementsModal`, `OfflineSummaryModal`, `Toast` собраны на ModalBase/Panel, остался аудит второстепенных модалок (`AuthErrorModal`, `LevelUpScreen`) для выравнивания.
