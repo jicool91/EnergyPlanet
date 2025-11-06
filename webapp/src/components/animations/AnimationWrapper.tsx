@@ -4,6 +4,7 @@
  */
 
 import React from 'react';
+import clsx from 'clsx';
 import { motion, type MotionProps, type Transition } from 'framer-motion';
 import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 
@@ -107,9 +108,10 @@ export const GlowWrapper: React.FC<{ children: React.ReactNode; className?: stri
 
   return (
     <motion.div
-      className={className}
-      whileHover={reduceMotion ? undefined : { boxShadow: '0 0 40px rgba(0, 217, 255, 0.6)' }}
-      transition={reduceMotion ? undefined : { duration: 0.3 }}
+      className={clsx(
+        className,
+        reduceMotion ? undefined : 'transition-shadow duration-300 hover:shadow-glow'
+      )}
     >
       {children}
     </motion.div>

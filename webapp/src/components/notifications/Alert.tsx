@@ -1,6 +1,9 @@
 import { motion } from 'framer-motion';
 import type { Notification } from '../../store/uiStore';
 import { useUIStore } from '../../store/uiStore';
+import { Panel } from '../Panel';
+import { Text } from '../ui/Text';
+import { Button, type ButtonProps } from '../Button';
 
 interface AlertProps {
   notification: Notification;
@@ -9,31 +12,36 @@ interface AlertProps {
 // Type-to-icon and color mapping
 const ALERT_CONFIGS: Record<
   string,
-  { icon: string; label: string; headerBg: string; accentColor: string }
+  {
+    icon: string;
+    label: string;
+    tone: 'success' | 'warning' | 'danger' | 'accent';
+    buttonVariant: NonNullable<ButtonProps['variant']>;
+  }
 > = {
   success: {
     icon: '✓',
     label: 'Success',
-    headerBg: 'from-lime-500/20 to-lime-500/10',
-    accentColor: 'bg-lime-500 hover:bg-lime-600',
+    tone: 'success',
+    buttonVariant: 'success',
   },
   error: {
     icon: '✕',
     label: 'Error',
-    headerBg: 'from-red-500/20 to-red-500/10',
-    accentColor: 'bg-red-500 hover:bg-red-600',
+    tone: 'danger',
+    buttonVariant: 'danger',
   },
   warning: {
     icon: '⚠',
     label: 'Warning',
-    headerBg: 'from-amber-500/20 to-amber-500/10',
-    accentColor: 'bg-amber-500 hover:bg-amber-600',
+    tone: 'warning',
+    buttonVariant: 'primary',
   },
   info: {
     icon: 'ⓘ',
     label: 'Information',
-    headerBg: 'from-blue-500/20 to-blue-500/10',
-    accentColor: 'bg-blue-500 hover:bg-blue-600',
+    tone: 'accent',
+    buttonVariant: 'secondary',
   },
 };
 
@@ -52,44 +60,53 @@ export function Alert({ notification }: AlertProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 flex items-center justify-center z-50 backdrop-blur-sm"
-      style={{
-        background: 'rgba(0, 0, 0, 0.5)',
-      }}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-layer-overlay-strong/70 backdrop-blur-sm"
     >
       <motion.div
         initial={{ scale: 0.9, y: 20 }}
         animate={{ scale: 1, y: 0 }}
         exit={{ scale: 0.9, y: 20 }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="bg-gradient-to-b from-dark-card to-dark-bg border border-dark-border rounded-2xl shadow-2xl max-w-sm mx-4 overflow-hidden"
+        className="w-[min(92vw,360px)] px-4"
       >
-        {/* Header with Icon */}
-        <div
-          className={`bg-gradient-to-r ${config.headerBg} border-b border-dark-border px-6 py-4 flex items-center gap-4`}
-        >
-          <div className="text-display" role="img" aria-label={config.label}>
-            {config.icon}
+        <Panel tone="overlayStrong" border="accent" spacing="lg" className="shadow-elevation-4">
+          <div className="flex items-center gap-4">
+            <Text
+              as="span"
+              variant="hero"
+              tone={config.tone}
+              role="img"
+              aria-label={config.label}
+              className="drop-shadow-glow"
+            >
+              {config.icon}
+            </Text>
+            <div className="flex flex-col gap-xs">
+              <Text as="h2" variant="title" weight="bold">
+                {notification.title || 'Уведомление'}
+              </Text>
+              <Text variant="caption" tone="secondary">
+                {config.label}
+              </Text>
+            </div>
           </div>
-          <h2 className="text-heading font-bold text-white">{notification.title || 'Alert'}</h2>
-        </div>
 
-        {/* Body */}
-        <div className="px-6 py-4">
-          <p className="text-gray-300 text-body leading-relaxed">{notification.message}</p>
-        </div>
+          <div>
+            {notification.message.split(/\n+/).map(line => (
+              <Text key={line} variant="body" tone="secondary">
+                {line}
+              </Text>
+            ))}
+          </div>
 
-        {/* Footer */}
-        <div className="border-t border-dark-border px-6 py-4 flex gap-3 justify-end">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleDismiss}
-            className={`px-sm-plus py-xs-plus rounded-2xl font-semibold uppercase tracking-[0.08em] text-white shadow-glow transition-all duration-200 focus-ring ${config.accentColor}`}
-          >
-            OK
-          </motion.button>
-        </div>
+          <div className="flex justify-end">
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button variant={config.buttonVariant} size="sm" onClick={handleDismiss}>
+                ОК
+              </Button>
+            </motion.div>
+          </div>
+        </Panel>
       </motion.div>
     </motion.div>
   );
