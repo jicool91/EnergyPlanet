@@ -20,6 +20,6 @@
 - [x] Add QA dashboard widget for Stage D (latency, tap success, auth errors) in Grafana (`infra/grafana/dashboards/telegram-miniapp-product.json`).
 
 ## 5. Post-QA Handoff
-- [ ] Update `docs/ui-design-review/2025-11-05-design-system-blueprint.md` Stage D section with results.
+- [x] Update `docs/ui-design-review/2025-11-05-design-system-blueprint.md` Stage D section with results.
 - [ ] Attach evidence (screens, logs) to Jira epic «Design System Unification».
 - [ ] Greenlight Stage D → Stage E transition in release notes.
