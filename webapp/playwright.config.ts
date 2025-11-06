@@ -1,6 +1,6 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const baseURL = process.env.PERF_BASE_URL ?? 'http://localhost:5173';
+const baseURL = process.env.PERF_BASE_URL ?? 'http://127.0.0.1:4173';
 
 export default defineConfig({
   testDir: './tests',
@@ -24,4 +24,10 @@ export default defineConfig({
       use: devices['Desktop Chrome'],
     },
   ],
+  webServer: {
+    command: 'npm run preview -- --host 127.0.0.1 --port 4173',
+    url: 'http://127.0.0.1:4173',
+    reuseExistingServer: !process.env.CI,
+    timeout: 60_000,
+  },
 });
