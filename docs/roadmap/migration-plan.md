@@ -1,0 +1,17 @@
+# Design System Migration Plan
+
+| Экран / модуль | Ответственный | Stage | Статус | Визуальные тесты | Комментарий |
+|----------------|---------------|-------|--------|-------------------|-------------|
+| TapScreen      | UI Team A     | D     | ✅ Done | Playwright + Chromatic | Stage D baseline 2025-11-06 |
+| ExchangeScreen | UI Team A     | D     | ✅ Done | Playwright + Chromatic | |
+| FriendsScreen  | UI Team A     | D     | ✅ Done | Playwright + Chromatic | |
+| PvP Lobby      | UI Team B     | F     | 🛠 In progress | Storybook (PvP), Playwright | Запустить после Stage E |
+| Events Schedule| UI Team B     | F     | 🛠 In progress | Storybook | Учитывать сезонные награды |
+| Premium Shop   | Monetization  | F     | ☐ Todo | Storybook + QA | Синхронизировать с Seasonal Rewards |
+| Leaderboards (Global) | Social Squad | F | 🛠 In progress | Chromatic | Clan screen в планах Stage G |
+| ChatScreen     | Social Squad  | F     | ✅ Done | Storybook (placeholder) | Плейсхолдер + QA, ждёт чат-бэкенд |
+
+- Добавляйте новые строки для экранов, которые мигрируете.
+- Обновляйте столбец **Stage** (E/F) и статус (`☐ Todo`, `🛠 In progress`, `✅ Done`).
+- Если добавлены новые визуальные тесты, укажите какие (Chromatic, Playwright и т.п.).
+- После завершения — переносите уроки/гайды в `docs/training/stage-e-faq.md`.

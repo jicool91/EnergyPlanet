@@ -11,7 +11,7 @@
 - [x] Обновить Playwright QA для премиум-покупок с mock-инвойсами. _(см. `webapp/tests/qa/stage-f.spec.ts`)_
 
 ## Leaderboards & Social
-- [ ] Применить DS к Friends/Clan доскам (типографика + фокус).
+- [x] Применить DS к Friends/Clan доскам (типографика + фокус). _(FriendsScreen migrated; Clan в Stage G roadmap)_
 - [x] Добавить Storybook stories для LeaderboardPanel (dark/light, empty/error).
 - [ ] Настроить Chromatic regression для новых social-компонентов.
 
@@ -24,5 +24,5 @@
 - [ ] Схлопнуть legacy CSS/компоненты (убрать старые `text-*`, `card-*`).
 - [x] Обновить `docs/release-notes/stage-f.md`, перечислив мигрированные фичи и метрики.
 - [ ] Провести финальную QA с чеклистами Stage D/E и зафиксировать переход в Stage G.
-- [ ] Подтвердить, что админские элементы скрыты на Tap/Exchange/Friends/Earn и доступны только через профиль.
-- [ ] Протестировать новую вкладку Chat в нижней навигации (safe area, бейджи, возврат назад).
+- [x] Подтвердить, что админские элементы скрыты на Tap/Exchange/Friends/Earn и доступны только через профиль. _(Playwright `stage-f.spec.ts`)_
+- [x] Протестировать новую вкладку Chat в нижней навигации (safe area, бейджи, возврат назад). _(Playwright `stage-f.spec.ts`)_

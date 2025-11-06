@@ -27,6 +27,7 @@
 ## Прогресс 2025-11-07
 - FriendsScreen приведён к дизайн-системе: единые `Surface`, новая Chromatic story, обновлённый `FriendsList` и `ReferralRevenueCard`.
 - Seasonal Rewards UX финализирован: утверждены призовые пакеты, добавлены купонные скрипты и тексты (`docs/design/seasonal-rewards.md`, i18n `season.reward.*`).
+- Playwright `stage-f.spec.ts` проходит на `npm run preview` (покупки, PvP превью, чаты); конфиг автоматически поднимает превью-сервер.
 
 ## История
 - _Заполнить после релиза_
