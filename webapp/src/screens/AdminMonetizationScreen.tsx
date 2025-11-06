@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { isAxiosError } from 'axios';
-import { Card } from '@/components/Card';
-import { Button } from '@/components/Button';
+import { Button, TabPageSurface, Surface, Text } from '@/components';
 import {
   fetchMonetizationMetrics,
   fetchSeasonSnapshot,
@@ -353,18 +352,18 @@ export const AdminMonetizationScreen: React.FC = () => {
   const lastDayDate = latestDay?.date ?? null;
 
   return (
-    <div className="flex flex-col gap-6">
+    <TabPageSurface className="gap-6">
       <header className="flex flex-col gap-3">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <p className="m-0 text-body text-token-secondary">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <Text variant="bodySm" tone="secondary">
               Окно: последние {selectedWindow} дн. · Обновлено {renderDate(lastDayDate)}
-            </p>
-            <p className="m-0 text-caption text-token-tertiary">
+            </Text>
+            <Text variant="caption" tone="tertiary">
               Актуально с {renderDate(firstDayDate)} по {renderDate(lastDayDate)}
-            </p>
+            </Text>
           </div>
-          <div className="flex gap-2 flex-wrap">
+          <div className="flex flex-wrap gap-2">
             {WINDOW_PRESETS.map(preset => (
               <Button
                 key={preset}
@@ -381,83 +380,126 @@ export const AdminMonetizationScreen: React.FC = () => {
           </div>
         </div>
         {metrics && (
-          <p className="m-0 text-caption text-token-tertiary">
+          <Text variant="caption" tone="tertiary">
             Последний экспорт:{' '}
             {metrics.generatedAt ? renderDate(metrics.generatedAt.slice(0, 10)) : '—'}
-          </p>
+          </Text>
         )}
       </header>
 
       {loading && (
-        <Card className="text-body text-token-secondary border-dashed border-token-subtle bg-token-surface-tertiary">
+        <Surface
+          tone="secondary"
+          border="subtle"
+          elevation="soft"
+          padding="lg"
+          rounded="3xl"
+          className="text-body text-text-secondary"
+        >
           Загружаем метрики…
-        </Card>
+        </Surface>
       )}
 
       {error && (
-        <Card className="text-body text-red-error border-red-error/40 bg-red-error/5">{error}</Card>
+        <Surface
+          tone="secondary"
+          border="strong"
+          elevation="soft"
+          padding="lg"
+          rounded="3xl"
+          className="text-body text-feedback-error"
+        >
+          {error}
+        </Surface>
       )}
 
       {!loading && !error && metrics && (
         <>
-          <section className="grid sm:grid-cols-3 gap-4">
-            <Card variant="elevated" className="flex flex-col gap-2 bg-cyan/5 border-cyan/20">
-              <span className="text-caption uppercase tracking-wide text-cyan/80">
+          <section className="grid gap-4 sm:grid-cols-3">
+            <Surface
+              tone="secondary"
+              border="subtle"
+              elevation="soft"
+              padding="lg"
+              rounded="3xl"
+              className="flex flex-col gap-2"
+            >
+              <Text variant="caption" tone="tertiary" transform="uppercase">
                 Shop visit rate
-              </span>
-              <strong className="text-heading text-token-primary">
+              </Text>
+              <Text variant="heading" weight="semibold">
                 {renderSummaryValue(latestDay?.shopVisitRate ?? null)}
-              </strong>
-              <p className="m-0 text-caption text-token-secondary">
+              </Text>
+              <Text variant="caption" tone="secondary">
                 Среднее: {renderSummaryValue(averages?.shopVisitRate ?? null)}
-              </p>
-              <p className="m-0 text-caption text-token-tertiary">
+              </Text>
+              <Text variant="caption" tone="tertiary">
                 Показы: {renderCount(latestDay?.shopTabImpressions ?? 0)} · Просмотры:{' '}
                 {renderCount(latestDay?.shopViews ?? 0)}
-              </p>
-            </Card>
+              </Text>
+            </Surface>
 
-            <Card variant="elevated" className="flex flex-col gap-2 bg-lime/5 border-lime/20">
-              <span className="text-caption uppercase tracking-wide text-lime/80">
+            <Surface
+              tone="secondary"
+              border="subtle"
+              elevation="soft"
+              padding="lg"
+              rounded="3xl"
+              className="flex flex-col gap-2"
+            >
+              <Text variant="caption" tone="tertiary" transform="uppercase">
                 Quest claim success
-              </span>
-              <strong className="text-heading text-token-primary">
+              </Text>
+              <Text variant="heading" weight="semibold">
                 {renderSummaryValue(latestDay?.questClaimSuccessRate ?? null)}
-              </strong>
-              <p className="m-0 text-caption text-token-secondary">
+              </Text>
+              <Text variant="caption" tone="secondary">
                 Среднее: {renderSummaryValue(averages?.questClaimSuccessRate ?? null)}
-              </p>
-              <p className="m-0 text-caption text-token-tertiary">
+              </Text>
+              <Text variant="caption" tone="tertiary">
                 Стартов: {renderCount(latestDay?.questClaimStarts ?? 0)} · Успех:{' '}
                 {renderCount(latestDay?.questClaimSuccess ?? 0)}
-              </p>
-            </Card>
+              </Text>
+            </Surface>
 
-            <Card
-              variant="elevated"
-              className="flex flex-col gap-2 bg-amber-500/5 border-amber-500/20"
+            <Surface
+              tone="secondary"
+              border="subtle"
+              elevation="soft"
+              padding="lg"
+              rounded="3xl"
+              className="flex flex-col gap-2"
             >
-              <span className="text-caption uppercase tracking-wide text-amber-500/80">
+              <Text variant="caption" tone="tertiary" transform="uppercase">
                 Upsell CTR
-              </span>
-              <strong className="text-heading text-token-primary">
+              </Text>
+              <Text variant="heading" weight="semibold">
                 {renderSummaryValue(latestDay?.dailyBoostUpsellCtr ?? null)}
-              </strong>
-              <p className="m-0 text-caption text-token-secondary">
+              </Text>
+              <Text variant="caption" tone="secondary">
                 Среднее: {renderSummaryValue(averages?.upsellCtr ?? null)}
-              </p>
-              <p className="m-0 text-caption text-token-tertiary">
+              </Text>
+              <Text variant="caption" tone="tertiary">
                 Просмотров: {renderCount(latestDay?.dailyBoostUpsellViews ?? 0)} · Кликов:{' '}
                 {renderCount(latestDay?.dailyBoostUpsellClicks ?? 0)}
-              </p>
-            </Card>
+              </Text>
+            </Surface>
           </section>
 
-          <section className="flex flex-col gap-3">
-            <h3 className="m-0 text-body font-semibold text-token-primary">Динамика по дням</h3>
-            <div className="overflow-x-auto rounded-lg border border-token-subtle">
+          <Surface
+            tone="secondary"
+            border="subtle"
+            elevation="soft"
+            padding="lg"
+            rounded="3xl"
+            className="flex flex-col gap-3"
+          >
+            <Text variant="title" weight="semibold">
+              Динамика по дням
+            </Text>
+            <div className="overflow-x-auto">
               <table className="min-w-full text-caption text-left">
-                <thead className="bg-token-surface-tertiary text-token-secondary uppercase tracking-wide">
+                <thead className="text-text-secondary uppercase tracking-[0.08em]">
                   <tr>
                     <th className="px-4 py-3 font-semibold">Дата</th>
                     <th className="px-4 py-3 font-semibold">Shop visits</th>
@@ -471,22 +513,22 @@ export const AdminMonetizationScreen: React.FC = () => {
                   {metrics.daily.map(day => (
                     <tr
                       key={day.date}
-                      className="odd:bg-token-surface-secondary even:bg-token-surface"
+                      className="odd:bg-layer-overlay-ghost-soft even:bg-transparent"
                     >
-                      <td className="px-4 py-2 text-token-primary">{renderDate(day.date)}</td>
-                      <td className="px-4 py-2 text-token-secondary">
+                      <td className="px-4 py-2 text-text-primary">{renderDate(day.date)}</td>
+                      <td className="px-4 py-2 text-text-secondary">
                         {renderCount(day.shopViews)} / {renderCount(day.shopTabImpressions)}
                       </td>
-                      <td className="px-4 py-2 text-token-primary">
+                      <td className="px-4 py-2 text-text-primary">
                         {renderSummaryValue(day.shopVisitRate)}
                       </td>
-                      <td className="px-4 py-2 text-token-secondary">
+                      <td className="px-4 py-2 text-text-secondary">
                         {renderCount(day.questClaimSuccess)} / {renderCount(day.questClaimStarts)}
                       </td>
-                      <td className="px-4 py-2 text-token-primary">
+                      <td className="px-4 py-2 text-text-primary">
                         {renderSummaryValue(day.questClaimSuccessRate)}
                       </td>
-                      <td className="px-4 py-2 text-token-primary">
+                      <td className="px-4 py-2 text-text-primary">
                         {renderSummaryValue(day.dailyBoostUpsellCtr)}
                       </td>
                     </tr>
@@ -494,28 +536,35 @@ export const AdminMonetizationScreen: React.FC = () => {
                 </tbody>
               </table>
             </div>
-          </section>
+          </Surface>
         </>
       )}
 
-      <section className="flex flex-col gap-4">
-        <div className="flex items-center justify-between flex-wrap gap-2">
-          <h3 className="m-0 text-body font-semibold text-token-primary">
+      <Surface
+        tone="secondary"
+        border="subtle"
+        elevation="soft"
+        padding="lg"
+        rounded="3xl"
+        className="flex flex-col gap-4"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <Text variant="title" weight="semibold">
             Seasonal rewards overview
-          </h3>
+          </Text>
           <Button variant="ghost" size="sm" onClick={handleRefreshSeason} disabled={seasonLoading}>
             🔄 Обновить сезон
           </Button>
         </div>
 
         {seasonLoading ? (
-          <Card className="border-dashed border-token-subtle bg-token-surface-tertiary text-token-secondary">
+          <Text variant="body" tone="secondary">
             Загружаем данные сезона…
-          </Card>
+          </Text>
         ) : seasonError ? (
-          <Card className="border border-feedback-error/40 bg-feedback-error/5 text-feedback-error">
+          <Text variant="body" tone="danger">
             {seasonError}
-          </Card>
+          </Text>
         ) : seasonSnapshot && seasonEntries.length > 0 ? (
           <SeasonRewardsAdminPanel
             seasonTitle={`${seasonSnapshot.name} · #${seasonSnapshot.seasonNumber}`}
@@ -527,11 +576,11 @@ export const AdminMonetizationScreen: React.FC = () => {
             onExportSnapshot={handleExportSeasonSnapshot}
           />
         ) : (
-          <Card className="border border-token-subtle bg-token-surface-tertiary text-token-secondary">
+          <Text variant="body" tone="secondary">
             Нет данных по завершённым сезонам — проверьте позже.
-          </Card>
+          </Text>
         )}
-      </section>
-    </div>
+      </Surface>
+    </TabPageSurface>
   );
 };
