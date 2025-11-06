@@ -13,6 +13,7 @@
     "lint:fix": "eslint src --ext ts,tsx --fix",
     "format": "prettier --write \"src/**/*.{ts,tsx,css}\"",
     "typecheck": "tsc --noEmit",
+    "test:qa": "playwright test -c playwright.qa.config.ts",
     "test:perf": "playwright test tests/performance/tap-loop.spec.ts",
     "test:contrast": "node ./scripts/check-contrast.mjs",
     "test:visual": "npm run build && playwright test -c playwright.visual.config.ts"

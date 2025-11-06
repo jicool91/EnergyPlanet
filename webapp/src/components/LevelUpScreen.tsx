@@ -140,7 +140,7 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
 
   const rotatingRingStyle: CSSProperties = {
     background:
-      'conic-gradient(from 0deg, rgba(0,217,255,0.8), rgba(72,255,173,0.8), rgba(255,201,87,0.8), transparent)',
+      'conic-gradient(from 0deg, var(--color-accent-cyan) 0%, var(--color-success) 45%, var(--color-accent-gold) 75%, transparent 100%)',
     width: '280px',
     height: '280px',
     opacity: 0.3,
@@ -178,13 +178,13 @@ export const LevelUpScreen: React.FC<LevelUpScreenProps> = ({
   }, [prefersReducedMotion]);
 
   const levelNumberAnimation = prefersReducedMotion
-    ? { scale: 1, textShadow: '0 0 20px rgba(0,217,255,0.5)' }
+    ? { scale: 1, textShadow: '0 0 20px var(--color-accent-cyan)' }
     : {
         scale: [1, 1.1, 1],
         textShadow: [
-          '0 0 20px rgba(0,217,255,0.5)',
-          '0 0 40px rgba(72,255,173,0.8)',
-          '0 0 20px rgba(0,217,255,0.5)',
+          '0 0 20px var(--color-accent-cyan)',
+          '0 0 40px var(--color-success)',
+          '0 0 20px var(--color-accent-cyan)',
         ],
       };
 
