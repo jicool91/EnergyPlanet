@@ -60,7 +60,7 @@
 4. ✅ Typography: классические `text-*` заменены на `Text` + токены, добавлено eslint-правило против legacy размеров.
 
 ### Этап C — Паттерны (2 недели)
-**Статус:** завершён (готово к старту Stage D)
+**Статус:** завершён (готово к старту Stage D — чек-лист в `docs/qa/stage-d-checklist.md`)
 
 1. ✅ Economy: `StatsSummary`, `PurchaseInsight`, `LeaderboardPanel` и `ExchangeScreen` собраны на Surface/Panel, actionTheme и Text; осталось пройти QA empty/error-сценариев и зафиксировать метрики.
 2. ✅ Shop/Product: введён `ProductTile`, `ShopPanel` и `PurchaseSuccessModal` перешли на Panel/Surface, цены/метрики стандартизированы.
@@ -68,8 +68,8 @@
 
 **Что осталось после Этапа C**
 - QA пустых/ошибочных сценариев Economy и Shop, фиксация метрик перед стартом Stage D.
-- Доведённые модалки второго порядка (`AuthErrorModal`, `LevelUpScreen`, `NotificationContainer`) на новую сетку и motion.
-- Подготовка пакета Stage D: визуальные регрессии, контрастные проверки, телеметрия UX.
+- Ревью навигации/гридов на предмет типографики и цветовых токенов (BottomNavigation, Drawer) + устранить оставшиеся inline градиенты (LevelUp splash).
+- Подготовка пакета Stage D: визуальные регрессии, контрастные проверки, телеметрия UX (см. `docs/qa/stage-d-checklist.md`).
 
 ### Этап D — QA и авто-тесты (1 неделя)
 **Статус:** не начат  
@@ -87,7 +87,6 @@
 - Typography drift: ~90 случаев `text-lg`, `text-sm` в старых навигационных компонентах (BottomNavigation, Drawer) — требуется миграция на `Text` variants.
 - Inline colors: `bg-[rgba(...)]`/`border-[rgba(...)]` в Friends/Tap/Shop — перенести в токены.
 - Skeleton variance: разные `animate-pulse` без ARIA, нет общего компонента.
-- Modals backlog: `AuthErrorModal`, `LevelUpScreen`, `NotificationContainer` ждут обновления layout/motion по новому гайду.
 - Light mode coverage: нет визуальных тестов и документации для светлой темы.
 - Theme experiments: palette эксперимент не кешируется на пользователя → возможен flicker.
 
