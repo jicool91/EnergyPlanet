@@ -66,7 +66,11 @@ export class AdminController {
         throw new AppError(400, 'family_id_required');
       }
 
-      const reason = typeof req.body?.reason === 'string' ? req.body.reason : undefined;
+      const rawReason =
+        typeof (req.body as { reason?: unknown } | undefined)?.reason === 'string'
+          ? ((req.body as { reason: string }).reason ?? '').trim()
+          : undefined;
+      const reason = rawReason && rawReason.length > 0 ? rawReason : undefined;
       const result = await this.adminService.revokeSessionFamily(familyId.trim(), reason);
 
       if (!result.userId) {

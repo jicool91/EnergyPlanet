@@ -222,14 +222,15 @@ export const useCatalogStore = create<CatalogState>()(
           starPacksError: null,
         });
       } catch (error) {
-        const { message } = describeError(error, 'Не удалось загрузить паки Stars');
+        const fallbackMessage = 'Не удалось загрузить паки Stars';
+        const { message, status } = describeError(error, fallbackMessage);
         set({
-          starPacksError: message,
+          starPacksError: fallbackMessage,
           isStarPacksLoading: false,
         });
         await logClientEvent(
           'star_packs_load_failed',
-          { message, source: 'loadStarPacks' },
+          { source: 'loadStarPacks', upstream_message: message, status, fallback: fallbackMessage },
           'warn'
         );
       }

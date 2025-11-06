@@ -1,3 +1,4 @@
+import type { Response, NextFunction } from 'express';
 import { AppError } from '../../../middleware/errorHandler';
 
 const authenticateWithTelegramMock = jest.fn();
@@ -30,13 +31,17 @@ describe('AuthController.authenticateWithTelegramHeader', () => {
       },
       ip: '127.0.0.1',
     } as unknown as Parameters<typeof controller.authenticateWithTelegramHeader>[0];
-    const res = {
+    const res: Partial<Response> = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
-    } as any;
-    const next = jest.fn();
+    };
+    const next = jest.fn<ReturnType<NextFunction>, Parameters<NextFunction>>();
 
-    await controller.authenticateWithTelegramHeader(req, res, next);
+    await controller.authenticateWithTelegramHeader(
+      req,
+      res as Response,
+      next as unknown as NextFunction
+    );
 
     expect(next).toHaveBeenCalledTimes(1);
     const error = next.mock.calls[0][0] as AppError;
@@ -56,15 +61,19 @@ describe('AuthController.authenticateWithTelegramHeader', () => {
       },
       ip: '127.0.0.1',
     } as unknown as Parameters<typeof controller.authenticateWithTelegramHeader>[0];
-    const res = {
+    const res: Partial<Response> = {
       status: jest.fn().mockReturnThis(),
       json: jest.fn(),
-    } as any;
-    const next = jest.fn();
+    };
+    const next = jest.fn<ReturnType<NextFunction>, Parameters<NextFunction>>();
 
     authenticateWithTelegramMock.mockResolvedValueOnce({ ok: true });
 
-    await controller.authenticateWithTelegramHeader(req, res, next);
+    await controller.authenticateWithTelegramHeader(
+      req,
+      res as Response,
+      next as unknown as NextFunction
+    );
 
     expect(authenticateWithTelegramMock).toHaveBeenCalledTimes(1);
     expect(next).not.toHaveBeenCalled();

@@ -529,6 +529,16 @@ export const useGameStore = create<GameState>((set, get) => ({
         achievementMultiplier: achievement_multiplier ?? state.achievementMultiplier,
       }));
 
+      void logClientEvent('tap_success', {
+        batch_size: count,
+        energy_gained: energyGained,
+        xp_gained,
+        level,
+        level_up: Boolean(level_up),
+        multiplier: total_multiplier ?? 1,
+        streak_count: newStreak,
+      });
+
       if (level_up) {
         // Show level up notification
         console.log('Level up!');

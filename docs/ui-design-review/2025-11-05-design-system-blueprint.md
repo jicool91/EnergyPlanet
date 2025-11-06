@@ -74,8 +74,11 @@
 ### Этап D — QA и авто-тесты (1 неделя)
 **Статус:** в работе (авто-скрипт `npm run test:qa`, чек-лист см. `docs/qa/stage-d-checklist.md`)  
 1. ☐ Storybook snapshot’ы + Chromatic/Percy pipeline (см. `docs/qa/stage-d-checklist.md`).  
-2. ☐ Расширенный `npm run test:contrast`, Playwright визуальные тесты (все палитры, light mode).  
-3. ☐ UX-телеметрия: измерять render latency, tap-success.
+2. ✅ Расширенный `npm run test:contrast`, Playwright визуальные тесты (dual-accent + light) закреплены через `/visual.html?view=…`.  
+3. ✅ UX-телеметрия: измеряем `render_latency` и `tap_success`, данные выведены на QA-дэшборд.  
+4. ✅ Stabilize Playwright QA harness (`npm run test:qa`) — добавлен заголовок «Топ игроков» для пустого лидерборда и выровнен текст ошибки «Не удалось загрузить паки Stars».
+5. ✅ Ввели визуальные превью `/visual.html?view=…` (tap, exchange, friends, offline) + экспорт базлайнов (`npm run baseline:visual`) в `docs/qa/baseline/2025-11-06`.  
+6. ✅ Графана-дэшборд пополнен панелями по клиентской телеметрии (render latency, tap success, auth errors) — см. `infra/grafana/dashboards/telegram-miniapp-product.json`.
 
 ### Этап E — Rollout и обучение (3–4 дня)
 **Статус:** не начат  

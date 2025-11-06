@@ -4,6 +4,7 @@ import { AppError } from '../../middleware/errorHandler';
 import { logEvent } from '../../repositories/EventRepository';
 import { logger } from '../../utils/logger';
 import config from '../../config';
+import { telemetryMetrics } from '../../metrics/telemetry';
 
 interface ClientEventPayload {
   event: string;
@@ -22,11 +23,35 @@ export class TelemetryController {
 
       const event = body.event.trim();
       const severity = body.severity ?? 'info';
-      const context = body.context && typeof body.context === 'object' ? body.context : {};
+      const context: Record<string, unknown> =
+        body.context && typeof body.context === 'object' ? { ...body.context } : {};
       const timestamp = body.timestamp || new Date().toISOString();
 
       // Get userId if authenticated, otherwise use null
       const userId = (req as AuthRequest).user?.id || null;
+
+      if (event === 'render_latency') {
+        const latency = Number(context.render_latency_ms);
+        const screen = String(context.screen ?? 'unknown');
+        if (Number.isFinite(latency) && latency > 0) {
+          telemetryMetrics.recordRenderLatencyMetric({
+            screen,
+            latencyMs: latency,
+            theme: context.theme,
+            deviceClass: context.device_class ?? context.deviceClass,
+          });
+        }
+      } else if (event === 'tap_success') {
+        const batchSize = Number(context.batch_size);
+        if (Number.isFinite(batchSize) && batchSize > 0) {
+          telemetryMetrics.recordTapSuccessMetric({
+            batchSize,
+            energyGained: Number(context.energy_gained),
+            xpGained: Number(context.xp_gained),
+            levelUp: Boolean(context.level_up),
+          });
+        }
+      }
 
       const shouldLogTelemetryEvent = () => {
         if (config.server.env !== 'production') {

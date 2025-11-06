@@ -6,18 +6,18 @@
 - [ ] Validate purchase flow happy path with mock invoice → purchase sequence (logs + modal).
 
 ## 2. Visual Regression Baseline
-- [ ] Record Percy/Chromatic snapshots for Tap, Exchange (shop + builds tabs), Friends (leaderboard panel), Offline modal.
-- [ ] Cover dual-accent + light theme toggles via `npm run preview -- --theme light`.
-- [ ] Store baselines under `docs/qa/baseline/2025-11-06`.
+- [x] Record Playwright visual snapshots for Tap, Exchange (shop + builds tabs), Friends (leaderboard panel), Offline modal via `npm run test:visual`.
+- [x] Cover dual-accent + light theme toggles through `/visual.html?view=…&theme=light` previews.
+- [x] Store baselines under `docs/qa/baseline/2025-11-06` (`npm run baseline:visual`).
 
 ## 3. Contrast & Accessibility
-- [ ] Run `npm run test:contrast` (update script to include new `Panel` variants).
+- [x] Run `npm run test:contrast` (script now covers overlay panels).
 - [ ] Verify focus traps (LevelUpScreen, AuthErrorModal) with keyboard-only navigation.
 - [ ] Check `prefers-reduced-motion` variants (LevelUpScreen, PurchaseSuccessModal).
 
 ## 4. Telemetry & Logging
-- [ ] Confirm `leaderboard_panel_*`, `shop_view`, `star_pack_checkout_*` fire with new component IDs.
-- [ ] Add QA dashboard widget for Stage D (latency, tap success) before Prod rollout.
+- [x] Confirm `leaderboard_panel_*`, `shop_view`, `star_pack_checkout_*` (plus new `render_latency` / `tap_success`) fire with stable component IDs (checked in Playwright QA logs).
+- [x] Add QA dashboard widget for Stage D (latency, tap success, auth errors) in Grafana (`infra/grafana/dashboards/telegram-miniapp-product.json`).
 
 ## 5. Post-QA Handoff
 - [ ] Update `docs/ui-design-review/2025-11-05-design-system-blueprint.md` Stage D section with results.

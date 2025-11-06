@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useCallback, useReducer } from 'react';
+import { useEffect, useMemo, useRef, useCallback, useReducer, useId } from 'react';
 import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { useShallow } from 'zustand/react/shallow';
@@ -107,6 +107,10 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
   );
   const hasLoggedShopCtaRef = useRef(false);
   const showShopCta = leaderboardCtaAllowed && userEnergyDiffToNext > 0;
+  const headingId = useId();
+  const descriptionId = `${headingId}-description`;
+  const emptyStateId = `${headingId}-empty`;
+  const isEmpty = rows.length === 0;
 
   useEffect(() => {
     if (typeof document === 'undefined' || typeof window === 'undefined') {
@@ -187,10 +191,28 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
     );
   }
 
-  if (rows.length === 0) {
+  if (isEmpty) {
     return (
-      <Panel tone="overlay" border="subtle" spacing="md" className="items-center text-center">
-        <Text variant="body" tone="secondary">
+      <Panel
+        tone="overlayStrong"
+        border="subtle"
+        elevation="medium"
+        spacing="lg"
+        className="items-center text-center text-text-primary"
+        role="region"
+        aria-labelledby={headingId}
+        aria-describedby={`${descriptionId} ${emptyStateId}`}
+        data-testid="leaderboard-panel"
+      >
+        <header className="flex flex-col items-center gap-xs text-center">
+          <Text as="h2" id={headingId} variant="title" weight="semibold" className="m-0">
+            Топ игроков
+          </Text>
+          <Text id={descriptionId} variant="caption" tone="secondary" className="m-0">
+            Обновляем лидерборд каждые 10 минут, значения приводятся в энергиях (E).
+          </Text>
+        </header>
+        <Text id={emptyStateId} variant="body" tone="secondary">
           Таблица пустая — станьте первым, кто произведёт энергию и попадёт в топ!
         </Text>
       </Panel>
@@ -204,13 +226,17 @@ export function LeaderboardPanel({ onOpenShop }: LeaderboardPanelProps) {
       elevation="medium"
       spacing="lg"
       className="text-text-primary"
+      role="region"
+      aria-labelledby={headingId}
+      aria-describedby={descriptionId}
+      data-testid="leaderboard-panel"
     >
       <header className="flex flex-col gap-xs sm:flex-row sm:items-end sm:justify-between">
         <div className="flex flex-col gap-xs">
-          <Text as="h2" variant="title" weight="semibold" className="m-0">
+          <Text as="h2" id={headingId} variant="title" weight="semibold" className="m-0">
             Топ игроков
           </Text>
-          <Text variant="caption" tone="secondary" className="m-0">
+          <Text id={descriptionId} variant="caption" tone="secondary" className="m-0">
             Обновляем лидерборд каждые 10 минут, значения приводятся в энергиях (E).
           </Text>
         </div>

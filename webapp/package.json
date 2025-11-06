@@ -16,7 +16,9 @@
     "test:qa": "playwright test -c playwright.qa.config.ts",
     "test:perf": "playwright test tests/performance/tap-loop.spec.ts",
     "test:contrast": "node ./scripts/check-contrast.mjs",
-    "test:visual": "npm run build && playwright test -c playwright.visual.config.ts"
+    "test:visual": "npm run build && playwright test -c playwright.visual.config.ts",
+    "baseline:visual": "node ./scripts/export-visual-baseline.mjs",
+    "test:visual:baseline": "npm run test:visual -- --update-snapshots && npm run baseline:visual"
   },
   "dependencies": {
     "@tma.js/sdk-react": "^3.0.8",

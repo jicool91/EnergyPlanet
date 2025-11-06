@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { TabPageSurface, ShopPanel, BuildingsPanel, Panel, Button, Text } from '@/components';
 import type { ShopSection } from '@/components/ShopPanel';
 import { useAdminModal } from '@/contexts/AdminModalContext';
+import { useRenderLatencyMetric } from '@/hooks/useRenderLatencyMetric';
 
 type ExchangeTab = 'shop' | 'builds';
 
@@ -19,6 +20,15 @@ export function ExchangeScreen() {
   const [shopSection, setShopSection] = useState<ShopSection>('star_packs');
   const [exchangeTab, setExchangeTab] = useState<ExchangeTab>('shop');
   const validSections = useMemo<ShopSection[]>(() => ['star_packs', 'boosts'], []);
+  const renderContext = useMemo(
+    () => ({
+      tab: exchangeTab,
+      section: shopSection,
+    }),
+    [exchangeTab, shopSection]
+  );
+
+  useRenderLatencyMetric({ screen: 'exchange_screen', context: renderContext });
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);

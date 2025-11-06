@@ -15,6 +15,7 @@ import { Surface } from '@/components/ui/Surface';
 import { Text } from '@/components/ui/Text';
 import { useNotification } from '@/hooks/useNotification';
 import { useHaptic } from '@/hooks/useHaptic';
+import { useRenderLatencyMetric } from '@/hooks/useRenderLatencyMetric';
 import { streakConfig, useGameStore } from '@/store/gameStore';
 import { useCatalogStore } from '@/store/catalogStore';
 import { useAuthStore } from '@/store/authStore';
@@ -245,6 +246,15 @@ export function TapScreen() {
   const [clientNowMs, setClientNowMs] = useState(() => Date.now());
   const [isAchievementsOpen, setAchievementsOpen] = useState(false);
   const previousStreakRef = useRef(streakCount);
+  const renderContext = useMemo(
+    () => ({
+      auth_ready: authReady,
+      is_initialized: isInitialized,
+    }),
+    [authReady, isInitialized]
+  );
+
+  useRenderLatencyMetric({ screen: 'tap_screen', context: renderContext });
 
   useEffect(() => {
     if (!isInitialized || !authReady) {

@@ -7,6 +7,7 @@ import { useAuthStore } from '@/store/authStore';
 import { useReferralStore } from '@/store/referralStore';
 import { useReferralRevenueStore } from '@/store/referralRevenueStore';
 import { useNotification } from '@/hooks/useNotification';
+import { useRenderLatencyMetric } from '@/hooks/useRenderLatencyMetric';
 import { logClientEvent } from '@/services/telemetry';
 
 export function FriendsScreen() {
@@ -144,6 +145,8 @@ export function FriendsScreen() {
     window.open(shareUrl, '_blank');
     notifySuccess('Ссылка на приглашение открыта');
   }, [notifySuccess, referral]);
+
+  useRenderLatencyMetric({ screen: 'friends_screen' });
 
   return (
     <div className="flex flex-col gap-4">
