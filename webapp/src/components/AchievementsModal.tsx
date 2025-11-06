@@ -1,6 +1,8 @@
 import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { ModalBase } from './ModalBase';
 import { Button } from './Button';
+import { Panel } from './Panel';
+import { ProductTile } from './ProductTile';
 import { formatNumberWithSpaces } from '../utils/number';
 import { Text } from '@/components/ui/Text';
 import type { AchievementView } from '@/services/achievements';
@@ -80,12 +82,14 @@ export function AchievementsModal({
       actions={[{ label: 'Закрыть', onClick: onClose, variant: 'secondary' }]}
     >
       <div className="flex flex-col gap-sm-plus">
-        <div className="rounded-md border border-border-subtle bg-surface-secondary p-sm-plus">
-          <p className="text-caption text-text-secondary">Постоянный бонус от достижений</p>
-          <Text as="p" variant="title" weight="semibold">
+        <Panel tone="overlay" border="subtle" spacing="sm">
+          <Text variant="caption" tone="secondary">
+            Постоянный бонус от достижений
+          </Text>
+          <Text variant="title" weight="semibold">
             {achievementMultiplier > 1 ? `+${Math.round((achievementMultiplier - 1) * 100)}%` : '—'}
           </Text>
-        </div>
+        </Panel>
 
         {loading && (
           <div className="grid gap-sm" aria-live="polite">
@@ -109,18 +113,22 @@ export function AchievementsModal({
         )}
 
         {error && !loading && (
-          <div className="flex flex-col gap-sm text-center">
-            <p className="text-body text-text-secondary">{error}</p>
+          <Panel tone="overlayStrong" border="accent" spacing="sm" className="text-center">
+            <Text variant="body" tone="danger">
+              {error}
+            </Text>
             <Button variant="secondary" onClick={handleRetry}>
               Повторить
             </Button>
-          </div>
+          </Panel>
         )}
 
         {!loading && !error && sorted.length === 0 && (
-          <p className="text-body text-text-secondary">
-            Достижения появятся в следующих обновлениях.
-          </p>
+          <Panel tone="overlay" border="subtle" spacing="sm" className="text-center">
+            <Text variant="bodySm" tone="secondary">
+              Достижения появятся в следующих обновлениях.
+            </Text>
+          </Panel>
         )}
 
         {!loading && !error && sorted.length > 0 && (
@@ -146,30 +154,48 @@ export function AchievementsModal({
                 0,
                 Math.round((item.claimedMultiplier - 1) * 100)
               );
+              const unitLabel = item.unit ?? 'ед.';
+              const helperText = !tierMeta
+                ? 'Все ступени завершены — спасибо за активность!'
+                : claimableTier
+                  ? 'Нажмите, чтобы моментально получить постоянный бонус.'
+                  : `Осталось ${formatNumberWithSpaces(Math.max(0, Math.ceil(remaining)))} ${unitLabel}`;
 
               return (
-                <div
+                <ProductTile
                   key={item.slug}
-                  className="flex flex-col gap-sm rounded-2xl border border-tag-accent-border bg-surface-glass-strong p-md shadow-elevation-2"
-                >
-                  <div className="flex items-start justify-between gap-sm-plus">
-                    <div className="flex items-start gap-sm">
-                      <div className="text-heading" aria-hidden="true">
-                        {item.icon ?? '⭐'}
-                      </div>
-                      <div>
-                        <p className="text-body font-semibold text-text-primary">{item.name}</p>
-                        {item.description && (
-                          <p className="text-caption text-text-secondary">{item.description}</p>
-                        )}
-                        <p className="mt-1 text-caption text-text-tertiary">
-                          {currentBonusPercent > 0
-                            ? `Текущий бонус: +${currentBonusPercent}%`
-                            : 'Бонус ещё не получен'}
-                        </p>
-                      </div>
-                    </div>
-                    {claimableTier && tierMeta && (
+                  highlighted={Boolean(claimableTier)}
+                  highlightLabel={claimableTier ? 'Готово к получению' : undefined}
+                  title={item.name}
+                  description={item.description ?? undefined}
+                  badge={{
+                    label: `Tier ${item.currentTier}/${item.maxTier}`,
+                    variant: claimableTier ? 'success' : 'primary',
+                  }}
+                  media={
+                    <Text variant="hero" tone={claimableTier ? 'accent' : 'primary'} aria-hidden>
+                      {item.icon ?? '⭐'}
+                    </Text>
+                  }
+                  metrics={[
+                    {
+                      label: 'Текущий бонус',
+                      value: `+${currentBonusPercent}%`,
+                      tone: claimableTier ? 'success' : 'accent',
+                    },
+                    ...(tierMeta
+                      ? [
+                          {
+                            label: claimableTier ? 'Награда' : 'Следующая награда',
+                            value: `+${rewardPercent}%`,
+                            tone: 'accent' as const,
+                          },
+                        ]
+                      : []),
+                  ]}
+                  helper={helperText}
+                  actions={
+                    claimableTier && tierMeta ? (
                       <Button
                         size="sm"
                         variant="primary"
@@ -178,50 +204,28 @@ export function AchievementsModal({
                       >
                         Получить +{rewardPercent}%
                       </Button>
-                    )}
-                  </div>
-
-                  {tierMeta ? (
-                    <>
-                      <div className="rounded-2xl border border-tag-accent-border bg-surface-glass px-sm-plus py-sm">
-                        {claimableTier ? (
-                          <p className="text-caption font-medium text-text-primary">
-                            Готово к получению: +{rewardPercent}% навсегда
-                          </p>
-                        ) : (
-                          <p className="text-caption text-text-secondary">
-                            Следующая ступень: +{rewardPercent}% при{' '}
-                            {formatNumberWithSpaces(Math.ceil(targetValue))} {item.unit}
-                          </p>
-                        )}
+                    ) : null
+                  }
+                >
+                  {!claimableTier && tierMeta ? (
+                    <div className="flex flex-col gap-xs">
+                      <div className="h-2 w-full overflow-hidden rounded-full bg-state-cyan-pill-strong">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-accent-cyan via-feedback-success to-accent-gold shadow-glow"
+                          style={{ width: `${progressPercent}%` }}
+                        />
                       </div>
-
-                      {!claimableTier && (
-                        <div className="flex flex-col gap-xs">
-                          <div className="h-2 w-full overflow-hidden rounded-full bg-state-cyan-pill-strong">
-                            <div
-                              className="h-full rounded-full bg-gradient-to-r from-accent-cyan via-feedback-success to-accent-gold shadow-glow"
-                              style={{ width: `${progressPercent}%` }}
-                            />
-                          </div>
-                          <div className="flex justify-between text-caption text-text-secondary">
-                            <span>
-                              {formatNumberWithSpaces(Math.floor(item.progressValue))} {item.unit}
-                            </span>
-                            <span>
-                              Осталось {formatNumberWithSpaces(Math.max(0, Math.ceil(remaining)))}{' '}
-                              {item.unit}
-                            </span>
-                          </div>
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-caption text-text-secondary">
-                      Все ступени завершены — спасибо!
-                    </p>
-                  )}
-                </div>
+                      <div className="flex justify-between">
+                        <Text variant="micro" tone="secondary">
+                          {formatNumberWithSpaces(Math.floor(item.progressValue))} {unitLabel}
+                        </Text>
+                        <Text variant="micro" tone="secondary">
+                          Цель: {formatNumberWithSpaces(Math.ceil(targetValue))} {unitLabel}
+                        </Text>
+                      </div>
+                    </div>
+                  ) : null}
+                </ProductTile>
               );
             })}
           </div>

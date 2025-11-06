@@ -59,8 +59,8 @@
 
 ### Этап C — Паттерны (2 недели)
 1. ✅ Economy: `StatsSummary`, `PurchaseInsight`, `LeaderboardPanel` и `ExchangeScreen` собраны на Surface/Panel, actionTheme и Text; осталось пройти QA empty/error-сценариев и зафиксировать метрики.
-2. Shop/Product: построить `ProductTile`, унифицировать `ShopPanel`, `PurchaseSuccessModal`.
-3. Modals/Feedback: привести `AchievementsModal`, `OfflineSummaryModal`, `Toast` к единому layout.
+2. ✅ Shop/Product: введён `ProductTile`, `ShopPanel` и `PurchaseSuccessModal` перешли на Panel/Surface, цены/метрики стандартизированы.
+3. ✅ Modals/Feedback: `AchievementsModal`, `OfflineSummaryModal`, `Toast` собраны на ModalBase/Panel, остался аудит второстепенных модалок (`AuthErrorModal`, `LevelUpScreen`) для выравнивания.
 
 ### Этап D — QA и авто-тесты (1 неделя)
 1. Storybook snapshot’ы + Chromatic/Percy pipeline.
@@ -73,9 +73,10 @@
 3. Создать Jira epic «Design System Unification» с задачами по этапам.
 
 ## 4. Инвентаризация текущих расхождений (snapshot)
-- Typography drift: ~120 случаев `text-lg`, `text-sm` в компонентах (BottomNavigation, Toast) — требуется миграция на `Text` variants.
+- Typography drift: ~90 случаев `text-lg`, `text-sm` в старых навигационных компонентах (BottomNavigation, Drawer) — требуется миграция на `Text` variants.
 - Inline colors: `bg-[rgba(...)]`/`border-[rgba(...)]` в Friends/Tap/Shop — перенести в токены.
 - Skeleton variance: разные `animate-pulse` без ARIA, нет общего компонента.
+- Modals backlog: `AuthErrorModal`, `LevelUpScreen`, `NotificationContainer` ждут обновления layout/motion по новому гайду.
 - Light mode coverage: нет визуальных тестов и документации для светлой темы.
 - Theme experiments: palette эксперимент не кешируется на пользователя → возможен flicker.
 

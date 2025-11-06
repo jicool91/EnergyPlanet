@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
+import clsx from 'clsx';
 import type { KeyboardEvent as ReactKeyboardEvent } from 'react';
 import { useShallow } from 'zustand/react/shallow';
 import { useCatalogStore } from '../store/catalogStore';
@@ -6,8 +7,9 @@ import { buildShopViewModel } from '@/viewModels/shopViewModel';
 import { ShopSkeleton, ErrorBoundary } from './skeletons';
 import { Button } from './Button';
 import { Card } from './Card';
-import { Badge } from './Badge';
 import { OptimizedImage } from './OptimizedImage';
+import { ProductTile, type ProductMetric } from './ProductTile';
+import { Text } from './ui/Text';
 import { useHaptic } from '../hooks/useHaptic';
 import { useNotification } from '../hooks/useNotification';
 import { describeError } from '../store/storeUtils';
@@ -780,116 +782,93 @@ export function ShopPanel({
             <p className="m-0 text-body font-semibold text-text-primary">{starPackBannerText}</p>
           </div>
           {featuredVisiblePack && !isStarPacksLoading && (
-            <Card className="relative flex flex-col md:flex-row gap-4 overflow-hidden rounded-2xl border border-accent-gold/60 bg-gradient-holographic shadow-glow-gold">
-              <div className="absolute inset-0 bg-gradient-premium opacity-40" aria-hidden />
-              <div className="relative flex items-center justify-center md:justify-start">
-                <div className="w-[88px] h-[88px] rounded-2xl border border-accent-gold/70 bg-surface-glass flex items-center justify-center overflow-hidden">
-                  {featuredVisiblePack.icon_url ? (
-                    <OptimizedImage
-                      src={featuredVisiblePack.icon_url}
-                      alt={featuredVisiblePack.title}
-                      width={88}
-                      height={88}
-                      className="h-full w-full object-cover"
-                    />
-                  ) : (
-                    <span className="text-display" aria-hidden>
-                      ⭐
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="relative flex-1 flex flex-col gap-md">
-                <div className="flex flex-wrap items-center gap-sm">
-                  <Badge variant="warning" size="sm">
-                    ЛУЧШИЙ ВЫБОР
-                  </Badge>
-                  <Badge variant="success" size="sm">
-                    {featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0)} ⭐
-                  </Badge>
-                </div>
-                <h3 className="m-0 text-heading font-bold text-text-primary">
-                  {featuredVisiblePack.title}
-                </h3>
-                <p className="m-0 text-body text-text-secondary">
-                  {featuredVisiblePack.description ??
-                    'Получите максимум Stars и премиальные бонусы'}
-                </p>
-
-                <div className="grid gap-sm rounded-2xl border border-accent-gold/50 bg-surface-glass-strong p-md">
-                  <div className="flex items-center justify-between text-body text-text-secondary">
-                    <span className="flex items-center gap-sm">
-                      <span className="text-title" aria-hidden>
-                        ⭐
-                      </span>
-                      Базовых Stars
-                    </span>
-                    <span className="text-title font-bold text-accent-gold">
-                      {featuredVisiblePack.stars}
-                    </span>
-                  </div>
-                  {(featuredVisiblePack.bonus_stars ?? 0) > 0 && (
-                    <>
-                      <div className="flex items-center justify-between text-body text-text-secondary">
-                        <span className="flex items-center gap-sm">
-                          <span className="text-title" aria-hidden>
-                            ✨
-                          </span>
-                          Бонусные Stars
-                        </span>
-                        <span className="text-title font-bold text-feedback-success">
-                          +{featuredVisiblePack.bonus_stars}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between border-t border-white/10 pt-sm text-body text-text-secondary">
-                        <span className="flex items-center gap-sm">
-                          <span className="text-title" aria-hidden>
-                            🚀
-                          </span>
-                          Буст к доходу
-                        </span>
-                        <span className="text-title font-bold text-feedback-success">
-                          +
-                          {calculateBonusPercentage(
-                            featuredVisiblePack.stars,
-                            featuredVisiblePack.bonus_stars ?? 0
-                          )}
-                          %
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                <div className="flex flex-wrap items-center gap-sm">
-                  <div className="text-title font-semibold text-accent-gold flex-1">
-                    {formatPriceLabel(featuredVisiblePack.price_rub, featuredVisiblePack.price_usd)}
-                  </div>
-                  {featuredVisiblePack.price_rub && (
-                    <div className="text-label rounded-full border border-accent-gold/60 bg-accent-gold/20 px-sm-plus py-xs text-accent-gold">
+            <ProductTile
+              highlighted
+              highlightLabel="Лучший выбор"
+              title={featuredVisiblePack.title ?? 'Премиум пакет'}
+              description={
+                featuredVisiblePack.description ?? 'Получите максимум Stars и премиальные бонусы'
+              }
+              priceLabel={formatPriceLabel(
+                featuredVisiblePack.price_rub,
+                featuredVisiblePack.price_usd
+              )}
+              media={
+                featuredVisiblePack.icon_url ? (
+                  <OptimizedImage
+                    src={featuredVisiblePack.icon_url}
+                    alt={featuredVisiblePack.title ?? 'Star Pack'}
+                    width={88}
+                    height={88}
+                    className="h-full w-full rounded-2xl object-cover"
+                  />
+                ) : (
+                  <Text variant="hero" tone="inverse" aria-hidden="true">
+                    ⭐
+                  </Text>
+                )
+              }
+              badge={{
+                label: `${(
+                  featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0)
+                ).toLocaleString('ru-RU')} ⭐`,
+                variant: 'legendary',
+              }}
+              metrics={[
+                {
+                  label: 'Базовых Stars',
+                  value: featuredVisiblePack.stars.toLocaleString('ru-RU'),
+                  icon: '⭐',
+                },
+                ...(featuredVisiblePack.bonus_stars && featuredVisiblePack.bonus_stars > 0
+                  ? [
+                      {
+                        label: 'Бонус',
+                        value: `+${featuredVisiblePack.bonus_stars.toLocaleString('ru-RU')} ⭐`,
+                        icon: '✨',
+                        tone: 'success' as const,
+                      },
+                      {
+                        label: 'Буст',
+                        value: `+${calculateBonusPercentage(
+                          featuredVisiblePack.stars,
+                          featuredVisiblePack.bonus_stars ?? 0
+                        )}%`,
+                        icon: '🚀',
+                        tone: 'accent' as const,
+                      },
+                    ]
+                  : []),
+              ]}
+              meta={
+                featuredVisiblePack.price_rub ? (
+                  <div className="flex items-center justify-between rounded-2xl border border-white/30 bg-white/10 px-sm py-xs">
+                    <Text variant="caption" tone="inverse">
+                      Цена за ⭐
+                    </Text>
+                    <Text variant="bodySm" weight="bold" tone="inverse">
                       {(
                         featuredVisiblePack.price_rub /
                         (featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0))
                       ).toFixed(1)}{' '}
                       ₽/⭐
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              <div className="relative flex items-center justify-center">
+                    </Text>
+                  </div>
+                ) : null
+              }
+              actions={
                 <Button
                   variant="success"
                   size="lg"
-                  className="min-w-[160px] shadow-glow-gold"
+                  fullWidth
+                  className="shadow-glow"
                   loading={isProcessingStarPackId === featuredVisiblePack.id}
                   onClick={() => handlePurchaseStarPack(featuredVisiblePack.id)}
                 >
                   Купить пакет
                 </Button>
-              </div>
-            </Card>
+              }
+            />
           )}
 
           {isStarPacksLoading && visibleStarPacks.length === 0 ? (
@@ -900,166 +879,175 @@ export function ShopPanel({
             activeStarPackSection === 'subscriptions' ? (
               <div className="grid gap-md md:grid-cols-2">
                 {SUBSCRIPTION_PLACEHOLDERS.map(plan => (
-                  <Card
+                  <ProductTile
                     key={plan.id}
-                    className="flex flex-col gap-sm bg-token-surface-tertiary border-token-subtle"
-                  >
-                    <h3 className="m-0 text-subheading text-token-primary">{plan.title}</h3>
-                    <p className="m-0 text-caption text-token-secondary">{plan.description}</p>
-                    <div className="text-body font-semibold text-token-primary">
-                      {plan.priceLabel}
-                    </div>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() =>
-                        notifyWarning(
-                          'Подписки появятся позже. Мы сообщим о запуске через уведомление и соцсети.'
-                        )
-                      }
-                    >
-                      Сообщить о старте
-                    </Button>
-                  </Card>
+                    orientation="vertical"
+                    title={plan.title}
+                    description={plan.description}
+                    priceLabel={plan.priceLabel}
+                    badge={{ label: 'Скоро', variant: 'warning' }}
+                    media={
+                      <Text variant="heading" tone="accent" aria-hidden>
+                        🕒
+                      </Text>
+                    }
+                    actions={
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() =>
+                          notifyWarning(
+                            'Подписки появятся позже. Мы сообщим о запуске через уведомление и соцсети.'
+                          )
+                        }
+                      >
+                        Сообщить о старте
+                      </Button>
+                    }
+                  />
                 ))}
               </div>
             ) : activeStarPackSection === 'bundles' ? (
-              <Card className="text-body text-token-secondary bg-token-surface-tertiary border-token-subtle">
-                <h3 className="m-0 text-body text-token-primary">{BUNDLE_PLACEHOLDER.title}</h3>
-                <p className="m-0 mt-2 text-caption text-token-secondary">
-                  {BUNDLE_PLACEHOLDER.description}
-                </p>
-                <p className="m-0 mt-2 text-caption text-token-secondary/80">
-                  {BUNDLE_PLACEHOLDER.note}
-                </p>
-              </Card>
+              <ProductTile
+                title={BUNDLE_PLACEHOLDER.title}
+                description={BUNDLE_PLACEHOLDER.description}
+                helper={BUNDLE_PLACEHOLDER.note}
+                badge={{ label: 'В разработке', variant: 'primary' }}
+                media={
+                  <Text variant="heading" tone="accent" aria-hidden>
+                    🛠️
+                  </Text>
+                }
+              />
             ) : (
-              <Card className="text-body text-token-secondary bg-token-surface-tertiary border-token-subtle">
-                В этом разделе пока нет предложений. Следите за новостями, чтобы не пропустить
-                свежие пакеты.
-              </Card>
+              <ProductTile
+                title="Предложения появятся позже"
+                description="Свежие паки уже в работе — следите за новостями, чтобы не пропустить запуск."
+                media={
+                  <Text variant="heading" tone="accent" aria-hidden>
+                    🛰️
+                  </Text>
+                }
+              />
             )
           ) : (
-            regularVisiblePacks.map(pack => {
-              const processing = isProcessingStarPackId === pack.id;
-              const totalStars = pack.stars + (pack.bonus_stars ?? 0);
-              const bonus = pack.bonus_stars ?? 0;
-              const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
-              const isBestValue = bestValuePackId === pack.id;
+            <div className="grid gap-md">
+              {regularVisiblePacks.map(pack => {
+                const processing = isProcessingStarPackId === pack.id;
+                const totalStars = pack.stars + (pack.bonus_stars ?? 0);
+                const bonus = pack.bonus_stars ?? 0;
+                const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
+                const isBestValue = bestValuePackId === pack.id;
+                const costPerStar =
+                  pack.price_rub && totalStars > 0
+                    ? (pack.price_rub / totalStars).toFixed(1)
+                    : null;
 
-              return (
-                <Card
-                  key={pack.id}
-                  className={`relative flex flex-col sm:flex-row gap-4 rounded-2xl border ${
-                    isBestValue
-                      ? 'border-feedback-success/70 bg-gradient-soft shadow-glow-lime'
-                      : 'border-border-cyan/60 bg-surface-glass-strong shadow-elevation-2'
-                  } overflow-hidden`}
-                >
-                  <div className="relative flex-shrink-0">
-                    <div
-                      className={`w-[72px] h-[72px] rounded-2xl border ${
-                        isBestValue
-                          ? 'border-feedback-success/80 bg-feedback-success/15'
-                          : 'border-border-cyan/70 bg-accent-cyan/15'
-                      } flex items-center justify-center overflow-hidden`}
-                    >
-                      {pack.icon_url ? (
+                const metrics: ProductMetric[] =
+                  bonus > 0
+                    ? [
+                        {
+                          label: 'Всего',
+                          value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
+                          icon: '🌌',
+                          tone: isBestValue ? 'accent' : 'primary',
+                        },
+                        {
+                          label: 'Бонус',
+                          value: `+${bonus.toLocaleString('ru-RU')} ⭐`,
+                          icon: '✨',
+                          tone: 'success' as const,
+                        },
+                        {
+                          label: 'Буст',
+                          value: `+${calculateBonusPercentage(pack.stars, bonus)}%`,
+                          icon: '🚀',
+                          tone: 'accent' as const,
+                        },
+                      ]
+                    : [
+                        {
+                          label: 'Всего',
+                          value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
+                          icon: '🌌',
+                          tone: isBestValue ? 'accent' : 'primary',
+                        },
+                      ];
+
+                return (
+                  <ProductTile
+                    key={pack.id}
+                    title={pack.title}
+                    description={
+                      pack.description ?? `Получите ${totalStars.toLocaleString('ru-RU')} Stars`
+                    }
+                    priceLabel={priceLabel}
+                    highlighted={isBestValue}
+                    highlightLabel={isBestValue ? 'Лучшее соотношение' : undefined}
+                    badge={{
+                      label: `${totalStars.toLocaleString('ru-RU')} ⭐`,
+                      variant: isBestValue ? 'success' : 'primary',
+                    }}
+                    media={
+                      pack.icon_url ? (
                         <OptimizedImage
                           src={pack.icon_url}
-                          alt={pack.title}
+                          alt={pack.title ?? 'Star pack'}
                           width={72}
                           height={72}
-                          className="w-full h-full object-cover"
+                          className="h-full w-full rounded-2xl object-cover"
                         />
                       ) : (
-                        <span className="text-title" aria-hidden>
+                        <Text
+                          variant="heading"
+                          tone={isBestValue ? 'inverse' : 'accent'}
+                          aria-hidden
+                        >
                           ⭐
-                        </span>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex-1 flex flex-col gap-sm">
-                    <div className="flex flex-wrap items-center justify-between gap-sm">
-                      <h3
-                        className={`m-0 text-title font-semibold text-text-primary ${
-                          isBestValue ? 'text-feedback-success' : ''
-                        }`}
-                      >
-                        {pack.title}
-                      </h3>
-                      <Badge variant={isBestValue ? 'success' : 'primary'} size="sm">
-                        {totalStars} ⭐
-                      </Badge>
-                    </div>
-                    <p className="m-0 text-body-sm text-text-secondary">
-                      {pack.description ?? `Получите ${totalStars} Stars`}
-                    </p>
-
-                    <div className="grid gap-xs rounded-xl border border-border-layer/60 bg-layer-overlay-ghost-soft px-sm-plus py-sm">
-                      <div className="flex items-center justify-between text-body-sm text-text-secondary">
-                        <span>⭐ Базовых</span>
-                        <span
-                          className={`font-semibold ${isBestValue ? 'text-feedback-success' : 'text-accent-gold'}`}
-                        >
-                          {pack.stars}
-                        </span>
-                      </div>
-                      {bonus > 0 && (
-                        <>
-                          <div className="flex items-center justify-between text-body-sm text-text-secondary">
-                            <span>✨ Бонус</span>
-                            <span className="font-semibold text-feedback-success">+{bonus}</span>
-                          </div>
-                          <div className="flex items-center justify-between border-t border-white/10 pt-xs text-body-sm text-text-secondary">
-                            <span>🚀 Буст</span>
-                            <span className="font-semibold text-feedback-success">
-                              +{calculateBonusPercentage(pack.stars, bonus)}%
-                            </span>
-                          </div>
-                        </>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-sm">
-                      <div
-                        className={`text-body-sm flex-1 ${
-                          isBestValue
-                            ? 'text-feedback-success font-semibold'
-                            : 'text-text-secondary'
-                        }`}
-                      >
-                        {priceLabel}
-                      </div>
-                      {pack.price_rub && (
+                        </Text>
+                      )
+                    }
+                    metrics={metrics}
+                    helper={`Базовых Stars: ${pack.stars.toLocaleString('ru-RU')}`}
+                    meta={
+                      costPerStar ? (
                         <div
-                          className={`text-label rounded-full border px-sm-plus py-xs whitespace-nowrap ${
+                          className={clsx(
+                            'flex items-center justify-between rounded-2xl px-sm py-xs',
                             isBestValue
-                              ? 'border-feedback-success/60 bg-feedback-success/15 text-feedback-success'
-                              : 'border-border-cyan bg-state-cyan-pill-glow text-accent-cyan'
-                          }`}
+                              ? 'bg-white/10 text-text-inverse'
+                              : 'border border-border-layer bg-layer-overlay-soft text-text-primary'
+                          )}
                         >
-                          {(pack.price_rub / totalStars).toFixed(1)} ₽/⭐
+                          <Text variant="caption" tone={isBestValue ? 'inverse' : 'secondary'}>
+                            Стоимость за ⭐
+                          </Text>
+                          <Text
+                            variant="bodySm"
+                            weight="semibold"
+                            tone={isBestValue ? 'inverse' : 'accent'}
+                          >
+                            {costPerStar} ₽/⭐
+                          </Text>
                         </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-end">
-                    <Button
-                      variant="success"
-                      size="md"
-                      className={isBestValue ? 'shadow-glow-lime' : 'shadow-elevation-1'}
-                      loading={processing}
-                      onClick={() => handlePurchaseStarPack(pack.id)}
-                    >
-                      Купить Stars
-                    </Button>
-                  </div>
-                </Card>
-              );
-            })
+                      ) : null
+                    }
+                    actions={
+                      <Button
+                        variant="success"
+                        size="md"
+                        fullWidth
+                        className={isBestValue ? 'shadow-glow' : undefined}
+                        loading={processing}
+                        onClick={() => handlePurchaseStarPack(pack.id)}
+                      >
+                        Купить Stars
+                      </Button>
+                    }
+                  />
+                );
+              })}
+            </div>
           )}
         </div>
       )}
@@ -1172,19 +1160,18 @@ export function ShopPanel({
                   legendary: 'legendary',
                 };
 
-                let actionButton: ReactNode = null;
-
+                let actionNode: ReactNode;
                 if (cosmetic.equipped) {
-                  actionButton = (
-                    <Button variant="success" size="md" disabled>
+                  actionNode = (
+                    <Button variant="success" size="sm" disabled>
                       Экипировано
                     </Button>
                   );
                 } else if (cosmetic.owned) {
-                  actionButton = (
+                  actionNode = (
                     <Button
                       variant="secondary"
-                      size="md"
+                      size="sm"
                       loading={processing}
                       onClick={() => handleEquip(cosmetic.id)}
                     >
@@ -1192,10 +1179,10 @@ export function ShopPanel({
                     </Button>
                   );
                 } else if (cosmetic.status === 'purchase_required' && price > 0) {
-                  actionButton = (
+                  actionNode = (
                     <Button
                       variant="success"
-                      size="md"
+                      size="sm"
                       loading={processing}
                       onClick={() => handlePurchaseCosmetic(cosmetic.id)}
                     >
@@ -1203,20 +1190,22 @@ export function ShopPanel({
                     </Button>
                   );
                 } else if (cosmetic.status === 'locked' && cosmetic.unlock_requirement?.level) {
-                  actionButton = (
-                    <div className="text-caption text-token-secondary">
+                  actionNode = (
+                    <Text variant="caption" tone={isMostPopular ? 'inverse' : 'secondary'}>
                       Откроется с {cosmetic.unlock_requirement.level} уровня
-                    </div>
+                    </Text>
                   );
                 } else if (cosmetic.status === 'event_locked') {
-                  actionButton = (
-                    <div className="text-caption text-token-secondary">Доступно на событии</div>
+                  actionNode = (
+                    <Text variant="caption" tone={isMostPopular ? 'inverse' : 'secondary'}>
+                      Доступно на событии
+                    </Text>
                   );
                 } else {
-                  actionButton = (
+                  actionNode = (
                     <Button
                       variant="secondary"
-                      size="md"
+                      size="sm"
                       loading={processing}
                       onClick={() => handlePurchaseCosmetic(cosmetic.id)}
                     >
@@ -1226,58 +1215,68 @@ export function ShopPanel({
                 }
 
                 return (
-                  <Card
+                  <ProductTile
                     key={cosmetic.id}
+                    orientation="horizontal"
                     highlighted={isMostPopular}
-                    highlightBadge={isMostPopular ? '⭐ POPULAR' : undefined}
-                    className={`flex gap-4 ${isMostPopular ? 'bg-gradient-to-br from-dark-secondary/60 to-dark-tertiary/60 border-cyan/30' : ''}`}
-                  >
-                    <div
-                      className={`w-[72px] h-[72px] rounded-xl bg-dark-tertiary flex items-center justify-center overflow-hidden flex-shrink-0 ${isMostPopular ? 'border-2 border-cyan/40' : 'border border-cyan/10'}`}
-                    >
-                      {cosmetic.preview_url ? (
+                    highlightLabel={isMostPopular ? '⭐ Popular' : undefined}
+                    title={cosmetic.name}
+                    description={cosmetic.description ?? ''}
+                    badge={{
+                      label: isMostPopular ? '⭐ Popular' : cosmetic.rarity,
+                      variant: isMostPopular
+                        ? 'primary'
+                        : (rarityMap[cosmetic.rarity] ?? 'default'),
+                    }}
+                    media={
+                      cosmetic.preview_url ? (
                         <OptimizedImage
                           src={cosmetic.preview_url}
                           alt={cosmetic.name}
                           width={72}
                           height={72}
-                          className="w-full h-full object-cover"
+                          className="h-full w-full rounded-2xl object-cover"
                         />
                       ) : (
-                        <span className="text-icon-md" aria-hidden="true">
+                        <Text
+                          variant="heading"
+                          tone={isMostPopular ? 'inverse' : 'accent'}
+                          aria-hidden
+                        >
                           ✦
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex-1 flex flex-col gap-2">
-                      <div className="flex justify-between items-center gap-2">
-                        <h3
-                          className={`m-0 text-body font-semibold ${isMostPopular ? 'text-cyan' : 'text-token-primary'}`}
+                        </Text>
+                      )
+                    }
+                    helper={
+                      cosmetic.owned && !cosmetic.equipped
+                        ? 'Уже в коллекции — экипируйте, чтобы выделиться.'
+                        : undefined
+                    }
+                    meta={
+                      price > 0 ? (
+                        <div
+                          className={clsx(
+                            'flex items-center justify-between rounded-2xl px-sm py-xs',
+                            isMostPopular
+                              ? 'bg-white/10 text-text-inverse'
+                              : 'border border-border-layer bg-layer-overlay-soft text-text-primary'
+                          )}
                         >
-                          {cosmetic.name}
-                        </h3>
-                        <Badge
-                          variant={
-                            isMostPopular ? 'primary' : rarityMap[cosmetic.rarity] || 'default'
-                          }
-                          size="sm"
-                        >
-                          {isMostPopular ? '⭐ Popular' : cosmetic.rarity}
-                        </Badge>
-                      </div>
-                      <p className="m-0 text-caption text-token-secondary">
-                        {cosmetic.description}
-                      </p>
-                      {price > 0 && cosmetic.status !== 'owned' && (
-                        <div className="text-caption text-token-secondary">
-                          Стоимость: {price} ⭐
+                          <Text variant="caption" tone={isMostPopular ? 'inverse' : 'secondary'}>
+                            Стоимость
+                          </Text>
+                          <Text
+                            variant="bodySm"
+                            weight="semibold"
+                            tone={isMostPopular ? 'inverse' : 'accent'}
+                          >
+                            {price.toLocaleString('ru-RU')} ⭐
+                          </Text>
                         </div>
-                      )}
-                    </div>
-
-                    <div className="flex items-center flex-shrink-0">{actionButton}</div>
-                  </Card>
+                      ) : null
+                    }
+                    actions={actionNode}
+                  />
                 );
               })
             )}

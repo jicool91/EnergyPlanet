@@ -1,4 +1,6 @@
 import { ModalBase } from './ModalBase';
+import { Panel } from './Panel';
+import { Text } from './ui/Text';
 import { formatCompactNumber } from '../utils/number';
 
 /**
@@ -64,57 +66,75 @@ export function OfflineSummaryModal({
       size="sm"
       actions={[{ label: 'Продолжить', variant: 'primary', onClick: onClose }]}
     >
-      <div className="max-h-[70vh] overflow-y-auto overflow-x-hidden space-y-4">
-        <section className="flex flex-col gap-2 bg-surface-secondary/70 border border-border-subtle/60 rounded-xl p-4">
-          <p className="m-0 text-body text-token-primary font-semibold">Пока вас не было</p>
-          <p className="m-0 text-body text-token-secondary leading-relaxed">
-            {durationSec > 0 ? (
-              <>Вы были офлайн {formatDuration(durationSec)}.</>
-            ) : (
-              <>Вы вернулись практически сразу — прогресс почти не копился.</>
-            )}
-          </p>
-          <ul className="m-0 list-none flex flex-col gap-2 text-body text-token-secondary">
-            <li className="flex items-center justify-between gap-3">
-              <span className="text-token-secondary">Энергия</span>
-              <strong className="text-token-primary">+{energyLabel}</strong>
-            </li>
+      <div className="flex max-h-[70vh] flex-col gap-md overflow-y-auto pr-1">
+        <Panel tone="overlay" border="subtle" spacing="sm">
+          <Text variant="body" weight="semibold">
+            Пока вас не было
+          </Text>
+          <Text variant="bodySm" tone="secondary">
+            {durationSec > 0
+              ? `Вы были офлайн ${formatDuration(durationSec)}.`
+              : 'Вы вернулись практически сразу — прогресс почти не копился.'}
+          </Text>
+          <div className="grid gap-xs">
+            <div className="flex items-center justify-between">
+              <Text variant="caption" tone="secondary">
+                Энергия
+              </Text>
+              <Text variant="bodySm" weight="semibold">
+                +{energyLabel}
+              </Text>
+            </div>
             {xpLabel && (
-              <li className="flex items-center justify-between gap-3">
-                <span className="text-token-secondary">XP</span>
-                <strong className="text-token-primary">+{xpLabel}</strong>
-              </li>
+              <div className="flex items-center justify-between">
+                <Text variant="caption" tone="secondary">
+                  XP
+                </Text>
+                <Text variant="bodySm" weight="semibold">
+                  +{xpLabel}
+                </Text>
+              </div>
             )}
             {passivePerSecondLabel && (
-              <li className="flex items-center justify-between gap-3">
-                <span className="text-token-secondary">Средний пассивный доход</span>
-                <strong className="text-token-primary">{passivePerSecondLabel} E/с</strong>
-              </li>
+              <div className="flex items-center justify-between">
+                <Text variant="caption" tone="secondary">
+                  Средний пассивный доход
+                </Text>
+                <Text variant="bodySm" weight="semibold">
+                  {passivePerSecondLabel} E/с
+                </Text>
+              </div>
             )}
             {gainedLevels > 0 && (
-              <li className="flex items-center justify-between gap-3">
-                <span className="text-token-secondary">Уровень</span>
-                <strong className="text-token-primary">
-                  {startLevel != null ? startLevel : '—'} → {endLevel != null ? endLevel : '—'}
-                </strong>
-              </li>
+              <div className="flex items-center justify-between">
+                <Text variant="caption" tone="secondary">
+                  Уровень
+                </Text>
+                <Text variant="bodySm" weight="semibold">
+                  {startLevel ?? '—'} → {endLevel ?? '—'}
+                </Text>
+              </div>
             )}
-          </ul>
-        </section>
+          </div>
+        </Panel>
 
         {gainedLevels === 0 && (energy > 0 || xp > 0) && (
-          <p className="m-0 text-caption text-token-secondary/80">
-            Уровень не изменился, но накопленная энергия уже добавлена на ваш счёт.
-          </p>
+          <Panel tone="overlay" border="none" spacing="sm">
+            <Text variant="caption" tone="secondary">
+              Уровень не изменился, но накопленная энергия уже добавлена на ваш счёт.
+            </Text>
+          </Panel>
         )}
 
         {capped && (
-          <div className="flex flex-col gap-1 bg-orange/15 border border-orange/40 text-orange/90 rounded-xl px-4 py-3">
-            <span className="font-semibold text-token-primary">Лимит офлайна достигнут</span>
-            <span className="text-caption uppercase tracking-wide text-orange/80">
-              подключайтесь чаще, чтобы не терять доход
-            </span>
-          </div>
+          <Panel tone="accent" border="accent" spacing="sm">
+            <Text variant="bodySm" weight="semibold" tone="inverse">
+              Лимит офлайна достигнут
+            </Text>
+            <Text variant="caption" tone="inverse" transform="uppercase">
+              Подключайтесь чаще, чтобы не терять доход.
+            </Text>
+          </Panel>
         )}
       </div>
     </ModalBase>

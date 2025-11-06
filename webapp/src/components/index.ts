@@ -15,6 +15,7 @@ export { Badge, type BadgeProps } from './Badge';
 export { OptimizedImage, type OptimizedImageProps } from './OptimizedImage';
 export { ModalBase, type ModalBaseProps, type ModalAction } from './ModalBase';
 export { StatCard, type StatCardProps } from './StatCard';
+export { ProductTile, type ProductTileProps, type ProductMetric } from './ProductTile';
 
 // Layout & Navigation
 export { ScreenTransition } from './ScreenTransition';
