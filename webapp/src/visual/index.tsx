@@ -7,6 +7,7 @@ import { renderPurchaseSuccessPreview } from './previews/purchaseSuccess';
 import { renderLevelUpPreview } from './previews/levelUpScreen';
 import { renderAuthErrorPreview } from './previews/authErrorModal';
 import { renderPvPEventsPreview } from './previews/pvpEvents';
+import { renderChatPreview } from './previews/chatScreen';
 
 type PreviewRenderer = (container: HTMLElement, params: URLSearchParams) => void;
 
@@ -19,6 +20,7 @@ const PREVIEWS: Record<string, PreviewRenderer> = {
   'auth-error': renderAuthErrorPreview,
   'purchase-success': renderPurchaseSuccessPreview,
   events: renderPvPEventsPreview,
+  chat: renderChatPreview,
 };
 
 const params = new URLSearchParams(window.location.search);

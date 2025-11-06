@@ -53,4 +53,22 @@ test.describe('Stage F QA automation', () => {
     await page.goto('/visual.html?view=events&theme=light');
     await expect(page.getByText(/Солнечная буря/)).toBeVisible();
   });
+
+  test('Bottom navigation exposes chat tab and hides admin CTA', async ({ page }) => {
+    await setupStageMocks(page);
+
+    await page.goto('/');
+
+    const chatTab = page.getByRole('button', { name: 'Chat' });
+    await expect(chatTab).toBeVisible();
+
+    await chatTab.click();
+    await expect(page).toHaveURL(/\/chat$/);
+    await expect(page.getByRole('heading', { name: 'Чаты' })).toBeVisible();
+    await expect(page.getByText(/Скоро здесь появится чат/)).toBeVisible();
+
+    await page.goto('/');
+    await expect(page.getByRole('button', { name: /Admin/i })).toHaveCount(0);
+    await expect(page.locator('button', { hasText: 'Админ-панель' })).toHaveCount(0);
+  });
 });
