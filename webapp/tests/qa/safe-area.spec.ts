@@ -13,10 +13,11 @@ const VIEWPORT_OVERRIDE = {
 };
 
 test.describe('Safe area + fullscreen instrumentation', () => {
-  test('debug command dumps safe-area snapshot', async ({ page }) => {
+  test('debug command dumps safe-area snapshot (iPhone fullscreen)', async ({ page }) => {
     await setupStageMocks(page, {
       safeAreaOverride: SAFE_AREA_OVERRIDE,
       viewportOverride: VIEWPORT_OVERRIDE,
+      platform: 'ios',
     });
     await page.goto('/');
 
@@ -31,10 +32,23 @@ test.describe('Safe area + fullscreen instrumentation', () => {
     expect(metrics?.contentSafeAreaTop).toBe(36);
   });
 
-  test('status-bar shell exposes fullscreen attribute', async ({ page }) => {
+  test('iPhone portrait default sheet keeps fullscreen attr false', async ({ page }) => {
+    await setupStageMocks(page, {
+      safeAreaOverride: SAFE_AREA_OVERRIDE,
+      viewportOverride: { isFullscreen: false },
+      platform: 'ios',
+    });
+    await page.goto('/');
+
+    const header = page.locator('header.status-bar-shell');
+    await expect(header).toHaveAttribute('data-fullscreen', 'false');
+  });
+
+  test('Pixel fullscreen exposes attribute', async ({ page }) => {
     await setupStageMocks(page, {
       safeAreaOverride: SAFE_AREA_OVERRIDE,
       viewportOverride: VIEWPORT_OVERRIDE,
+      platform: 'android',
     });
     await page.goto('/');
 
