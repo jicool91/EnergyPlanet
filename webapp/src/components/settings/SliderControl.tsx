@@ -23,7 +23,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
 
   return (
     <div className="flex flex-col gap-2">
-      {label && <label className="text-body font-medium text-token-secondary">{label}</label>}
+      {label && <label className="text-body font-medium text-text-secondary">{label}</label>}
       <div className="flex items-center gap-3">
         <input
           type="range"
@@ -38,7 +38,7 @@ export const SliderControl: React.FC<SliderControlProps> = ({
             background: `linear-gradient(to right, var(--color-success) 0%, var(--color-success) ${percentage}%, color-mix(in srgb, var(--color-border-subtle) 40%, transparent) ${percentage}%, color-mix(in srgb, var(--color-border-subtle) 40%, transparent) 100%)`,
           }}
         />
-        <span className="w-10 text-right text-body font-semibold text-token-secondary">
+        <span className="w-10 text-right text-body font-semibold text-text-secondary">
           {value}%
         </span>
       </div>

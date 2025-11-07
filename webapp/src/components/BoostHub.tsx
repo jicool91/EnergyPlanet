@@ -195,13 +195,13 @@ export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
   }, [boostHubLoaded, filteredItems, filter]);
 
   return (
-    <div className="flex flex-col gap-md text-token-primary">
+    <div className="flex flex-col gap-md text-text-primary">
       {showHeader ? (
         <div className="relative flex flex-col gap-xs">
           <div className="flex items-start justify-between gap-sm-plus">
             <div>
               <h2 className="m-0 text-heading font-semibold">Boost Hub</h2>
-              <p className="m-0 text-caption text-token-secondary">
+              <p className="m-0 text-caption text-text-secondary">
                 Активируйте бусты, чтобы ускорить прогресс
               </p>
             </div>
@@ -218,11 +218,11 @@ export function BoostHub({ showHeader = true, filter }: BoostHubProps) {
 
       <div className="flex flex-col gap-md">
         {isBoostHubLoading && filteredItems.length === 0 ? (
-          <div className="p-6 text-center text-token-secondary text-body">
+          <div className="p-6 text-center text-text-secondary text-body">
             Получаем данные о бустах…
           </div>
         ) : filteredItems.length === 0 ? (
-          <Card className="bg-token-surface-tertiary text-token-secondary text-body">
+          <Card className="bg-token-surface-tertiary text-text-secondary text-body">
             В этом разделе пока нет бустов. Загляните позже — обновления не заставят себя ждать.
           </Card>
         ) : (

@@ -136,11 +136,11 @@ export const ReferralInviteCard: React.FC = () => {
       <Card className="flex flex-col gap-sm bg-gradient-to-br from-indigo-500/10 to-cyan-500/10 border-indigo-400/30">
         <header className="flex items-center justify-between gap-sm">
           <div className="flex flex-col gap-1">
-            <span className="text-caption uppercase tracking-wide text-token-secondary">
+            <span className="text-caption uppercase tracking-wide text-text-secondary">
               Ваш реферальный код
             </span>
             <div className="flex items-center gap-sm">
-              <span className="font-mono text-title font-semibold text-token-primary">
+              <span className="font-mono text-title font-semibold text-text-primary">
                 {referral?.code ?? '------'}
               </span>
               <Button
@@ -165,7 +165,7 @@ export const ReferralInviteCard: React.FC = () => {
 
         <section className="flex flex-wrap items-end gap-sm">
           <div className="flex-1 min-w-[200px]">
-            <label htmlFor="referral-input" className="text-caption uppercase text-token-secondary">
+            <label htmlFor="referral-input" className="text-caption uppercase text-text-secondary">
               Активируй код друга
             </label>
             <Input
@@ -193,37 +193,37 @@ export const ReferralInviteCard: React.FC = () => {
         )}
 
         {referral && (
-          <div className="grid gap-sm text-caption text-token-secondary sm:grid-cols-3">
+          <div className="grid gap-sm text-caption text-text-secondary sm:grid-cols-3">
             <div className="rounded-xl border border-border-layer-strong bg-layer-overlay-ghost-soft px-3 py-2">
-              Всего заработано:{' '}
-              <strong className="text-token-primary">
+              Всего заработано:
+              <strong className="text-text-primary">
                 +{formatNumberWithSpaces(referral.revenue.totalEarned)}★
               </strong>
             </div>
             <div className="rounded-xl border border-border-layer-strong bg-layer-overlay-ghost-soft px-3 py-2">
-              Месяц:{' '}
-              <strong className="text-token-primary">
+              Месяц:
+              <strong className="text-text-primary">
                 +{formatNumberWithSpaces(referral.revenue.monthEarned)}★
               </strong>
             </div>
             <div className="rounded-xl border border-border-layer-strong bg-layer-overlay-ghost-soft px-3 py-2">
-              Сегодня:{' '}
-              <strong className="text-token-primary">
+              Сегодня:
+              <strong className="text-text-primary">
                 +{formatNumberWithSpaces(referral.revenue.todayEarned)}★
               </strong>
             </div>
           </div>
         )}
 
-        <footer className="flex flex-wrap items-center justify-between gap-sm text-caption text-token-secondary">
+        <footer className="flex flex-wrap items-center justify-between gap-sm text-caption text-text-secondary">
           <span>
-            Друзей:{' '}
-            <strong className="text-token-primary">{referral?.totalActivations ?? 0}</strong>
+            Друзей:
+            <strong className="text-text-primary">{referral?.totalActivations ?? 0}</strong>
           </span>
           {referral?.dailyActivations.limit ? (
             <span>
-              Лимит сегодня:{' '}
-              <strong className="text-token-primary">
+              Лимит сегодня:
+              <strong className="text-text-primary">
                 {referral.dailyActivations.used}/{referral.dailyActivations.limit}
               </strong>
             </span>
@@ -232,8 +232,8 @@ export const ReferralInviteCard: React.FC = () => {
           )}
           {referral?.referredBy && (
             <span>
-              Вас пригласил{' '}
-              <strong className="text-token-primary">
+              Вас пригласил
+              <strong className="text-text-primary">
                 {referral.referredBy.username || referral.referredBy.firstName || 'друг'}
               </strong>
             </span>
@@ -253,13 +253,13 @@ export const ReferralInviteCard: React.FC = () => {
                 className="flex flex-col gap-xs rounded-2xl border border-accent-gold/60 bg-accent-gold/20 p-sm"
               >
                 <div className="flex items-center justify-between gap-sm">
-                  <span className="font-medium text-token-primary">{event.label}</span>
+                  <span className="font-medium text-text-primary">{event.label}</span>
                   <Badge variant="warning" size="sm">
                     до {new Date(event.end).toLocaleDateString('ru-RU')}
                   </Badge>
                 </div>
                 {event.description && (
-                  <span className="text-caption text-token-secondary">{event.description}</span>
+                  <span className="text-caption text-text-secondary">{event.description}</span>
                 )}
                 <div className="flex flex-wrap gap-sm text-caption text-amber-700">
                   {event.inviteeRewardMultiplier && event.inviteeRewardMultiplier !== 1 && (
@@ -280,10 +280,10 @@ export const ReferralInviteCard: React.FC = () => {
 
       <section className="flex flex-col gap-sm">
         <header className="flex items-center justify-between gap-sm">
-          <h4 className="m-0 text-body font-semibold text-token-primary">Этапы и награды</h4>
+          <h4 className="m-0 text-body font-semibold text-text-primary">Этапы и награды</h4>
           {nextMilestone && (
-            <span className="text-caption text-token-secondary">
-              Следующий этап через{' '}
+            <span className="text-caption text-text-secondary">
+              Следующий этап через
               {Math.max(0, nextMilestone.threshold - (referral?.totalActivations ?? 0))} приглашений
             </span>
           )}
@@ -294,10 +294,10 @@ export const ReferralInviteCard: React.FC = () => {
             <Card key={milestone.id} className="flex flex-col gap-sm border-token-subtle">
               <div className="flex items-center justify-between gap-sm">
                 <div className="flex flex-col gap-1">
-                  <span className="text-body font-semibold text-token-primary">
+                  <span className="text-body font-semibold text-text-primary">
                     {milestone.title}
                   </span>
-                  <span className="text-caption text-token-secondary">
+                  <span className="text-caption text-text-secondary">
                     Цель: {milestone.threshold} приглашений
                   </span>
                 </div>
@@ -318,18 +318,18 @@ export const ReferralInviteCard: React.FC = () => {
               </div>
 
               {milestone.description && (
-                <p className="m-0 text-caption text-token-secondary">{milestone.description}</p>
+                <p className="m-0 text-caption text-text-secondary">{milestone.description}</p>
               )}
 
               <ProgressBar value={milestone.progress.percentage} />
-              <div className="flex items-center justify-between text-caption text-token-secondary">
+              <div className="flex items-center justify-between text-caption text-text-secondary">
                 <span>
                   Прогресс: {milestone.progress.current}/{milestone.threshold}
                 </span>
                 <span>
                   Награда: +{formatNumberWithSpaces(milestone.reward.effectiveStars)}⭐
                   {milestone.reward.multiplier !== 1 && (
-                    <span className="ml-1 text-token-primary">
+                    <span className="ml-1 text-text-primary">
                       (×{milestone.reward.multiplier.toFixed(2)})
                     </span>
                   )}
@@ -337,7 +337,7 @@ export const ReferralInviteCard: React.FC = () => {
               </div>
 
               {milestone.reward.cosmeticId && (
-                <span className="text-caption text-token-secondary">
+                <span className="text-caption text-text-secondary">
                   Косметика: {milestone.reward.cosmeticId}
                 </span>
               )}

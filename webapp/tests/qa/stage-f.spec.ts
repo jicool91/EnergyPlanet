@@ -60,4 +60,28 @@ test.describe('Stage F QA automation', () => {
     await expect(page.getByRole('button', { name: /Admin/i })).toHaveCount(0);
     await expect(page.locator('button', { hasText: 'Админ-панель' })).toHaveCount(0);
   });
+
+  test('Admin monetization modal exposes shop preview', async ({ page }) => {
+    await setupStageMocks(page, { isAdmin: true });
+
+    await page.goto('/earn');
+    const settingsTab = page.getByRole('button', { name: 'Настройки' });
+    await settingsTab.click();
+
+    const openAdminButton = page.getByRole('button', { name: /Монетизация/ });
+    const packsResponse = page.waitForResponse(resp => resp.url().includes('/purchase/packs'));
+    await openAdminButton.click();
+    await packsResponse;
+
+    const adminModal = page.getByRole('dialog', { name: 'Монетизация (админ)' });
+    await expect(adminModal.getByText('Premium Shop preview')).toBeVisible();
+
+    const starPacksTab = adminModal.getByRole('tab', { name: 'Паки Stars' });
+    await expect(starPacksTab).toHaveAttribute('aria-selected', 'true');
+    await expect(adminModal.getByRole('button', { name: 'Купить пакет' }).first()).toBeVisible();
+
+    const cosmeticsTab = adminModal.getByRole('tab', { name: 'Косметика' });
+    await cosmeticsTab.click();
+    await expect(adminModal.locator('#shop-panel-cosmetics')).toBeVisible();
+  });
 });

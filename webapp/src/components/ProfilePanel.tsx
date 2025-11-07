@@ -63,7 +63,7 @@ export function ProfilePanel() {
       <div className="flex flex-col gap-md">
         <Card className="bg-state-danger-pill border-state-danger-pill text-feedback-error">
           <p className="m-0 mb-sm font-semibold">Не удалось получить профиль.</p>
-          <small className="text-token-secondary">{profileError}</small>
+          <small className="text-text-secondary">{profileError}</small>
         </Card>
       </div>
     );
@@ -71,7 +71,7 @@ export function ProfilePanel() {
 
   if (!profile) {
     return (
-      <div className="flex flex-col items-center justify-center gap-md text-center text-token-secondary">
+      <div className="flex flex-col items-center justify-center gap-md text-center text-text-secondary">
         <p>Профиль недоступен.</p>
       </div>
     );
@@ -118,11 +118,11 @@ export function ProfilePanel() {
               {referralStats.total_invites}
             </strong>
             {referralStats.daily_invites_limit ? (
-              <span className="text-caption text-token-secondary">
+              <span className="text-caption text-text-secondary">
                 Сегодня: {referralStats.daily_invites_used}/{referralStats.daily_invites_limit}
               </span>
             ) : (
-              <span className="text-caption text-token-secondary">Без лимита сегодня</span>
+              <span className="text-caption text-text-secondary">Без лимита сегодня</span>
             )}
           </Card>
         )}
@@ -133,7 +133,7 @@ export function ProfilePanel() {
           <span className="text-caption uppercase tracking-[0.12em] text-text-secondary">
             Вас пригласил
           </span>
-          <span className="text-token-primary font-medium">
+          <span className="text-text-primary font-medium">
             {referralStats.referred_by.username || referralStats.referred_by.first_name || 'Друг'}
           </span>
         </Card>
@@ -161,7 +161,7 @@ export function ProfilePanel() {
                 key={boost.id}
                 className="flex items-center justify-between rounded-2xl border border-border-cyan/60 bg-surface-glass px-sm-plus py-xs text-caption text-text-secondary"
               >
-                <span className="text-token-primary">{boost.boost_type}</span>
+                <span className="text-text-primary">{boost.boost_type}</span>
                 <Badge variant="success" size="sm">
                   x{boost.multiplier}
                 </Badge>

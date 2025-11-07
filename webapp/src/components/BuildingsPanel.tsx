@@ -214,12 +214,12 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
       {showHeader ? (
         <div className="flex items-start justify-between gap-sm-plus">
           <div>
-            <h2 className="m-0 text-heading text-token-primary">Постройки</h2>
-            <p className="m-0 text-caption text-token-secondary">
+            <h2 className="m-0 text-heading text-text-primary">Постройки</h2>
+            <p className="m-0 text-caption text-text-secondary">
               Развивайте инфраструктуру и увеличивайте пассивный доход
             </p>
           </div>
-          <div className="text-body font-semibold text-token-primary">Энергия: {energyDisplay}</div>
+          <div className="text-body font-semibold text-text-primary">Энергия: {energyDisplay}</div>
         </div>
       ) : null}
 
@@ -267,7 +267,7 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
           })}
         </div>
         {!showHeader && (
-          <div className="text-body font-semibold text-token-primary">Энергия: {energyDisplay}</div>
+          <div className="text-body font-semibold text-text-primary">Энергия: {energyDisplay}</div>
         )}
       </div>
 
@@ -288,7 +288,7 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
           <BuildingSkeleton count={3} />
         </ErrorBoundary>
       ) : sortedBuildings.length === 0 ? (
-        <div className="p-4 rounded-[14px] border border-dashed border-cyan/30 text-token-secondary text-center">
+        <div className="p-4 rounded-[14px] border border-dashed border-cyan/30 text-text-secondary text-center">
           Постройки пока недоступны. Продвигайтесь по уровням, чтобы разблокировать их.
         </div>
       ) : (

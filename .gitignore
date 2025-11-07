@@ -44,3 +44,6 @@ temp/
 # OS
 Thumbs.db
 .DS_Store
+.wrangler/
+webapp/test-results/
+webapp/playwright-report-qa/

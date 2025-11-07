@@ -1297,7 +1297,7 @@ export function ShopPanel({
               aria-label="Категории косметики"
             >
               {categories.length === 0 && !isCosmeticsLoading && (
-                <Card className="flex-1 text-body text-token-secondary bg-token-surface-tertiary border-token-subtle">
+                <Card className="flex-1 text-body text-text-secondary bg-token-surface-tertiary border-token-subtle">
                   Косметика откроется после уровня 5. Продолжайте улучшать здания и активируйте
                   бусты, чтобы увидеть новые стили планеты.
                 </Card>

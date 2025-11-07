@@ -18,9 +18,9 @@ export const SettingsSection: React.FC<SettingsSectionProps> = ({
       <div className="flex items-center gap-2">
         {icon && <span className="text-title">{icon}</span>}
         <div className="flex-1">
-          <h3 className="m-0 text-subheading font-semibold text-token-primary">{title}</h3>
+          <h3 className="m-0 text-subheading font-semibold text-text-primary">{title}</h3>
           {description && (
-            <p className="m-0 mt-xs text-caption text-token-secondary">{description}</p>
+            <p className="m-0 mt-xs text-caption text-text-secondary">{description}</p>
           )}
         </div>
       </div>

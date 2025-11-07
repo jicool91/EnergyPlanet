@@ -54,7 +54,7 @@ export class ErrorBoundary extends Component<Props, State> {
             ⚠️
           </div>
           <div className="flex flex-col gap-sm">
-            <h3 className="flex items-center justify-center gap-sm text-subheading font-bold text-token-primary">
+            <h3 className="flex items-center justify-center gap-sm text-subheading font-bold text-text-primary">
               <span aria-hidden="true">❌</span> Ошибка
             </h3>
             <p className="text-caption text-text-secondary">

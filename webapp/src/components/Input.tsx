@@ -73,9 +73,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
 
     return (
       <div className="flex flex-col gap-xs">
-        {label && (
-          <label className="text-caption font-semibold text-token-secondary">{label}</label>
-        )}
+        {label && <label className="text-caption font-semibold text-text-secondary">{label}</label>}
         <input
           ref={ref}
           disabled={disabled}
