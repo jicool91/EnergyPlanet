@@ -108,10 +108,15 @@
     var(--tg-content-safe-area-right, 0px)
   );
 
+  /* Visual height of Energy Planet header (padding + blocks) */
   --app-header-reserve: 90px;
+  /* Breathing room between Telegram chrome and our header body */
   --app-header-buffer: 12px;
+  /* Device notch + Telegram chrome merged into one offset */
   --app-content-base-top: calc(var(--safe-area-top) + var(--content-safe-area-top));
+  /* Final top inset for status bar shells */
   --app-header-offset-top: calc(var(--app-content-base-top) + var(--app-header-buffer));
+  /* Minimum top padding for scrollable areas below the header */
   --app-content-padding-top: calc(
     var(--app-content-base-top) + var(--app-header-reserve) + var(--app-header-buffer)
   );
@@ -140,6 +145,25 @@
   .focus-ring:focus-visible {
     outline: 2px solid var(--color-text-accent);
     outline-offset: 2px;
+  }
+
+  .status-bar-shell {
+    border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.08));
+    border-radius: 28px;
+    background-color: color-mix(in srgb, var(--app-header-bg, var(--app-bg)) 92%, transparent);
+    box-shadow: 0 20px 45px rgba(10, 10, 10, 0.45);
+    backdrop-filter: blur(24px);
+    transition:
+      border-color 160ms ease,
+      box-shadow 160ms ease,
+      background-color 160ms ease;
+  }
+
+  .status-bar-shell[data-fullscreen='true'] {
+    border-color: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    background-color: var(--app-header-bg, transparent);
   }
 }
 
@@ -209,18 +233,6 @@ body {
 .surface-translucent {
   background-color: var(--app-bottom-bar-bg, var(--app-bg));
   background-color: color-mix(in srgb, var(--app-bottom-bar-bg, var(--app-bg)) 90%, transparent);
-}
-
-.text-token-primary {
-  color: var(--color-text-primary);
-}
-
-.text-token-secondary {
-  color: var(--color-text-secondary);
-}
-
-.text-token-accent {
-  color: var(--color-text-accent);
 }
 
 .bg-token-surface {

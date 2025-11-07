@@ -8,6 +8,7 @@ import {
   type BottomNavigationTab,
   type BottomNavigationTabId,
 } from './BottomNavigation';
+import { logger } from '@/utils/logger';
 
 const NAVIGATION_RESERVE_PX = 88;
 
@@ -20,10 +21,10 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: AppLayoutProps) {
-  const { safeArea } = useSafeArea();
+  const { safeArea, safeTopWithBuffer, isFullscreen } = useSafeArea();
   const { theme } = useTheme();
-  const safeTop = Math.max(0, safeArea.safe.top ?? 0);
   const safeBottom = Math.max(0, safeArea.safe.bottom ?? 0);
+  const safeContentBottom = Math.max(0, safeArea.content.bottom ?? 0);
   const safeLeft = Math.max(0, safeArea.safe.left ?? 0);
   const safeRight = Math.max(0, safeArea.safe.right ?? 0);
 
@@ -47,21 +48,31 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
         : null;
 
     try {
-      if (headerColor) {
-        miniApp.setHeaderColor(headerColor);
-      } else {
-        miniApp.setHeaderColor('bg_color');
-      }
-    } catch {
-      if (headerColor) {
-        webApp?.setHeaderColor?.(headerColor);
-      } else {
-        webApp?.setHeaderColor?.('bg_color');
+      miniApp.setHeaderColor(headerColor ?? 'bg_color');
+    } catch (error) {
+      logger.warn('miniApp.setHeaderColor failed, falling back to Telegram.WebApp', {
+        headerColor,
+        error,
+      });
+      try {
+        webApp?.setHeaderColor?.(headerColor ?? 'bg_color');
+      } catch (fallbackError) {
+        logger.warn('Telegram.WebApp.setHeaderColor failed', {
+          headerColor,
+          error: fallbackError,
+        });
       }
     }
 
     if (backgroundColor) {
-      webApp?.setBackgroundColor?.(backgroundColor);
+      try {
+        webApp?.setBackgroundColor?.(backgroundColor);
+      } catch (error) {
+        logger.warn('Telegram.WebApp.setBackgroundColor failed', {
+          backgroundColor,
+          error,
+        });
+      }
     }
   }, [theme]);
 
@@ -79,29 +90,40 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
   const headerStyle = useMemo(
     () => ({
       ...sharedHorizontalPadding,
-      paddingTop: `${safeTop + 12}px`,
+      paddingTop: `var(--app-header-offset-top, ${safeTopWithBuffer}px)`,
     }),
-    [safeTop, sharedHorizontalPadding]
+    [safeTopWithBuffer, sharedHorizontalPadding]
+  );
+
+  const headerSpacerStyle = useMemo(
+    () => ({
+      height: `var(--app-header-offset-top, ${safeTopWithBuffer}px)`,
+    }),
+    [safeTopWithBuffer]
   );
 
   const mainPadding = useMemo(() => {
     const bottomPadding = NAVIGATION_RESERVE_PX + safeBottom;
     return {
       ...sharedHorizontalPadding,
-      paddingBottom: `${bottomPadding}px`,
+      paddingBottom: `calc(${bottomPadding}px + var(--tg-content-safe-area-bottom, ${safeContentBottom}px))`,
       paddingTop: '12px',
     };
-  }, [safeBottom, sharedHorizontalPadding]);
+  }, [safeBottom, safeContentBottom, sharedHorizontalPadding]);
 
   return (
     <div className="flex min-h-screen w-full justify-center bg-surface-primary text-text-primary">
       <div className={containerClassName}>
         {header ? (
-          <header className="z-10 flex flex-col gap-1 pb-3" style={headerStyle}>
+          <header
+            className="status-bar-shell z-10 flex flex-col gap-1 pb-3"
+            style={headerStyle}
+            data-fullscreen={isFullscreen ? 'true' : 'false'}
+          >
             {header}
           </header>
         ) : (
-          <div style={{ height: `${safeTop}px` }} aria-hidden />
+          <div style={headerSpacerStyle} aria-hidden />
         )}
         <main className="flex-1 overflow-y-auto" style={mainPadding} data-testid="next-ui-main">
           {children}

@@ -26,7 +26,7 @@ export const BottomNavigation = memo(function BottomNavigation({
   insetBottom,
 }: BottomNavigationProps) {
   const safePadding = Math.max(0, insetBottom);
-  const paddingBottom = safePadding + 12;
+  const paddingBottomValue = `calc(${safePadding + 12}px + var(--tg-content-safe-area-bottom, 0px))`;
 
   return (
     <nav
@@ -35,7 +35,7 @@ export const BottomNavigation = memo(function BottomNavigation({
     >
       <div
         className="pointer-events-auto w-full max-w-screen-md px-4 lg:max-w-screen-lg"
-        style={{ paddingBottom: `${paddingBottom}px` }}
+        style={{ paddingBottom: paddingBottomValue }}
       >
         <div className="flex items-center justify-between rounded-[28px] border border-border-layer bg-layer-overlay-strong px-2 py-2 shadow-elevation-3 backdrop-blur-md">
           {tabs.map(tab => {

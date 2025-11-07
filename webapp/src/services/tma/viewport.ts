@@ -2,6 +2,7 @@ import { viewport } from '@tma.js/sdk';
 import type { SafeAreaInsets } from '@tma.js/bridge';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
 import { HEADER_BUFFER_PX, HEADER_RESERVE_PX } from '@/constants/layout';
+import { logger } from '@/utils/logger';
 
 export type SafeAreaSnapshot = {
   safe: SafeAreaInsets;
@@ -19,6 +20,15 @@ export type ViewportMetrics = {
 
 type Listener<T> = (value: T) => void;
 
+type ViewportAction = 'expand' | 'requestFullscreen' | 'exitFullscreen';
+
+type SafeAreaOverrideConfig = {
+  safe?: Partial<SafeAreaInsets>;
+  content?: Partial<SafeAreaInsets>;
+};
+
+type ViewportOverrideConfig = Partial<ViewportMetrics>;
+
 const ZERO_INSETS: SafeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 };
 
 const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
@@ -32,6 +42,60 @@ const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
 
 let currentSafeArea: SafeAreaSnapshot = { safe: ZERO_INSETS, content: ZERO_INSETS };
 let currentViewport: ViewportMetrics = { ...DEFAULT_VIEWPORT_METRICS };
+
+const SAFE_AREA_KEYS: Array<keyof SafeAreaInsets> = ['top', 'right', 'bottom', 'left'];
+
+function sanitizeInsetValue(value: unknown): number {
+  return typeof value === 'number' && Number.isFinite(value) ? value : 0;
+}
+
+function sanitizeInsets(input?: Partial<SafeAreaInsets>): SafeAreaInsets {
+  if (!input) {
+    return { ...ZERO_INSETS };
+  }
+  return SAFE_AREA_KEYS.reduce<SafeAreaInsets>(
+    (result, key) => {
+      result[key] = sanitizeInsetValue(input[key]);
+      return result;
+    },
+    { ...ZERO_INSETS }
+  );
+}
+
+function readSafeAreaOverride(): SafeAreaSnapshot | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const override = window.__safeAreaOverride as SafeAreaOverrideConfig | undefined;
+  if (!override) {
+    return null;
+  }
+
+  const safe = sanitizeInsets(override.safe);
+  const content = override.content ? sanitizeInsets(override.content) : safe;
+  return { safe, content };
+}
+
+function readViewportOverride(): ViewportMetrics | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+
+  const override = window.__viewportMetricsOverride as ViewportOverrideConfig | undefined;
+  if (!override) {
+    return null;
+  }
+
+  return {
+    height: typeof override.height === 'number' ? override.height : null,
+    stableHeight: typeof override.stableHeight === 'number' ? override.stableHeight : null,
+    width: typeof override.width === 'number' ? override.width : null,
+    isExpanded: override.isExpanded ?? DEFAULT_VIEWPORT_METRICS.isExpanded,
+    isStateStable: override.isStateStable ?? DEFAULT_VIEWPORT_METRICS.isStateStable,
+    isFullscreen: override.isFullscreen ?? DEFAULT_VIEWPORT_METRICS.isFullscreen,
+  };
+}
 
 interface TelegramWebAppLite {
   onEvent?: (event: string, handler: (payload?: unknown) => void) => void;
@@ -47,6 +111,44 @@ function getTelegramWebApp(): TelegramWebAppLite | undefined {
   }
 
   return window.Telegram?.WebApp as TelegramWebAppLite | undefined;
+}
+
+function normalizeErrorPayload(error: unknown): Record<string, unknown> | undefined {
+  if (!error) {
+    return undefined;
+  }
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+      stack: import.meta.env.DEV ? error.stack : undefined,
+    };
+  }
+  if (typeof error === 'string') {
+    return { message: error };
+  }
+  return { error };
+}
+
+function logViewportAction(
+  action: ViewportAction,
+  status: 'success' | 'failed' | 'unsupported',
+  extra?: Record<string, unknown>
+) {
+  const context = {
+    safeArea: currentSafeArea,
+    viewport: currentViewport,
+    action,
+    status,
+    ...extra,
+  };
+
+  const message = `[viewport] ${action} -> ${status}`;
+  if (status === 'failed') {
+    logger.warn(message, context);
+  } else {
+    logger.info(message, context);
+  }
 }
 
 function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
@@ -178,7 +280,7 @@ function updateViewport(metrics: ViewportMetrics): ViewportMetrics {
 export function getTmaSafeAreaSnapshot(): SafeAreaSnapshot {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
-    return updateSafeArea({ safe: ZERO_INSETS, content: ZERO_INSETS });
+    return updateSafeArea(readSafeAreaOverride() ?? { safe: ZERO_INSETS, content: ZERO_INSETS });
   }
   return updateSafeArea(readSafeAreaSnapshot());
 }
@@ -186,7 +288,7 @@ export function getTmaSafeAreaSnapshot(): SafeAreaSnapshot {
 export function getTmaViewportMetrics(): ViewportMetrics {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
-    return updateViewport({ ...DEFAULT_VIEWPORT_METRICS });
+    return updateViewport(readViewportOverride() ?? { ...DEFAULT_VIEWPORT_METRICS });
   }
   return updateViewport(readViewportMetrics());
 }
@@ -194,7 +296,7 @@ export function getTmaViewportMetrics(): ViewportMetrics {
 export function onTmaSafeAreaChange(listener: Listener<SafeAreaSnapshot>): VoidFunction {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
-    listener(updateSafeArea({ safe: ZERO_INSETS, content: ZERO_INSETS }));
+    listener(updateSafeArea(readSafeAreaOverride() ?? { safe: ZERO_INSETS, content: ZERO_INSETS }));
     return () => {};
   }
 
@@ -225,7 +327,7 @@ export function onTmaSafeAreaChange(listener: Listener<SafeAreaSnapshot>): VoidF
 export function onTmaViewportChange(listener: Listener<ViewportMetrics>): VoidFunction {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
-    listener(updateViewport({ ...DEFAULT_VIEWPORT_METRICS }));
+    listener(updateViewport(readViewportOverride() ?? { ...DEFAULT_VIEWPORT_METRICS }));
     return () => {};
   }
 
@@ -266,17 +368,29 @@ export function expandViewport(): void {
   if (isTmaSdkAvailable()) {
     try {
       viewport.expand();
+      logViewportAction('expand', 'success', { path: 'sdk' });
       return;
-    } catch {
-      // ignore failure, fallback below
+    } catch (error) {
+      logViewportAction('expand', 'failed', {
+        path: 'sdk',
+        error: normalizeErrorPayload(error),
+      });
     }
   }
 
   const webApp = getTelegramWebApp();
   try {
-    webApp?.expand?.();
-  } catch {
-    // ignore
+    if (webApp?.expand) {
+      webApp.expand();
+      logViewportAction('expand', 'success', { path: 'legacy' });
+      return;
+    }
+    logViewportAction('expand', 'unsupported', { reason: 'expand_not_available' });
+  } catch (error) {
+    logViewportAction('expand', 'failed', {
+      path: 'legacy',
+      error: normalizeErrorPayload(error),
+    });
   }
 }
 
@@ -294,9 +408,13 @@ export async function requestFullscreen(): Promise<void> {
   if (isTmaSdkAvailable() && typeof viewport.requestFullscreen === 'function') {
     try {
       await viewport.requestFullscreen();
+      logViewportAction('requestFullscreen', 'success', { path: 'sdk' });
       return;
-    } catch {
-      // fallback to raw postEvent
+    } catch (error) {
+      logViewportAction('requestFullscreen', 'failed', {
+        path: 'sdk',
+        error: normalizeErrorPayload(error),
+      });
     }
   }
 
@@ -304,10 +422,19 @@ export async function requestFullscreen(): Promise<void> {
   if (webApp?.postEvent) {
     try {
       webApp.postEvent('web_app_enable_fullscreen');
-    } catch {
-      // ignore
+      logViewportAction('requestFullscreen', 'success', { path: 'legacy' });
+      return;
+    } catch (error) {
+      logViewportAction('requestFullscreen', 'failed', {
+        path: 'legacy',
+        error: normalizeErrorPayload(error),
+      });
     }
   }
+
+  logViewportAction('requestFullscreen', 'unsupported', {
+    reason: 'postEvent_unavailable',
+  });
 }
 
 export async function exitFullscreen(): Promise<void> {
@@ -316,9 +443,13 @@ export async function exitFullscreen(): Promise<void> {
   if (isTmaSdkAvailable() && typeof viewport.exitFullscreen === 'function') {
     try {
       await viewport.exitFullscreen();
+      logViewportAction('exitFullscreen', 'success', { path: 'sdk' });
       return;
-    } catch {
-      // fallback to raw postEvent
+    } catch (error) {
+      logViewportAction('exitFullscreen', 'failed', {
+        path: 'sdk',
+        error: normalizeErrorPayload(error),
+      });
     }
   }
 
@@ -326,8 +457,17 @@ export async function exitFullscreen(): Promise<void> {
   if (webApp?.postEvent) {
     try {
       webApp.postEvent('web_app_disable_fullscreen');
-    } catch {
-      // ignore
+      logViewportAction('exitFullscreen', 'success', { path: 'legacy' });
+      return;
+    } catch (error) {
+      logViewportAction('exitFullscreen', 'failed', {
+        path: 'legacy',
+        error: normalizeErrorPayload(error),
+      });
     }
   }
+
+  logViewportAction('exitFullscreen', 'unsupported', {
+    reason: 'postEvent_unavailable',
+  });
 }

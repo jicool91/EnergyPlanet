@@ -156,9 +156,11 @@ function NextUiApp() {
       return;
     }
 
-    const metrics = window.__renderMetrics ?? { app: 0 };
-    metrics.app += 1;
-    window.__renderMetrics = metrics;
+    const nextAppRenderCount = (window.__renderMetrics?.app ?? 0) + 1;
+    window.__renderMetrics = {
+      ...(window.__renderMetrics ?? {}),
+      app: nextAppRenderCount,
+    };
   }, []);
 
   useEffect(() => {

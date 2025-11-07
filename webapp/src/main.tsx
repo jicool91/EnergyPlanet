@@ -13,11 +13,14 @@ import { logger } from './utils/logger';
 import { ensureTmaSdkReady } from '@/services/tma/core';
 import { getTmaThemeSnapshot, onTmaThemeChange } from '@/services/tma/theme';
 import {
+  getCachedSafeArea,
+  getCachedViewportMetrics,
   getTmaSafeAreaSnapshot,
   getTmaViewportMetrics,
   onTmaSafeAreaChange,
   onTmaViewportChange,
 } from '@/services/tma/viewport';
+import type { SafeAreaSnapshot, ViewportMetrics } from '@/services/tma/viewport';
 import { sessionManager } from './services/sessionManager';
 import { useGameStore } from './store/gameStore';
 import { usePreferencesStore } from './store/preferencesStore';
@@ -35,6 +38,96 @@ declare global {
   }
 }
 
+type RenderMetricsShape = {
+  app: number;
+  safeAreaTop?: number;
+  contentSafeAreaTop?: number;
+  isFullscreen?: boolean;
+};
+
+function updateRenderMetrics(partial: Partial<RenderMetricsShape>) {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const metrics = window.__renderMetrics ?? { app: 0 };
+  window.__renderMetrics = {
+    ...metrics,
+    ...partial,
+  };
+}
+
+function captureSafeAreaMetrics(snapshot: SafeAreaSnapshot) {
+  updateRenderMetrics({
+    safeAreaTop: Math.max(0, snapshot.safe.top ?? 0),
+    contentSafeAreaTop: Math.max(0, snapshot.content.top ?? 0),
+  });
+}
+
+function captureViewportMetrics(metrics: ViewportMetrics) {
+  const previous = typeof window !== 'undefined' ? window.__renderMetrics?.isFullscreen : undefined;
+  const next = Boolean(metrics.isFullscreen);
+  updateRenderMetrics({
+    isFullscreen: next,
+  });
+
+  if (typeof previous === 'boolean' && previous !== next) {
+    logger.info('[viewport] Fullscreen state changed', {
+      previous,
+      next,
+      safeArea: getCachedSafeArea(),
+      viewport: metrics,
+    });
+  }
+}
+
+function installSafeAreaDebugCommand() {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const runDebugCommand = (command: string) => {
+    if (command !== '/debug_safe_area') {
+      logger.warn('[dev-command] Unknown command', { command });
+      return false;
+    }
+
+    const safeArea = getCachedSafeArea();
+    const viewportState = getCachedViewportMetrics();
+    const renderMetrics = window.__renderMetrics;
+
+    logger.info('[/debug_safe_area] Safe area snapshot', {
+      safeArea,
+      viewport: viewportState,
+      renderMetrics,
+    });
+
+    if (typeof console.group === 'function') {
+      console.group('/debug_safe_area');
+    }
+    console.log('safeArea.safe', safeArea.safe);
+    console.log('safeArea.content', safeArea.content);
+    console.log('viewport', viewportState);
+    console.log('renderMetrics', renderMetrics);
+    if (typeof console.groupEnd === 'function') {
+      console.groupEnd();
+    }
+
+    return true;
+  };
+
+  window.__runDebugCommand = runDebugCommand;
+  window.debug_safe_area = () => {
+    runDebugCommand('/debug_safe_area');
+  };
+
+  if (import.meta.env.DEV) {
+    console.info(
+      'Dev command ready: run debug_safe_area() or window.__runDebugCommand("/debug_safe_area") to log safe-area metrics.'
+    );
+  }
+}
+
 window._energyLogs = logger;
 
 initializeTelegramTheme();
@@ -45,8 +138,10 @@ try {
 }
 
 uiStore.updateTheme(getTmaThemeSnapshot());
-getTmaSafeAreaSnapshot();
-getTmaViewportMetrics();
+const initialSafeArea = getTmaSafeAreaSnapshot();
+captureSafeAreaMetrics(initialSafeArea);
+const initialViewport = getTmaViewportMetrics();
+captureViewportMetrics(initialViewport);
 
 const globalRuntime = globalThis as typeof globalThis & {
   __tmaRuntimeDisposers__?: VoidFunction[];
@@ -61,11 +156,11 @@ globalRuntime.__tmaRuntimeDisposers__?.forEach(dispose => {
 });
 
 const runtimeDisposers: VoidFunction[] = [
-  onTmaSafeAreaChange(() => {
-    // viewport service already applies CSS vars; listener exists to trigger mount/update.
+  onTmaSafeAreaChange(snapshot => {
+    captureSafeAreaMetrics(snapshot);
   }),
-  onTmaViewportChange(() => {
-    // see above: ensure CSS variables sync with Telegram runtime.
+  onTmaViewportChange(metrics => {
+    captureViewportMetrics(metrics);
   }),
 ];
 
@@ -89,6 +184,7 @@ if (import.meta.hot) {
 authStore.hydrate();
 sessionManager.syncFromStore();
 onTmaThemeChange(theme => uiStore.updateTheme(theme));
+installSafeAreaDebugCommand();
 
 if (typeof window !== 'undefined' && (import.meta.env.DEV || import.meta.env.MODE === 'test')) {
   const hooks = {

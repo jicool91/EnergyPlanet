@@ -17,7 +17,26 @@ export type StageMockOptions = {
   starPackError?: boolean;
   colorScheme?: 'light' | 'dark';
   seasonSnapshot?: SeasonSnapshotMock;
+  isAdmin?: boolean;
+  safeAreaOverride?: SafeAreaOverrideInput;
+  viewportOverride?: ViewportOverrideInput;
 };
+
+type InsetsKeys = 'top' | 'right' | 'bottom' | 'left';
+
+type SafeAreaOverrideInput = {
+  safe?: Partial<Record<InsetsKeys, number>>;
+  content?: Partial<Record<InsetsKeys, number>>;
+};
+
+type ViewportOverrideInput = Partial<{
+  height: number;
+  stableHeight: number;
+  width: number;
+  isExpanded: boolean;
+  isStateStable: boolean;
+  isFullscreen: boolean;
+}>;
 
 type SeasonSnapshotMock = {
   seasonId: string;
@@ -49,6 +68,7 @@ const mockSessionResponse = {
   user: {
     id: 'user-1',
     username: 'test-user',
+    is_admin: false,
   },
   progress: {
     level: 10,
@@ -178,14 +198,35 @@ const defaultSeasonSnapshot: SeasonSnapshotMock = {
   generatedAt: MOCK_NOW_ISO,
 };
 
+const deepClone = <T>(input: T): T => JSON.parse(JSON.stringify(input));
+
 export async function setupStageMocks(page: Page, options: StageMockOptions = {}) {
+  const isAdmin = options.isAdmin ?? false;
+  const sessionResponse = deepClone(mockSessionResponse);
+  sessionResponse.user.is_admin = isAdmin;
+  const profileResponse = deepClone(mockProfileResponse);
+  profileResponse.user.is_admin = isAdmin;
   if (!(page as { __stageConsoleBound?: boolean }).__stageConsoleBound) {
     page.on('console', msg => console.log('[browser]', msg.text()));
     page.on('pageerror', error => console.error('[pageerror]', error));
     (page as { __stageConsoleBound?: boolean }).__stageConsoleBound = true;
   }
 
-  await page.addInitScript((nowMs: number, nowISO: string, scheme: 'light' | 'dark') => {
+  const safeAreaOverride = options.safeAreaOverride
+    ? JSON.parse(JSON.stringify(options.safeAreaOverride))
+    : null;
+  const viewportOverride = options.viewportOverride
+    ? JSON.parse(JSON.stringify(options.viewportOverride))
+    : null;
+
+  await page.addInitScript(
+    (
+      nowMs: number,
+      nowISO: string,
+      scheme: 'light' | 'dark',
+      initialSafeArea: SafeAreaOverrideInput | null,
+      initialViewport: ViewportOverrideInput | null
+    ) => {
     const mockDate = class extends Date {
       constructor(...args: ConstructorParameters<DateConstructor>) {
         if (args.length === 0) {
@@ -276,11 +317,19 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
       return originalMatchMedia(query);
     };
 
+    if (initialSafeArea) {
+      window.__safeAreaOverride = initialSafeArea;
+    }
+
+    if (initialViewport) {
+      window.__viewportMetricsOverride = initialViewport;
+    }
+
     window.localStorage?.setItem('access_token', 'qa-access-token');
     window.localStorage?.setItem('refresh_token', 'qa-refresh-token');
     window.localStorage?.setItem('refresh_expires_at_ms', String(nowMs + 12 * 60 * 60 * 1000));
     window.localStorage?.setItem('last_mock_now_iso', nowISO);
-  }, MOCK_NOW_MS, MOCK_NOW_ISO, options.colorScheme ?? 'dark');
+  }, MOCK_NOW_MS, MOCK_NOW_ISO, options.colorScheme ?? 'dark', safeAreaOverride, viewportOverride);
 
   const leaderboard = options.leaderboard ?? [
     {
@@ -359,12 +408,12 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
     }
 
     if (pathname.endsWith('/session') && method === 'POST') {
-      await fulfillJson(200, mockSessionResponse);
+      await fulfillJson(200, sessionResponse);
       return;
     }
 
     if (pathname.startsWith('/api/v1/profile') && method === 'GET') {
-      await fulfillJson(200, mockProfileResponse);
+      await fulfillJson(200, profileResponse);
       return;
     }
 
