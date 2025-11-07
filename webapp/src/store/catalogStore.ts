@@ -141,6 +141,11 @@ export const useCatalogStore = create<CatalogState>()(
         } catch (refreshError) {
           console.error('Failed to refresh session after cosmetic purchase', refreshError);
         }
+        try {
+          await useGameStore.getState().loadProfile(true);
+        } catch (profileError) {
+          console.error('Failed to refresh profile after cosmetic purchase', profileError);
+        }
         await logClientEvent('cosmetic_unlocked', { cosmetic_id: cosmeticId }, 'info');
       } catch (error) {
         const { status, message } = describeError(error, 'Не удалось купить косметику');
@@ -190,6 +195,11 @@ export const useCatalogStore = create<CatalogState>()(
           await useGameStore.getState().refreshSession();
         } catch (refreshError) {
           console.error('Failed to refresh session after cosmetic equip', refreshError);
+        }
+        try {
+          await useGameStore.getState().loadProfile(true);
+        } catch (profileError) {
+          console.error('Failed to refresh profile after cosmetic equip', profileError);
         }
 
         await logClientEvent(

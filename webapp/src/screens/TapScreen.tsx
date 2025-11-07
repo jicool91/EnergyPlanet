@@ -222,6 +222,8 @@ export function TapScreen() {
     performPrestige,
     loadAchievements,
     claimAchievement,
+    loadProfile,
+    profile,
   } = useGameStore(
     useShallow(state => ({
       tap: state.tap,
@@ -231,14 +233,28 @@ export function TapScreen() {
       performPrestige: state.performPrestige,
       loadAchievements: state.loadAchievements,
       claimAchievement: state.claimAchievement,
+      loadProfile: state.loadProfile,
+      profile: state.profile,
     }))
   );
 
-  const { buildingCatalog, boostHub, boostHubTimeOffsetMs } = useCatalogStore(
+  const {
+    buildingCatalog,
+    boostHub,
+    boostHubTimeOffsetMs,
+    cosmetics,
+    loadCosmetics,
+    cosmeticsLoaded,
+    isCosmeticsLoading,
+  } = useCatalogStore(
     useShallow(state => ({
       buildingCatalog: state.buildingCatalog,
       boostHub: state.boostHub,
       boostHubTimeOffsetMs: state.boostHubTimeOffsetMs,
+      cosmetics: state.cosmetics,
+      loadCosmetics: state.loadCosmetics,
+      cosmeticsLoaded: state.cosmeticsLoaded,
+      isCosmeticsLoading: state.isCosmeticsLoading,
     }))
   );
 
@@ -255,6 +271,41 @@ export function TapScreen() {
   );
 
   useRenderLatencyMetric({ screen: 'tap_screen', context: renderContext });
+
+  useEffect(() => {
+    if (!authReady) {
+      return;
+    }
+    loadProfile().catch(error => {
+      console.error('Failed to load profile on TapScreen', error);
+    });
+  }, [authReady, loadProfile]);
+
+  useEffect(() => {
+    if (cosmeticsLoaded || isCosmeticsLoading) {
+      return;
+    }
+    loadCosmetics().catch(error => {
+      console.error('Failed to load cosmetics on TapScreen', error);
+    });
+  }, [cosmeticsLoaded, isCosmeticsLoading, loadCosmetics]);
+
+  const equippedPlanetSkin = profile?.profile.equipped_planet_skin ?? null;
+  const activePlanetSkin = useMemo(() => {
+    if (!cosmetics || cosmetics.length === 0) {
+      return null;
+    }
+    const planetSkins = cosmetics.filter(item => item.category === 'planet_skin');
+    if (!planetSkins.length) {
+      return null;
+    }
+    const fallback =
+      planetSkins.find(item => item.id === 'default_skin') ?? planetSkins[0] ?? null;
+    if (!equippedPlanetSkin) {
+      return fallback;
+    }
+    return planetSkins.find(item => item.id === equippedPlanetSkin) ?? fallback;
+  }, [cosmetics, equippedPlanetSkin]);
 
   useEffect(() => {
     if (!isInitialized || !authReady) {
@@ -528,6 +579,8 @@ export function TapScreen() {
           tapLevel={tapLevel}
           boostMultiplier={overallMultiplier}
           isCriticalStreak={isCriticalStreak}
+          planetAssetUrl={activePlanetSkin?.asset_url}
+          planetName={activePlanetSkin?.name}
         />
 
         <StatsSummary

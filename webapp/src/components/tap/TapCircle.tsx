@@ -2,6 +2,7 @@ import { memo, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 import { useGyroscope } from '@/hooks/useGyroscope';
+import { OptimizedImage } from '../OptimizedImage';
 
 interface TapCircleProps {
   onTap: () => void;
@@ -10,6 +11,8 @@ interface TapCircleProps {
   boostMultiplier: number;
   isCriticalStreak: boolean;
   disabled?: boolean;
+  planetAssetUrl?: string | null;
+  planetName?: string;
 }
 
 export const TapCircle = memo(function TapCircle({
@@ -19,6 +22,8 @@ export const TapCircle = memo(function TapCircle({
   boostMultiplier,
   isCriticalStreak,
   disabled = false,
+  planetAssetUrl,
+  planetName,
 }: TapCircleProps) {
   const reduceMotion = useAppReducedMotion();
   const gyroscope = useGyroscope({ enabled: !disabled, refreshRate: 60 });
@@ -66,9 +71,19 @@ export const TapCircle = memo(function TapCircle({
             animate={glowAnimation}
           />
         )}
-        <span role="img" aria-hidden="true">
-          🌍
-        </span>
+        {planetAssetUrl ? (
+          <OptimizedImage
+            src={planetAssetUrl}
+            alt={planetName ?? 'Planet skin'}
+            width={128}
+            height={128}
+            className="h-24 w-24 rounded-full object-cover shadow-elevation-3"
+          />
+        ) : (
+          <span role="img" aria-hidden="true">
+            🌍
+          </span>
+        )}
         <span className="mt-1 text-body font-semibold">Tap!</span>
       </motion.button>
 
