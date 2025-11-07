@@ -177,7 +177,7 @@ Each checkbox row describes a unique combination of device, orientation, Telegra
 
 - [ ] iPhone 15 Pro Max (iOS 18) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [ ] iPhone 15 Pro Max (iOS 18) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPhone 15 Pro Max (iOS 18) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] iPhone 15 Pro Max (iOS 18) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. (Playwright simulation safe-area.spec, evidence 2025-11-07)
 - [ ] iPhone 15 Pro Max (iOS 18) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [ ] iPhone 15 Pro Max (iOS 18) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [ ] iPhone 15 Pro Max (iOS 18) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
@@ -193,7 +193,7 @@ Each checkbox row describes a unique combination of device, orientation, Telegra
 - [ ] iPad Pro 12.9" (Stage Manager) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [ ] iPad Pro 12.9" (Stage Manager) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [ ] iPad Pro 12.9" (Stage Manager) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Pixel 8 Pro (Android 15) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel 8 Pro (Android 15) — Portrait — Default sheet — Expected: Respect Telegram chrome. (Playwright simulation safe-area.spec, evidence 2025-11-07)
 - [ ] Pixel 8 Pro (Android 15) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [ ] Pixel 8 Pro (Android 15) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
 - [ ] Pixel 8 Pro (Android 15) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
@@ -259,7 +259,7 @@ Each checkbox row describes a unique combination of device, orientation, Telegra
 - [ ] OnePlus 12 — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [ ] OnePlus 12 — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [ ] OnePlus 12 — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop macOS — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop macOS — Portrait — Default sheet — Expected: Respect Telegram chrome. (manual-close Playwright test, evidence 2025-11-07)
 - [ ] Telegram Desktop macOS — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [ ] Telegram Desktop macOS — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
 - [ ] Telegram Desktop macOS — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
