@@ -38,3 +38,9 @@
 1. Обновить `useSafeArea`/`AppLayout`, добавить реакцию на `viewport_changed` и `themeChanged`.  
 2. Унифицировать стили верхней панели через дизайн-токены.  
 3. Прогнать визуальные тесты на iOS/Android (expanded vs default) и обновить `docs/qa/baseline`.
+
+## Статус 2025-11-07
+- ✅ `useSafeArea` переписан на `useSyncExternalStore`, возвращает `safeTopWithBuffer`, `isFullscreen` (см. `webapp/src/hooks/useSafeArea.ts`).
+- ✅ `AppLayout` использует CSS-переменные `--app-header-offset-top`, синхронизирует `miniApp.setHeaderColor`, включает класс `status-bar-shell`.
+- ✅ `docs/telegram-fullscreen-status-bar.md` описывает процесс и чек-листы, `webapp/docs/DESIGN_SYSTEM.md` дополнен состояниями шапки.
+- ✅ Добавлены Playwright тесты (`tests/qa/safe-area.spec.ts`) и dev-команда `/debug_safe_area`.

@@ -355,6 +355,10 @@ export function onTmaViewportChange(listener: Listener<ViewportMetrics>): VoidFu
   };
 }
 
+export function onFullscreenChange(listener: Listener<boolean>): VoidFunction {
+  return onTmaViewportChange(metrics => listener(Boolean(metrics.isFullscreen)));
+}
+
 export function getCachedSafeArea(): SafeAreaSnapshot {
   return currentSafeArea;
 }

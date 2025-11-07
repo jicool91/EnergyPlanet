@@ -31,6 +31,7 @@ interface UIState {
   offlineSummary: OfflineSummarySnapshot | null;
   theme: TelegramThemeParams;
   notifications: Notification[];
+  lastFullscreenState: boolean | null;
   openAuthError: (message: string) => void;
   dismissAuthError: () => void;
   setOfflineSummary: (summary: OfflineSummarySnapshot | null) => void;
@@ -38,6 +39,7 @@ interface UIState {
   clearOfflineSummary: () => void;
   addNotification: (notification: Omit<Notification, 'id'>) => string;
   removeNotification: (id: string) => void;
+  setFullscreenState: (isFullscreen: boolean) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -48,6 +50,7 @@ export const useUIStore = create<UIState>()(
       offlineSummary: null,
       theme: DEFAULT_THEME,
       notifications: [],
+      lastFullscreenState: null,
       openAuthError: (message: string) => set({ authErrorMessage: message, isAuthModalOpen: true }),
       dismissAuthError: () => set({ authErrorMessage: null, isAuthModalOpen: false }),
       setOfflineSummary: summary => set({ offlineSummary: summary }),
@@ -85,6 +88,7 @@ export const useUIStore = create<UIState>()(
             notifications: state.notifications.filter(n => n.id !== id),
           };
         }),
+      setFullscreenState: isFullscreen => set({ lastFullscreenState: isFullscreen }),
     }),
     {
       name: 'energy-ui',
@@ -118,7 +122,16 @@ export const uiStore = {
   removeNotification(id: string) {
     useUIStore.getState().removeNotification(id);
   },
+  setFullscreenState(isFullscreen: boolean) {
+    useUIStore.getState().setFullscreenState(isFullscreen);
+  },
+  debugSetFullscreenState(isFullscreen: boolean) {
+    useUIStore.getState().setFullscreenState(isFullscreen);
+  },
   get theme() {
     return useUIStore.getState().theme;
+  },
+  get lastFullscreenState() {
+    return useUIStore.getState().lastFullscreenState;
   },
 };

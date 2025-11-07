@@ -34,6 +34,7 @@ declare global {
       dismissAuthError: () => void;
       simulateLevelUp: (targetLevel?: number) => void;
       setReduceMotion: (enabled: boolean) => void;
+      setFullscreenState: (isFullscreen: boolean) => void;
     };
   }
 }
@@ -70,6 +71,8 @@ function captureViewportMetrics(metrics: ViewportMetrics) {
   updateRenderMetrics({
     isFullscreen: next,
   });
+
+  uiStore.setFullscreenState(next);
 
   if (typeof previous === 'boolean' && previous !== next) {
     logger.info('[viewport] Fullscreen state changed', {
@@ -203,6 +206,9 @@ if (typeof window !== 'undefined' && (import.meta.env.DEV || import.meta.env.MOD
     },
     setReduceMotion(enabled: boolean) {
       usePreferencesStore.setState({ reduceMotion: enabled });
+    },
+    setFullscreenState(isFullscreen: boolean) {
+      uiStore.debugSetFullscreenState(isFullscreen);
     },
   };
 

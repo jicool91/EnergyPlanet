@@ -200,6 +200,34 @@ shadow-glow:       0 0 20px rgba(0, 217, 255, 0.3)
 </button>
 ```
 
+### Status Bar Shell (Telegram fullscreen)
+
+```
+Tokens:
+- --app-header-reserve = 90px (16 top + 56 core + 16 bottom + 2 lvl bar)
+- --app-header-buffer = 12px (зазор от системных кнопок Telegram)
+- --app-header-offset-top = calc(device safe area + Telegram content inset + buffer)
+- --app-content-padding-top = отступ для основного контента под шапкой
+```
+
+```tsx
+<header
+  className="status-bar-shell flex flex-col gap-1 pb-3"
+  data-fullscreen={isFullscreen ? 'true' : 'false'}
+  style={{ paddingTop: 'var(--app-header-offset-top)' }}
+>
+  {/* Controls */}
+</header>
+```
+
+| Состояние       | Visual rules                                                                 |
+|-----------------|------------------------------------------------------------------------------|
+| Default / sheet | `status-bar-shell` с рамкой и тенью, радиус 28px, blur 24px                  |
+| Expanded        | То же, но придерживаемся safe-area слева/справа через `paddingLeft/Right`    |
+| Fullscreen      | `data-fullscreen="true"` — убираем рамку/тень, фон = `--app-header-bg`       |
+
+> Не допускается ручное указание `padding-top` или `top` руками — всегда используем CSS-переменные, синхронизированные с Telegram SDK.
+
 ### Button Success
 
 ```tsx

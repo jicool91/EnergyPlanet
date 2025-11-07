@@ -302,7 +302,7 @@ QA Tips: use `/debug_safe_area` command in dev console to log insets after each 
 ## 10. File-by-file action checklist
 ### webapp/src/services/tma/viewport.ts:60-138
 - [ ] Explain CSS var binding in comments.
-- [ ] Expose `onFullscreenChange` helper that wraps SDK + native events.
+- [x] Expose `onFullscreenChange` helper that wraps SDK + native events.
 - [x] Log errors when fullscreen requests fail.
 
 ### webapp/src/hooks/useSafeArea.ts:1-42
@@ -317,22 +317,22 @@ QA Tips: use `/debug_safe_area` command in dev console to log insets after each 
 ### webapp/src/index.css:13-199
 - [x] Document each custom property with a short comment.
 - [x] Add `.status-bar-shell` rules that respond to `data-fullscreen` attributes.
-- [ ] Verify env() fallbacks for desktop browsers.
+- [x] Verify env() fallbacks for desktop browsers.
 
 ### webapp/src/store/uiStore.ts:25-86
-- [ ] Optionally store `lastFullscreenState` for debugging.
-- [ ] Expose setter for dev tools to simulate states.
+- [x] Optionally store `lastFullscreenState` for debugging.
+- [x] Expose setter for dev tools to simulate states.
 
 ### webapp/src/main.tsx:1-94
 - [x] Register telemetry listener for fullscreen transitions and push to logger.
 - [x] Ensure disposer cleans up new listeners.
 
 ### webapp/docs/DESIGN_SYSTEM.md
-- [ ] Add visual states for header (default, expanded, fullscreen).
-- [ ] Document new tokens to unblock design QA.
+- [x] Add visual states for header (default, expanded, fullscreen).
+- [x] Document new tokens to unblock design QA.
 
 ### docs/06-11-2025/ui-task-02-top-bar.md
-- [ ] Update status once fixes land; link back to this playbook.
+- [x] Update status once fixes land; link back to this playbook.
 
 ### webapp/tests/qa/safe-area.spec.ts
 - [x] Automate `/debug_safe_area` command invocation to capture logs in CI.
@@ -502,6 +502,7 @@ Draft message to share in release notes and with Telegram review team:
 
 ## 19. Follow-up checklist snapshot (rolling)
 - [ ] Update `docs/changelog.md` with references to this playbook.
+- [x] Update `docs/changelog.md` with references to this playbook.
 - [ ] Schedule design review focusing on fullscreen header on 2025-11-10.
 - [ ] Confirm Telegram bot review submission includes new screenshots.
 - [ ] Archive this checklist once a new UI audit supersedes it.
