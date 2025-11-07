@@ -41,4 +41,20 @@ test.describe('Safe area + fullscreen instrumentation', () => {
     const header = page.locator('header.status-bar-shell');
     await expect(header).toHaveAttribute('data-fullscreen', 'true');
   });
+
+  test('desktop platforms render manual close button', async ({ page }) => {
+    await setupStageMocks(page, {
+      safeAreaOverride: SAFE_AREA_OVERRIDE,
+      viewportOverride: { isFullscreen: false },
+      platform: 'tdesktop',
+    });
+    await page.goto('/');
+
+    const manualClose = page.getByTestId('manual-close-button');
+    await expect(manualClose).toBeVisible();
+    await manualClose.click();
+
+    const closeCalls = await page.evaluate(() => (window as typeof window & { __manualCloseCalls?: number }).__manualCloseCalls ?? 0);
+    expect(closeCalls).toBeGreaterThan(0);
+  });
 });

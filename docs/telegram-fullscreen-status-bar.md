@@ -66,7 +66,7 @@ Fallback plan: degrade gracefully to non-fullscreen bottom-sheet layout when vie
 - [ ] Update CSS vars every time we read new insets; never cache raw numbers in React state without syncing to document root.
 - [ ] Use `miniApp.setHeaderColor` / background setter whenever theme tokens change.
 - [ ] Ensure fullscreen toggles update state stores so we can adjust layout (status bar hides).
-- [ ] Provide manual close/back affordance only if Telegram hides its own buttons (desktop web).
+- [x] Provide manual close/back affordance only if Telegram hides its own buttons (desktop web).
 
 ---
 
@@ -168,6 +168,7 @@ The work is sequenced into four phases so engineering, design, and QA can land i
 8.8 Buttons in header must stay at least 16 px away from Telegram close/back icons. Use spacer div referencing `--tg-content-safe-area-right` to enforce the gap.
 8.9 Status meter backgrounds should honor `var(--app-header-system-bg)` token; avoid pure black to prevent OLED burn-in.
 8.10 Over-scroll glow should be disabled in fullscreen to reduce distraction; rely on `overflow-y-auto` with custom scrollbars only when necessary.
+8.11 Desktop/web клиенты без системной панели получают кнопку `Закрыть` (AppLayout), которая вызывает `miniApp.close()` и fallback на `Telegram.WebApp.close()`.
 
 ---
 

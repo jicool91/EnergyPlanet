@@ -20,6 +20,7 @@ export type StageMockOptions = {
   isAdmin?: boolean;
   safeAreaOverride?: SafeAreaOverrideInput;
   viewportOverride?: ViewportOverrideInput;
+  platform?: string;
 };
 
 type InsetsKeys = 'top' | 'right' | 'bottom' | 'left';
@@ -225,7 +226,8 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
       nowISO: string,
       scheme: 'light' | 'dark',
       initialSafeArea: SafeAreaOverrideInput | null,
-      initialViewport: ViewportOverrideInput | null
+      initialViewport: ViewportOverrideInput | null,
+      platform: string
     ) => {
     const mockDate = class extends Date {
       constructor(...args: ConstructorParameters<DateConstructor>) {
@@ -249,16 +251,22 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
       WebApp: {
         ready: () => {},
         expand: () => {},
+        close: () => {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (window as any).__manualCloseCalls = ((window as any).__manualCloseCalls ?? 0) + 1;
+        },
         initData: '',
         initDataUnsafe: {},
         themeParams: {},
         onEvent: () => {},
         offEvent: () => {},
         disableVerticalSwipes: () => {},
-        platform: 'test',
+        platform,
         colorScheme: scheme,
       },
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__manualCloseCalls = 0;
 
     const applyScheme = () => {
       const root = document.documentElement;
@@ -329,7 +337,13 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
     window.localStorage?.setItem('refresh_token', 'qa-refresh-token');
     window.localStorage?.setItem('refresh_expires_at_ms', String(nowMs + 12 * 60 * 60 * 1000));
     window.localStorage?.setItem('last_mock_now_iso', nowISO);
-  }, MOCK_NOW_MS, MOCK_NOW_ISO, options.colorScheme ?? 'dark', safeAreaOverride, viewportOverride);
+  },
+  MOCK_NOW_MS,
+  MOCK_NOW_ISO,
+  options.colorScheme ?? 'dark',
+  safeAreaOverride,
+  viewportOverride,
+  options.platform ?? 'test');
 
   const leaderboard = options.leaderboard ?? [
     {

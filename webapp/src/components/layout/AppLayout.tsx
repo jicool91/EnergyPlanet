@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import type { CSSProperties, ReactNode } from 'react';
 import { useEffect, useMemo } from 'react';
 import { miniApp } from '@tma.js/sdk';
 import { useSafeArea } from '@/hooks/useSafeArea';
@@ -27,6 +27,16 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
   const safeContentBottom = Math.max(0, safeArea.content.bottom ?? 0);
   const safeLeft = Math.max(0, safeArea.safe.left ?? 0);
   const safeRight = Math.max(0, safeArea.safe.right ?? 0);
+  const platform = useMemo(() => {
+    if (typeof window === 'undefined') {
+      return 'unknown';
+    }
+    return window.Telegram?.WebApp?.platform?.toLowerCase() ?? 'unknown';
+  }, []);
+  const isDesktopPlatform = useMemo(() => {
+    return /desktop|mac|windows|web/.test(platform);
+  }, [platform]);
+  const shouldShowManualClose = isDesktopPlatform;
 
   useEffect(() => {
     const headerColor =
@@ -111,9 +121,46 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
     };
   }, [safeBottom, safeContentBottom, sharedHorizontalPadding]);
 
+  const manualCloseStyle = useMemo<CSSProperties>(() => {
+    const topVar = `var(--app-header-offset-top, ${safeTopWithBuffer}px)`;
+    return {
+      top: `calc(${topVar} - 36px)`,
+      right: `${safeRight + 16}px`,
+    };
+  }, [safeRight, safeTopWithBuffer]);
+
+  const handleManualClose = () => {
+    try {
+      miniApp.close();
+      return;
+    } catch (error) {
+      logger.warn('miniApp.close failed, falling back to Telegram.WebApp.close', { error });
+    }
+    try {
+      (
+        window as typeof window & {
+          Telegram?: { WebApp?: { close?: () => void } };
+        }
+      ).Telegram?.WebApp?.close?.();
+    } catch (error) {
+      logger.warn('Telegram.WebApp.close failed', { error });
+    }
+  };
+
   return (
     <div className="flex min-h-screen w-full justify-center bg-surface-primary text-text-primary">
       <div className={containerClassName}>
+        {shouldShowManualClose ? (
+          <button
+            type="button"
+            className="manual-close-button"
+            style={manualCloseStyle}
+            onClick={handleManualClose}
+            data-testid="manual-close-button"
+          >
+            Закрыть
+          </button>
+        ) : null}
         {header ? (
           <header
             className="status-bar-shell z-10 flex flex-col gap-1 pb-3"
