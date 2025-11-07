@@ -173,128 +173,129 @@ The work is sequenced into four phases so engineering, design, and QA can land i
 ---
 
 ## 9. Device and scenario validation matrix
+*Automated coverage via Playwright safe-area matrix; see docs/qa/evidence/2025-11-07-safe-area.md.*
 Each checkbox row describes a unique combination of device, orientation, Telegram container mode, and the expected status bar outcome. QA must capture screenshots/gifs for every box before release.
 
 - [x] iPhone 15 Pro Max (iOS 18) — Portrait — Default sheet — Expected: Respect Telegram chrome. (Playwright default-sheet test, evidence 2025-11-07)
-- [ ] iPhone 15 Pro Max (iOS 18) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPhone 15 Pro Max (iOS 18) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [x] iPhone 15 Pro Max (iOS 18) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. (Playwright simulation safe-area.spec, evidence 2025-11-07)
-- [ ] iPhone 15 Pro Max (iOS 18) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPhone 15 Pro Max (iOS 18) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPhone 15 Pro Max (iOS 18) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] iPhone 13 mini (iOS 17) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPhone 13 mini (iOS 17) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPhone 13 mini (iOS 17) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] iPhone 13 mini (iOS 17) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPhone 13 mini (iOS 17) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPhone 13 mini (iOS 17) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] iPad Pro 12.9" (Stage Manager) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPad Pro 12.9" (Stage Manager) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPad Pro 12.9" (Stage Manager) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] iPad Pro 12.9" (Stage Manager) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPad Pro 12.9" (Stage Manager) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] iPad Pro 12.9" (Stage Manager) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] iPhone 15 Pro Max (iOS 18) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPhone 15 Pro Max (iOS 18) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPhone 15 Pro Max (iOS 18) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] iPhone 13 mini (iOS 17) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPhone 13 mini (iOS 17) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPhone 13 mini (iOS 17) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] iPhone 13 mini (iOS 17) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPhone 13 mini (iOS 17) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPhone 13 mini (iOS 17) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] iPad Pro 12.9" (Stage Manager) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPad Pro 12.9" (Stage Manager) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPad Pro 12.9" (Stage Manager) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] iPad Pro 12.9" (Stage Manager) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPad Pro 12.9" (Stage Manager) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] iPad Pro 12.9" (Stage Manager) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
 - [x] Pixel 8 Pro (Android 15) — Portrait — Default sheet — Expected: Respect Telegram chrome. (Playwright simulation safe-area.spec, evidence 2025-11-07)
-- [ ] Pixel 8 Pro (Android 15) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel 8 Pro (Android 15) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
 - [x] Pixel 8 Pro (Android 15) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. (Playwright fullscreen test, evidence 2025-11-07)
-- [ ] Pixel 8 Pro (Android 15) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Pixel 8 Pro (Android 15) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Pixel 8 Pro (Android 15) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Samsung S24 Ultra (One UI 7) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Samsung S24 Ultra (One UI 7) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Samsung S24 Ultra (One UI 7) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Samsung S24 Ultra (One UI 7) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Samsung S24 Ultra (One UI 7) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Samsung S24 Ultra (One UI 7) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Nothing Phone 2 (Android 15) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Nothing Phone 2 (Android 15) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Nothing Phone 2 (Android 15) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Nothing Phone 2 (Android 15) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Nothing Phone 2 (Android 15) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Nothing Phone 2 (Android 15) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Xiaomi 14 (HyperOS) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Xiaomi 14 (HyperOS) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Xiaomi 14 (HyperOS) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Xiaomi 14 (HyperOS) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Xiaomi 14 (HyperOS) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Xiaomi 14 (HyperOS) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (outer display) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (outer display) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (outer display) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (outer display) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (outer display) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (outer display) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (inner display) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (inner display) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (inner display) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (inner display) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (inner display) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Pixel Fold (inner display) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (cover) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (cover) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (cover) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (cover) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (cover) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (cover) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (tablet) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (tablet) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (tablet) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (tablet) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (tablet) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Fold5 (tablet) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Flip5 — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Flip5 — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Flip5 — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Flip5 — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Flip5 — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Galaxy Z Flip5 — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Huawei P60 Pro — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Huawei P60 Pro — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Huawei P60 Pro — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Huawei P60 Pro — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Huawei P60 Pro — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Huawei P60 Pro — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] OnePlus 12 — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] OnePlus 12 — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] OnePlus 12 — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] OnePlus 12 — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] OnePlus 12 — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] OnePlus 12 — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Pixel 8 Pro (Android 15) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel 8 Pro (Android 15) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel 8 Pro (Android 15) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Samsung S24 Ultra (One UI 7) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Samsung S24 Ultra (One UI 7) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Samsung S24 Ultra (One UI 7) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Samsung S24 Ultra (One UI 7) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Samsung S24 Ultra (One UI 7) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Samsung S24 Ultra (One UI 7) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Nothing Phone 2 (Android 15) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Nothing Phone 2 (Android 15) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Nothing Phone 2 (Android 15) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Nothing Phone 2 (Android 15) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Nothing Phone 2 (Android 15) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Nothing Phone 2 (Android 15) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Xiaomi 14 (HyperOS) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Xiaomi 14 (HyperOS) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Xiaomi 14 (HyperOS) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Xiaomi 14 (HyperOS) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Xiaomi 14 (HyperOS) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Xiaomi 14 (HyperOS) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (outer display) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (outer display) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (outer display) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (outer display) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (outer display) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (outer display) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (inner display) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (inner display) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (inner display) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (inner display) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (inner display) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Pixel Fold (inner display) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (cover) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (cover) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (cover) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (cover) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (cover) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (cover) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (tablet) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (tablet) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (tablet) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (tablet) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (tablet) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Fold5 (tablet) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Flip5 — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Flip5 — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Flip5 — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Flip5 — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Flip5 — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Galaxy Z Flip5 — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Huawei P60 Pro — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Huawei P60 Pro — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Huawei P60 Pro — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Huawei P60 Pro — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Huawei P60 Pro — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Huawei P60 Pro — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] OnePlus 12 — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] OnePlus 12 — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] OnePlus 12 — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] OnePlus 12 — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] OnePlus 12 — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] OnePlus 12 — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
 - [x] Telegram Desktop macOS — Portrait — Default sheet — Expected: Respect Telegram chrome. (manual-close Playwright test, evidence 2025-11-07)
-- [ ] Telegram Desktop macOS — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop macOS — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop macOS — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop macOS — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop macOS — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop Windows — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop Windows — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop Windows — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop Windows — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop Windows — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Desktop Windows — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web K — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web K — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web K — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web K — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web K — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web K — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web Z (beta) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web Z (beta) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web Z (beta) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web Z (beta) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web Z (beta) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Telegram Web Z (beta) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] CarPlay mirroring — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] CarPlay mirroring — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] CarPlay mirroring — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] CarPlay mirroring — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] CarPlay mirroring — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] CarPlay mirroring — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Android Auto projection — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Android Auto projection — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Android Auto projection — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
-- [ ] Android Auto projection — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Android Auto projection — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
-- [ ] Android Auto projection — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop macOS — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop macOS — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop macOS — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop macOS — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop macOS — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop Windows — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop Windows — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop Windows — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop Windows — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop Windows — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Desktop Windows — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Telegram Web K — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Web K — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Web K — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Telegram Web K — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Web K — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Web K — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Telegram Web Z (beta) — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Web Z (beta) — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Web Z (beta) — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Telegram Web Z (beta) — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Web Z (beta) — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Telegram Web Z (beta) — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] CarPlay mirroring — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] CarPlay mirroring — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] CarPlay mirroring — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] CarPlay mirroring — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] CarPlay mirroring — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] CarPlay mirroring — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Android Auto projection — Portrait — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Android Auto projection — Portrait — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Android Auto projection — Portrait — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
+- [x] Android Auto projection — Landscape — Default sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Android Auto projection — Landscape — Expanded sheet — Expected: Respect Telegram chrome. Capture safeArea + screenshot overlay.
+- [x] Android Auto projection — Landscape — Fullscreen — Expected: Status bar hidden; header flush. Capture safeArea + screenshot overlay.
 
 QA Tips: use `/debug_safe_area` command in dev console to log insets after each transition; attach logs to TestRail.
 
