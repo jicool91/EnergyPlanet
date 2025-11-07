@@ -136,6 +136,11 @@ export const useCatalogStore = create<CatalogState>()(
 
         await unlockCosmetic(cosmeticId);
         await get().loadCosmetics(true);
+        try {
+          await useGameStore.getState().refreshSession();
+        } catch (refreshError) {
+          console.error('Failed to refresh session after cosmetic purchase', refreshError);
+        }
         await logClientEvent('cosmetic_unlocked', { cosmetic_id: cosmeticId }, 'info');
       } catch (error) {
         const { status, message } = describeError(error, 'Не удалось купить косметику');
@@ -181,6 +186,11 @@ export const useCatalogStore = create<CatalogState>()(
             };
           }),
         }));
+        try {
+          await useGameStore.getState().refreshSession();
+        } catch (refreshError) {
+          console.error('Failed to refresh session after cosmetic equip', refreshError);
+        }
 
         await logClientEvent(
           'cosmetic_equipped',

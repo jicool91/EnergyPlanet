@@ -248,6 +248,8 @@ const BUNDLE_PLACEHOLDER = {
   note: 'Следите за анонсами — здесь появятся ограниченные наборы с особыми эффектами.',
 };
 
+const AUTO_EQUIP_CATEGORIES = new Set(['planet_skin']);
+
 const resolveStarPackSubSection = (pack: StarPack): StarPackSubSection => {
   const haystack =
     `${pack.title ?? ''} ${pack.description ?? ''} ${pack.telegram_product_id ?? ''}`.toLowerCase();
@@ -569,21 +571,6 @@ export function ShopPanel({
     [activeCategory, categories, isCosmeticsLoading, setSelectedCategory]
   );
 
-  const handlePurchaseCosmetic = useCallback(
-    async (cosmeticId: string) => {
-      try {
-        await purchaseCosmetic(cosmeticId);
-        hapticSuccess();
-        notifySuccess('Косметика разблокирована!');
-      } catch (error) {
-        hapticError();
-        const { message } = describeError(error, 'Не удалось купить косметику');
-        notifyError(message);
-      }
-    },
-    [hapticError, hapticSuccess, notifyError, notifySuccess, purchaseCosmetic]
-  );
-
   const handleEquip = useCallback(
     async (cosmeticId: string) => {
       try {
@@ -597,6 +584,25 @@ export function ShopPanel({
       }
     },
     [equipCosmetic, hapticError, hapticSuccess, notifyError, notifySuccess]
+  );
+
+  const handlePurchaseCosmetic = useCallback(
+    async (cosmeticId: string) => {
+      const purchased = cosmetics.find(item => item.id === cosmeticId);
+      try {
+        await purchaseCosmetic(cosmeticId);
+        hapticSuccess();
+        notifySuccess('Косметика разблокирована!');
+        if (purchased && AUTO_EQUIP_CATEGORIES.has(purchased.category)) {
+          await handleEquip(cosmeticId);
+        }
+      } catch (error) {
+        hapticError();
+        const { message } = describeError(error, 'Не удалось купить косметику');
+        notifyError(message);
+      }
+    },
+    [cosmetics, handleEquip, hapticError, hapticSuccess, notifyError, notifySuccess, purchaseCosmetic]
   );
 
   const handleDismissPurchaseSuccess = useCallback(() => {
