@@ -22,6 +22,7 @@ import {
 } from '@/services/tma/viewport';
 import type { SafeAreaSnapshot, ViewportMetrics } from '@/services/tma/viewport';
 import { sessionManager } from './services/sessionManager';
+import { logClientEvent } from './services/telemetry';
 import { useGameStore } from './store/gameStore';
 import { usePreferencesStore } from './store/preferencesStore';
 
@@ -46,6 +47,10 @@ type RenderMetricsShape = {
   isFullscreen?: boolean;
 };
 
+const SAFE_AREA_TELEMETRY_THRESHOLD = 4;
+let lastSafeAreaTelemetry = { safeAreaTop: 0, contentSafeAreaTop: 0 };
+let hasSafeAreaTelemetryBaseline = false;
+
 function updateRenderMetrics(partial: Partial<RenderMetricsShape>) {
   if (typeof window === 'undefined') {
     return;
@@ -59,10 +64,38 @@ function updateRenderMetrics(partial: Partial<RenderMetricsShape>) {
 }
 
 function captureSafeAreaMetrics(snapshot: SafeAreaSnapshot) {
+  const safeAreaTop = Math.max(0, snapshot.safe.top ?? 0);
+  const contentSafeAreaTop = Math.max(0, snapshot.content.top ?? 0);
+
   updateRenderMetrics({
-    safeAreaTop: Math.max(0, snapshot.safe.top ?? 0),
-    contentSafeAreaTop: Math.max(0, snapshot.content.top ?? 0),
+    safeAreaTop,
+    contentSafeAreaTop,
   });
+
+  trackSafeAreaTelemetry(safeAreaTop, contentSafeAreaTop);
+}
+
+function trackSafeAreaTelemetry(safeAreaTop: number, contentSafeAreaTop: number) {
+  if (!hasSafeAreaTelemetryBaseline) {
+    lastSafeAreaTelemetry = { safeAreaTop, contentSafeAreaTop };
+    hasSafeAreaTelemetryBaseline = true;
+    return;
+  }
+
+  const safeDelta = Math.abs(safeAreaTop - lastSafeAreaTelemetry.safeAreaTop);
+  const contentDelta = Math.abs(contentSafeAreaTop - lastSafeAreaTelemetry.contentSafeAreaTop);
+
+  if (safeDelta >= SAFE_AREA_TELEMETRY_THRESHOLD || contentDelta >= SAFE_AREA_TELEMETRY_THRESHOLD) {
+    void logClientEvent('ui_safe_area_delta', {
+      safeAreaTop,
+      contentSafeAreaTop,
+      safeDelta,
+      contentDelta,
+      timestamp: Date.now(),
+    });
+  }
+
+  lastSafeAreaTelemetry = { safeAreaTop, contentSafeAreaTop };
 }
 
 function captureViewportMetrics(metrics: ViewportMetrics) {
@@ -124,10 +157,22 @@ function installSafeAreaDebugCommand() {
     runDebugCommand('/debug_safe_area');
   };
 
+  const handleKeydown = (event: KeyboardEvent) => {
+    if (event.metaKey && event.shiftKey && event.key.toLowerCase() === 's') {
+      const handled = runDebugCommand('/debug_safe_area');
+      if (handled) {
+        event.preventDefault();
+      }
+    }
+  };
+
+  window.addEventListener('keydown', handleKeydown);
+
   if (import.meta.env.DEV) {
     console.info(
       'Dev command ready: run debug_safe_area() or window.__runDebugCommand("/debug_safe_area") to log safe-area metrics.'
     );
+    console.info('Keyboard shortcut: Meta + Shift + S');
   }
 }
 

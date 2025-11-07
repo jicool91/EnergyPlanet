@@ -159,6 +159,10 @@ function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
   const root = document.documentElement;
   const { safe, content } = snapshot;
 
+  // CSS variable matrix mirrors Section 6 of `docs/telegram-fullscreen-status-bar.md`.
+  // `--tg-safe-area-*` map to hardware insets, `--tg-content-safe-area-*` capture Telegram chrome.
+  // Derived `--app-*` tokens feed React layouts via CSS so we never re-compute padding manually.
+
   root.style.setProperty('--tg-safe-area-inset-top', `${safe.top}px`);
   root.style.setProperty('--tg-safe-area-inset-right', `${safe.right}px`);
   root.style.setProperty('--tg-safe-area-inset-bottom', `${safe.bottom}px`);

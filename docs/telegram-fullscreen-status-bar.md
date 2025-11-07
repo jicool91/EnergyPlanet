@@ -301,7 +301,7 @@ QA Tips: use `/debug_safe_area` command in dev console to log insets after each 
 
 ## 10. File-by-file action checklist
 ### webapp/src/services/tma/viewport.ts:60-138
-- [ ] Explain CSS var binding in comments.
+- [x] Explain CSS var binding in comments.
 - [x] Expose `onFullscreenChange` helper that wraps SDK + native events.
 - [x] Log errors when fullscreen requests fail.
 
@@ -348,6 +348,8 @@ QA Tips: use `/debug_safe_area` command in dev console to log insets after each 
 11.5 Provide a keyboard shortcut (`Meta`+`Shift`+`S`) in dev builds to toggle a safe-area overlay (semi-transparent rectangles).
 11.6 Update `webapp/tests/utils/stageMocks.ts` to allow overriding safe area + fullscreen flags for deterministic tests.
 11.7 Document how to reproduce Telegram close-button overlap issues using Playwright device emulation + `viewport.isFullscreen` mocks.
+11.8 Инструментировать `ui_safe_area_delta` телеметрию при изменении safe-area >4 px (`webapp/src/main.tsx`).
+11.9 Хук `/debug_safe_area` привязать к горячей клавише `Meta+Shift+S` и логам DevTools для QA.
 
 ---
 
