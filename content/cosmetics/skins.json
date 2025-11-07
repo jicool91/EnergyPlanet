@@ -128,6 +128,19 @@
       "preview_url": "https://cdn.energyplanet.game/cosmetics/skins/lava_preview.png"
     },
     {
+      "id": "aurora_planet_skin",
+      "name": "Aurora Planet",
+      "description": "Shimmering polar lights across the atmosphere",
+      "category": "planet_skin",
+      "rarity": "legendary",
+      "unlock_type": "purchase",
+      "unlock_requirement": {
+        "price_stars": 480
+      },
+      "asset_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/planets/AURORA.jpg",
+      "preview_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/planets/AURORA.jpg"
+    },
+    {
       "id": "default_effect",
       "name": "Basic Tap",
       "description": "Standard tap effect",
@@ -200,6 +213,45 @@
       },
       "asset_url": "https://cdn.energyplanet.game/cosmetics/backgrounds/galaxy.jpg",
       "preview_url": "https://cdn.energyplanet.game/cosmetics/backgrounds/galaxy_preview.jpg"
+    },
+    {
+      "id": "neon_arc_frame",
+      "name": "Neon Arc Frame",
+      "description": "Vivid energy ring pulsing with neon light",
+      "category": "avatar_frame",
+      "rarity": "rare",
+      "unlock_type": "purchase",
+      "unlock_requirement": {
+        "price_stars": 320
+      },
+      "asset_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/frames/neon-circle.jpg",
+      "preview_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/frames/neon-circle.jpg"
+    },
+    {
+      "id": "storm_giant_skin",
+      "name": "Storm Giant",
+      "description": "Electrified gas giant with bright auroras",
+      "category": "planet_skin",
+      "rarity": "epic",
+      "unlock_type": "purchase",
+      "unlock_requirement": {
+        "price_stars": 420
+      },
+      "asset_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/planets/storm-giant.jpg",
+      "preview_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/planets/storm-giant.jpg"
+    },
+    {
+      "id": "void_expanse_bg",
+      "name": "Void Expanse",
+      "description": "Deep-space vista of violet nebula clouds",
+      "category": "background",
+      "rarity": "rare",
+      "unlock_type": "purchase",
+      "unlock_requirement": {
+        "price_stars": 350
+      },
+      "asset_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/backgrounds/void-expanse.jpg",
+      "preview_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/backgrounds/void-expanse.jpg"
     }
   ],
   "categories": [
