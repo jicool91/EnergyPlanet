@@ -31,7 +31,12 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
     if (typeof window === 'undefined') {
       return 'unknown';
     }
-    return window.Telegram?.WebApp?.platform?.toLowerCase() ?? 'unknown';
+    const rawPlatform = (
+      window as typeof window & {
+        Telegram?: { WebApp?: { platform?: unknown } };
+      }
+    ).Telegram?.WebApp?.platform;
+    return typeof rawPlatform === 'string' ? rawPlatform.toLowerCase() : 'unknown';
   }, []);
   const isDesktopPlatform = useMemo(() => {
     return /desktop|mac|windows|web/.test(platform);
