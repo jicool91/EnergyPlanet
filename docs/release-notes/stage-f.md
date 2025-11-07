@@ -7,10 +7,10 @@
 - Leaderboards/Social: Storybook сценарии для LeaderboardPanel (default/empty/error).
 
 ## Чеклист перед релизом
-- [ ] Все миграции отмечены в `docs/roadmap/migration-plan.md`.
-- [x] Chromatic + Playwright чистые. _(Chromatic build #3 + `npx playwright test tests/qa/stage-f.spec.ts`)_
-- [ ] Seasonal Rewards UX согласован и задокументирован. _(см. обновление `docs/design/seasonal-rewards.md`, админ-панель `SeasonRewardsAdminPanel`)_
-- [ ] Release QA пройден по `docs/qa/stage-f-checklist.md`.
+- [x] Все миграции отмечены в `docs/roadmap/migration-plan.md`.
+- [x] Chromatic + Playwright чистые. _(Chromatic build #4 + `npx playwright test tests/qa/stage-f.spec.ts`)_
+- [x] Seasonal Rewards UX согласован и задокументирован. _(см. раздел «Ежемесячный цикл сезона» в `docs/design/seasonal-rewards.md`)_
+- [x] Release QA пройден по `docs/qa/stage-f-checklist.md`. _(подтверждено `docs/qa/stage-f-final-qa.md`)_
 
 ## Прогресс 2025-11-06
 - Навигация приведена к мобильным гайдлайнам Telegram: вкладка `Airdrop` заменена на `Chat`, бар растянут до `max-w-screen-md`, safe area учитывается для padding.
@@ -27,7 +27,11 @@
 ## Прогресс 2025-11-07
 - FriendsScreen приведён к дизайн-системе: единые `Surface`, новая Chromatic story, обновлённый `FriendsList` и `ReferralRevenueCard`.
 - Seasonal Rewards UX финализирован: утверждены призовые пакеты, добавлены купонные скрипты и тексты (`docs/design/seasonal-rewards.md`, i18n `season.reward.*`).
+- Ежемесячный сезонный цикл задокументирован: cron → snapshot → admin выдача (см. `docs/design/seasonal-rewards.md`), TTL/архив описаны для поддержания Stage G.
 - Playwright `stage-f.spec.ts` проходит на `npm run preview` (покупки, PvP превью, чаты); конфиг автоматически поднимает превью-сервер.
+- Premium Shop завершён на DS: `ShopPanel` получил storybook-витрины, а `AdminMonetizationScreen` теперь показывает тот же каталог (проверено Playwright `stage-f.spec.ts` через admin-modal).
+- Chromatic build #4 фиксирует FriendsScreen/LeaderboardPanel/ShopPanel stories и служит регрессионной сеткой для социальных экранов.
+- Legacy `text-token-*` классы убраны, компоненты используют `text-text-*` токены Tailwind; подготовлено к чистке остальных `card-*` хелперов.
 
 ## История
 - _Заполнить после релиза_

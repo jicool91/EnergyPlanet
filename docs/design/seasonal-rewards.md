@@ -34,6 +34,27 @@
 - Логи (`season_reward_granted`) записываются в таблицу `events`.  
 - Playwright QA: сценарий выдачи награды через mock (см. `tests/qa/stage-f.spec.ts`).
 
+## Ежемесячный цикл сезона (Stage F update 2025‑11‑07)
+1. **Авто-старт** — `cron.schedule('0 0 1 * *')` вызывает `SeasonService.startNewOrResume()`.  
+   - Создаётся запись `arena_seasons` с `season_number = YYYYMM`.  
+   - Дата окончания = последнее число месяца (`SeasonCalendar.resolveEndDate()`).
+2. **Ежедневные снапшоты** — `SeasonSnapshotWorker` (feature flag `SEASONAL_SNAPSHOT_ENABLED`) пишет прогресс в `season_snapshots_daily`.  
+   - Используется для графиков admin UI и fallback, если финальный экспорт сорвался.
+3. **Финиш (`last_day + 1`)**  
+   - `SeasonService.closeSeason(seasonId)` замораживает leaderboard и создаёт JSON `season_snapshot` (100 игроков).  
+   - Триггерит уведомление в Telegram админам.
+4. **Админ-панель**  
+   - `AdminMonetizationScreen` → `SeasonRewardsAdminPanel` показывает завершённый сезон, кнопки `Grant Gold/Silver/Bronze`, экспорт снапшота.  
+   - Делает POST `/admin/seasons/:id/reward` и логирует `season_reward_granted`.
+5. **Старт нового месяца**  
+   - `SeasonRecapModal` показывается игроку при первом логине нового месяца (используем `season_recap_shown_at`).  
+   - Купоны из `season_coupons` переносятся в `season_rewards` при выдаче.
+
+### TTL и архив
+- Последние 6 месяцев (текущий + 5) храним в `season_snapshot`.  
+- Архив старше 6 мес переносим в `content/seasons/archive/*.json` через скрипт `scripts/archiveSeasonSnapshots.ts`.  
+- `GET /admin/seasons/snapshot?season=YYYYMM` поддерживает запросы к архиву (читает JSON).
+
 ## Наградные пакеты (утверждено 2025‑11‑07)
 - **Gold (1‑е место)** — 1 000 ⭐ + купон Wildberries на 1 500 ₽ + Premium Boost Bundle.  
   Код хранится в `season_rewards.coupon_code`; панель подставляет свободный купон из `season_coupons` и помечает его как `used_at`.

@@ -5,10 +5,10 @@
 | TapScreen      | UI Team A     | D     | ✅ Done | Playwright + Chromatic | Stage D baseline 2025-11-06 |
 | ExchangeScreen | UI Team A     | D     | ✅ Done | Playwright + Chromatic | |
 | FriendsScreen  | UI Team A     | D     | ✅ Done | Playwright + Chromatic | |
-| PvP Lobby      | UI Team B     | F     | 🛠 In progress | Storybook (PvP), Playwright | Запустить после Stage E |
-| Events Schedule| UI Team B     | F     | 🛠 In progress | Storybook | Учитывать сезонные награды |
-| Premium Shop   | Monetization  | F     | ☐ Todo | Storybook + QA | Синхронизировать с Seasonal Rewards |
-| Leaderboards (Global) | Social Squad | F | 🛠 In progress | Chromatic | Clan screen в планах Stage G |
+| PvP Lobby      | UI Team B     | F     | ✅ Done | Storybook (PvP), Playwright | Chromatic build #4 baseline |
+| Events Schedule| UI Team B     | F     | ✅ Done | Storybook + Chromatic | Seasonal tokens учтены |
+| Premium Shop   | Monetization  | F     | ✅ Done | Storybook + Playwright | ShopPanel + админ-превью синхронизированы с Seasonal Rewards |
+| Leaderboards (Global) | Social Squad | F | ✅ Done | Chromatic + Playwright | Clan screen в Stage G roadmap |
 | ChatScreen     | Social Squad  | F     | ✅ Done | Storybook (placeholder) | Плейсхолдер + QA, ждёт чат-бэкенд |
 
 - Добавляйте новые строки для экранов, которые мигрируете.

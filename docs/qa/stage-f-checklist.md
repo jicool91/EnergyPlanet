@@ -6,23 +6,23 @@
 - [x] Покрыть PvP/Event сценарии Storybook stories + Chromatic снапшотами. _(Chromatic build #3 опубликован `npm run test:storybook -- --exit-zero-on-changes`)_
 
 ## Premium Shop & Monetization
-- [ ] Мигрировать Admin/Premium Shop экраны на `ShopPanel`/`ProductTile`.
+- [x] Мигрировать Admin/Premium Shop экраны на `ShopPanel`/`ProductTile`. _(ShopPanel stories + AdminMonetization preview, Playwright `stage-f.spec.ts`)_
 - [x] Доработать PurchaseSuccessModal для премиум-предложений (варианты, локали).
 - [x] Обновить Playwright QA для премиум-покупок с mock-инвойсами. _(см. `webapp/tests/qa/stage-f.spec.ts`)_
 
 ## Leaderboards & Social
 - [x] Применить DS к Friends/Clan доскам (типографика + фокус). _(FriendsScreen migrated; Clan в Stage G roadmap)_
 - [x] Добавить Storybook stories для LeaderboardPanel (dark/light, empty/error).
-- [ ] Настроить Chromatic regression для новых social-компонентов.
+- [x] Настроить Chromatic regression для новых social-компонентов. _(Chromatic build #4 — FriendsScreen + LeaderboardPanel snapshots)_
 
 ## Seasonal Rewards
-- [ ] Ввести модель «сезон раз в месяц» с фиксацией итоговых рейтингов.
+- [x] Ввести модель «сезон раз в месяц» с фиксацией итоговых рейтингов. _(см. раздел «Ежемесячный цикл сезона» в `docs/design/seasonal-rewards.md`)_
 - [x] Реализовать админ-экран с кнопками награждения топ-3 прошлого сезона (разные призы).
 - [x] Подготовить UX/тексты для выдачи купонов (например, Wildberries) и интегрировать в игру (`docs/design/seasonal-rewards.md`).
 
 ## Release Readiness
-- [ ] Схлопнуть legacy CSS/компоненты (убрать старые `text-*`, `card-*`).
+- [x] Схлопнуть legacy CSS/компоненты (убрать старые `text-*`, `card-*`). _(удалены `text-token-*` классы, компоненты переведены на `text-text-*` токены)_
 - [x] Обновить `docs/release-notes/stage-f.md`, перечислив мигрированные фичи и метрики.
-- [ ] Провести финальную QA с чеклистами Stage D/E и зафиксировать переход в Stage G.
+- [x] Провести финальную QA с чеклистами Stage D/E и зафиксировать переход в Stage G. _(см. `docs/qa/stage-f-final-qa.md`)_
 - [x] Подтвердить, что админские элементы скрыты на Tap/Exchange/Friends/Earn и доступны только через профиль. _(Playwright `stage-f.spec.ts`)_
 - [x] Протестировать новую вкладку Chat в нижней навигации (safe area, бейджи, возврат назад). _(Playwright `stage-f.spec.ts`)_
