@@ -19,7 +19,7 @@
       "rarity": "rare",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 250
+        "price_stars": 0
       },
       "asset_url": "https://cdn.energyplanet.game/cosmetics/frames/golden_001.png",
       "preview_url": "https://cdn.energyplanet.game/cosmetics/frames/golden_001_preview.png"
@@ -32,7 +32,7 @@
       "rarity": "epic",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 500
+        "price_stars": 0
       },
       "asset_url": "https://cdn.energyplanet.game/cosmetics/frames/diamond_001.png",
       "preview_url": "https://cdn.energyplanet.game/cosmetics/frames/diamond_001_preview.png"
@@ -109,7 +109,7 @@
       "rarity": "epic",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 400
+        "price_stars": 0
       },
       "asset_url": "https://cdn.energyplanet.game/cosmetics/skins/cyber.png",
       "preview_url": "https://cdn.energyplanet.game/cosmetics/skins/cyber_preview.png"
@@ -122,7 +122,7 @@
       "rarity": "rare",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 300
+        "price_stars": 0
       },
       "asset_url": "https://cdn.energyplanet.game/cosmetics/skins/lava.png",
       "preview_url": "https://cdn.energyplanet.game/cosmetics/skins/lava_preview.png"
@@ -135,7 +135,7 @@
       "rarity": "legendary",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 480
+        "price_stars": 0
       },
       "asset_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/planets/AURORA.jpg",
       "preview_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/planets/AURORA.jpg"
@@ -159,7 +159,7 @@
       "rarity": "uncommon",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 150
+        "price_stars": 0
       },
       "asset_url": "https://cdn.energyplanet.game/cosmetics/effects/spark.json",
       "preview_url": "https://cdn.energyplanet.game/cosmetics/effects/spark_preview.webm"
@@ -172,7 +172,7 @@
       "rarity": "rare",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 250
+        "price_stars": 0
       },
       "asset_url": "https://cdn.energyplanet.game/cosmetics/effects/explosion.json",
       "preview_url": "https://cdn.energyplanet.game/cosmetics/effects/explosion_preview.webm"
@@ -196,7 +196,7 @@
       "rarity": "uncommon",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 200
+        "price_stars": 0
       },
       "asset_url": "https://cdn.energyplanet.game/cosmetics/backgrounds/nebula.jpg",
       "preview_url": "https://cdn.energyplanet.game/cosmetics/backgrounds/nebula_preview.jpg"
@@ -209,7 +209,7 @@
       "rarity": "rare",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 300
+        "price_stars": 0
       },
       "asset_url": "https://cdn.energyplanet.game/cosmetics/backgrounds/galaxy.jpg",
       "preview_url": "https://cdn.energyplanet.game/cosmetics/backgrounds/galaxy_preview.jpg"
@@ -222,7 +222,7 @@
       "rarity": "rare",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 320
+        "price_stars": 0
       },
       "asset_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/frames/neon-circle.jpg",
       "preview_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/frames/neon-circle.jpg"
@@ -235,7 +235,7 @@
       "rarity": "epic",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 420
+        "price_stars": 0
       },
       "asset_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/planets/storm-giant.jpg",
       "preview_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/cosmetics/planets/storm-giant.jpg"
@@ -248,7 +248,7 @@
       "rarity": "rare",
       "unlock_type": "purchase",
       "unlock_requirement": {
-        "price_stars": 350
+        "price_stars": 0
       },
       "asset_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/backgrounds/void-expanse.jpg",
       "preview_url": "https://pub-82168f1e3d0c4db3acee33169e99b115.r2.dev/backgrounds/void-expanse.jpg"

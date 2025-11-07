@@ -238,41 +238,55 @@ export class CosmeticService {
         case 'purchase': {
           const priceStars = extractPrice(requirement);
 
-          if (!priceStars) {
+          if (priceStars === null || Number.isNaN(priceStars)) {
             throw new AppError(400, 'invalid_cosmetic_price');
           }
 
-          const purchaseAllowed = config.monetization.starsEnabled || config.testing.mockPayments;
-          if (!purchaseAllowed) {
-            throw new AppError(403, 'purchases_disabled');
-          }
+          const isFreePurchase = priceStars <= 0;
 
-          const availableStars = context.progress.starsBalance ?? 0;
-          if (availableStars < priceStars) {
-            throw new AppError(402, 'not_enough_stars');
-          }
+          let balanceAfter: number | null = null;
 
-          let balanceAfter: number;
-          try {
-            balanceAfter = await adjustStarsBalance(userId, -priceStars, client);
-          } catch (error) {
-            if (error instanceof Error && error.message === 'insufficient_stars') {
+          if (!isFreePurchase) {
+            const purchaseAllowed = config.monetization.starsEnabled || config.testing.mockPayments;
+            if (!purchaseAllowed) {
+              throw new AppError(403, 'purchases_disabled');
+            }
+
+            const availableStars = context.progress.starsBalance ?? 0;
+            if (availableStars < priceStars) {
               throw new AppError(402, 'not_enough_stars');
             }
-            throw error;
-          }
 
-          await logEvent(
-            userId,
-            'stars_balance_debit',
-            {
-              source: 'cosmetic_purchase',
-              cosmetic_id: cosmeticId,
-              amount: priceStars,
-              balance_after: balanceAfter,
-            },
-            { client }
-          );
+            try {
+              balanceAfter = await adjustStarsBalance(userId, -priceStars, client);
+            } catch (error) {
+              if (error instanceof Error && error.message === 'insufficient_stars') {
+                throw new AppError(402, 'not_enough_stars');
+              }
+              throw error;
+            }
+
+            await logEvent(
+              userId,
+              'stars_balance_debit',
+              {
+                source: 'cosmetic_purchase',
+                cosmetic_id: cosmeticId,
+                amount: priceStars,
+                balance_after: balanceAfter,
+              },
+              { client }
+            );
+          } else {
+            await logEvent(
+              userId,
+              'cosmetic_purchase_free',
+              {
+                cosmetic_id: cosmeticId,
+              },
+              { client }
+            );
+          }
 
           await grantCosmetic(userId, cosmeticId, ownedSet, client, 'purchase');
           await logEvent(
@@ -281,7 +295,7 @@ export class CosmeticService {
             {
               cosmetic_id: cosmeticId,
               price_stars: priceStars,
-              source: config.testing.mockPayments ? 'mock' : 'stars',
+              source: isFreePurchase ? 'free' : config.testing.mockPayments ? 'mock' : 'stars',
               balance_after: balanceAfter,
             },
             { client }
