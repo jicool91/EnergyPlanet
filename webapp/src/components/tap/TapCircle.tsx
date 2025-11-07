@@ -1,4 +1,5 @@
 import { memo, useMemo } from 'react';
+import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 import { useGyroscope } from '@/hooks/useGyroscope';
@@ -39,7 +40,8 @@ export const TapCircle = memo(function TapCircle({
     return { x, y };
   }, [gyroscope, reduceMotion]);
 
-  const glowAnimation = reduceMotion
+  const hasPlanetImage = Boolean(planetAssetUrl);
+  const glowAnimation = reduceMotion || hasPlanetImage
     ? undefined
     : {
         scale: [1, 1.15, 1],
@@ -52,20 +54,26 @@ export const TapCircle = memo(function TapCircle({
         },
       };
 
+  const buttonClassName = clsx(
+    'relative flex h-40 w-40 flex-col items-center justify-center rounded-full text-display font-semibold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary',
+    disabled ? 'cursor-not-allowed opacity-70' : 'hover:scale-105 active:scale-95',
+    hasPlanetImage
+      ? 'bg-surface-primary text-text-primary border border-border-layer-strong shadow-elevation-3'
+      : 'bg-gradient-to-br from-accent-gold via-accent-gold-light to-accent-gold text-text-inverse shadow-glow-gold'
+  );
+
   return (
     <div className="flex flex-col items-center gap-4">
       <motion.button
         type="button"
-        className={`relative flex h-40 w-40 flex-col items-center justify-center rounded-full bg-gradient-to-br from-accent-gold via-accent-gold-light to-accent-gold text-display font-semibold text-text-inverse shadow-glow-gold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary ${
-          disabled ? 'cursor-not-allowed opacity-70' : 'hover:scale-105 active:scale-95'
-        }`}
+        className={buttonClassName}
         onClick={disabled ? undefined : onTap}
         disabled={disabled}
         aria-label="Тапнуть планету, чтобы добыть энергию"
         animate={!reduceMotion && !disabled ? { x: gyroOffset.x, y: gyroOffset.y } : { x: 0, y: 0 }}
         transition={{ type: 'spring', stiffness: 120, damping: 18, mass: 0.6 }}
       >
-        {!reduceMotion && (
+        {!reduceMotion && !hasPlanetImage && (
           <motion.div
             className="absolute inset-[-12%] rounded-full bg-gradient-soft blur-3xl"
             animate={glowAnimation}
@@ -75,9 +83,9 @@ export const TapCircle = memo(function TapCircle({
           <OptimizedImage
             src={planetAssetUrl}
             alt={planetName ?? 'Planet skin'}
-            width={128}
-            height={128}
-            className="h-24 w-24 rounded-full object-cover shadow-elevation-3"
+            width={152}
+            height={152}
+            className="h-32 w-32 rounded-full object-cover"
           />
         ) : (
           <span role="img" aria-hidden="true">
