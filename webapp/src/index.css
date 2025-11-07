@@ -37,6 +37,7 @@
   --app-card-bg: var(--tg-theme-section-bg-color, #1d2025);
   --app-card-border: var(--tg-theme-section-separator-color, rgba(255, 255, 255, 0.08));
   --app-header-bg: var(--tg-theme-header-bg-color, #000000);
+  --app-header-system-bg: color-mix(in srgb, var(--app-header-bg, var(--app-bg)) 92%, transparent);
   --app-bottom-bar-bg: var(--tg-theme-bottom-bar-bg-color, #1d2025);
   --app-danger-text: var(--tg-theme-destructive-text-color, #ef4444);
 
@@ -159,13 +160,13 @@
   .status-bar-shell {
     border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.08));
     border-radius: 28px;
-    background-color: color-mix(in srgb, var(--app-header-bg, var(--app-bg)) 92%, transparent);
+    background-color: var(--app-header-system-bg, var(--app-header-bg));
     box-shadow: 0 20px 45px rgba(10, 10, 10, 0.45);
     backdrop-filter: blur(24px);
     transition:
-      border-color 160ms ease,
-      box-shadow 160ms ease,
-      background-color 160ms ease;
+      border-color 200ms ease,
+      box-shadow 200ms ease,
+      background-color 200ms ease;
   }
 
   .status-bar-shell[data-fullscreen='true'] {
@@ -183,7 +184,11 @@
     padding: 0 16px;
     border-radius: 999px;
     border: 1px solid var(--app-card-border, rgba(255, 255, 255, 0.12));
-    background-color: color-mix(in srgb, var(--app-header-bg, var(--app-bg)) 85%, transparent);
+    background-color: color-mix(
+      in srgb,
+      var(--app-header-system-bg, var(--app-header-bg)) 90%,
+      transparent
+    );
     color: var(--app-text, #fff);
     font-size: 14px;
     font-weight: 600;

@@ -5,3 +5,4 @@
 - Обновлён `webapp/docs/DESIGN_SYSTEM.md` блоком про статус-бар и токены `--app-header-*`.
 - Task 02 (верхний статус-бар) отмечен в `docs/06-11-2025/ui-task-02-top-bar.md` + добавлены QA тесты и dev-команда `/debug_safe_area`.
 - `webapp/src/main.tsx` логирует `ui_safe_area_delta`, а `/debug_safe_area` доступна по горячей клавише `Meta+Shift+S`.
+- Добавлена desktop/web кнопка закрытия (`manual-close-button`) и тесты Playwright (safe-area.spec.ts) проверяют её наличие/отсутствие.

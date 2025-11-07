@@ -57,4 +57,16 @@ test.describe('Safe area + fullscreen instrumentation', () => {
     const closeCalls = await page.evaluate(() => (window as typeof window & { __manualCloseCalls?: number }).__manualCloseCalls ?? 0);
     expect(closeCalls).toBeGreaterThan(0);
   });
+
+  test('mobile platforms hide manual close button', async ({ page }) => {
+    await setupStageMocks(page, {
+      safeAreaOverride: SAFE_AREA_OVERRIDE,
+      viewportOverride: { isFullscreen: false },
+      platform: 'android',
+    });
+    await page.goto('/');
+
+    const manualClose = page.getByTestId('manual-close-button');
+    await expect(manualClose).toHaveCount(0);
+  });
 });

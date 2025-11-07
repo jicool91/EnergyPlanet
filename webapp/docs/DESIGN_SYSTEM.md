@@ -207,6 +207,7 @@ Tokens:
 - --app-header-reserve = 90px (16 top + 56 core + 16 bottom + 2 lvl bar)
 - --app-header-buffer = 12px (зазор от системных кнопок Telegram)
 - --app-header-offset-top = calc(device safe area + Telegram content inset + buffer)
+- --app-header-system-bg = color-mix фон шапки для sheet/desktop состояний
 - --app-content-padding-top = отступ для основного контента под шапкой
 ```
 
@@ -225,8 +226,9 @@ Tokens:
 | Default / sheet | `status-bar-shell` с рамкой и тенью, радиус 28px, blur 24px                  |
 | Expanded        | То же, но придерживаемся safe-area слева/справа через `paddingLeft/Right`    |
 | Fullscreen      | `data-fullscreen="true"` — убираем рамку/тень, фон = `--app-header-bg`       |
+| Desktop/web     | Поверх шапки рендерим кнопку `manual-close-button` (blur, border 1px, icon "✕") |
 
-> Не допускается ручное указание `padding-top` или `top` руками — всегда используем CSS-переменные, синхронизированные с Telegram SDK.
+> Не допускается ручное указание `padding-top` или `top` руками — всегда используем CSS-переменные, синхронизированные с Telegram SDK. Для desktop/web клиентов используйте готовую кнопку `manual-close-button`, запускающую `miniApp.close()`.
 
 ### Button Success
 

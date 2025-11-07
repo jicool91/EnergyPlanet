@@ -162,8 +162,10 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
             style={manualCloseStyle}
             onClick={handleManualClose}
             data-testid="manual-close-button"
+            aria-label="Закрыть Energy Planet"
           >
-            Закрыть
+            <span aria-hidden="true">✕</span>
+            <span className="sr-only">Закрыть</span>
           </button>
         ) : null}
         {header ? (
