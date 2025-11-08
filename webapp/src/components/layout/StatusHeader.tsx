@@ -1,5 +1,5 @@
 import { useMemo, useId } from 'react';
-import { Surface, Text, ProgressBar, Button } from '@/components';
+import { Surface, Text, ProgressBar, Button, IconButton } from '@/components';
 import type { HeaderActionConfig } from '@/constants/headerSchema';
 import { useGameStore } from '@/store/gameStore';
 
@@ -65,10 +65,10 @@ export function TapStatusHeader({
   return (
     <Surface
       tone="overlayMedium"
-      border="subtle"
-      elevation="strong"
+      border="none"
+      elevation="medium"
       padding="md"
-      rounded="3xl"
+      rounded="2xl"
       className="flex items-center justify-between gap-4"
       role="region"
       aria-label="Сводка прогресса"
@@ -116,18 +116,30 @@ export function TapStatusHeader({
         </Text>
       </div>
       <div className="flex items-center gap-2">
-        {preparedActions.map(action => (
-          <Button
-            key={action.id}
-            type="button"
-            size="md"
-            variant={action.variant}
-            aria-label={action.label}
-            onClick={() => onNavigate(action.target, { replace: action.replace })}
-          >
-            {action.label}
-          </Button>
-        ))}
+        {preparedActions.map(action =>
+          action.icon ? (
+            <IconButton
+              key={action.id}
+              type="button"
+              size="md"
+              variant={action.variant}
+              aria-label={action.label}
+              onClick={() => onNavigate(action.target, { replace: action.replace })}
+              icon={<span className="text-xl">{action.icon}</span>}
+            />
+          ) : (
+            <Button
+              key={action.id}
+              type="button"
+              size="md"
+              variant={action.variant}
+              aria-label={action.label}
+              onClick={() => onNavigate(action.target, { replace: action.replace })}
+            >
+              {action.label}
+            </Button>
+          )
+        )}
       </div>
     </Surface>
   );
@@ -145,10 +157,10 @@ export function SimpleHeader({ title, actions, onNavigate }: SimpleHeaderProps) 
   return (
     <Surface
       tone="overlayMedium"
-      border="subtle"
-      elevation="strong"
+      border="none"
+      elevation="medium"
       padding="md"
-      rounded="3xl"
+      rounded="2xl"
       className="flex items-center justify-between"
       role="region"
       aria-label={`Заголовок ${title}`}
@@ -157,19 +169,31 @@ export function SimpleHeader({ title, actions, onNavigate }: SimpleHeaderProps) 
         {title}
       </Text>
       <div className="flex items-center gap-2">
-        {preparedActions.map(action => (
-          <Button
-            key={action.id}
-            type="button"
-            size="md"
-            variant={action.variant}
-            className="text-text-secondary"
-            aria-label={action.label}
-            onClick={() => onNavigate(action.target, { replace: action.replace })}
-          >
-            {action.label}
-          </Button>
-        ))}
+        {preparedActions.map(action =>
+          action.icon ? (
+            <IconButton
+              key={action.id}
+              type="button"
+              size="md"
+              variant={action.variant}
+              aria-label={action.label}
+              onClick={() => onNavigate(action.target, { replace: action.replace })}
+              icon={<span className="text-xl">{action.icon}</span>}
+            />
+          ) : (
+            <Button
+              key={action.id}
+              type="button"
+              size="md"
+              variant={action.variant}
+              className="text-text-secondary"
+              aria-label={action.label}
+              onClick={() => onNavigate(action.target, { replace: action.replace })}
+            >
+              {action.label}
+            </Button>
+          )
+        )}
       </div>
     </Surface>
   );

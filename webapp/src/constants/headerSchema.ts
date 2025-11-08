@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import type { BottomNavigationTabId } from '@/components/layout/BottomNavigation';
 
 type AppRouteBase = '/' | '/exchange' | '/friends' | '/earn' | '/chat' | '/events' | '/profile';
@@ -13,6 +14,7 @@ export interface HeaderActionConfig {
   target: AppRoute;
   variant?: HeaderActionVariant;
   replace?: boolean;
+  icon?: ReactNode;
 }
 
 export interface HeaderSchema {
@@ -28,12 +30,14 @@ const tapActions: HeaderActionConfig[] = [
     label: 'Магазин',
     target: '/exchange?section=star_packs',
     variant: 'primary',
+    icon: '🛒',
   },
   {
     id: 'profile',
     label: 'Профиль',
     target: '/profile',
     variant: 'secondary',
+    icon: '⚙️',
   },
 ];
 
