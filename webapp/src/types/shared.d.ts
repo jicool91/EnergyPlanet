@@ -1,4 +1,4 @@
-declare module '@shared/tokens/safe-area.json' {
+declare module '../../../shared/tokens/safe-area.json' {
   const value: {
     headerReservePx: number;
     headerBufferPx: number;

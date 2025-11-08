@@ -1,4 +1,4 @@
-import safeAreaTokens from '@shared/tokens/safe-area.json';
+import safeAreaTokens from '../../../shared/tokens/safe-area.json';
 
 /**
  * Shared layout spacing constants to keep header/content offsets in sync.
