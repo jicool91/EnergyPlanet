@@ -1,6 +1,7 @@
 import clsx from 'clsx';
 import { memo } from 'react';
 import { Text } from '@/components/ui/Text';
+import { NAVIGATION_BUFFER_PX } from '@/constants/layout';
 
 export type BottomNavigationTabId = 'tap' | 'exchange' | 'friends' | 'earn' | 'chat';
 
@@ -26,7 +27,7 @@ export const BottomNavigation = memo(function BottomNavigation({
   insetBottom,
 }: BottomNavigationProps) {
   const safePadding = Math.max(0, insetBottom);
-  const paddingBottomValue = `calc(${safePadding + 12}px + var(--tg-content-safe-area-bottom, 0px))`;
+  const paddingBottomValue = `calc(${safePadding + NAVIGATION_BUFFER_PX}px + var(--tg-content-safe-area-bottom, 0px))`;
 
   return (
     <nav

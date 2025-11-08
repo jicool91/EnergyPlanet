@@ -18,4 +18,5 @@ export const SAFE_AREA_CSS_VARIABLES = {
 export const HEADER_RESERVE_PX = SAFE_AREA_LAYOUT_TOKENS.headerReservePx;
 export const HEADER_BUFFER_PX = SAFE_AREA_LAYOUT_TOKENS.headerBufferPx;
 export const NAVIGATION_RESERVE_PX = SAFE_AREA_LAYOUT_TOKENS.navigationReservePx;
+export const NAVIGATION_BUFFER_PX = SAFE_AREA_LAYOUT_TOKENS.navigationBufferPx;
 export const SIDE_PADDING_PX = SAFE_AREA_LAYOUT_TOKENS.sidePaddingPx;

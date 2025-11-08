@@ -2,5 +2,6 @@
   "headerReservePx": 90,
   "headerBufferPx": 12,
   "navigationReservePx": 88,
+  "navigationBufferPx": 12,
   "sidePaddingPx": 16
 }

@@ -166,9 +166,9 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
   const headerStyle = useMemo(
     () => ({
       ...sharedHorizontalPadding,
-      paddingTop: `var(--app-header-offset-top, ${safeTopWithBuffer}px)`,
+      paddingTop: `var(--app-header-offset-top)`,
     }),
-    [safeTopWithBuffer, sharedHorizontalPadding]
+    [sharedHorizontalPadding]
   );
 
   const headerSpacerStyle = useMemo(
