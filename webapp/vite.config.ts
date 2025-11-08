@@ -1,14 +1,17 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import { fileURLToPath } from 'node:url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: {
-      '@': path.resolve(__dirname, './src'),
-      '@shared': path.resolve(__dirname, '../shared'),
-    },
+    alias: [
+      { find: '@', replacement: path.resolve(__dirname, './src') },
+      { find: '@shared', replacement: path.resolve(__dirname, '../shared') },
+    ],
   },
   server: {
     port: 5173,
@@ -18,7 +21,7 @@ export default defineConfig({
       clientPort: 5173,
     },
     fs: {
-      allow: [path.resolve(__dirname), path.resolve(__dirname, '..')],
+      allow: [path.resolve(__dirname), path.resolve(__dirname, '..'), path.resolve(__dirname, '../shared')],
     },
     allowedHosts: [
       'epic-late-providing-antonio.trycloudflare.com',
