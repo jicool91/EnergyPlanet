@@ -161,7 +161,11 @@ function logViewportAction(
     logger.info(message, context);
   }
 
-  void logClientEvent('viewport_action', context);
+  const severity = status === 'failed' ? 'warn' : 'info';
+  void logClientEvent('viewport_action', context, severity);
+  if (status === 'failed' && (action === 'requestFullscreen' || action === 'exitFullscreen')) {
+    void logClientEvent('fullscreen_error', context, 'error');
+  }
 }
 
 function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
@@ -369,6 +373,10 @@ function updateViewport(metrics: ViewportMetrics, origin: TelemetryOrigin): View
   return metrics;
 }
 
+/**
+ * Returns the latest safe-area snapshot, falling back to Telegram overrides when SDK metrics
+ * are unavailable (e.g. before `miniApp.ready`).
+ */
 export function getTmaSafeAreaSnapshot(): SafeAreaSnapshot {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
@@ -380,6 +388,10 @@ export function getTmaSafeAreaSnapshot(): SafeAreaSnapshot {
   return updateSafeArea(readSafeAreaSnapshot(), 'sdk');
 }
 
+/**
+ * Returns current viewport metrics (height, width, fullscreen flags) with sensible fallbacks
+ * so layout code can render even before Telegram finishes bootstrapping.
+ */
 export function getTmaViewportMetrics(): ViewportMetrics {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
@@ -388,6 +400,9 @@ export function getTmaViewportMetrics(): ViewportMetrics {
   return updateViewport(readViewportMetrics(), 'sdk');
 }
 
+/**
+ * Subscribes to safe-area updates and immediately invokes the listener with the latest snapshot.
+ */
 export function onTmaSafeAreaChange(listener: Listener<SafeAreaSnapshot>): VoidFunction {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
@@ -425,6 +440,9 @@ export function onTmaSafeAreaChange(listener: Listener<SafeAreaSnapshot>): VoidF
   };
 }
 
+/**
+ * Subscribes to viewport metric updates (expand/fullscreen transitions, height changes).
+ */
 export function onTmaViewportChange(listener: Listener<ViewportMetrics>): VoidFunction {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
@@ -457,18 +475,27 @@ export function onTmaViewportChange(listener: Listener<ViewportMetrics>): VoidFu
   };
 }
 
+/**
+ * Helper subscription that only streams fullscreen state changes.
+ */
 export function onFullscreenChange(listener: Listener<boolean>): VoidFunction {
   return onTmaViewportChange(metrics => listener(Boolean(metrics.isFullscreen)));
 }
 
+/** Returns the last cached safe-area snapshot without touching the SDK. */
 export function getCachedSafeArea(): SafeAreaSnapshot {
   return currentSafeArea;
 }
 
+/** Returns the last cached viewport metrics without touching the SDK. */
 export function getCachedViewportMetrics(): ViewportMetrics {
   return currentViewport;
 }
 
+/**
+ * Requests expanded layout mode. Falls back to legacy `Telegram.WebApp.expand` when needed
+ * and logs telemetry for success/failure so regressions get surfaced in Grafana.
+ */
 export function expandViewport(): void {
   ensureTmaSdkReady();
   if (isTmaSdkAvailable()) {
@@ -500,6 +527,7 @@ export function expandViewport(): void {
   }
 }
 
+/** Checks whether requestFullscreen can be attempted on the current Telegram version. */
 export function isFullscreenAvailable(): boolean {
   const webApp = getTelegramWebApp();
   if (webApp?.isVersionAtLeast) {
@@ -508,6 +536,10 @@ export function isFullscreenAvailable(): boolean {
   return isTmaSdkAvailable();
 }
 
+/**
+ * Attempts to enter fullscreen using the modern SDK API or legacy `postEvent` fallback.
+ * Telemetry captures success/failure plus the code path to simplify debugging.
+ */
 export async function requestFullscreen(): Promise<void> {
   ensureTmaSdkReady();
 
@@ -543,6 +575,9 @@ export async function requestFullscreen(): Promise<void> {
   });
 }
 
+/**
+ * Requests exiting fullscreen, mirroring `requestFullscreen` fallback logic and telemetry.
+ */
 export async function exitFullscreen(): Promise<void> {
   ensureTmaSdkReady();
 

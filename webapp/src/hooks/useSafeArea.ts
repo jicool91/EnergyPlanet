@@ -36,6 +36,10 @@ const SAFE_AREA_TELEMETRY_THRESHOLD_PX = 6;
 const SAFE_AREA_TELEMETRY_INTERVAL_MS = 30_000;
 const SAFE_AREA_STATS_WINDOW_KEY = '__safeAreaStats';
 
+/**
+ * Reactive safe-area + viewport snapshot that stays in sync with Telegram Mini App events.
+ * Returns memoized layout insets so layout consumers avoid recalculating padding on every render.
+ */
 export function useSafeArea(): SafeAreaResult {
   const safeArea = useSyncExternalStore(
     subscribeSafeArea,
@@ -52,7 +56,7 @@ export function useSafeArea(): SafeAreaResult {
     safeTop: clampInset(safeArea.safe.top),
     contentTop: clampInset(safeArea.content.top),
     isFullscreen: Boolean(viewport.isFullscreen),
-    timestamp: typeof performance !== 'undefined' ? performance.now() : Date.now(),
+    timestamp: 0,
   });
 
   useEffect(() => {

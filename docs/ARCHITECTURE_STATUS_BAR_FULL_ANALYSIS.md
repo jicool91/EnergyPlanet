@@ -257,7 +257,7 @@ Theme change flow: user toggles → theme_change event → useTheme → setHeade
 
 - **Официальные требования.** Telegram подчёркивает, что в fullscreen нельзя оставлять кастомные status bars с рамками/тенью и что UI должен учитывать платформенные кнопки закрытия.
 - **Фактическая реализация.** Все три проблемы закрыты: padding идёт через CSS var (`webapp/src/components/layout/AppLayout.tsx:97-118`), бордер отключается через `data-fullscreen` (`webapp/src/index.css:160-186`), desktop получает `manual-close-button` (`AppLayout.tsx:155-170`).
-- **Вывод.** Решения адекватны. Из рисков — отсутствие e2e-тестов, гарантирующих, что класс `status-bar-shell` не изменят случайно.
+- **Вывод.** Решения адекватны. Регрессионный e2e-тест `status-bar-shell класс остаётся на всех вкладках` (`webapp/tests/qa/safe-area.spec.ts`) теперь ломается, если класс уберут или переименуют, так что риск случайного переименования минимизирован.
 
 ---
 7. ОСОБЕННОСТИ РЕАЛИЗАЦИИ
@@ -275,6 +275,18 @@ Theme change flow: user toggles → theme_change event → useTheme → setHeade
 8. СВЯЗЬ С ДРУГИМИ СИСТЕМАМИ
 
 Status Bar читает gameStore (energy/level/stars/xp), authStore (isAdmin), uiStore (theme snapshot), и вызывает react-router navigate.
+
+#### Минимальный контракт gameStore для Header
+
+| Поле | Где используется | Назначение |
+| --- | --- | --- |
+| `level` | `webapp/src/App.tsx:351-358` | бейдж уровня в Tap header |
+| `energy` | `webapp/src/App.tsx:351-358` | текстовая метрика ⚡ |
+| `stars` | `webapp/src/App.tsx:351-358` | текстовая метрика ⭐ |
+| `xpIntoLevel` | `webapp/src/App.tsx:351-358` | текущее заполнение прогресс-бара |
+| `xpToNextLevel` | `webapp/src/App.tsx:351-358` | верхняя граница прогресс-бара |
+
+Любые изменения этих полей в сторе должны сопровождаться обновлением `renderHeader` и документа.
 
 ### Анализ
 
@@ -316,11 +328,13 @@ App.tsx → Surface header → AppLayout (hooks) → header shell → index.css 
 11. ДОПОЛНИТЕЛЬНЫЕ ОБНОВЛЕНИЯ (2025-11-08)
 
 - Телеметрия safe area / viewport / fullscreen: `webapp/src/services/tma/viewport.ts` теперь дергает `logClientEvent` для событий `safe_area_changed`, `viewport_metrics_changed`, `viewport_action`, поэтому можно отслеживать реальные инциденты на проде.
-- Регрессионный Playwright тест: `webapp/tests/qa/safe-area.spec.ts` дополнен проверками стилей, чтобы подтвердить исчезновение рамки/тени/blur в fullscreen и их присутствие в expanded режиме.
+- Телеметрия окраски header: `AppLayout` шлёт `set_header_color_error` и `miniapp_close_failed`, а `viewport.ts` добавляет `fullscreen_error` для падающих `requestFullscreen/exitFullscreen` (см. `webapp/src/components/layout/AppLayout.tsx` и `webapp/src/services/tma/viewport.ts`).
+- Регрессионный Playwright тест: `webapp/tests/qa/safe-area.spec.ts` дополнен проверками стилей, чтобы подтвердить исчезновение рамки/тени/blur в fullscreen и их присутствие в expanded режиме, а также новым сценарием про сохранение класса `status-bar-shell` при навигации.
 - Токены layout: `webapp/src/constants/safe-area.json` хранит значения для `SAFE_AREA_LAYOUT_TOKENS`, AppLayout/viewport используют `SIDE_PADDING_PX` и shared constants вместо локальных чисел (mirror `shared/tokens/safe-area.json`).
 - Grafana: в `infra/grafana/dashboards/telegram-miniapp-product.json` добавлен ряд **Safe Area & Fullscreen** (панели safe-area events, inset quantiles, fullscreen share, viewport actions) для оперативного мониторинга.
 - Hook-телеметрия: `useSafeArea` и `useTheme` пишут события `safe_area_hook_sample`/`theme_hook_update`, а также пополняют `window.__safeAreaStats/__themeStats` для QA.
 - Fallback сценарий без Telegram SDK покрыт тестом («graceful fallback without Telegram SDK») и документирован в разделе 12.
+- План на следующий спринт: полностью перейти на провайдеры `@tma.js/sdk-react`, чтобы сократить ручной код в `services/tma/*` и получать обновления SDK напрямую.
 
 ## 12. Fallback без Telegram SDK
 

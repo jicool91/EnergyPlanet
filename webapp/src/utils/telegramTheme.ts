@@ -1,29 +1,34 @@
 type ColorScheme = 'light' | 'dark';
 
-export type TelegramThemeColorKey =
-  | 'bg_color'
-  | 'text_color'
-  | 'hint_color'
-  | 'link_color'
-  | 'button_color'
-  | 'button_text_color'
-  | 'secondary_bg_color'
-  | 'header_bg_color'
-  | 'bottom_bar_bg_color'
-  | 'accent_text_color'
-  | 'section_bg_color'
-  | 'section_header_bg_color'
-  | 'section_header_text_color'
-  | 'section_separator_color'
-  | 'subtitle_text_color'
-  | 'destructive_text_color';
-
-export type TelegramThemeParams = Partial<Record<TelegramThemeColorKey, string>> & {
-  header_color?: string;
-  bottom_bar_color?: string;
+type TelegramThemeColorMap = {
+  bg_color: string;
+  text_color: string;
+  hint_color: string;
+  link_color: string;
+  button_color: string;
+  button_text_color: string;
+  secondary_bg_color: string;
+  header_bg_color: string;
+  bottom_bar_bg_color: string;
+  accent_text_color: string;
+  section_bg_color: string;
+  section_header_bg_color: string;
+  section_header_text_color: string;
+  section_separator_color: string;
+  subtitle_text_color: string;
+  destructive_text_color: string;
 };
 
-export type ThemeSnapshot = Record<TelegramThemeColorKey, string> & {
+export type TelegramThemeColorKey = keyof TelegramThemeColorMap;
+
+type TelegramThemeColorOverrides = Partial<TelegramThemeColorMap>;
+
+export interface TelegramThemeParams extends TelegramThemeColorOverrides {
+  header_color?: string;
+  bottom_bar_color?: string;
+}
+
+export type ThemeSnapshot = TelegramThemeColorMap & {
   header_color: string;
   bottom_bar_color: string;
 };
@@ -47,7 +52,7 @@ export const TELEGRAM_THEME_VARIABLES: Record<TelegramThemeColorKey, string> = {
   destructive_text_color: '--tg-theme-destructive-text-color',
 };
 
-const BASE_THEME: Record<TelegramThemeColorKey, string> = {
+const BASE_THEME: TelegramThemeColorMap = {
   bg_color: '#0f0f0f',
   text_color: '#ffffff',
   hint_color: '#9aa0b1',
@@ -71,14 +76,20 @@ const FALLBACK_COLOR = '#000000';
 const coerceColor = (value?: string) => value ?? FALLBACK_COLOR;
 
 function toThemeSnapshot(theme?: TelegramThemeParams): ThemeSnapshot {
-  const merged: Record<TelegramThemeColorKey, string> & TelegramThemeParams = {
+  const {
+    header_color: headerOverride,
+    bottom_bar_color: bottomBarOverride,
+    ...rest
+  } = theme ?? {};
+
+  const merged: TelegramThemeColorMap = {
     ...BASE_THEME,
-    ...(theme ?? {}),
+    ...(rest as TelegramThemeColorOverrides),
   };
-  const headerColor =
-    theme?.header_color ?? merged.header_bg_color ?? merged.bg_color ?? FALLBACK_COLOR;
+
+  const headerColor = headerOverride ?? merged.header_bg_color ?? merged.bg_color ?? FALLBACK_COLOR;
   const bottomBarColor =
-    theme?.bottom_bar_color ?? merged.bottom_bar_bg_color ?? merged.bg_color ?? FALLBACK_COLOR;
+    bottomBarOverride ?? merged.bottom_bar_bg_color ?? merged.bg_color ?? FALLBACK_COLOR;
 
   return {
     ...merged,

@@ -84,6 +84,10 @@ function readAndApplyTheme(): ThemeSnapshot {
   return updateThemeVariables(mapTmaThemeParams(raw));
 }
 
+/**
+ * Resolves the latest Telegram theme, applies CSS variables + font scale, and returns a snapshot
+ * that can be cached by hooks before listeners are attached.
+ */
 export function getTmaThemeSnapshot(): ThemeSnapshot {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
@@ -93,6 +97,10 @@ export function getTmaThemeSnapshot(): ThemeSnapshot {
   return readAndApplyTheme();
 }
 
+/**
+ * Subscribes to Telegram theme parameter updates (including miniApp header/background events)
+ * and applies CSS variables before invoking the provided listener.
+ */
 export function onTmaThemeChange(listener: ThemeListener): VoidFunction {
   ensureTmaSdkReady();
 

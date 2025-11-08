@@ -28,6 +28,10 @@ function getBrowserColorSchemeFallback(): ColorScheme {
 
 const THEME_HOOK_INTERVAL_MS = 60_000;
 
+/**
+ * Synchronizes Telegram theme params with CSS variables and emits telemetry samples.
+ * Provides derived color scheme data so UI components can reactively style themselves.
+ */
 export function useTheme() {
   const [theme, setTheme] = useState<ThemeSnapshot>(() => getTmaThemeSnapshot());
   const [colorScheme, setColorScheme] = useState<ColorScheme>(() =>
@@ -36,7 +40,7 @@ export function useTheme() {
   const lastTelemetryRef = useRef({
     headerColor: theme.header_color ?? theme.bg_color,
     colorScheme,
-    timestamp: typeof performance !== 'undefined' ? performance.now() : Date.now(),
+    timestamp: 0,
   });
 
   useEffect(() => {

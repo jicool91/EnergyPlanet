@@ -84,6 +84,25 @@ test.describe('Safe area + fullscreen instrumentation', () => {
     await expect(manualClose).toHaveCount(0);
   });
 
+  test('status-bar-shell класс остаётся на всех вкладках', async ({ page }) => {
+    await setupStageMocks(page, {
+      safeAreaOverride: SAFE_AREA_OVERRIDE,
+      viewportOverride: { isFullscreen: false },
+      platform: 'android',
+    });
+    await page.goto('/');
+
+    const header = page.locator('header.status-bar-shell');
+    await expect(header).toHaveCount(1);
+
+    await page.getByRole('button', { name: 'Exchange' }).click();
+    await expect(page).toHaveURL(/\/exchange$/);
+
+    const nextHeader = page.locator('header.status-bar-shell');
+    await expect(nextHeader).toHaveCount(1);
+    await expect(nextHeader).toHaveClass(/status-bar-shell/);
+  });
+
   test('fullscreen header removes border, shadow и blur', async ({ page }) => {
     await setupStageMocks(page, {
       safeAreaOverride: SAFE_AREA_OVERRIDE,

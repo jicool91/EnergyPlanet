@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { miniApp } from '@tma.js/sdk';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import { useTheme } from '@/hooks/useTheme';
@@ -10,6 +10,29 @@ import {
 } from './BottomNavigation';
 import { logger } from '@/utils/logger';
 import { NAVIGATION_RESERVE_PX, SIDE_PADDING_PX } from '@/constants/layout';
+import { logClientEvent } from '@/services/telemetry';
+
+const HEADER_COLOR_DEBOUNCE_MS = 120;
+
+function toErrorPayload(error: unknown): Record<string, unknown> | undefined {
+  if (!error) {
+    return undefined;
+  }
+  if (error instanceof Error) {
+    return {
+      name: error.name,
+      message: error.message,
+      stack: import.meta.env.DEV ? error.stack : undefined,
+    };
+  }
+  if (typeof error === 'string') {
+    return { message: error };
+  }
+  if (typeof error === 'object') {
+    return { ...error };
+  }
+  return { value: error };
+}
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -42,53 +65,91 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
   }, [platform]);
   const shouldShowManualClose = isDesktopPlatform;
 
-  useEffect(() => {
-    const headerColor =
+  const { headerColor, backgroundColor } = useMemo(() => {
+    const resolvedHeader =
       theme.header_color ?? theme.secondary_bg_color ?? theme.section_bg_color ?? theme.bg_color;
-    const backgroundColor = theme.bg_color ?? headerColor;
-
-    const webApp =
-      typeof window !== 'undefined'
-        ? ((
-            window as typeof window & {
-              Telegram?: {
-                WebApp?: {
-                  setHeaderColor?: (color: string) => void;
-                  setBackgroundColor?: (color: string) => void;
-                };
-              };
-            }
-          ).Telegram?.WebApp ?? null)
-        : null;
-
-    try {
-      miniApp.setHeaderColor(headerColor ?? 'bg_color');
-    } catch (error) {
-      logger.warn('miniApp.setHeaderColor failed, falling back to Telegram.WebApp', {
-        headerColor,
-        error,
-      });
-      try {
-        webApp?.setHeaderColor?.(headerColor ?? 'bg_color');
-      } catch (fallbackError) {
-        logger.warn('Telegram.WebApp.setHeaderColor failed', {
-          headerColor,
-          error: fallbackError,
-        });
-      }
-    }
-
-    if (backgroundColor) {
-      try {
-        webApp?.setBackgroundColor?.(backgroundColor);
-      } catch (error) {
-        logger.warn('Telegram.WebApp.setBackgroundColor failed', {
-          backgroundColor,
-          error,
-        });
-      }
-    }
+    const resolvedBackground = theme.bg_color ?? resolvedHeader;
+    return {
+      headerColor: resolvedHeader ?? undefined,
+      backgroundColor: resolvedBackground ?? undefined,
+    };
   }, [theme]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const applyColors = () => {
+      if (cancelled) {
+        return;
+      }
+
+      const webApp =
+        typeof window !== 'undefined'
+          ? ((
+              window as typeof window & {
+                Telegram?: {
+                  WebApp?: {
+                    setHeaderColor?: (color: string) => void;
+                    setBackgroundColor?: (color: string) => void;
+                  };
+                };
+              }
+            ).Telegram?.WebApp ?? null)
+          : null;
+
+      const resolvedHeaderColor = headerColor ?? 'bg_color';
+
+      const emitHeaderTelemetry = (origin: 'miniApp' | 'webApp', error: unknown) => {
+        const errorPayload = toErrorPayload(error);
+        logger.warn(`${origin}.setHeaderColor failed`, {
+          headerColor: resolvedHeaderColor,
+          origin,
+          error: errorPayload,
+        });
+        void logClientEvent(
+          'set_header_color_error',
+          {
+            origin,
+            header_color: resolvedHeaderColor,
+            background_color: backgroundColor,
+            platform,
+            error: errorPayload,
+          },
+          'error'
+        );
+      };
+
+      try {
+        miniApp.setHeaderColor(resolvedHeaderColor);
+      } catch (error) {
+        emitHeaderTelemetry('miniApp', error);
+        try {
+          webApp?.setHeaderColor?.(resolvedHeaderColor);
+        } catch (fallbackError) {
+          emitHeaderTelemetry('webApp', fallbackError);
+        }
+      }
+
+      if (backgroundColor) {
+        try {
+          webApp?.setBackgroundColor?.(backgroundColor);
+        } catch (error) {
+          const errorPayload = toErrorPayload(error);
+          logger.warn('Telegram.WebApp.setBackgroundColor failed', {
+            backgroundColor,
+            error: errorPayload,
+          });
+        }
+      }
+    };
+
+    const timeout = setTimeout(applyColors, HEADER_COLOR_DEBOUNCE_MS);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timeout);
+    };
+  }, [backgroundColor, headerColor, platform]);
 
   const containerClassName =
     'relative flex min-h-screen w-full flex-col max-w-screen-md lg:max-w-screen-lg';
@@ -133,12 +194,23 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
     };
   }, [safeRight, safeTopWithBuffer]);
 
-  const handleManualClose = () => {
+  const handleManualClose = useCallback(() => {
     try {
       miniApp.close();
       return;
     } catch (error) {
-      logger.warn('miniApp.close failed, falling back to Telegram.WebApp.close', { error });
+      const errorPayload = toErrorPayload(error);
+      logger.warn('miniApp.close failed, falling back to Telegram.WebApp.close', {
+        error: errorPayload,
+      });
+      void logClientEvent(
+        'miniapp_close_failed',
+        {
+          platform,
+          error: errorPayload,
+        },
+        'error'
+      );
     }
     try {
       (
@@ -147,9 +219,10 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
         }
       ).Telegram?.WebApp?.close?.();
     } catch (error) {
-      logger.warn('Telegram.WebApp.close failed', { error });
+      const errorPayload = toErrorPayload(error);
+      logger.warn('Telegram.WebApp.close failed', { error: errorPayload });
     }
-  };
+  }, [platform]);
 
   return (
     <div className="flex min-h-screen w-full justify-center bg-surface-primary text-text-primary">

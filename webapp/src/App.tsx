@@ -34,7 +34,8 @@ import { initializePreferenceCloudSync } from './services/preferencesSync';
 import { logClientEvent } from './services/telemetry';
 import { logger } from './utils/logger';
 import { AdminMonetizationScreen } from './screens/AdminMonetizationScreen';
-import { ProgressBar, Surface, Text, Button } from './components';
+import { Text } from '@/components';
+import { TapStatusHeader, SimpleHeader } from '@/components/layout/StatusHeader';
 import { PvPEventsScreen } from './screens/PvPEventsScreen';
 import { AdminModalContext } from './contexts/AdminModalContext';
 import { ensureExperimentVariant } from '@/store/experimentsStore';
@@ -347,83 +348,39 @@ function NextUiApp() {
     []
   );
 
+  const tapHeaderStats = useMemo(
+    () => ({
+      level,
+      energy,
+      stars,
+      xpIntoLevel,
+      xpToNextLevel,
+    }),
+    [energy, level, stars, xpIntoLevel, xpToNextLevel]
+  );
+
   const renderHeader = useCallback(
     ({ activeTab, navigate }: RenderHeaderParams) => {
       const schema = getHeaderSchema(activeTab);
 
       if (schema.layout === 'tap-status') {
         return (
-          <Surface
-            tone="overlayMedium"
-            border="subtle"
-            elevation="strong"
-            padding="md"
-            rounded="3xl"
-            className="flex items-center justify-between gap-4"
-          >
-            <div className="flex flex-col gap-1">
-              <Text variant="label" weight="semibold" tone="accent" transform="uppercase">
-                Уровень {level}
-              </Text>
-              <div className="flex items-center gap-3">
-                <Text as="span" variant="body" tone="primary" className="flex items-center gap-1">
-                  ⚡ {compactNumberFormatter.format(energy)}
-                </Text>
-                <Text as="span" variant="body" tone="accent" className="flex items-center gap-1">
-                  ⭐ {compactNumberFormatter.format(stars)}
-                </Text>
-              </div>
-              <ProgressBar
-                value={xpIntoLevel}
-                max={xpIntoLevel + xpToNextLevel}
-                className="max-w-[220px]"
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              {schema.actions?.map(action => (
-                <Button
-                  key={action.id}
-                  type="button"
-                  size="md"
-                  variant={action.variant ?? 'primary'}
-                  onClick={() => navigate(action.target, { replace: action.replace })}
-                >
-                  {action.label}
-                </Button>
-              ))}
-            </div>
-          </Surface>
+          <TapStatusHeader
+            level={tapHeaderStats.level}
+            energy={tapHeaderStats.energy}
+            stars={tapHeaderStats.stars}
+            xpIntoLevel={tapHeaderStats.xpIntoLevel}
+            xpToNextLevel={tapHeaderStats.xpToNextLevel}
+            actions={schema.actions}
+            onNavigate={navigate}
+            numberFormatter={compactNumberFormatter}
+          />
         );
       }
 
-      return (
-        <Surface
-          tone="overlayMedium"
-          border="subtle"
-          elevation="strong"
-          padding="md"
-          rounded="3xl"
-          className="flex items-center justify-between"
-        >
-          <Text as="span" variant="title" tone="primary" weight="semibold">
-            {schema.title}
-          </Text>
-          {schema.actions?.map(action => (
-            <Button
-              key={action.id}
-              type="button"
-              size="md"
-              variant={action.variant ?? 'secondary'}
-              className="text-text-secondary"
-              onClick={() => navigate(action.target, { replace: action.replace })}
-            >
-              {action.label}
-            </Button>
-          ))}
-        </Surface>
-      );
+      return <SimpleHeader title={schema.title} actions={schema.actions} onNavigate={navigate} />;
     },
-    [compactNumberFormatter, energy, level, stars, xpIntoLevel, xpToNextLevel]
+    [compactNumberFormatter, tapHeaderStats]
   );
 
   return (
