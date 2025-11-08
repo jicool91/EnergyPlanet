@@ -385,6 +385,47 @@ function updateViewport(metrics: ViewportMetrics, origin: TelemetryOrigin): View
   return metrics;
 }
 
+type FullscreenExecutionPlan = {
+  action: Extract<ViewportAction, 'requestFullscreen' | 'exitFullscreen'>;
+  sdkMethod: 'requestFullscreen' | 'exitFullscreen';
+  legacyEvent: 'web_app_enable_fullscreen' | 'web_app_disable_fullscreen';
+};
+
+async function executeFullscreenPlan(plan: FullscreenExecutionPlan): Promise<void> {
+  ensureTmaSdkReady();
+
+  if (isTmaSdkAvailable() && typeof viewport[plan.sdkMethod] === 'function') {
+    try {
+      await viewport[plan.sdkMethod]!();
+      logViewportAction(plan.action, 'success', { path: 'sdk' });
+      return;
+    } catch (error) {
+      logViewportAction(plan.action, 'failed', {
+        path: 'sdk',
+        error: normalizeErrorPayload(error),
+      });
+    }
+  }
+
+  const webApp = getTelegramWebApp();
+  if (webApp?.postEvent) {
+    try {
+      webApp.postEvent(plan.legacyEvent);
+      logViewportAction(plan.action, 'success', { path: 'legacy' });
+      return;
+    } catch (error) {
+      logViewportAction(plan.action, 'failed', {
+        path: 'legacy',
+        error: normalizeErrorPayload(error),
+      });
+    }
+  }
+
+  logViewportAction(plan.action, 'unsupported', {
+    reason: 'postEvent_unavailable',
+  });
+}
+
 /**
  * Returns the latest safe-area snapshot, falling back to Telegram overrides when SDK metrics
  * are unavailable (e.g. before `miniApp.ready`).
@@ -553,37 +594,10 @@ export function isFullscreenAvailable(): boolean {
  * Telemetry captures success/failure plus the code path to simplify debugging.
  */
 export async function requestFullscreen(): Promise<void> {
-  ensureTmaSdkReady();
-
-  if (isTmaSdkAvailable() && typeof viewport.requestFullscreen === 'function') {
-    try {
-      await viewport.requestFullscreen();
-      logViewportAction('requestFullscreen', 'success', { path: 'sdk' });
-      return;
-    } catch (error) {
-      logViewportAction('requestFullscreen', 'failed', {
-        path: 'sdk',
-        error: normalizeErrorPayload(error),
-      });
-    }
-  }
-
-  const webApp = getTelegramWebApp();
-  if (webApp?.postEvent) {
-    try {
-      webApp.postEvent('web_app_enable_fullscreen');
-      logViewportAction('requestFullscreen', 'success', { path: 'legacy' });
-      return;
-    } catch (error) {
-      logViewportAction('requestFullscreen', 'failed', {
-        path: 'legacy',
-        error: normalizeErrorPayload(error),
-      });
-    }
-  }
-
-  logViewportAction('requestFullscreen', 'unsupported', {
-    reason: 'postEvent_unavailable',
+  await executeFullscreenPlan({
+    action: 'requestFullscreen',
+    sdkMethod: 'requestFullscreen',
+    legacyEvent: 'web_app_enable_fullscreen',
   });
 }
 
@@ -591,36 +605,9 @@ export async function requestFullscreen(): Promise<void> {
  * Requests exiting fullscreen, mirroring `requestFullscreen` fallback logic and telemetry.
  */
 export async function exitFullscreen(): Promise<void> {
-  ensureTmaSdkReady();
-
-  if (isTmaSdkAvailable() && typeof viewport.exitFullscreen === 'function') {
-    try {
-      await viewport.exitFullscreen();
-      logViewportAction('exitFullscreen', 'success', { path: 'sdk' });
-      return;
-    } catch (error) {
-      logViewportAction('exitFullscreen', 'failed', {
-        path: 'sdk',
-        error: normalizeErrorPayload(error),
-      });
-    }
-  }
-
-  const webApp = getTelegramWebApp();
-  if (webApp?.postEvent) {
-    try {
-      webApp.postEvent('web_app_disable_fullscreen');
-      logViewportAction('exitFullscreen', 'success', { path: 'legacy' });
-      return;
-    } catch (error) {
-      logViewportAction('exitFullscreen', 'failed', {
-        path: 'legacy',
-        error: normalizeErrorPayload(error),
-      });
-    }
-  }
-
-  logViewportAction('exitFullscreen', 'unsupported', {
-    reason: 'postEvent_unavailable',
+  await executeFullscreenPlan({
+    action: 'exitFullscreen',
+    sdkMethod: 'exitFullscreen',
+    legacyEvent: 'web_app_disable_fullscreen',
   });
 }

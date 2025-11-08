@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import { useTheme } from '@/hooks/useTheme';
 import {
@@ -11,8 +11,30 @@ import { logger } from '@/utils/logger';
 import { NAVIGATION_RESERVE_PX, SIDE_PADDING_PX } from '@/constants/layout';
 import { logClientEvent } from '@/services/telemetry';
 import { useTmaRuntime } from '@/providers/TmaSdkProvider';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 const HEADER_COLOR_DEBOUNCE_MS = 120;
+const DESKTOP_PLATFORMS = new Set([
+  'tdesktop',
+  'desktop',
+  'macos',
+  'windows',
+  'universal',
+  'web',
+  'webk',
+]);
+
+function HeaderErrorFallback() {
+  return (
+    <div
+      className="rounded-3xl border border-state-danger-pill bg-surface-secondary/90 px-4 py-3 text-caption text-text-primary shadow-elevation-2"
+      role="alert"
+    >
+      <p className="m-0 font-semibold">Хедер временно недоступен</p>
+      <p className="m-0 text-text-secondary">Перезагрузите экран или вернитесь позже.</p>
+    </div>
+  );
+}
 
 function toErrorPayload(error: unknown): Record<string, unknown> | undefined {
   if (!error) {
@@ -50,19 +72,46 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
   const safeContentBottom = Math.max(0, safeArea.content.bottom ?? 0);
   const safeLeft = Math.max(0, safeArea.safe.left ?? 0);
   const safeRight = Math.max(0, safeArea.safe.right ?? 0);
-  const platform = useMemo(() => {
+  const [platform, setPlatform] = useState('unknown');
+
+  useEffect(() => {
     if (typeof window === 'undefined') {
-      return 'unknown';
+      return;
     }
-    const rawPlatform = (
-      window as typeof window & {
-        Telegram?: { WebApp?: { platform?: unknown } };
+
+    const readPlatform = () => {
+      const rawPlatform = (
+        window as typeof window & {
+          Telegram?: { WebApp?: { platform?: unknown } };
+        }
+      ).Telegram?.WebApp?.platform;
+      if (typeof rawPlatform === 'string' && rawPlatform.length > 0) {
+        setPlatform(rawPlatform.toLowerCase());
+        return true;
       }
-    ).Telegram?.WebApp?.platform;
-    return typeof rawPlatform === 'string' ? rawPlatform.toLowerCase() : 'unknown';
-  }, []);
+      return false;
+    };
+
+    if (readPlatform()) {
+      return;
+    }
+
+    const intervalId = window.setInterval(() => {
+      if (readPlatform()) {
+        window.clearInterval(intervalId);
+      }
+    }, 150);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [miniApp]);
+
   const isDesktopPlatform = useMemo(() => {
-    return /desktop|mac|windows|web/.test(platform);
+    if (DESKTOP_PLATFORMS.has(platform)) {
+      return true;
+    }
+    return /desktop|mac|windows/.test(platform);
   }, [platform]);
   const shouldShowManualClose = isDesktopPlatform;
 
@@ -166,9 +215,9 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
   const headerStyle = useMemo(
     () => ({
       ...sharedHorizontalPadding,
-      paddingTop: `var(--app-header-offset-top)`,
+      paddingTop: `var(--app-header-offset-top, ${safeTopWithBuffer}px)`,
     }),
-    [sharedHorizontalPadding]
+    [safeTopWithBuffer, sharedHorizontalPadding]
   );
 
   const headerSpacerStyle = useMemo(
@@ -246,8 +295,9 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
             className="status-bar-shell z-10 flex flex-col gap-1 pb-3"
             style={headerStyle}
             data-fullscreen={isFullscreen ? 'true' : 'false'}
+            aria-live="polite"
           >
-            {header}
+            <ErrorBoundary fallback={<HeaderErrorFallback />}>{header}</ErrorBoundary>
           </header>
         ) : (
           <div style={headerSpacerStyle} aria-hidden />

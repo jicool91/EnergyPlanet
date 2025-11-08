@@ -33,7 +33,6 @@ const getViewportSnapshot = () => getCachedViewportMetrics() ?? getTmaViewportMe
 const clampInset = (value?: number | null) => Math.max(0, value ?? 0);
 
 const SAFE_AREA_TELEMETRY_THRESHOLD_PX = 6;
-const SAFE_AREA_TELEMETRY_INTERVAL_MS = 30_000;
 const SAFE_AREA_STATS_WINDOW_KEY = '__safeAreaStats';
 
 /**
@@ -100,13 +99,12 @@ export function useSafeArea(): SafeAreaResult {
     const safeDelta = Math.abs(safeTop - last.safeTop);
     const contentDelta = Math.abs(contentTop - last.contentTop);
     const modeChanged = Boolean(viewport.isFullscreen) !== Boolean(last.isFullscreen);
-    const elapsed = now - last.timestamp;
     const thresholdBreached = safeDelta >= SAFE_AREA_TELEMETRY_THRESHOLD_PX;
     const shouldEmit =
+      last.timestamp === 0 ||
       thresholdBreached ||
       contentDelta >= SAFE_AREA_TELEMETRY_THRESHOLD_PX ||
-      modeChanged ||
-      elapsed >= SAFE_AREA_TELEMETRY_INTERVAL_MS;
+      modeChanged;
 
     if (shouldEmit) {
       lastTelemetryRef.current = {

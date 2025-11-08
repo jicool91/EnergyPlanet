@@ -35,11 +35,12 @@ import { logClientEvent } from './services/telemetry';
 import { logger } from './utils/logger';
 import { AdminMonetizationScreen } from './screens/AdminMonetizationScreen';
 import { Text } from '@/components';
-import { TapStatusHeader, SimpleHeader } from '@/components/layout/StatusHeader';
+import { ConnectedTapStatusHeader, SimpleHeader } from '@/components/layout/StatusHeader';
 import { PvPEventsScreen } from './screens/PvPEventsScreen';
 import { AdminModalContext } from './contexts/AdminModalContext';
 import { ensureExperimentVariant } from '@/store/experimentsStore';
 import { getHeaderSchema } from '@/constants/headerSchema';
+import { ProfileScreen } from './screens/ProfileScreen';
 
 const NAVIGATION_TABS: BottomNavigationTab[] = [
   { id: 'tap', label: 'Tap', icon: '⚡️', path: '/' },
@@ -55,6 +56,8 @@ const PATH_TO_TAB: Record<string, BottomNavigationTabId> = {
   '/friends': 'friends',
   '/earn': 'earn',
   '/chat': 'chat',
+  '/profile': 'earn',
+  '/events': 'tap',
 };
 
 const shouldShowMajorLevel = (level: number): boolean => {
@@ -79,6 +82,7 @@ function normalizePath(pathname: string): string {
 
 interface RenderHeaderParams {
   activeTab: BottomNavigationTabId;
+  path: string;
   navigate: (path: string, options?: { replace?: boolean }) => void;
 }
 
@@ -110,6 +114,7 @@ function NextUiRouter({ renderHeader }: NextUiRouterProps) {
   const headerNode = useMemo(() => {
     return renderHeader({
       activeTab,
+      path: normalizedPath,
       navigate: (path, options) => {
         const target = path.startsWith('/') ? path : `/${path}`;
         if (normalizePath(target) === normalizedPath && !options?.replace) {
@@ -141,6 +146,7 @@ function NextUiRouter({ renderHeader }: NextUiRouterProps) {
           <Route path="/exchange" element={<ExchangeScreen />} />
           <Route path="/friends" element={<FriendsScreen />} />
           <Route path="/earn" element={<EarnScreen />} />
+          <Route path="/profile" element={<ProfileScreen />} />
           <Route path="/chat" element={<ChatScreen />} />
           <Route path="/events" element={<PvPEventsScreen />} />
           <Route path="*" element={<Navigate to="/" replace />} />
@@ -188,11 +194,6 @@ function NextUiApp() {
   const logoutSession = useGameStore(state => state.logoutSession);
   const refreshSession = useGameStore(state => state.refreshSession);
   const currentLevel = useGameStore(state => state.level);
-  const level = useGameStore(state => state.level);
-  const energy = useGameStore(state => state.energy);
-  const stars = useGameStore(state => state.stars);
-  const xpIntoLevel = useGameStore(state => state.xpIntoLevel);
-  const xpToNextLevel = useGameStore(state => state.xpToNextLevel);
   const isAdmin = useGameStore(state => state.isAdmin);
   const { toast } = useNotification();
   const authReady = useAuthStore(state => state.authReady);
@@ -343,45 +344,18 @@ function NextUiApp() {
     [openAdminMetrics]
   );
 
-  const compactNumberFormatter = useMemo(
-    () => new Intl.NumberFormat('ru-RU', { notation: 'compact', maximumFractionDigits: 1 }),
-    []
-  );
-
-  const tapHeaderStats = useMemo(
-    () => ({
-      level,
-      energy,
-      stars,
-      xpIntoLevel,
-      xpToNextLevel,
-    }),
-    [energy, level, stars, xpIntoLevel, xpToNextLevel]
-  );
-
-  const renderHeader = useCallback(
-    ({ activeTab, navigate }: RenderHeaderParams) => {
-      const schema = getHeaderSchema(activeTab);
-
-      if (schema.layout === 'tap-status') {
-        return (
-          <TapStatusHeader
-            level={tapHeaderStats.level}
-            energy={tapHeaderStats.energy}
-            stars={tapHeaderStats.stars}
-            xpIntoLevel={tapHeaderStats.xpIntoLevel}
-            xpToNextLevel={tapHeaderStats.xpToNextLevel}
-            actions={schema.actions}
-            onNavigate={navigate}
-            numberFormatter={compactNumberFormatter}
-          />
-        );
-      }
-
+  const renderHeader = useCallback(({ activeTab, path, navigate }: RenderHeaderParams) => {
+    const schema = getHeaderSchema(activeTab, { pathname: path });
+    if (schema.id === 'profile') {
       return <SimpleHeader title={schema.title} actions={schema.actions} onNavigate={navigate} />;
-    },
-    [compactNumberFormatter, tapHeaderStats]
-  );
+    }
+
+    if (schema.layout === 'tap-status') {
+      return <ConnectedTapStatusHeader actions={schema.actions} onNavigate={navigate} />;
+    }
+
+    return <SimpleHeader title={schema.title} actions={schema.actions} onNavigate={navigate} />;
+  }, []);
 
   return (
     <>

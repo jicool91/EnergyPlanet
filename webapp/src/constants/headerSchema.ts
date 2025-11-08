@@ -1,5 +1,8 @@
 import type { BottomNavigationTabId } from '@/components/layout/BottomNavigation';
 
+type AppRouteBase = '/' | '/exchange' | '/friends' | '/earn' | '/chat' | '/events' | '/profile';
+export type AppRoute = AppRouteBase | `${AppRouteBase}?${string}`;
+
 type HeaderLayout = 'tap-status' | 'simple';
 
 type HeaderActionVariant = 'primary' | 'secondary';
@@ -7,13 +10,13 @@ type HeaderActionVariant = 'primary' | 'secondary';
 export interface HeaderActionConfig {
   id: string;
   label: string;
-  target: string;
+  target: AppRoute;
   variant?: HeaderActionVariant;
   replace?: boolean;
 }
 
 export interface HeaderSchema {
-  id: BottomNavigationTabId;
+  id: BottomNavigationTabId | 'profile';
   title: string;
   layout: HeaderLayout;
   actions?: HeaderActionConfig[];
@@ -29,7 +32,7 @@ const tapActions: HeaderActionConfig[] = [
   {
     id: 'profile',
     label: 'Профиль',
-    target: '/earn',
+    target: '/profile',
     variant: 'secondary',
   },
 ];
@@ -74,6 +77,19 @@ export const NAVIGATION_HEADER_SCHEMAS: Record<BottomNavigationTabId, HeaderSche
   },
 };
 
-export function getHeaderSchema(tab: BottomNavigationTabId): HeaderSchema {
+const PROFILE_HEADER_SCHEMA: HeaderSchema = {
+  id: 'profile',
+  title: 'Профиль',
+  layout: 'simple',
+  actions: [SIMPLE_RETURN_ACTION],
+};
+
+export function getHeaderSchema(
+  tab: BottomNavigationTabId,
+  options?: { pathname?: string }
+): HeaderSchema {
+  if (options?.pathname === '/profile') {
+    return PROFILE_HEADER_SCHEMA;
+  }
   return NAVIGATION_HEADER_SCHEMAS[tab] ?? NAVIGATION_HEADER_SCHEMAS.tap;
 }

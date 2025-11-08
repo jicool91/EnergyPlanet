@@ -1,12 +1,13 @@
-import { useMemo } from 'react';
+import { useMemo, useId } from 'react';
 import { Surface, Text, ProgressBar, Button } from '@/components';
 import type { HeaderActionConfig } from '@/constants/headerSchema';
+import { useGameStore } from '@/store/gameStore';
 
 type NavigateHandler = (path: string, options?: { replace?: boolean }) => void;
 
-interface PreparedAction extends HeaderActionConfig {
+type PreparedAction = Omit<HeaderActionConfig, 'variant'> & {
   variant: NonNullable<HeaderActionConfig['variant']>;
-}
+};
 
 const EMPTY_ACTIONS: HeaderActionConfig[] = [];
 
@@ -44,6 +45,7 @@ export function TapStatusHeader({
   onNavigate,
   numberFormatter,
 }: TapStatusHeaderProps) {
+  const progressDescriptionId = useId();
   const preparedStats = useMemo(() => {
     const formattedEnergy = numberFormatter.format(energy);
     const formattedStars = numberFormatter.format(stars);
@@ -68,16 +70,38 @@ export function TapStatusHeader({
       padding="md"
       rounded="3xl"
       className="flex items-center justify-between gap-4"
+      role="region"
+      aria-label="Сводка прогресса"
     >
-      <div className="flex flex-col gap-1">
-        <Text variant="label" weight="semibold" tone="accent" transform="uppercase">
+      <div className="flex flex-col gap-1" role="group" aria-label="Статистика профиля">
+        <Text
+          variant="label"
+          weight="semibold"
+          tone="accent"
+          transform="uppercase"
+          aria-label={`Текущий уровень ${preparedStats.level}`}
+        >
           Уровень {preparedStats.level}
         </Text>
-        <div className="flex items-center gap-3">
-          <Text as="span" variant="body" tone="primary" className="flex items-center gap-1">
+        <div className="flex items-center gap-3" role="list">
+          <Text
+            as="span"
+            variant="body"
+            tone="primary"
+            className="flex items-center gap-1"
+            role="listitem"
+            aria-label={`Энергия ${preparedStats.formattedEnergy}`}
+          >
             ⚡ {preparedStats.formattedEnergy}
           </Text>
-          <Text as="span" variant="body" tone="accent" className="flex items-center gap-1">
+          <Text
+            as="span"
+            variant="body"
+            tone="accent"
+            className="flex items-center gap-1"
+            role="listitem"
+            aria-label={`Звёзды ${preparedStats.formattedStars}`}
+          >
             ⭐ {preparedStats.formattedStars}
           </Text>
         </div>
@@ -85,7 +109,11 @@ export function TapStatusHeader({
           value={preparedStats.progressValue}
           max={preparedStats.progressMax}
           className="max-w-[220px]"
+          aria-describedby={progressDescriptionId}
         />
+        <Text id={progressDescriptionId} className="sr-only">
+          Опыт {preparedStats.progressValue} из {preparedStats.progressMax}
+        </Text>
       </div>
       <div className="flex items-center gap-2">
         {preparedActions.map(action => (
@@ -94,6 +122,7 @@ export function TapStatusHeader({
             type="button"
             size="md"
             variant={action.variant}
+            aria-label={action.label}
             onClick={() => onNavigate(action.target, { replace: action.replace })}
           >
             {action.label}
@@ -121,6 +150,8 @@ export function SimpleHeader({ title, actions, onNavigate }: SimpleHeaderProps) 
       padding="md"
       rounded="3xl"
       className="flex items-center justify-between"
+      role="region"
+      aria-label={`Заголовок ${title}`}
     >
       <Text as="span" variant="title" tone="primary" weight="semibold">
         {title}
@@ -133,6 +164,7 @@ export function SimpleHeader({ title, actions, onNavigate }: SimpleHeaderProps) 
             size="md"
             variant={action.variant}
             className="text-text-secondary"
+            aria-label={action.label}
             onClick={() => onNavigate(action.target, { replace: action.replace })}
           >
             {action.label}
@@ -140,5 +172,36 @@ export function SimpleHeader({ title, actions, onNavigate }: SimpleHeaderProps) 
         ))}
       </div>
     </Surface>
+  );
+}
+
+interface ConnectedTapStatusHeaderProps {
+  actions?: HeaderActionConfig[];
+  onNavigate: NavigateHandler;
+}
+
+export function ConnectedTapStatusHeader({ actions, onNavigate }: ConnectedTapStatusHeaderProps) {
+  const level = useGameStore(state => state.level);
+  const energy = useGameStore(state => state.energy);
+  const stars = useGameStore(state => state.stars);
+  const xpIntoLevel = useGameStore(state => state.xpIntoLevel);
+  const xpToNextLevel = useGameStore(state => state.xpToNextLevel);
+
+  const numberFormatter = useMemo(
+    () => new Intl.NumberFormat('ru-RU', { notation: 'compact', maximumFractionDigits: 1 }),
+    []
+  );
+
+  return (
+    <TapStatusHeader
+      level={level}
+      energy={energy}
+      stars={stars}
+      xpIntoLevel={xpIntoLevel}
+      xpToNextLevel={xpToNextLevel}
+      actions={actions}
+      onNavigate={onNavigate}
+      numberFormatter={numberFormatter}
+    />
   );
 }
