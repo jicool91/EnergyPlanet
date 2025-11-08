@@ -346,7 +346,7 @@ QA Tips: use `/debug_safe_area` command in dev console to log insets after each 
 11.1 Extend `logger` usage inside `viewport.ts` so that every fullscreen or expand call logs `{result, safeAreaSnapshot}` at `info` level.
 11.2 Add `debug:fullscreen` tag filters to `window._energyLogs` for quick filtering during QA sessions.
 11.3 When a fullscreen request fails, capture `error.description`, `viewport.isFullscreen()`, and Telegram version from `window.Telegram.WebApp.version`.
-11.4 Emit `safeAreaChanged` metrics to telemetry service by calling `logClientEvent` with bucket `ui_safe_area_delta` whenever top inset delta > 4 px.
+11.4 ✅ (2025-11-08) Emit `safeAreaChanged` metrics to telemetry service by calling `logClientEvent` with bucket `ui_safe_area_delta` whenever top inset delta > 4 px; backend metrics + Grafana row «Safe Area & Fullscreen» обновлены.
 11.5 Provide a keyboard shortcut (`Meta`+`Shift`+`S`) in dev builds to toggle a safe-area overlay (semi-transparent rectangles).
 11.6 Update `webapp/tests/utils/stageMocks.ts` to allow overriding safe area + fullscreen flags for deterministic tests.
 11.7 Document how to reproduce Telegram close-button overlap issues using Playwright device emulation + `viewport.isFullscreen` mocks.

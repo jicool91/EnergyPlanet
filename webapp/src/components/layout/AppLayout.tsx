@@ -9,8 +9,7 @@ import {
   type BottomNavigationTabId,
 } from './BottomNavigation';
 import { logger } from '@/utils/logger';
-
-const NAVIGATION_RESERVE_PX = 88;
+import { NAVIGATION_RESERVE_PX, SIDE_PADDING_PX } from '@/constants/layout';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -96,8 +95,8 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
 
   const sharedHorizontalPadding = useMemo(
     () => ({
-      paddingLeft: `${safeLeft + 16}px`,
-      paddingRight: `${safeRight + 16}px`,
+      paddingLeft: `${safeLeft + SIDE_PADDING_PX}px`,
+      paddingRight: `${safeRight + SIDE_PADDING_PX}px`,
     }),
     [safeLeft, safeRight]
   );
@@ -130,7 +129,7 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
     const topVar = `var(--app-header-offset-top, ${safeTopWithBuffer}px)`;
     return {
       top: `calc(${topVar} - 36px)`,
-      right: `${safeRight + 16}px`,
+      right: `${safeRight + SIDE_PADDING_PX}px`,
     };
   }, [safeRight, safeTopWithBuffer]);
 

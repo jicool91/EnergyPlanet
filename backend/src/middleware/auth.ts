@@ -157,6 +157,29 @@ export const authenticate = (req: AuthRequest, _res: Response, next: NextFunctio
   }
 };
 
+export const authenticateOptional = (req: AuthRequest, _res: Response, next: NextFunction) => {
+  const header = normalizeAuthorizationHeader(req.headers.authorization);
+  if (!header) {
+    next();
+    return;
+  }
+
+  try {
+    tryAuthenticateWithBearer(req, header);
+  } catch (error) {
+    logger.debug(
+      {
+        path: req.path,
+        origin: req.headers.origin,
+        message: error instanceof Error ? error.message : String(error),
+      },
+      'auth_optional_failed'
+    );
+  }
+
+  next();
+};
+
 export const requireAdmin = (req: AuthRequest, _res: Response, next: NextFunction) => {
   if (!req.user?.isAdmin) {
     throw new AppError(403, 'forbidden');

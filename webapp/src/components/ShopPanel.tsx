@@ -602,7 +602,15 @@ export function ShopPanel({
         notifyError(message);
       }
     },
-    [cosmetics, handleEquip, hapticError, hapticSuccess, notifyError, notifySuccess, purchaseCosmetic]
+    [
+      cosmetics,
+      handleEquip,
+      hapticError,
+      hapticSuccess,
+      notifyError,
+      notifySuccess,
+      purchaseCosmetic,
+    ]
   );
 
   const handleDismissPurchaseSuccess = useCallback(() => {

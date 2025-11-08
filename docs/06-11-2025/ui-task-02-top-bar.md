@@ -44,3 +44,7 @@
 - ✅ `AppLayout` использует CSS-переменные `--app-header-offset-top`, синхронизирует `miniApp.setHeaderColor`, включает класс `status-bar-shell`.
 - ✅ `docs/telegram-fullscreen-status-bar.md` описывает процесс и чек-листы, `webapp/docs/DESIGN_SYSTEM.md` дополнен состояниями шапки.
 - ✅ Добавлены Playwright тесты (`tests/qa/safe-area.spec.ts`) и dev-команда `/debug_safe_area`.
+
+## Статус 2025-11-08
+- ✅ Клиентская телеметрия `safe_area_changed` / `viewport_*` заведена в backend (`backend/src/api/controllers/TelemetryController.ts`, `backend/src/metrics/telemetry.ts`) и выводится в Prometheus.
+- ✅ Grafana дашборд `infra/grafana/dashboards/telegram-miniapp-product.json` получил ряд «Safe Area & Fullscreen» с панелями для инсетов, fullscreen share и исходов `viewport_action`.

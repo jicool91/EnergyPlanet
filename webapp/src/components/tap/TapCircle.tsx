@@ -41,18 +41,19 @@ export const TapCircle = memo(function TapCircle({
   }, [gyroscope, reduceMotion]);
 
   const hasPlanetImage = Boolean(planetAssetUrl);
-  const glowAnimation = reduceMotion || hasPlanetImage
-    ? undefined
-    : {
-        scale: [1, 1.15, 1],
-        opacity: [0.12, 0.28, 0.12],
-        x: gyroOffset.x * 0.4,
-        y: gyroOffset.y * 0.4,
-        transition: {
-          duration: isCriticalStreak ? 1.2 : 1.8,
-          repeat: Infinity,
-        },
-      };
+  const glowAnimation =
+    reduceMotion || hasPlanetImage
+      ? undefined
+      : {
+          scale: [1, 1.15, 1],
+          opacity: [0.12, 0.28, 0.12],
+          x: gyroOffset.x * 0.4,
+          y: gyroOffset.y * 0.4,
+          transition: {
+            duration: isCriticalStreak ? 1.2 : 1.8,
+            repeat: Infinity,
+          },
+        };
 
   const buttonClassName = clsx(
     'relative flex h-40 w-40 flex-col items-center justify-center rounded-full text-display font-semibold transition-transform duration-150 focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary',

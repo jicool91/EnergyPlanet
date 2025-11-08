@@ -1,28 +1,44 @@
 import type { NextFunction, Request, Response } from 'express';
+import type { AuthRequest } from '../middleware/auth';
 import request from 'supertest';
 import app from '../index';
 
 const logEventMock = jest.fn();
 
+const attachAuthContext = (req: Request): AuthRequest => req as AuthRequest;
+
 jest.mock('../middleware/auth', () => ({
   authenticate: (req: Request, _res: Response, next: NextFunction) => {
-    req.user = {
+    const authReq = attachAuthContext(req);
+    authReq.user = {
       id: 'telemetry-user',
       telegramId: 987654,
       username: 'telemetry_test',
       isAdmin: false,
     };
-    req.authContext = { strategy: 'bearer' };
+    authReq.authContext = { strategy: 'bearer' };
+    next();
+  },
+  authenticateOptional: (req: Request, _res: Response, next: NextFunction) => {
+    const authReq = attachAuthContext(req);
+    authReq.user = {
+      id: 'telemetry-user',
+      telegramId: 987654,
+      username: 'telemetry_test',
+      isAdmin: false,
+    };
+    authReq.authContext = { strategy: 'bearer' };
     next();
   },
   authenticateTick: (req: Request, _res: Response, next: NextFunction) => {
-    req.user = {
+    const authReq = attachAuthContext(req);
+    authReq.user = {
       id: 'telemetry-user',
       telegramId: 987654,
       username: 'telemetry_test',
       isAdmin: false,
     };
-    req.authContext = { strategy: 'bearer' };
+    authReq.authContext = { strategy: 'bearer' };
     next();
   },
   requireAdmin: (_req: Request, _res: Response, next: NextFunction) => next(),

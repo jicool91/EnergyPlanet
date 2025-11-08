@@ -2332,6 +2332,238 @@
       ],
       "title": "Auth Errors by Status (range)",
       "type": "table"
+    },
+    {
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 149
+      },
+      "id": 48,
+      "panels": [],
+      "title": "Safe Area & Fullscreen",
+      "type": "row"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PrometheusDatasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 150
+      },
+      "id": 49,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (origin, kind) (rate(energyplanet_safe_area_events_total[$__rate_interval]))",
+          "legendFormat": "{{origin}} / {{kind}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Safe Area Events (5m)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PrometheusDatasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          },
+          "unit": "px"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 150
+      },
+      "id": 50,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.5, sum(rate(energyplanet_safe_area_inset_px_bucket{edge=\"top\",kind=\"safe\"}[$__rate_interval])) by (le, origin))",
+          "legendFormat": "p50 {{origin}}",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum(rate(energyplanet_safe_area_inset_px_bucket{edge=\"top\",kind=\"safe\"}[$__rate_interval])) by (le, origin))",
+          "legendFormat": "p95 {{origin}}",
+          "refId": "B"
+        }
+      ],
+      "title": "Safe Top Inset Quantiles",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PrometheusDatasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 158
+      },
+      "id": 51,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (is_fullscreen) (rate(energyplanet_viewport_fullscreen_state_total[$__rate_interval]))",
+          "legendFormat": "fullscreen={{is_fullscreen}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Viewport Fullscreen State (5m)",
+      "type": "timeseries"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "PrometheusDatasource"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "palette-classic"
+          },
+          "custom": {},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": null
+              }
+            ]
+          }
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 158
+      },
+      "id": 52,
+      "options": {
+        "legend": {
+          "calcs": [
+            "last"
+          ],
+          "displayMode": "table",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      },
+      "targets": [
+        {
+          "expr": "sum by (action, status) (rate(energyplanet_viewport_actions_total[$__rate_interval]))",
+          "legendFormat": "{{action}} / {{status}}",
+          "refId": "A"
+        }
+      ],
+      "title": "Viewport Actions (5m)",
+      "type": "timeseries"
     }
   ],
   "refresh": "30s",
@@ -2352,6 +2584,6 @@
   "timezone": "",
   "title": "Energy Planet — Product Metrics",
   "uid": "tele-product-dashboard",
-  "version": 1,
+  "version": 2,
   "weekStart": ""
 }

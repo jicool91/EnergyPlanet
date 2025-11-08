@@ -83,4 +83,54 @@ test.describe('Safe area + fullscreen instrumentation', () => {
     const manualClose = page.getByTestId('manual-close-button');
     await expect(manualClose).toHaveCount(0);
   });
+
+  test('fullscreen header removes border, shadow и blur', async ({ page }) => {
+    await setupStageMocks(page, {
+      safeAreaOverride: SAFE_AREA_OVERRIDE,
+      viewportOverride: VIEWPORT_OVERRIDE,
+      platform: 'android',
+    });
+    await page.goto('/');
+
+    const header = page.locator('header.status-bar-shell');
+    await expect(header).toHaveAttribute('data-fullscreen', 'true');
+
+    const styles = await header.evaluate(node => {
+      const computed = window.getComputedStyle(node as HTMLElement);
+      return {
+        borderColor: computed.borderTopColor,
+        boxShadow: computed.boxShadow,
+        backdropFilter: computed.backdropFilter,
+      };
+    });
+
+    expect(styles.borderColor.toLowerCase()).toContain('0, 0, 0, 0');
+    expect(styles.boxShadow).toBe('none');
+    expect(styles.backdropFilter).toBe('none');
+  });
+
+  test('expanded header сохраняет капсулу и тени', async ({ page }) => {
+    await setupStageMocks(page, {
+      safeAreaOverride: SAFE_AREA_OVERRIDE,
+      viewportOverride: { isFullscreen: false },
+      platform: 'ios',
+    });
+    await page.goto('/');
+
+    const header = page.locator('header.status-bar-shell');
+    await expect(header).toHaveAttribute('data-fullscreen', 'false');
+
+    const styles = await header.evaluate(node => {
+      const computed = window.getComputedStyle(node as HTMLElement);
+      return {
+        borderColor: computed.borderTopColor,
+        boxShadow: computed.boxShadow,
+        backdropFilter: computed.backdropFilter,
+      };
+    });
+
+    expect(styles.borderColor.toLowerCase()).not.toContain('0, 0, 0, 0');
+    expect(styles.boxShadow?.toLowerCase()).not.toBe('none');
+    expect(styles.backdropFilter?.toLowerCase()).not.toBe('none');
+  });
 });

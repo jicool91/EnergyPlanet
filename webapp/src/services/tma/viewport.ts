@@ -1,8 +1,9 @@
 import { viewport } from '@tma.js/sdk';
 import type { SafeAreaInsets } from '@tma.js/bridge';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
-import { HEADER_BUFFER_PX, HEADER_RESERVE_PX } from '@/constants/layout';
+import { HEADER_BUFFER_PX, HEADER_RESERVE_PX, SAFE_AREA_CSS_VARIABLES } from '@/constants/layout';
 import { logger } from '@/utils/logger';
+import { logClientEvent } from '@/services/telemetry';
 
 export type SafeAreaSnapshot = {
   safe: SafeAreaInsets;
@@ -29,6 +30,8 @@ type SafeAreaOverrideConfig = {
 
 type ViewportOverrideConfig = Partial<ViewportMetrics>;
 
+type TelemetryOrigin = 'sdk' | 'override';
+
 const ZERO_INSETS: SafeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 };
 
 const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
@@ -42,6 +45,14 @@ const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
 
 let currentSafeArea: SafeAreaSnapshot = { safe: ZERO_INSETS, content: ZERO_INSETS };
 let currentViewport: ViewportMetrics = { ...DEFAULT_VIEWPORT_METRICS };
+
+const SAFE_AREA_TELEMETRY_COOLDOWN_MS = 2_000;
+const VIEWPORT_TELEMETRY_COOLDOWN_MS = 2_000;
+
+let lastSafeAreaTelemetry: SafeAreaSnapshot | null = null;
+let lastViewportTelemetry: ViewportMetrics | null = null;
+let lastSafeAreaTelemetryAt = 0;
+let lastViewportTelemetryAt = 0;
 
 const SAFE_AREA_KEYS: Array<keyof SafeAreaInsets> = ['top', 'right', 'bottom', 'left'];
 
@@ -149,6 +160,8 @@ function logViewportAction(
   } else {
     logger.info(message, context);
   }
+
+  void logClientEvent('viewport_action', context);
 }
 
 function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
@@ -196,11 +209,11 @@ function applySafeAreaCss(snapshot: SafeAreaSnapshot): void {
   const headerOffset = headerBaseInset + HEADER_BUFFER_PX;
   const contentPaddingTop = contentBaseInset + HEADER_RESERVE_PX + HEADER_BUFFER_PX;
 
-  root.style.setProperty('--app-header-reserve', `${HEADER_RESERVE_PX}px`);
-  root.style.setProperty('--app-header-buffer', `${HEADER_BUFFER_PX}px`);
-  root.style.setProperty('--app-content-base-top', `${contentBaseInset}px`);
-  root.style.setProperty('--app-header-offset-top', `${headerOffset}px`);
-  root.style.setProperty('--app-content-padding-top', `${contentPaddingTop}px`);
+  root.style.setProperty(SAFE_AREA_CSS_VARIABLES.headerReserve, `${HEADER_RESERVE_PX}px`);
+  root.style.setProperty(SAFE_AREA_CSS_VARIABLES.headerBuffer, `${HEADER_BUFFER_PX}px`);
+  root.style.setProperty(SAFE_AREA_CSS_VARIABLES.contentBaseTop, `${contentBaseInset}px`);
+  root.style.setProperty(SAFE_AREA_CSS_VARIABLES.headerOffsetTop, `${headerOffset}px`);
+  root.style.setProperty(SAFE_AREA_CSS_VARIABLES.contentPaddingTop, `${contentPaddingTop}px`);
 }
 
 function resolveViewportDimension(value: number | null | undefined, fallback: number): number {
@@ -243,6 +256,79 @@ function applyViewportCss(metrics: ViewportMetrics): void {
   root.dataset.tgViewportFullscreen = metrics.isFullscreen ? 'true' : 'false';
 }
 
+function areInsetsEqual(a: SafeAreaInsets, b: SafeAreaInsets): boolean {
+  return SAFE_AREA_KEYS.every(key => a[key] === b[key]);
+}
+
+function areSafeAreaSnapshotsEqual(
+  a: SafeAreaSnapshot | null,
+  b: SafeAreaSnapshot | null
+): boolean {
+  if (!a || !b) {
+    return false;
+  }
+  return areInsetsEqual(a.safe, b.safe) && areInsetsEqual(a.content, b.content);
+}
+
+function areViewportMetricsEqual(a: ViewportMetrics | null, b: ViewportMetrics | null): boolean {
+  if (!a || !b) {
+    return false;
+  }
+  return (
+    a.height === b.height &&
+    a.stableHeight === b.stableHeight &&
+    a.width === b.width &&
+    a.isExpanded === b.isExpanded &&
+    a.isStateStable === b.isStateStable &&
+    a.isFullscreen === b.isFullscreen
+  );
+}
+
+function maybeLogSafeAreaTelemetry(origin: TelemetryOrigin, snapshot: SafeAreaSnapshot): void {
+  const now = Date.now();
+  const shouldLog =
+    !areSafeAreaSnapshotsEqual(snapshot, lastSafeAreaTelemetry) ||
+    now - lastSafeAreaTelemetryAt > SAFE_AREA_TELEMETRY_COOLDOWN_MS;
+
+  if (!shouldLog) {
+    return;
+  }
+
+  lastSafeAreaTelemetry = snapshot;
+  lastSafeAreaTelemetryAt = now;
+
+  void logClientEvent('safe_area_changed', {
+    origin,
+    safe: snapshot.safe,
+    content: snapshot.content,
+    viewport: {
+      isFullscreen: currentViewport.isFullscreen,
+      isExpanded: currentViewport.isExpanded,
+      height: currentViewport.height,
+      stableHeight: currentViewport.stableHeight,
+    },
+  });
+}
+
+function maybeLogViewportTelemetry(origin: TelemetryOrigin, metrics: ViewportMetrics): void {
+  const now = Date.now();
+  const shouldLog =
+    !areViewportMetricsEqual(metrics, lastViewportTelemetry) ||
+    now - lastViewportTelemetryAt > VIEWPORT_TELEMETRY_COOLDOWN_MS;
+
+  if (!shouldLog) {
+    return;
+  }
+
+  lastViewportTelemetry = metrics;
+  lastViewportTelemetryAt = now;
+
+  void logClientEvent('viewport_metrics_changed', {
+    origin,
+    metrics,
+  });
+}
+
 function readSafeAreaSnapshot(): SafeAreaSnapshot {
   const safe = viewport.safeAreaInsets();
   const content = viewport.contentSafeAreaInsets();
@@ -269,48 +355,59 @@ function readViewportMetrics(): ViewportMetrics {
   };
 }
 
-function updateSafeArea(snapshot: SafeAreaSnapshot): SafeAreaSnapshot {
+function updateSafeArea(snapshot: SafeAreaSnapshot, origin: TelemetryOrigin): SafeAreaSnapshot {
   currentSafeArea = snapshot;
   applySafeAreaCss(snapshot);
+  maybeLogSafeAreaTelemetry(origin, snapshot);
   return snapshot;
 }
 
-function updateViewport(metrics: ViewportMetrics): ViewportMetrics {
+function updateViewport(metrics: ViewportMetrics, origin: TelemetryOrigin): ViewportMetrics {
   currentViewport = metrics;
   applyViewportCss(metrics);
+  maybeLogViewportTelemetry(origin, metrics);
   return metrics;
 }
 
 export function getTmaSafeAreaSnapshot(): SafeAreaSnapshot {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
-    return updateSafeArea(readSafeAreaOverride() ?? { safe: ZERO_INSETS, content: ZERO_INSETS });
+    return updateSafeArea(
+      readSafeAreaOverride() ?? { safe: ZERO_INSETS, content: ZERO_INSETS },
+      'override'
+    );
   }
-  return updateSafeArea(readSafeAreaSnapshot());
+  return updateSafeArea(readSafeAreaSnapshot(), 'sdk');
 }
 
 export function getTmaViewportMetrics(): ViewportMetrics {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
-    return updateViewport(readViewportOverride() ?? { ...DEFAULT_VIEWPORT_METRICS });
+    return updateViewport(readViewportOverride() ?? { ...DEFAULT_VIEWPORT_METRICS }, 'override');
   }
-  return updateViewport(readViewportMetrics());
+  return updateViewport(readViewportMetrics(), 'sdk');
 }
 
 export function onTmaSafeAreaChange(listener: Listener<SafeAreaSnapshot>): VoidFunction {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
-    listener(updateSafeArea(readSafeAreaOverride() ?? { safe: ZERO_INSETS, content: ZERO_INSETS }));
+    listener(
+      updateSafeArea(
+        readSafeAreaOverride() ?? { safe: ZERO_INSETS, content: ZERO_INSETS },
+        'override'
+      )
+    );
     return () => {};
   }
 
-  const notify = () => listener(updateSafeArea(readSafeAreaSnapshot()));
-  const unsubscribe = viewport.state.sub(notify);
+  const notify = (origin: TelemetryOrigin = 'sdk') =>
+    listener(updateSafeArea(readSafeAreaSnapshot(), origin));
+  const unsubscribe = viewport.state.sub(() => notify('sdk'));
   const webApp = getTelegramWebApp();
   let offNative: VoidFunction | null = null;
 
   if (webApp?.onEvent) {
-    const handler = () => notify();
+    const handler = () => notify('sdk');
     webApp.onEvent('safeAreaChanged', handler);
     offNative = () => {
       try {
@@ -321,7 +418,7 @@ export function onTmaSafeAreaChange(listener: Listener<SafeAreaSnapshot>): VoidF
     };
   }
 
-  notify();
+  notify('sdk');
   return () => {
     unsubscribe();
     offNative?.();
@@ -331,17 +428,18 @@ export function onTmaSafeAreaChange(listener: Listener<SafeAreaSnapshot>): VoidF
 export function onTmaViewportChange(listener: Listener<ViewportMetrics>): VoidFunction {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
-    listener(updateViewport(readViewportOverride() ?? { ...DEFAULT_VIEWPORT_METRICS }));
+    listener(updateViewport(readViewportOverride() ?? { ...DEFAULT_VIEWPORT_METRICS }, 'override'));
     return () => {};
   }
 
-  const notify = () => listener(updateViewport(readViewportMetrics()));
-  const unsubscribe = viewport.state.sub(notify);
+  const notify = (origin: TelemetryOrigin = 'sdk') =>
+    listener(updateViewport(readViewportMetrics(), origin));
+  const unsubscribe = viewport.state.sub(() => notify('sdk'));
   const webApp = getTelegramWebApp();
   let offNative: VoidFunction | null = null;
 
   if (webApp?.onEvent) {
-    const handler = () => notify();
+    const handler = () => notify('sdk');
     webApp.onEvent('viewportChanged', handler);
     offNative = () => {
       try {
@@ -352,7 +450,7 @@ export function onTmaViewportChange(listener: Listener<ViewportMetrics>): VoidFu
     };
   }
 
-  notify();
+  notify('sdk');
   return () => {
     unsubscribe();
     offNative?.();

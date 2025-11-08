@@ -299,8 +299,7 @@ export function TapScreen() {
     if (!planetSkins.length) {
       return null;
     }
-    const fallback =
-      planetSkins.find(item => item.id === 'default_skin') ?? planetSkins[0] ?? null;
+    const fallback = planetSkins.find(item => item.id === 'default_skin') ?? planetSkins[0] ?? null;
     if (!equippedPlanetSkin) {
       return fallback;
     }
