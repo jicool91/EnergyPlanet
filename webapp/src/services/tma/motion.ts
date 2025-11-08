@@ -1,5 +1,4 @@
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
-import { getTmaRuntimeSnapshot } from '@/tma/runtimeState';
 
 export type GyroscopeVector = {
   x: number;
@@ -127,10 +126,6 @@ function toggleGyroscope(active: boolean, options?: GyroscopeOptions): void {
 export function isGyroscopeSupported(): boolean {
   const webApp = getTelegramWebApp();
   if (!webApp) {
-    const runtime = getTmaRuntimeSnapshot();
-    if (runtime?.miniApp && typeof runtime.miniApp.isVersionAtLeast === 'function') {
-      return runtime.miniApp.isVersionAtLeast('8.0');
-    }
     return false;
   }
 

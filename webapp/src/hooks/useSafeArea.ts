@@ -1,10 +1,18 @@
-import { useEffect, useMemo, useRef } from 'react';
-import type { SafeAreaSnapshot, ViewportMetrics } from '@/services/tma/viewport';
+import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
+import {
+  getCachedSafeArea,
+  getCachedViewportMetrics,
+  getTmaSafeAreaSnapshot,
+  getTmaViewportMetrics,
+  onTmaSafeAreaChange,
+  onTmaViewportChange,
+  type SafeAreaSnapshot,
+  type ViewportMetrics,
+} from '@/services/tma/viewport';
 import { HEADER_BUFFER_PX } from '@/constants/layout';
 import { isTmaSdkAvailable } from '@/services/tma/core';
 import { logger } from '@/utils/logger';
 import { logClientEvent } from '@/services/telemetry';
-import { useViewportSignal } from './useViewportSignal';
 
 type SafeAreaResult = {
   safeArea: SafeAreaSnapshot;
@@ -15,6 +23,12 @@ type SafeAreaResult = {
   isFullscreen: boolean;
   isExpanded: boolean;
 };
+
+const subscribeSafeArea = (callback: () => void) => onTmaSafeAreaChange(() => callback());
+const subscribeViewport = (callback: () => void) => onTmaViewportChange(() => callback());
+
+const getSafeAreaSnapshot = () => getCachedSafeArea() ?? getTmaSafeAreaSnapshot();
+const getViewportSnapshot = () => getCachedViewportMetrics() ?? getTmaViewportMetrics();
 
 const clampInset = (value?: number | null) => Math.max(0, value ?? 0);
 
@@ -27,7 +41,16 @@ const SAFE_AREA_STATS_WINDOW_KEY = '__safeAreaStats';
  * Returns memoized layout insets so layout consumers avoid recalculating padding on every render.
  */
 export function useSafeArea(): SafeAreaResult {
-  const { safeArea, metrics: viewport } = useViewportSignal();
+  const safeArea = useSyncExternalStore(
+    subscribeSafeArea,
+    getSafeAreaSnapshot,
+    getSafeAreaSnapshot
+  );
+  const viewport = useSyncExternalStore(
+    subscribeViewport,
+    getViewportSnapshot,
+    getViewportSnapshot
+  );
 
   const lastTelemetryRef = useRef({
     safeTop: clampInset(safeArea.safe.top),

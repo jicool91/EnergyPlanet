@@ -1,5 +1,4 @@
 import { createContext, useContext, useEffect, useMemo, type ReactNode } from 'react';
-import { SDKProvider } from '@tma.js/sdk-react';
 import {
   backButton,
   cloudStorage,
@@ -126,11 +125,7 @@ export function TmaSdkProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
-  return (
-    <SDKProvider>
-      <TmaRuntimeContext.Provider value={value}>{children}</TmaRuntimeContext.Provider>
-    </SDKProvider>
-  );
+  return <TmaRuntimeContext.Provider value={value}>{children}</TmaRuntimeContext.Provider>;
 }
 
 export function useTmaRuntime(): TmaRuntimeContextValue {
