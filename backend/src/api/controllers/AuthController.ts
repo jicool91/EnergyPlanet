@@ -6,7 +6,6 @@ import { Request, Response, NextFunction } from 'express';
 import { AuthService } from '../../services/AuthService';
 import { AppError } from '../../middleware/errorHandler';
 import { logger } from '../../utils/logger';
-import { config } from '../../config';
 import { recordAuthRequestMetric } from '../../metrics/auth';
 
 interface TelegramInitBody {
@@ -120,20 +119,6 @@ export class AuthController {
       }
 
       const originHeader = getSingleHeader(req.headers.origin as string | string[] | undefined);
-      if (
-        originHeader &&
-        !config.telegram.allowedOrigins.some(allowed => allowed.toLowerCase() === originHeader.toLowerCase())
-      ) {
-        logger.warn(
-          {
-            reason: 'origin_not_allowed',
-            origin: originHeader,
-            ip: req.ip,
-          },
-          'telegram_header_auth_failed'
-        );
-        throw new AppError(403, 'origin_not_allowed');
-      }
 
       const result = await this.authService.authenticateWithTelegram(payload, {
         enforceReplayProtection: true,
