@@ -53,6 +53,8 @@ let lastSafeAreaTelemetry: SafeAreaSnapshot | null = null;
 let lastViewportTelemetry: ViewportMetrics | null = null;
 let lastSafeAreaTelemetryAt = 0;
 let lastViewportTelemetryAt = 0;
+let loggedSafeAreaOverride = false;
+let loggedViewportOverride = false;
 
 const SAFE_AREA_KEYS: Array<keyof SafeAreaInsets> = ['top', 'right', 'bottom', 'left'];
 
@@ -83,6 +85,11 @@ function readSafeAreaOverride(): SafeAreaSnapshot | null {
     return null;
   }
 
+  if (!loggedSafeAreaOverride) {
+    loggedSafeAreaOverride = true;
+    void logClientEvent('legacy_viewport_fallback_used', { type: 'safe_area_override' }, 'warn');
+  }
+
   const safe = sanitizeInsets(override.safe);
   const content = override.content ? sanitizeInsets(override.content) : safe;
   return { safe, content };
@@ -96,6 +103,11 @@ function readViewportOverride(): ViewportMetrics | null {
   const override = window.__viewportMetricsOverride as ViewportOverrideConfig | undefined;
   if (!override) {
     return null;
+  }
+
+  if (!loggedViewportOverride) {
+    loggedViewportOverride = true;
+    void logClientEvent('legacy_viewport_fallback_used', { type: 'viewport_override' }, 'warn');
   }
 
   return {

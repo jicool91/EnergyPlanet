@@ -1,8 +1,5 @@
-import {
-  cloudStorageGetItem,
-  cloudStorageSetItem,
-  isCloudStorageAvailable,
-} from '@/services/tma/cloudStorage';
+import { cloudStorageGetItem, cloudStorageSetItem } from '@/services/tma/cloudStorage';
+import { getTmaRuntimeSnapshot } from '@/tma/runtimeState';
 import { usePreferencesStore } from '../store/preferencesStore';
 
 const CLOUD_PREFERENCES_KEY = 'preferences_v1';
@@ -40,7 +37,7 @@ function applyPreferencesPatch(serialized: string | null | undefined) {
 }
 
 export async function initializePreferenceCloudSync(): Promise<void> {
-  if (syncInitialized || !isCloudStorageAvailable()) {
+  if (syncInitialized || !getTmaRuntimeSnapshot()?.cloudStorage?.isSupported()) {
     return;
   }
 
@@ -55,7 +52,7 @@ export async function initializePreferenceCloudSync(): Promise<void> {
 
   let pending = false;
   usePreferencesStore.subscribe(state => {
-    if (!isCloudStorageAvailable()) {
+    if (!getTmaRuntimeSnapshot()?.cloudStorage?.isSupported()) {
       return;
     }
 

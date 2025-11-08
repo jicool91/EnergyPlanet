@@ -683,9 +683,11 @@ App
   "zustand": "^4.x.x",
   "tailwindcss": "^3.x.x",
   "typescript": "^5.x.x",
-  "@telegram-apps/sdk-react": "^1.x.x"
+  "@tma.js/sdk": "^3.x.x",
+  "@tma.js/sdk-react": "^3.x.x"
 }
 ```
+> ℹ️ В соответствии с https://docs.telegram-mini-apps.com/packages/tma-js-sdk официальная команда Telegram выводит `@telegram-apps/*` из эксплуатации в 2026, поэтому новые зависимости указываем через `@tma.js/*`.
 
 ---
 

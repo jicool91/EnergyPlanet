@@ -7,7 +7,7 @@ Audience: frontend engineers, designers, QA, and release managers.
 Document length target: ≥500 lines as requested; do not trim without notifying the author.
 Status tracking: log deltas in docs/changelog.md when major steps move to Done.
 Related tickets: TMA-231 “Fullscreen safe area”, TMA-268 “Status bar polish”, TAP-901 “Mini App QA grid”.
-Dependencies: Telegram Mini App runtime ≥ v8.0, `@tma.js/sdk` 3.x, `@tma.js/sdk-react` 3.0.8, React 19.
+Dependencies: Telegram Mini App runtime ≥ v8.0, `@tma.js/sdk` 3.x, `@tma.js/sdk-react` 3.0.8, React 19, и наш `TmaSdkProvider` из `webapp/src/providers/TmaSdkProvider.tsx`.
 Environment baseline: Telegram iOS 10.6, Android 10.6, Desktop 5.6, Web K.495, QA bots `energy_planet_bot` / `energy_planet_stage_bot`.
 Fallback plan: degrade gracefully to non-fullscreen bottom-sheet layout when viewport APIs unavailable.
 ---
@@ -352,6 +352,8 @@ QA Tips: use `/debug_safe_area` command in dev console to log insets after each 
 11.7 Document how to reproduce Telegram close-button overlap issues using Playwright device emulation + `viewport.isFullscreen` mocks.
 11.8 Инструментировать `ui_safe_area_delta` телеметрию при изменении safe-area >4 px (`webapp/src/main.tsx`).
 11.9 Хук `/debug_safe_area` привязать к горячей клавише `Meta+Shift+S` и логам DevTools для QA.
+11.10 `webapp/src/services/tma/viewport.ts` теперь репортит `legacy_viewport_fallback_used`, когда тестовые overrides (`window.__safeAreaOverride`, `__viewportMetricsOverride`) задействованы — используем для мониторинга Playwright/Storybook прогонов.
+11.11 `TmaSdkProvider` шлёт `sdk_provider_init` и `sdk_provider_error`; добавьте панели в Grafana, чтобы отслеживать стабильность SDK.
 
 ---
 
@@ -366,7 +368,7 @@ QA Tips: use `/debug_safe_area` command in dev console to log insets after each 
 ---
 
 ## 13. Future enhancements and open questions
-13.1 Evaluate migrating to `@tma.js/sdk-react` providers to remove custom store wiring; compare bundle size impact versus manual approach.[ref-sdk-react]
+13.1 React провайдеры — `TmaSdkProvider` уже оборачивает приложение, устраняя ручные подписки на viewport/theme; при доработках сверяемся с `@tma.js/sdk-react` релизами и следим за bundle size.[ref-sdk-react]
 13.2 Consider animating between default and fullscreen states using CSS transitions tied to `--tg-viewport-is-fullscreen` for smoother feel.
 13.3 Investigate automatic detection of Telegram button heights so header can adapt to future UI changes without redeploying.
 13.4 Explore voice control or gestures triggered when Telegram hides chrome entirely — may require user education.

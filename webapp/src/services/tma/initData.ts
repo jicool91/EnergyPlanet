@@ -1,8 +1,12 @@
 import { retrieveRawInitData } from '@tma.js/sdk';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
+import { getTmaRuntimeSnapshot } from '@/tma/runtimeState';
 
 export function getTmaInitData(): string {
-  ensureTmaSdkReady();
+  const runtime = getTmaRuntimeSnapshot();
+  if (!runtime) {
+    ensureTmaSdkReady();
+  }
 
   if (!isTmaSdkAvailable()) {
     return '';

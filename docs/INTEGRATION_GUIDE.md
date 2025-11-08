@@ -17,8 +17,13 @@ npm list react react-dom react-router-dom zustand
 # Убедитесь что установлены:
 npm install --save-dev @types/react @types/react-dom
 
-# Telegram SDK
-npm install @telegram-apps/sdk-react @telegram-apps/sdk
+# Telegram SDK (официальный стек на 2025-11-08)
+# см. https://docs.telegram-mini-apps.com/packages/tma-js-sdk
+# Telegram SDK (официальный стек на 2025-11-08)
+# см. https://docs.telegram-mini-apps.com/packages/tma-js-sdk
+npm install @tma.js/sdk @tma.js/sdk-react
+
+> ℹ️ Telegram Mini Apps офиц. документация сообщает, что линейка `@telegram-apps/*` будет удалена в 2026, поэтому все новые интеграции строим на `@tma.js/sdk` + `@tma.js/sdk-react`.
 ```
 
 #### 1.2 Проверка Tailwind CSS конфигурации

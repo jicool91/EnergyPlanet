@@ -1,6 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
 import { useCallback, useEffect, useMemo } from 'react';
-import { miniApp } from '@tma.js/sdk';
 import { useSafeArea } from '@/hooks/useSafeArea';
 import { useTheme } from '@/hooks/useTheme';
 import {
@@ -11,6 +10,7 @@ import {
 import { logger } from '@/utils/logger';
 import { NAVIGATION_RESERVE_PX, SIDE_PADDING_PX } from '@/constants/layout';
 import { logClientEvent } from '@/services/telemetry';
+import { useTmaRuntime } from '@/providers/TmaSdkProvider';
 
 const HEADER_COLOR_DEBOUNCE_MS = 120;
 
@@ -45,6 +45,7 @@ interface AppLayoutProps {
 export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: AppLayoutProps) {
   const { safeArea, safeTopWithBuffer, isFullscreen } = useSafeArea();
   const { theme } = useTheme();
+  const { miniApp } = useTmaRuntime();
   const safeBottom = Math.max(0, safeArea.safe.bottom ?? 0);
   const safeContentBottom = Math.max(0, safeArea.content.bottom ?? 0);
   const safeLeft = Math.max(0, safeArea.safe.left ?? 0);
@@ -149,7 +150,7 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
       cancelled = true;
       clearTimeout(timeout);
     };
-  }, [backgroundColor, headerColor, platform]);
+  }, [backgroundColor, headerColor, miniApp, platform]);
 
   const containerClassName =
     'relative flex min-h-screen w-full flex-col max-w-screen-md lg:max-w-screen-lg';
@@ -222,7 +223,7 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
       const errorPayload = toErrorPayload(error);
       logger.warn('Telegram.WebApp.close failed', { error: errorPayload });
     }
-  }, [platform]);
+  }, [miniApp, platform]);
 
   return (
     <div className="flex min-h-screen w-full justify-center bg-surface-primary text-text-primary">

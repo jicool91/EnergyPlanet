@@ -5,7 +5,7 @@
 - `webapp` полностью переключён на `@tma.js/sdk` и `@tma.js/sdk-react`; зависимости `@twa-dev/*` удалены из `package.json`.
 - Вся логика Telegram вынесена в `webapp/src/services/tma/`: `core`, `viewport`, `theme`, `mainButton`, `backButton`, `haptics`, `cloudStorage`, `initData`.
 - Реактовые хуки (`useSafeArea`, `useTheme`, `useTelegramMainButton`, `useTelegramBackButton`, `useAuthBootstrap`) и игровые сторы используют адаптеры напрямую, без фиче-флагов.
-- Точка входа `main.tsx` инициализирует SDK через `ensureTmaSdkReady`, синхронизирует CSS-переменные safe-area/viewport и подписывает UI-стор на обновления темы.
+- Точка входа `main.tsx` теперь только подготавливает сторы; инициализация/подписки выполняет `TmaSdkProvider` (см. `webapp/src/providers/TmaSdkProvider.tsx`).
 
 ## Что поменялось по сравнению с legacy-слоем
 
@@ -29,6 +29,6 @@
 
 ## Рекомендации на будущее
 
-- При добавлении новых возможностей Mini Apps в первую очередь проверять наличие готовых классов/хуков в `@tma.js/sdk` / `@tma.js/sdk-react`.
+- При добавлении новых возможностей Mini Apps в первую очередь проверять наличие готовых классов/хуков в `@tma.js/sdk` / `@tma.js/sdk-react` и прокидывать их через `TmaSdkProvider` вместо прямых `window.Telegram` обращений.
 - Для тестов использовать `@tma.js/sdk-react/testing` — там есть симуляторы мини-приложения.
 - Если потребуется SSR/Storybook, опираться на `mockTelegramEnv` из `@tma.js/sdk` вместо ручных моков.

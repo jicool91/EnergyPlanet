@@ -1,10 +1,19 @@
 import { invoice } from '@tma.js/sdk';
 import type { InvoiceStatus } from '@tma.js/bridge';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
+import { getTmaRuntimeSnapshot } from '@/tma/runtimeState';
+
+function getInvoice() {
+  const runtime = getTmaRuntimeSnapshot();
+  if (!runtime) {
+    ensureTmaSdkReady();
+  }
+  return invoice;
+}
 
 function isSupported(): boolean {
-  ensureTmaSdkReady();
-  return isTmaSdkAvailable() && invoice.isSupported();
+  const instance = getInvoice();
+  return isTmaSdkAvailable() && instance.isSupported();
 }
 
 export async function openTmaInvoiceBySlug(slug: string): Promise<InvoiceStatus | null> {
@@ -13,7 +22,7 @@ export async function openTmaInvoiceBySlug(slug: string): Promise<InvoiceStatus 
   }
 
   try {
-    return await invoice.openSlug(slug);
+    return await getInvoice().openSlug(slug);
   } catch (error) {
     if (import.meta.env.DEV) {
       console.debug('invoice.openSlug failed', error);
@@ -28,7 +37,7 @@ export async function openTmaInvoiceByUrl(url: string): Promise<InvoiceStatus | 
   }
 
   try {
-    return await invoice.openUrl(url);
+    return await getInvoice().openUrl(url);
   } catch (error) {
     if (import.meta.env.DEV) {
       console.debug('invoice.openUrl failed', error);

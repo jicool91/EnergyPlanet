@@ -1,9 +1,19 @@
 import { cloudStorage } from '@tma.js/sdk';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
+import { getTmaRuntimeSnapshot } from '@/tma/runtimeState';
+
+function getInstance() {
+  const runtime = getTmaRuntimeSnapshot();
+  if (runtime) {
+    return runtime.cloudStorage;
+  }
+  ensureTmaSdkReady();
+  return cloudStorage;
+}
 
 function isSupported(): boolean {
-  ensureTmaSdkReady();
-  return isTmaSdkAvailable() && cloudStorage.isSupported();
+  const instance = getInstance();
+  return isTmaSdkAvailable() && instance.isSupported();
 }
 
 export function isCloudStorageAvailable(): boolean {
@@ -15,7 +25,7 @@ export async function cloudStorageSetItem(key: string, value: string): Promise<v
     return;
   }
 
-  await cloudStorage.setItem(key, value);
+  await getInstance().setItem(key, value);
 }
 
 export async function cloudStorageGetItem(key: string): Promise<string | null> {
@@ -24,7 +34,7 @@ export async function cloudStorageGetItem(key: string): Promise<string | null> {
   }
 
   try {
-    const value = await cloudStorage.getItem(key);
+    const value = await getInstance().getItem(key);
     return typeof value === 'string' ? value : null;
   } catch (error) {
     if (import.meta.env.DEV) {
@@ -39,7 +49,7 @@ export async function cloudStorageRemoveItem(key: string): Promise<void> {
     return;
   }
 
-  await cloudStorage.deleteItem(key);
+  await getInstance().deleteItem(key);
 }
 
 export async function cloudStorageGetItems(keys: string[]): Promise<Record<string, string>> {
@@ -48,7 +58,7 @@ export async function cloudStorageGetItems(keys: string[]): Promise<Record<strin
   }
 
   try {
-    return await cloudStorage.getItems(keys);
+    return await getInstance().getItems(keys);
   } catch (error) {
     if (import.meta.env.DEV) {
       console.debug('CloudStorage.getItems failed', error);
@@ -63,7 +73,7 @@ export async function cloudStorageGetKeys(): Promise<string[]> {
   }
 
   try {
-    return await cloudStorage.getKeys();
+    return await getInstance().getKeys();
   } catch (error) {
     if (import.meta.env.DEV) {
       console.debug('CloudStorage.getKeys failed', error);

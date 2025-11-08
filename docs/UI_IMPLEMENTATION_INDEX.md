@@ -142,9 +142,11 @@
   "zustand": "^4.x.x",
   "tailwindcss": "^3.x.x",
   "typescript": "^5.x.x",
-  "@telegram-apps/sdk-react": "^1.x.x"
+  "@tma.js/sdk": "^3.x.x",
+  "@tma.js/sdk-react": "^3.x.x"
 }
 ```
+> ℹ️ Актуальный стек Telegram Mini Apps описан в https://docs.telegram-mini-apps.com/packages/tma-js-sdk; пакеты `@telegram-apps/*` устаревают к 2026, поэтому переходим на `@tma.js/*`.
 
 Проверьте что все установлены:
 ```bash

@@ -29,3 +29,7 @@
 - Toggle `MOCK_PAYMENTS=true` in `backend/.env` when testing cosmetics purchases locally; disable it in environments where Telegram Stars is wired.
 - Boostы доступны через `/api/v1/boot/claim`; для локальной отладки quick-boots используют mock payments и логируются в таблицу `events` — смотри `boost_claim` и `boost_activate` события.
 - Моковые покупки Stars: сначала вызывай `/api/v1/purchase/invoice` (создаёт запись со статусом `pending`), затем `/api/v1/purchase` для завершения. Вебхук `/api/v1/purchase/webhook` пока заглушка, отдаёт 202 и предназначен для будущей подписи Telegram.
+
+### Telegram SDK Stack
+- Следуем официальной документации Telegram Mini Apps (https://docs.telegram-mini-apps.com/packages/tma-js-sdk, обновлено 2025-11-08): целевые пакеты — `@tma.js/sdk` и `@tma.js/sdk-react`.
+- Библиотеки `@telegram-apps/*` помечены к удалению в 2026; не добавляем их в новые зависимости и постепенно вычищаем из старых гайдов.

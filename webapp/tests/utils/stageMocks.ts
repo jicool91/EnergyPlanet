@@ -22,6 +22,7 @@ export type StageMockOptions = {
   viewportOverride?: ViewportOverrideInput;
   platform?: string;
   injectTelegram?: boolean;
+  useMockProvider?: boolean;
 };
 
 type InsetsKeys = 'top' | 'right' | 'bottom' | 'left';
@@ -339,6 +340,7 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
       window.__viewportMetricsOverride = initialViewport;
     }
 
+
     window.localStorage?.setItem('access_token', 'qa-access-token');
     window.localStorage?.setItem('refresh_token', 'qa-refresh-token');
     window.localStorage?.setItem('refresh_expires_at_ms', String(nowMs + 12 * 60 * 60 * 1000));
@@ -353,6 +355,12 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
   viewportOverride,
   options.platform ?? 'test',
   injectTelegram);
+
+  if (options.useMockProvider) {
+    await page.addInitScript(() => {
+      window.__useMockTmaProvider = true;
+    });
+  }
 
   const leaderboard = options.leaderboard ?? [
     {

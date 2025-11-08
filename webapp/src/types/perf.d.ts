@@ -35,6 +35,7 @@ declare global {
       severity?: string;
       context?: Record<string, unknown>;
     }>;
+    __useMockTmaProvider?: boolean;
     __tmaDebug?: {
       requestFullscreen?: () => void;
       exitFullscreen?: () => void;

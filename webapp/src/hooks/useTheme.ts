@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { getTmaThemeSnapshot, onTmaThemeChange } from '@/services/tma/theme';
-import type { ThemeSnapshot } from '@/utils/telegramTheme';
+import { useEffect, useMemo, useRef } from 'react';
 import { logClientEvent } from '@/services/telemetry';
+import { useThemeSignal } from './useThemeSignal';
 
 type ColorScheme = 'light' | 'dark';
 
@@ -33,26 +32,13 @@ const THEME_HOOK_INTERVAL_MS = 60_000;
  * Provides derived color scheme data so UI components can reactively style themselves.
  */
 export function useTheme() {
-  const [theme, setTheme] = useState<ThemeSnapshot>(() => getTmaThemeSnapshot());
-  const [colorScheme, setColorScheme] = useState<ColorScheme>(() =>
-    getBrowserColorSchemeFallback()
-  );
+  const { theme } = useThemeSignal();
+  const colorScheme = getBrowserColorSchemeFallback();
   const lastTelemetryRef = useRef({
     headerColor: theme.header_color ?? theme.bg_color,
     colorScheme,
     timestamp: 0,
   });
-
-  useEffect(() => {
-    const unsubscribe = onTmaThemeChange(nextTheme => {
-      setTheme(nextTheme);
-      setColorScheme(getBrowserColorSchemeFallback());
-    });
-
-    return () => {
-      unsubscribe();
-    };
-  }, []);
 
   useEffect(() => {
     const headerColor = theme.header_color ?? theme.bg_color;

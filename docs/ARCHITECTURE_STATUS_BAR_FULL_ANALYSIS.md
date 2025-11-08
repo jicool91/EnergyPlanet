@@ -17,12 +17,12 @@
 ---
 2. АРХИТЕКТУРНЫЕ СЛОИ (СНИЗУ ВВЕРХ)
 
-Слой 1: TMA SDK Integration (services/tma/)
+Слой 1: TMA SDK Integration (services/tma/ + `TmaSdkProvider`)
 
-core.ts — Bootstrap Telegram Mini App SDK:
-- Инициализирует @tma.js/sdk
-- Вызывает miniApp.ready() и viewport.expand()
-- Отключает вертикальный свайп для fullscreen режима
+core.ts + TmaSdkProvider — Bootstrap Telegram Mini App SDK:
+- Инициализирует @tma.js/sdk через единый React-провайдер (`webapp/src/providers/TmaSdkProvider.tsx`)
+- Вызывает miniApp.ready(), viewport.expand(), swipeBehavior.disableVertical()
+- Обновляет uiStore/theme/safe-area, ставит debug-команды и пишет `sdk_provider_init`
 
 viewport.ts — Safe Area Management:
 // Ключевые функции:

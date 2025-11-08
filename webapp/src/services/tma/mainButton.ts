@@ -1,6 +1,7 @@
 import { mainButton, themeParams } from '@tma.js/sdk';
 import { getActionToneHex, type ActionTone } from '@/components/ui/actionTheme';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
+import { getTmaRuntimeSnapshot } from '@/tma/runtimeState';
 
 type MainButtonOptions = {
   text: string;
@@ -15,6 +16,24 @@ type MainButtonOptions = {
 
 const activeHandlers = new Set<() => void>();
 let loaderVisible = false;
+
+function getMainButton() {
+  const runtime = getTmaRuntimeSnapshot();
+  if (runtime) {
+    return runtime.mainButton;
+  }
+  ensureTmaSdkReady();
+  return mainButton;
+}
+
+function getThemeParams() {
+  const runtime = getTmaRuntimeSnapshot();
+  if (runtime) {
+    return runtime.themeParams;
+  }
+  ensureTmaSdkReady();
+  return themeParams;
+}
 
 function toRgb(value?: string): `#${string}` | null {
   if (!value || typeof value !== 'string') {
@@ -39,7 +58,7 @@ function resolveButtonColors(options: MainButtonOptions): {
   let themeFg: string | undefined;
 
   try {
-    const state = themeParams.state();
+    const state = getThemeParams().state();
     if (state) {
       if (typeof state.button_color === 'string') {
         themeBg = state.button_color;
@@ -60,22 +79,22 @@ function resolveButtonColors(options: MainButtonOptions): {
   return { background, foreground };
 }
 
-function applyConfig(options: MainButtonOptions) {
-  mainButton.setText(options.text);
+function applyConfig(options: MainButtonOptions, button: typeof mainButton) {
+  button.setText(options.text);
 
   const { background, foreground } = resolveButtonColors(options);
   if (background) {
-    mainButton.setBgColor(background);
+    button.setBgColor(background);
   }
 
   if (foreground) {
-    mainButton.setTextColor(foreground);
+    button.setTextColor(foreground);
   }
 
   if (options.disabled) {
-    mainButton.disable();
+    button.disable();
   } else {
-    mainButton.enable();
+    button.enable();
   }
 }
 
@@ -86,20 +105,22 @@ export function withTmaMainButton(options: MainButtonOptions): () => void {
     return () => {};
   }
 
-  if (!mainButton.isMounted()) {
-    mainButton.mount();
+  const button = getMainButton();
+
+  if (!button.isMounted()) {
+    button.mount();
   }
 
-  if (!mainButton.isVisible()) {
-    mainButton.show();
+  if (!button.isVisible()) {
+    button.show();
   }
 
-  applyConfig(options);
+  applyConfig(options, button);
 
   const handler = () => {
     if (options.showProgress) {
       try {
-        mainButton.showLoader();
+        button.showLoader();
         loaderVisible = true;
       } catch {
         loaderVisible = false;
@@ -110,7 +131,7 @@ export function withTmaMainButton(options: MainButtonOptions): () => void {
     } finally {
       if (options.showProgress && loaderVisible) {
         try {
-          mainButton.hideLoader();
+          button.hideLoader();
         } catch {
           // ignore bridge errors
         } finally {
@@ -120,16 +141,16 @@ export function withTmaMainButton(options: MainButtonOptions): () => void {
     }
   };
 
-  mainButton.onClick(handler);
+  button.onClick(handler);
   activeHandlers.add(handler);
 
   return () => {
-    mainButton.offClick(handler);
+    button.offClick(handler);
     activeHandlers.delete(handler);
 
     if (options.showProgress && loaderVisible) {
       try {
-        mainButton.hideLoader();
+        button.hideLoader();
       } catch {
         // ignore bridge errors
       } finally {
@@ -140,16 +161,16 @@ export function withTmaMainButton(options: MainButtonOptions): () => void {
     if (!options.keepVisibleOnUnmount && activeHandlers.size === 0) {
       if (loaderVisible) {
         try {
-          mainButton.hideLoader();
+          button.hideLoader();
         } catch {
           // ignore
         } finally {
           loaderVisible = false;
         }
       }
-      if (mainButton.isVisible()) {
+      if (button.isVisible()) {
         try {
-          mainButton.hide();
+          button.hide();
         } catch {
           // ignore
         }
@@ -165,19 +186,21 @@ export function hideTmaMainButton(): void {
     return;
   }
 
+  const button = getMainButton();
+
   activeHandlers.clear();
   if (loaderVisible) {
     try {
-      mainButton.hideLoader();
+      button.hideLoader();
     } catch {
       // ignore
     } finally {
       loaderVisible = false;
     }
   }
-  if (mainButton.isVisible()) {
+  if (button.isVisible()) {
     try {
-      mainButton.hide();
+      button.hide();
     } catch {
       // ignore
     }

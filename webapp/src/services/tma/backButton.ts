@@ -1,25 +1,40 @@
 import { backButton } from '@tma.js/sdk';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
+import { getTmaRuntimeSnapshot } from '@/tma/runtimeState';
+
+function getBackButton() {
+  const runtime = getTmaRuntimeSnapshot();
+  if (runtime) {
+    return runtime.backButton;
+  }
+  ensureTmaSdkReady();
+  return backButton;
+}
 
 export function withTmaBackButton(handler: () => void): () => void {
   ensureTmaSdkReady();
 
-  if (!isTmaSdkAvailable() || !backButton.isSupported()) {
+  if (!isTmaSdkAvailable()) {
     return () => {};
   }
 
-  if (!backButton.isMounted()) {
-    backButton.mount();
+  const button = getBackButton();
+  if (!button.isSupported()) {
+    return () => {};
   }
 
-  const wasVisible = backButton.isVisible();
-  backButton.show();
-  backButton.onClick(handler);
+  if (!button.isMounted()) {
+    button.mount();
+  }
+
+  const wasVisible = button.isVisible();
+  button.show();
+  button.onClick(handler);
 
   return () => {
-    backButton.offClick(handler);
+    button.offClick(handler);
     if (!wasVisible) {
-      backButton.hide();
+      button.hide();
     }
   };
 }
