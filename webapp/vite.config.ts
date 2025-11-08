@@ -16,6 +16,9 @@ export default defineConfig({
     hmr: {
       clientPort: 5173,
     },
+    fs: {
+      allow: [path.resolve(__dirname), path.resolve(__dirname, '..')],
+    },
     allowedHosts: [
       'epic-late-providing-antonio.trycloudflare.com',
       '.trycloudflare.com',

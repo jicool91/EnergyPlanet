@@ -38,6 +38,7 @@ import { ProgressBar, Surface, Text, Button } from './components';
 import { PvPEventsScreen } from './screens/PvPEventsScreen';
 import { AdminModalContext } from './contexts/AdminModalContext';
 import { ensureExperimentVariant } from '@/store/experimentsStore';
+import { getHeaderSchema } from '@/constants/headerSchema';
 
 const NAVIGATION_TABS: BottomNavigationTab[] = [
   { id: 'tap', label: 'Tap', icon: '⚡️', path: '/' },
@@ -341,14 +342,16 @@ function NextUiApp() {
     [openAdminMetrics]
   );
 
+  const compactNumberFormatter = useMemo(
+    () => new Intl.NumberFormat('ru-RU', { notation: 'compact', maximumFractionDigits: 1 }),
+    []
+  );
+
   const renderHeader = useCallback(
     ({ activeTab, navigate }: RenderHeaderParams) => {
-      const formatter = new Intl.NumberFormat('ru-RU', {
-        notation: 'compact',
-        maximumFractionDigits: 1,
-      });
+      const schema = getHeaderSchema(activeTab);
 
-      if (activeTab === 'tap') {
+      if (schema.layout === 'tap-status') {
         return (
           <Surface
             tone="overlayMedium"
@@ -364,10 +367,10 @@ function NextUiApp() {
               </Text>
               <div className="flex items-center gap-3">
                 <Text as="span" variant="body" tone="primary" className="flex items-center gap-1">
-                  ⚡ {formatter.format(energy)}
+                  ⚡ {compactNumberFormatter.format(energy)}
                 </Text>
                 <Text as="span" variant="body" tone="accent" className="flex items-center gap-1">
-                  ⭐ {formatter.format(stars)}
+                  ⭐ {compactNumberFormatter.format(stars)}
                 </Text>
               </div>
               <ProgressBar
@@ -377,29 +380,21 @@ function NextUiApp() {
               />
             </div>
             <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                size="md"
-                variant="primary"
-                onClick={() => navigate('/exchange?section=star_packs')}
-              >
-                Магазин
-              </Button>
-              <Button type="button" size="md" variant="secondary" onClick={() => navigate('/earn')}>
-                Профиль
-              </Button>
+              {schema.actions?.map(action => (
+                <Button
+                  key={action.id}
+                  type="button"
+                  size="md"
+                  variant={action.variant ?? 'primary'}
+                  onClick={() => navigate(action.target, { replace: action.replace })}
+                >
+                  {action.label}
+                </Button>
+              ))}
             </div>
           </Surface>
         );
       }
-
-      const titleMap: Record<BottomNavigationTabId, string> = {
-        tap: 'Tap',
-        exchange: 'Exchange',
-        friends: 'Friends',
-        earn: 'Earn',
-        chat: 'Chat',
-      };
 
       return (
         <Surface
@@ -411,21 +406,24 @@ function NextUiApp() {
           className="flex items-center justify-between"
         >
           <Text as="span" variant="title" tone="primary" weight="semibold">
-            {titleMap[activeTab]}
+            {schema.title}
           </Text>
-          <Button
-            type="button"
-            size="md"
-            variant="secondary"
-            className="text-text-secondary"
-            onClick={() => navigate('/')}
-          >
-            На Tap
-          </Button>
+          {schema.actions?.map(action => (
+            <Button
+              key={action.id}
+              type="button"
+              size="md"
+              variant={action.variant ?? 'secondary'}
+              className="text-text-secondary"
+              onClick={() => navigate(action.target, { replace: action.replace })}
+            >
+              {action.label}
+            </Button>
+          ))}
         </Surface>
       );
     },
-    [energy, level, stars, xpIntoLevel, xpToNextLevel]
+    [compactNumberFormatter, energy, level, stars, xpIntoLevel, xpToNextLevel]
   );
 
   return (

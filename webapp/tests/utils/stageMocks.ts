@@ -21,6 +21,7 @@ export type StageMockOptions = {
   safeAreaOverride?: SafeAreaOverrideInput;
   viewportOverride?: ViewportOverrideInput;
   platform?: string;
+  injectTelegram?: boolean;
 };
 
 type InsetsKeys = 'top' | 'right' | 'bottom' | 'left';
@@ -220,6 +221,8 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
     ? JSON.parse(JSON.stringify(options.viewportOverride))
     : null;
 
+  const injectTelegram = options.injectTelegram !== false;
+
   await page.addInitScript(
     (
       nowMs: number,
@@ -227,7 +230,8 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
       scheme: 'light' | 'dark',
       initialSafeArea: SafeAreaOverrideInput | null,
       initialViewport: ViewportOverrideInput | null,
-      platform: string
+      platform: string,
+      enableTelegram: boolean
     ) => {
     const mockDate = class extends Date {
       constructor(...args: ConstructorParameters<DateConstructor>) {
@@ -246,25 +250,27 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).Date = mockDate;
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (window as any).Telegram = {
-      WebApp: {
-        ready: () => {},
-        expand: () => {},
-        close: () => {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          (window as any).__manualCloseCalls = ((window as any).__manualCloseCalls ?? 0) + 1;
+    if (enableTelegram) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (window as any).Telegram = {
+        WebApp: {
+          ready: () => {},
+          expand: () => {},
+          close: () => {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            (window as any).__manualCloseCalls = ((window as any).__manualCloseCalls ?? 0) + 1;
+          },
+          initData: '',
+          initDataUnsafe: {},
+          themeParams: {},
+          onEvent: () => {},
+          offEvent: () => {},
+          disableVerticalSwipes: () => {},
+          platform,
+          colorScheme: scheme,
         },
-        initData: '',
-        initDataUnsafe: {},
-        themeParams: {},
-        onEvent: () => {},
-        offEvent: () => {},
-        disableVerticalSwipes: () => {},
-        platform,
-        colorScheme: scheme,
-      },
-    };
+      };
+    }
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     (window as any).__manualCloseCalls = 0;
 
@@ -343,7 +349,8 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
   options.colorScheme ?? 'dark',
   safeAreaOverride,
   viewportOverride,
-  options.platform ?? 'test');
+  options.platform ?? 'test',
+  injectTelegram);
 
   const leaderboard = options.leaderboard ?? [
     {

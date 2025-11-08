@@ -11,3 +11,7 @@
 - Телеметрия safe area / viewport теперь агрегируется на backend (`backend/src/metrics/telemetry.ts`) и пишется событиями `safe_area_changed`, `viewport_metrics_changed`, `viewport_action`, `ui_safe_area_delta`.
 - `infra/grafana/dashboards/telegram-miniapp-product.json` получил новый ряд **Safe Area & Fullscreen** (четыре панели) для мониторинга инсетов и fullscreen статусов.
 - Обновлено `docs/ARCHITECTURE_STATUS_BAR_FULL_ANALYSIS.md` разделом про телеметрию/Grafana, `docs/06-11-2025/ui-task-02-top-bar.md` — статус 2025-11-08.
+- `webapp/src/hooks/useSafeArea.ts` и `webapp/src/hooks/useTheme.ts` публикуют события `safe_area_hook_sample` / `theme_hook_update` + обновляют `window.__safeAreaStats/__themeStats`.
+- Header schema вынесена в `webapp/src/constants/headerSchema.ts`, `App.tsx` читает конфиг вместо условных блоков.
+- Safe-area токены живут в `shared/tokens/safe-area.json`, Vite разрешает импорт за пределами `webapp` (см. `webapp/vite.config.ts`).
+- Добавлен fallback тест в `tests/qa/safe-area.spec.ts` (без Telegram SDK).

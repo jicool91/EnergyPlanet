@@ -23,6 +23,11 @@ export type TelegramThemeParams = Partial<Record<TelegramThemeColorKey, string>>
   bottom_bar_color?: string;
 };
 
+export type ThemeSnapshot = Record<TelegramThemeColorKey, string> & {
+  header_color: string;
+  bottom_bar_color: string;
+};
+
 export const TELEGRAM_THEME_VARIABLES: Record<TelegramThemeColorKey, string> = {
   bg_color: '--tg-theme-bg-color',
   text_color: '--tg-theme-text-color',
@@ -42,7 +47,7 @@ export const TELEGRAM_THEME_VARIABLES: Record<TelegramThemeColorKey, string> = {
   destructive_text_color: '--tg-theme-destructive-text-color',
 };
 
-export const DEFAULT_THEME: TelegramThemeParams = {
+const BASE_THEME: Record<TelegramThemeColorKey, string> = {
   bg_color: '#0f0f0f',
   text_color: '#ffffff',
   hint_color: '#9aa0b1',
@@ -61,7 +66,30 @@ export const DEFAULT_THEME: TelegramThemeParams = {
   destructive_text_color: '#ff5a5a',
 };
 
-let lastResolvedTheme: TelegramThemeParams = { ...DEFAULT_THEME };
+const FALLBACK_COLOR = '#000000';
+
+const coerceColor = (value?: string) => value ?? FALLBACK_COLOR;
+
+function toThemeSnapshot(theme?: TelegramThemeParams): ThemeSnapshot {
+  const merged: Record<TelegramThemeColorKey, string> & TelegramThemeParams = {
+    ...BASE_THEME,
+    ...(theme ?? {}),
+  };
+  const headerColor =
+    theme?.header_color ?? merged.header_bg_color ?? merged.bg_color ?? FALLBACK_COLOR;
+  const bottomBarColor =
+    theme?.bottom_bar_color ?? merged.bottom_bar_bg_color ?? merged.bg_color ?? FALLBACK_COLOR;
+
+  return {
+    ...merged,
+    header_color: coerceColor(headerColor),
+    bottom_bar_color: coerceColor(bottomBarColor),
+  };
+}
+
+export const DEFAULT_THEME: ThemeSnapshot = toThemeSnapshot();
+
+let lastResolvedTheme: ThemeSnapshot = { ...DEFAULT_THEME };
 
 function resolveColorScheme(): ColorScheme {
   if (typeof window === 'undefined') {
@@ -98,7 +126,7 @@ function updateMetaThemeColor(color: string) {
   meta.content = color;
 }
 
-function applyDocumentTheme(params: TelegramThemeParams) {
+function applyDocumentTheme(params: ThemeSnapshot) {
   if (typeof document === 'undefined') {
     return;
   }
@@ -127,21 +155,21 @@ function applyDocumentTheme(params: TelegramThemeParams) {
   updateMetaThemeColor(params.bg_color ?? DEFAULT_THEME.bg_color ?? '#000000');
 }
 
-export function getResolvedTelegramTheme(): TelegramThemeParams {
+export function getResolvedTelegramTheme(): ThemeSnapshot {
   return { ...lastResolvedTheme };
 }
 
-export function mergeTelegramTheme(theme?: TelegramThemeParams): TelegramThemeParams {
-  return { ...DEFAULT_THEME, ...(theme ?? {}) };
+export function mergeTelegramTheme(theme?: TelegramThemeParams): ThemeSnapshot {
+  return toThemeSnapshot({ ...BASE_THEME, ...(theme ?? {}) });
 }
 
-export function initializeTelegramTheme(theme?: TelegramThemeParams): TelegramThemeParams {
+export function initializeTelegramTheme(theme?: TelegramThemeParams): ThemeSnapshot {
   lastResolvedTheme = mergeTelegramTheme(theme);
   applyDocumentTheme(lastResolvedTheme);
   return getResolvedTelegramTheme();
 }
 
-export function updateThemeVariables(theme?: TelegramThemeParams): TelegramThemeParams {
+export function updateThemeVariables(theme?: TelegramThemeParams): ThemeSnapshot {
   lastResolvedTheme = mergeTelegramTheme(theme);
   applyDocumentTheme(lastResolvedTheme);
   return getResolvedTelegramTheme();

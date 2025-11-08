@@ -1,18 +1,18 @@
+import safeAreaTokens from '../../../shared/tokens/safe-area.json';
+
 /**
  * Shared layout spacing constants to keep header/content offsets in sync.
- * Keep values mirrored in `docs/telegram-fullscreen-status-bar.md` (Section 6).
+ * Source of truth: `shared/tokens/safe-area.json`.
  */
 
-export const SAFE_AREA_LAYOUT_TOKENS = {
-  // HEADERS: top padding 16 + core block 56 + bottom padding 16 + LevelBar 2 = 90px reserved area.
-  headerReservePx: 90,
-  // BUFFER: gap between Telegram chrome buttons and our header capsule.
-  headerBufferPx: 12,
-  // NAVIGATION: Bottom navigation height incl. outer padding.
-  navigationReservePx: 88,
-  // Horizontal padding we add on top of safe-area inset.
-  sidePaddingPx: 16,
-} as const;
+type SafeAreaTokenConfig = {
+  headerReservePx: number;
+  headerBufferPx: number;
+  navigationReservePx: number;
+  sidePaddingPx: number;
+};
+
+export const SAFE_AREA_LAYOUT_TOKENS: SafeAreaTokenConfig = safeAreaTokens;
 
 export const SAFE_AREA_CSS_VARIABLES = {
   contentBaseTop: '--app-content-base-top',

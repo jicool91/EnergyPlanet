@@ -86,8 +86,8 @@ export function useTheme() {
 ### Анализ
 
 - **Официальные требования.** Telegram описывает `safe_area_changed`/`viewport_changed` как внешнее состояние, и рекомендует использовать реактивные подписки, чтобы не допустить рассинхронов, а `theme_changed` обязателен для тёмной темы.
-- **Фактическая реализация.** `useSafeArea` построен на `useSyncExternalStore`, что даёт согласованность для concurrent rendering (`webapp/src/hooks/useSafeArea.ts:1-67`). `useTheme` подписывается на `onTmaThemeChange` и хранит `isDark` (`webapp/src/hooks/useTheme.ts:1-45`).
-- **Вывод.** Слой hooks полностью соответствует практикам React 18 и офдоку. Доп. улучшение — встроить метрики (как часто приходят safe-area события) и мемоизировать formatter-ы для потребителей.
+- **Фактическая реализация.** `useSafeArea` построен на `useSyncExternalStore`, что даёт согласованность для concurrent rendering (`webapp/src/hooks/useSafeArea.ts`). `useTheme` подписывается на `onTmaThemeChange` и хранит `isDark` (`webapp/src/hooks/useTheme.ts`). С 2025‑11‑08 оба hook-а публикуют телеметрию (`safe_area_hook_sample`, `theme_hook_update`) и складывают статистику в `window.__safeAreaStats/__themeStats`.
+- **Вывод.** Слой hooks соответствует практикам React 18, плюс теперь покрыт наблюдаемостью. Следить за тем, чтобы события не зашумляли клиентскую телеметрию (интервал 30/60 секунд уже заложен).
 
 ---
 Слой 3: Layout Component (AppLayout.tsx)
@@ -188,6 +188,12 @@ const renderHeader = useCallback(({ activeTab }) => {
 ### Анализ
 
 - **Официальные требования.** Telegram допускает произвольный контент в top-area, но подчёркивает, что в fullscreen нельзя перекрывать системные элементы и желательно сохранять единый UX между вкладками.
+- **Фактическая реализация.** App.tsx рендерит два варианта Surface и переключает их по `activeTab` (`webapp/src/App.tsx:344-420`), при этом обе версии используют те же токены (`Surface`, `ProgressBar`). С 2025‑11‑08 конфигурация действий/заголовков описана в `webapp/src/constants/headerSchema.ts`, что позволяет добавлять вкладки декларативно.
+- **Вывод.** Архитектура соответствующая: контент изолирован от layout, что упрощает поддержку. Рекомендуется вынести конфигурацию заголовков в JSON/TS schema, чтобы новые вкладки не требовали JSX правок.
+
+### Анализ
+
+- **Официальные требования.** Telegram допускает произвольный контент в top-area, но подчёркивает, что в fullscreen нельзя перекрывать системные элементы и желательно сохранять единый UX между вкладками.
 - **Фактическая реализация.** App.tsx рендерит два варианта Surface и переключает их по `activeTab` (`webapp/src/App.tsx:344-420`), при этом обе версии используют те же токены (`Surface`, `ProgressBar`).
 - **Вывод.** Архитектура соответствующая: контент изолирован от layout, что упрощает поддержку. Рекомендуется вынести конфигурацию заголовков в JSON/TS schema, чтобы новые вкладки не требовали JSX правок.
 
@@ -211,7 +217,7 @@ const renderHeader = useCallback(({ activeTab }) => {
 ### Анализ
 
 - **Официальные требования.** Telegram предписывает использовать `safeAreaInsets` и `contentSafeAreaInsets`, пересчитывая производные отступы при каждом `safe_area_changed`. Жёсткие значения допустимы только как fallback.
-- **Фактическая реализация.** `applySafeAreaCss` пересчитывает `--app-*` переменные и dataset (`webapp/src/services/tma/viewport.ts:130-210`), а источником магических чисел служит `webapp/src/constants/layout.ts:1-7`.
+- **Фактическая реализация.** `applySafeAreaCss` пересчитывает `--app-*` переменные и dataset (`webapp/src/services/tma/viewport.ts:130-210`). Магические числа вынесены в `shared/tokens/safe-area.json`, который импортируется веб-клиентом (`webapp/src/constants/layout.ts`).
 - **Вывод.** Формулы соответствуют офдоку; необходимо лишь вынести константы в общие дизайн-токены, чтобы исключить расхождение между CSS и JS.
 
 ---
@@ -313,3 +319,11 @@ App.tsx → Surface header → AppLayout (hooks) → header shell → index.css 
 - Регрессионный Playwright тест: `webapp/tests/qa/safe-area.spec.ts` дополнен проверками стилей, чтобы подтвердить исчезновение рамки/тени/blur в fullscreen и их присутствие в expanded режиме.
 - Токены layout: `webapp/src/constants/layout.ts` хранит `SAFE_AREA_LAYOUT_TOKENS` и `SAFE_AREA_CSS_VARIABLES`, AppLayout/viewport используют `SIDE_PADDING_PX` и shared constants вместо локальных чисел.
 - Grafana: в `infra/grafana/dashboards/telegram-miniapp-product.json` добавлен ряд **Safe Area & Fullscreen** (панели safe-area events, inset quantiles, fullscreen share, viewport actions) для оперативного мониторинга.
+- Hook-телеметрия: `useSafeArea` и `useTheme` пишут события `safe_area_hook_sample`/`theme_hook_update`, а также пополняют `window.__safeAreaStats/__themeStats` для QA.
+- Fallback сценарий без Telegram SDK покрыт тестом («graceful fallback without Telegram SDK») и документирован в разделе 12.
+
+## 12. Fallback без Telegram SDK
+
+- **Поведение.** При отсутствии Telegram Mini App SDK (`window.Telegram` undefined) `services/tma/core.ts` фиксирует состояние `failed`, `viewport.ts` использует дефолтные инсеты, а AppLayout продолжает рендерить header с `data-fullscreen="false"`.
+- **Тестирование.** `webapp/tests/qa/safe-area.spec.ts` содержит сценарий «graceful fallback without Telegram SDK», отключающий `window.Telegram` и проверяющий, что статус-бар рендерится без крашей.
+- **Токены.** Safe-area значения синхронизируются через `shared/tokens/safe-area.json`, поэтому документация и веб-клиент используют один источник истины.

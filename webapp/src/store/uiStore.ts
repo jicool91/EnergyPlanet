@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { TelegramThemeParams } from '@/utils/telegramTheme';
+import type { ThemeSnapshot } from '@/utils/telegramTheme';
 import { DEFAULT_THEME } from '@/utils/telegramTheme';
 
 const notificationTimers = new Map<string, number>();
@@ -29,13 +29,13 @@ interface UIState {
   authErrorMessage: string | null;
   isAuthModalOpen: boolean;
   offlineSummary: OfflineSummarySnapshot | null;
-  theme: TelegramThemeParams;
+  theme: ThemeSnapshot;
   notifications: Notification[];
   lastFullscreenState: boolean | null;
   openAuthError: (message: string) => void;
   dismissAuthError: () => void;
   setOfflineSummary: (summary: OfflineSummarySnapshot | null) => void;
-  updateTheme: (theme: TelegramThemeParams) => void;
+  updateTheme: (theme: ThemeSnapshot) => void;
   clearOfflineSummary: () => void;
   addNotification: (notification: Omit<Notification, 'id'>) => string;
   removeNotification: (id: string) => void;
@@ -113,7 +113,7 @@ export const uiStore = {
   clearOfflineSummary() {
     useUIStore.getState().clearOfflineSummary();
   },
-  updateTheme(theme: TelegramThemeParams) {
+  updateTheme(theme: ThemeSnapshot) {
     useUIStore.getState().updateTheme(theme);
   },
   addNotification(notification: Omit<Notification, 'id'>) {

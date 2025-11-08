@@ -133,4 +133,16 @@ test.describe('Safe area + fullscreen instrumentation', () => {
     expect(styles.boxShadow?.toLowerCase()).not.toBe('none');
     expect(styles.backdropFilter?.toLowerCase()).not.toBe('none');
   });
+
+  test('graceful fallback without Telegram SDK', async ({ page }) => {
+    await setupStageMocks(page, {
+      injectTelegram: false,
+    });
+    await page.goto('/');
+
+    const header = page.locator('header.status-bar-shell');
+    await expect(header).toBeVisible();
+    await expect(header).toHaveAttribute('data-fullscreen', 'false');
+    await expect(page.getByTestId('manual-close-button')).toHaveCount(0);
+  });
 });

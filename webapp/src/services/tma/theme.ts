@@ -3,11 +3,12 @@ import type { ThemeParams as TmaThemeParams } from '@tma.js/types';
 import {
   TELEGRAM_THEME_VARIABLES,
   updateThemeVariables,
+  type ThemeSnapshot,
   type TelegramThemeParams,
 } from '@/utils/telegramTheme';
 import { ensureTmaSdkReady, isTmaSdkAvailable } from './core';
 
-type ThemeListener = (theme: TelegramThemeParams) => void;
+type ThemeListener = (theme: ThemeSnapshot) => void;
 
 const THEME_KEYS = Object.keys(TELEGRAM_THEME_VARIABLES) as Array<
   keyof typeof TELEGRAM_THEME_VARIABLES
@@ -77,13 +78,13 @@ function mapTmaThemeParams(params: TmaThemeParams | undefined): TelegramThemePar
   return result;
 }
 
-function readAndApplyTheme(): TelegramThemeParams {
+function readAndApplyTheme(): ThemeSnapshot {
   const raw = themeParams.state();
   applyFontScale();
   return updateThemeVariables(mapTmaThemeParams(raw));
 }
 
-export function getTmaThemeSnapshot(): TelegramThemeParams {
+export function getTmaThemeSnapshot(): ThemeSnapshot {
   ensureTmaSdkReady();
   if (!isTmaSdkAvailable()) {
     applyFontScale();

@@ -48,3 +48,6 @@
 ## Статус 2025-11-08
 - ✅ Клиентская телеметрия `safe_area_changed` / `viewport_*` заведена в backend (`backend/src/api/controllers/TelemetryController.ts`, `backend/src/metrics/telemetry.ts`) и выводится в Prometheus.
 - ✅ Grafana дашборд `infra/grafana/dashboards/telegram-miniapp-product.json` получил ряд «Safe Area & Fullscreen» с панелями для инсетов, fullscreen share и исходов `viewport_action`.
+- ✅ Header schema описана декларативно (`webapp/src/constants/headerSchema.ts`), App.tsx читает конфиг вместо условных блоков.
+- ✅ Safe-area токены вынесены в `shared/tokens/safe-area.json`; webapp и документация используют один источник истины.
+- ✅ Добавлен fallback-тест без Telegram SDK (`tests/qa/safe-area.spec.ts`).

@@ -20,6 +20,16 @@ declare global {
       isStateStable: boolean;
       isFullscreen: boolean;
     }> | null;
+    __safeAreaStats?: {
+      samples: number;
+      lastSafeTop?: number;
+      lastContentTop?: number;
+    };
+    __themeStats?: {
+      samples: number;
+      lastScheme?: 'light' | 'dark';
+      lastHeaderColor?: string;
+    };
   }
 }
 
