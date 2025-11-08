@@ -30,6 +30,15 @@ declare global {
       lastScheme?: 'light' | 'dark';
       lastHeaderColor?: string;
     };
+    __telemetryEvents?: Array<{
+      event: string;
+      severity?: string;
+      context?: Record<string, unknown>;
+    }>;
+    __tmaDebug?: {
+      requestFullscreen?: () => void;
+      exitFullscreen?: () => void;
+    };
   }
 }
 

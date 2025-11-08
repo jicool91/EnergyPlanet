@@ -19,6 +19,8 @@ import {
   getTmaViewportMetrics,
   onTmaSafeAreaChange,
   onTmaViewportChange,
+  requestFullscreen,
+  exitFullscreen,
 } from '@/services/tma/viewport';
 import type { SafeAreaSnapshot, ViewportMetrics } from '@/services/tma/viewport';
 import { sessionManager } from './services/sessionManager';
@@ -235,6 +237,17 @@ onTmaThemeChange(theme => uiStore.updateTheme(theme));
 installSafeAreaDebugCommand();
 
 if (typeof window !== 'undefined' && (import.meta.env.DEV || import.meta.env.MODE === 'test')) {
+  window.__telemetryEvents = window.__telemetryEvents ?? [];
+  window.__tmaDebug = {
+    ...(window.__tmaDebug ?? {}),
+    requestFullscreen: () => {
+      void requestFullscreen();
+    },
+    exitFullscreen: () => {
+      void exitFullscreen();
+    },
+  };
+
   const hooks = {
     openAuthError(message = 'Тестовая ошибка авторизации') {
       uiStore.openAuthError(message);

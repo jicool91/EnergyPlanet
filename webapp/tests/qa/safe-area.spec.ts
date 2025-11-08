@@ -145,4 +145,39 @@ test.describe('Safe area + fullscreen instrumentation', () => {
     await expect(header).toHaveAttribute('data-fullscreen', 'false');
     await expect(page.getByTestId('manual-close-button')).toHaveCount(0);
   });
+
+  test('requestFullscreen emits viewport_action telemetry', async ({ page }) => {
+    await setupStageMocks(page, {
+      safeAreaOverride: SAFE_AREA_OVERRIDE,
+      viewportOverride: { isFullscreen: false },
+      platform: 'android',
+    });
+    await page.goto('/');
+
+    await page.evaluate(() => {
+      window.__telemetryEvents = [];
+      window.__tmaDebug?.requestFullscreen?.();
+    });
+
+    await expect.poll(async () => {
+      const events = await page.evaluate(() => window.__telemetryEvents ?? []);
+      return events.find(
+        (event: { event?: string; context?: Record<string, unknown> }) =>
+          event?.event === 'viewport_action' && event.context?.action === 'requestFullscreen'
+      );
+    }).toBeTruthy();
+
+    await page.evaluate(() => {
+      window.__telemetryEvents = [];
+      window.__tmaDebug?.exitFullscreen?.();
+    });
+
+    await expect.poll(async () => {
+      const events = await page.evaluate(() => window.__telemetryEvents ?? []);
+      return events.find(
+        (event: { event?: string; context?: Record<string, unknown> }) =>
+          event?.event === 'viewport_action' && event.context?.action === 'exitFullscreen'
+      );
+    }).toBeTruthy();
+  });
 });

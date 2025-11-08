@@ -343,6 +343,8 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
     window.localStorage?.setItem('refresh_token', 'qa-refresh-token');
     window.localStorage?.setItem('refresh_expires_at_ms', String(nowMs + 12 * 60 * 60 * 1000));
     window.localStorage?.setItem('last_mock_now_iso', nowISO);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (window as any).__telemetryEvents = [];
   },
   MOCK_NOW_MS,
   MOCK_NOW_ISO,
@@ -683,6 +685,21 @@ export async function setupStageMocks(page: Page, options: StageMockOptions = {}
     }
 
     if (pathname.includes('/telemetry/client')) {
+      const body = request.postData();
+      if (body) {
+        try {
+          const parsed = JSON.parse(body);
+          await page.evaluate(event => {
+            const globalWindow = window as typeof window & {
+              __telemetryEvents?: unknown[];
+            };
+            globalWindow.__telemetryEvents = globalWindow.__telemetryEvents ?? [];
+            globalWindow.__telemetryEvents.push(event);
+          }, parsed);
+        } catch (error) {
+          console.warn('[mock] failed to record telemetry payload', error);
+        }
+      }
       await fulfillJson(202, {});
       return;
     }
