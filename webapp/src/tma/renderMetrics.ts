@@ -1,5 +1,4 @@
 import type { SafeAreaSnapshot, ViewportMetrics } from '@/services/tma/viewport';
-import { logClientEvent } from '@/services/telemetry';
 import { uiStore } from '@/store/uiStore';
 import { logger } from '@/utils/logger';
 import { getCachedSafeArea } from '@/services/tma/viewport';
@@ -10,10 +9,6 @@ export type RenderMetricsShape = {
   contentSafeAreaTop?: number;
   isFullscreen?: boolean;
 };
-
-const SAFE_AREA_TELEMETRY_THRESHOLD = 4;
-let lastSafeAreaTelemetry = { safeAreaTop: 0, contentSafeAreaTop: 0 };
-let hasSafeAreaTelemetryBaseline = false;
 
 function updateRenderMetrics(partial: Partial<RenderMetricsShape>) {
   if (typeof window === 'undefined') {
@@ -27,29 +22,6 @@ function updateRenderMetrics(partial: Partial<RenderMetricsShape>) {
   };
 }
 
-function trackSafeAreaTelemetry(safeAreaTop: number, contentSafeAreaTop: number) {
-  if (!hasSafeAreaTelemetryBaseline) {
-    lastSafeAreaTelemetry = { safeAreaTop, contentSafeAreaTop };
-    hasSafeAreaTelemetryBaseline = true;
-    return;
-  }
-
-  const safeDelta = Math.abs(safeAreaTop - lastSafeAreaTelemetry.safeAreaTop);
-  const contentDelta = Math.abs(contentSafeAreaTop - lastSafeAreaTelemetry.contentSafeAreaTop);
-
-  if (safeDelta >= SAFE_AREA_TELEMETRY_THRESHOLD || contentDelta >= SAFE_AREA_TELEMETRY_THRESHOLD) {
-    void logClientEvent('ui_safe_area_delta', {
-      safeAreaTop,
-      contentSafeAreaTop,
-      safeDelta,
-      contentDelta,
-      timestamp: Date.now(),
-    });
-  }
-
-  lastSafeAreaTelemetry = { safeAreaTop, contentSafeAreaTop };
-}
-
 export function captureSafeAreaMetrics(snapshot: SafeAreaSnapshot) {
   const safeAreaTop = Math.max(0, snapshot.safe.top ?? 0);
   const contentSafeAreaTop = Math.max(0, snapshot.content.top ?? 0);
@@ -58,8 +30,6 @@ export function captureSafeAreaMetrics(snapshot: SafeAreaSnapshot) {
     safeAreaTop,
     contentSafeAreaTop,
   });
-
-  trackSafeAreaTelemetry(safeAreaTop, contentSafeAreaTop);
 }
 
 export function captureViewportMetrics(metrics: ViewportMetrics) {

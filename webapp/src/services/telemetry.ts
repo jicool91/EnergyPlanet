@@ -3,8 +3,9 @@ import { apiClient } from './apiClient';
 type Severity = 'info' | 'warn' | 'error';
 
 const TELEMETRY_DISABLED = import.meta.env.VITE_DISABLE_TELEMETRY === 'true';
-const FLUSH_INTERVAL_MS = 3000;
-const MAX_QUEUE_SIZE = 50;
+// Increased for better batching (OpenTelemetry 2025 best practice)
+const FLUSH_INTERVAL_MS = 5000;
+const MAX_QUEUE_SIZE = 100;
 
 interface TelemetryEvent {
   event: string;
@@ -62,7 +63,21 @@ async function flushQueue(): Promise<void> {
     if (isRateLimitedError(error)) {
       const retryAfter = parseRetryAfter(error.response?.headers?.['retry-after']);
       backoffUntil = Date.now() + (retryAfter ?? FLUSH_INTERVAL_MS);
-      queue.unshift(payload);
+
+      // Smart backpressure (OpenTelemetry 2025 pattern):
+      // If backoff is too long (>30 sec), clear queue to prevent infinite growth
+      if (retryAfter && retryAfter > 30000) {
+        if (import.meta.env.DEV) {
+          // eslint-disable-next-line no-console
+          console.warn('Telemetry backpressure: clearing queue', {
+            queueSize: queue.length,
+            retryAfter,
+          });
+        }
+        queue.length = 0; // Clear queue (smart mode)
+      } else {
+        queue.unshift(payload); // Return to queue only if short backoff
+      }
     } else if (import.meta.env.DEV) {
       // eslint-disable-next-line no-console
       console.warn('Failed to log client event', { event: payload.event, error });

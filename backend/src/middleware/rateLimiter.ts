@@ -99,6 +99,40 @@ export const purchaseRateLimiter = rateLimit({
 });
 
 /**
+ * Telemetry endpoint rate limiter (resource-based)
+ * Prevents telemetry spam from overwhelming the backend
+ * 20 requests per 10 seconds = 2 req/sec (Token Bucket pattern)
+ * Uses draft-7 RateLimit headers for client visibility
+ */
+export const telemetryRateLimiter = rateLimit({
+  windowMs: 10000, // 10 seconds
+  max: 20, // 20 requests per 10 seconds
+  message: {
+    error: 'telemetry_rate_limit_exceeded',
+    message: 'Too many telemetry requests',
+  },
+  standardHeaders: 'draft-7', // RateLimit-* headers (best practice 2025)
+  legacyHeaders: false,
+  keyGenerator: userKey,
+  skip: shouldSkip,
+  handler: (req, res) => {
+    logger.warn(
+      {
+        path: req.path,
+        userId: (req as AuthRequest).user?.id,
+        ip: req.ip,
+      },
+      'telemetry_rate_limit_exceeded'
+    );
+    res.status(429).json({
+      error: 'telemetry_rate_limit_exceeded',
+      message: 'Too many telemetry requests, please slow down',
+      retry_after: 10,
+    });
+  },
+});
+
+/**
  * Auth endpoints rate limiter
  * Prevents brute force attacks on authentication endpoints
  * 5 auth attempts per minute per IP/user

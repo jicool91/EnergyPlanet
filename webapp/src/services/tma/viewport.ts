@@ -46,8 +46,9 @@ const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
 let currentSafeArea: SafeAreaSnapshot = { safe: ZERO_INSETS, content: ZERO_INSETS };
 let currentViewport: ViewportMetrics = { ...DEFAULT_VIEWPORT_METRICS };
 
-const SAFE_AREA_TELEMETRY_COOLDOWN_MS = 2_000;
-const VIEWPORT_TELEMETRY_COOLDOWN_MS = 2_000;
+// Increased cooldown to reduce telemetry spam (Telegram docs recommend using stableHeight)
+const SAFE_AREA_TELEMETRY_COOLDOWN_MS = 5_000;
+const VIEWPORT_TELEMETRY_COOLDOWN_MS = 5_000;
 
 let lastSafeAreaTelemetry: SafeAreaSnapshot | null = null;
 let lastViewportTelemetry: ViewportMetrics | null = null;
