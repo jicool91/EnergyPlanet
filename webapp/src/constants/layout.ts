@@ -1,18 +1,11 @@
-import safeAreaTokens from '../../../shared/tokens/safe-area.json';
+import safeAreaTokens from './safe-area.json';
 
 /**
  * Shared layout spacing constants to keep header/content offsets in sync.
  * Source of truth: `shared/tokens/safe-area.json`.
  */
 
-type SafeAreaTokenConfig = {
-  headerReservePx: number;
-  headerBufferPx: number;
-  navigationReservePx: number;
-  sidePaddingPx: number;
-};
-
-export const SAFE_AREA_LAYOUT_TOKENS: SafeAreaTokenConfig = safeAreaTokens;
+export const SAFE_AREA_LAYOUT_TOKENS = safeAreaTokens;
 
 export const SAFE_AREA_CSS_VARIABLES = {
   contentBaseTop: '--app-content-base-top',

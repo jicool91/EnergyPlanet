@@ -317,7 +317,7 @@ App.tsx → Surface header → AppLayout (hooks) → header shell → index.css 
 
 - Телеметрия safe area / viewport / fullscreen: `webapp/src/services/tma/viewport.ts` теперь дергает `logClientEvent` для событий `safe_area_changed`, `viewport_metrics_changed`, `viewport_action`, поэтому можно отслеживать реальные инциденты на проде.
 - Регрессионный Playwright тест: `webapp/tests/qa/safe-area.spec.ts` дополнен проверками стилей, чтобы подтвердить исчезновение рамки/тени/blur в fullscreen и их присутствие в expanded режиме.
-- Токены layout: `webapp/src/constants/layout.ts` хранит `SAFE_AREA_LAYOUT_TOKENS` и `SAFE_AREA_CSS_VARIABLES`, AppLayout/viewport используют `SIDE_PADDING_PX` и shared constants вместо локальных чисел.
+- Токены layout: `webapp/src/constants/safe-area.json` хранит значения для `SAFE_AREA_LAYOUT_TOKENS`, AppLayout/viewport используют `SIDE_PADDING_PX` и shared constants вместо локальных чисел (mirror `shared/tokens/safe-area.json`).
 - Grafana: в `infra/grafana/dashboards/telegram-miniapp-product.json` добавлен ряд **Safe Area & Fullscreen** (панели safe-area events, inset quantiles, fullscreen share, viewport actions) для оперативного мониторинга.
 - Hook-телеметрия: `useSafeArea` и `useTheme` пишут события `safe_area_hook_sample`/`theme_hook_update`, а также пополняют `window.__safeAreaStats/__themeStats` для QA.
 - Fallback сценарий без Telegram SDK покрыт тестом («graceful fallback without Telegram SDK») и документирован в разделе 12.
