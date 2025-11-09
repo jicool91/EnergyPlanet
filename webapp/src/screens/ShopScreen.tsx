@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { TabPageSurface, ShopPanel, BuildingsPanel, Button, Surface } from '@/components';
 import type { ShopSection } from '@/components/ShopPanel';
 import { useRenderLatencyMetric } from '@/hooks/useRenderLatencyMetric';
+import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
 
 type ShopCategory = ShopSection | 'buildings';
 
@@ -40,6 +41,7 @@ export function ShopScreen() {
   const activeChipRef = useRef<HTMLButtonElement | null>(null);
   const [showLeftHint, setShowLeftHint] = useState(false);
   const [showRightHint, setShowRightHint] = useState(false);
+  const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(null);
 
   const renderContext = useMemo(
     () => ({
@@ -89,6 +91,10 @@ export function ShopScreen() {
     updateChipScrollHints();
   }, [activeCategory, updateChipScrollHints]);
 
+  const handlePageRef = useCallback((node: HTMLDivElement | null) => {
+    setScrollContainer(node);
+  }, []);
+
   // Sync with URL params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -130,65 +136,67 @@ export function ShopScreen() {
   }, [activeCategory]);
 
   return (
-    <TabPageSurface className="gap-4">
-      {/* Horizontal scrolling category chips */}
-      <div className="relative">
-        <div
-          ref={chipsViewportRef}
-          className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory scroll-smooth"
-        >
-          {CATEGORY_CHIPS.map(chip => {
-            const isActive = activeCategory === chip.id;
-            return (
-              <Button
-                key={chip.id}
-                type="button"
-                size="sm"
-                variant={isActive ? 'primary' : 'ghost'}
-                onClick={() => handleCategoryChange(chip.id)}
-                className={clsx(
-                  'flex-shrink-0 gap-2 rounded-full px-4 py-2 snap-start',
-                  !isActive && 'hover:bg-layer-overlay-ghost-soft'
-                )}
-                ref={isActive ? activeChipRef : undefined}
-              >
-                <span className="text-base" aria-hidden="true">
-                  {chip.icon}
-                </span>
-                <span className="text-sm font-semibold whitespace-nowrap">{chip.label}</span>
-              </Button>
-            );
-          })}
+    <ScrollContainerContext.Provider value={scrollContainer}>
+      <TabPageSurface ref={handlePageRef} className="gap-4">
+        {/* Horizontal scrolling category chips */}
+        <div className="relative">
+          <div
+            ref={chipsViewportRef}
+            className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide snap-x snap-mandatory scroll-smooth"
+          >
+            {CATEGORY_CHIPS.map(chip => {
+              const isActive = activeCategory === chip.id;
+              return (
+                <Button
+                  key={chip.id}
+                  type="button"
+                  size="sm"
+                  variant={isActive ? 'primary' : 'ghost'}
+                  onClick={() => handleCategoryChange(chip.id)}
+                  className={clsx(
+                    'flex-shrink-0 gap-2 rounded-full px-4 py-2 snap-start',
+                    !isActive && 'hover:bg-layer-overlay-ghost-soft'
+                  )}
+                  ref={isActive ? activeChipRef : undefined}
+                >
+                  <span className="text-base" aria-hidden="true">
+                    {chip.icon}
+                  </span>
+                  <span className="text-sm font-semibold whitespace-nowrap">{chip.label}</span>
+                </Button>
+              );
+            })}
+          </div>
+          {showLeftHint && (
+            <div
+              className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-surface-primary to-transparent"
+              aria-hidden="true"
+            />
+          )}
+          {showRightHint && (
+            <div
+              className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-surface-primary to-transparent"
+              aria-hidden="true"
+            />
+          )}
         </div>
-        {showLeftHint && (
-          <div
-            className="pointer-events-none absolute left-0 top-0 h-full w-10 bg-gradient-to-r from-surface-primary to-transparent"
-            aria-hidden="true"
-          />
-        )}
-        {showRightHint && (
-          <div
-            className="pointer-events-none absolute right-0 top-0 h-full w-10 bg-gradient-to-l from-surface-primary to-transparent"
-            aria-hidden="true"
-          />
-        )}
-      </div>
 
-      {/* Content based on active category */}
-      <Surface
-        tone="secondary"
-        border="subtle"
-        elevation="soft"
-        padding="md"
-        rounded="3xl"
-        className="flex w-full flex-col gap-md"
-      >
-        {activeCategory === 'buildings' ? (
-          <BuildingsPanel showHeader={false} bare />
-        ) : (
-          <ShopPanel activeSection={activeCategory} bare />
-        )}
-      </Surface>
-    </TabPageSurface>
+        {/* Content based on active category */}
+        <Surface
+          tone="secondary"
+          border="subtle"
+          elevation="soft"
+          padding="md"
+          rounded="3xl"
+          className="flex w-full flex-col gap-md"
+        >
+          {activeCategory === 'buildings' ? (
+            <BuildingsPanel showHeader={false} bare />
+          ) : (
+            <ShopPanel activeSection={activeCategory} bare />
+          )}
+        </Surface>
+      </TabPageSurface>
+    </ScrollContainerContext.Provider>
   );
 }

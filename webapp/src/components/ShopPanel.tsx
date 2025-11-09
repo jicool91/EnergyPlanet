@@ -584,7 +584,7 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
   }, [notifyError, starPacksError]);
 
   const panelContent = (
-    <div className="flex w-full flex-col gap-md">
+    <>
       {/* Errors */}
       {activeSection === 'star_packs' && starPacksError && (
         <Card className="flex flex-col gap-sm bg-state-danger-pill border-state-danger-pill text-feedback-error">
@@ -1024,26 +1024,27 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
           </div>
         </div>
       )}
-    </div>
+    </>
+  );
+
+  const renderedPanel = bare ? (
+    <div className="flex w-full flex-col gap-md">{panelContent}</div>
+  ) : (
+    <Surface
+      tone="secondary"
+      border="subtle"
+      elevation="soft"
+      padding="md"
+      rounded="3xl"
+      className="flex w-full flex-col gap-md"
+    >
+      {panelContent}
+    </Surface>
   );
 
   return (
     <>
-      {bare ? (
-        panelContent
-      ) : (
-        <Surface
-          tone="secondary"
-          border="subtle"
-          elevation="soft"
-          padding="md"
-          rounded="3xl"
-          className="flex w-full flex-col gap-md"
-        >
-          {panelContent}
-        </Surface>
-      )}
-
+      {renderedPanel}
       {purchaseSuccess ? (
         <PurchaseSuccessModal
           isOpen
