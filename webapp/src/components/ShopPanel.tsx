@@ -18,6 +18,7 @@ import { Card } from './Card';
 import { OptimizedImage } from './OptimizedImage';
 import { ProductTile, type ProductMetric } from './ProductTile';
 import { Text } from './ui/Text';
+import { Surface } from './ui/Surface';
 import { useHaptic } from '../hooks/useHaptic';
 import { useNotification } from '../hooks/useNotification';
 import { describeError } from '../store/storeUtils';
@@ -870,7 +871,14 @@ export function ShopPanel({
 
   return (
     <>
-      <div className="flex flex-col gap-lg">
+      <Surface
+        tone="secondary"
+        border="subtle"
+        elevation="soft"
+        padding="lg"
+        rounded="3xl"
+        className="flex w-full flex-col gap-lg"
+      >
         {showHeader ? (
           <section className="rounded-3xl border border-border-cyan/50 bg-surface-glass-strong px-lg py-lg shadow-elevation-4">
             <div className="flex flex-col gap-sm">
@@ -1491,7 +1499,7 @@ export function ShopPanel({
             </div>
           </div>
         )}
-      </div>
+      </Surface>
       {purchaseSuccess ? (
         <PurchaseSuccessModal
           isOpen

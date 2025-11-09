@@ -113,31 +113,13 @@ export function ExchangeScreen() {
       </nav>
 
       {exchangeTab === 'shop' ? (
-        <Surface
-          tone="secondary"
-          border="subtle"
-          elevation="soft"
-          padding="lg"
-          rounded="3xl"
-          className="flex w-full flex-col gap-lg"
-        >
-          <ShopPanel
-            showHeader={false}
-            activeSection={shopSection}
-            onSectionChange={handleSectionChange}
-          />
-        </Surface>
+        <ShopPanel
+          showHeader={true}
+          activeSection={shopSection}
+          onSectionChange={handleSectionChange}
+        />
       ) : (
-        <Surface
-          tone="secondary"
-          border="subtle"
-          elevation="soft"
-          padding="lg"
-          rounded="3xl"
-          className="flex w-full flex-col gap-lg"
-        >
-          <BuildingsPanel showHeader={false} />
-        </Surface>
+        <BuildingsPanel showHeader={true} />
       )}
     </TabPageSurface>
   );

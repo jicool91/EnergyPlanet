@@ -18,6 +18,8 @@ import {
   recordPurchaseInvoiceMetric,
   recordPurchaseFailureMetric,
   recordStarsCreditMetric,
+  recordUserLifetimeValueMetric,
+  recordConversionEventMetric,
 } from '../metrics/business';
 import { referralRevenueService } from './ReferralRevenueService';
 
@@ -27,6 +29,20 @@ interface RecordPurchaseInput {
   priceStars: number;
   purchaseType: 'stars_pack' | 'cosmetic' | 'boost' | 'unknown';
   metadata?: Record<string, unknown>;
+}
+
+// Helper function to determine user segment based on purchase amount
+function getUserSegment(priceStars: number): 'whale' | 'dolphin' | 'minnow' | 'free' {
+  if (priceStars >= 500) {
+    return 'whale'; // High value purchases
+  }
+  if (priceStars >= 100) {
+    return 'dolphin'; // Medium value purchases
+  }
+  if (priceStars > 0) {
+    return 'minnow'; // Small purchases
+  }
+  return 'free'; // No purchase
 }
 
 export class PurchaseService {
@@ -155,11 +171,25 @@ export class PurchaseService {
         await logEvent(userId, 'purchase_succeeded', payload, { client });
 
         await this.applyPostPurchaseEffects(userId, input, client);
+
+        const priceStars = typeof updated.priceStars === 'number' ? updated.priceStars : input.priceStars;
         recordPurchaseCompletedMetric({
           purchaseType: updated.purchaseType ?? input.purchaseType ?? 'unknown',
           itemId: updated.itemId ?? input.itemId ?? 'unknown',
-          priceStars: typeof updated.priceStars === 'number' ? updated.priceStars : input.priceStars,
+          priceStars,
           mock: config.testing.mockPayments,
+        });
+
+        // Record LTV metric for ARPU calculation
+        if (priceStars > 0) {
+          const userSegment = getUserSegment(priceStars);
+          recordUserLifetimeValueMetric({ userSegment, starsAmount: priceStars });
+        }
+
+        // Record first purchase conversion event
+        recordConversionEventMetric({
+          eventType: 'first_purchase',
+          cohortDay: new Date().toISOString().split('T')[0],
         });
 
         return updated;
@@ -192,11 +222,25 @@ export class PurchaseService {
       await logEvent(userId, 'purchase_succeeded', payload, { client });
 
       await this.applyPostPurchaseEffects(userId, input, client);
+
+      const priceStars = typeof purchase.priceStars === 'number' ? purchase.priceStars : input.priceStars;
       recordPurchaseCompletedMetric({
         purchaseType: purchase.purchaseType ?? input.purchaseType ?? 'unknown',
         itemId: purchase.itemId ?? input.itemId ?? 'unknown',
-        priceStars: typeof purchase.priceStars === 'number' ? purchase.priceStars : input.priceStars,
+        priceStars,
         mock: config.testing.mockPayments,
+      });
+
+      // Record LTV metric for ARPU calculation
+      if (priceStars > 0) {
+        const userSegment = getUserSegment(priceStars);
+        recordUserLifetimeValueMetric({ userSegment, starsAmount: priceStars });
+      }
+
+      // Record first purchase conversion event
+      recordConversionEventMetric({
+        eventType: 'first_purchase',
+        cohortDay: new Date().toISOString().split('T')[0],
       });
 
       return purchase;

@@ -93,6 +93,51 @@ const referralRevenueCounter = metricsEnabled
     })
   : null;
 
+// === NEW: Dashboard Overview Metrics ===
+
+const activeUsersGauge = metricsEnabled
+  ? new client.Gauge({
+      name: 'energyplanet_active_users_current',
+      help: 'Current number of active concurrent users',
+      registers: [register],
+    })
+  : null;
+
+const dailyActiveUsersGauge = metricsEnabled
+  ? new client.Gauge({
+      name: 'energyplanet_daily_active_users',
+      help: 'Number of unique users active in the last 24 hours',
+      registers: [register],
+    })
+  : null;
+
+const sessionDurationHistogram = metricsEnabled
+  ? new client.Histogram({
+      name: 'energyplanet_session_duration_seconds',
+      help: 'Duration of user sessions in seconds',
+      buckets: [30, 60, 120, 300, 600, 1200, 1800, 3600, 7200],
+      registers: [register],
+    })
+  : null;
+
+const conversionEventCounter = metricsEnabled
+  ? new client.Counter({
+      name: 'energyplanet_conversion_events_total',
+      help: 'Conversion funnel events (signup, first_tap, first_purchase, etc)',
+      labelNames: ['event_type', 'cohort_day'] as const,
+      registers: [register],
+    })
+  : null;
+
+const userLifetimeValueCounter = metricsEnabled
+  ? new client.Counter({
+      name: 'energyplanet_user_lifetime_value_stars_total',
+      help: 'Cumulative Stars spent by each user (for ARPU calculation)',
+      labelNames: ['user_segment'] as const,
+      registers: [register],
+    })
+  : null;
+
 export function recordUserLoginMetric(isNewUser: boolean, replayStatus: ReplayStatus) {
   loginCounter?.inc({
     is_new_user: isNewUser ? 'true' : 'false',
@@ -164,4 +209,53 @@ export function recordReferralRevenueMetric(source: string, amount: number) {
     return;
   }
   referralRevenueCounter?.inc({ source }, amount);
+}
+
+// === NEW: Dashboard Overview Metric Functions ===
+
+export function setActiveUsersMetric(count: number) {
+  if (!metricsEnabled || count < 0) {
+    return;
+  }
+  activeUsersGauge?.set(count);
+}
+
+export function setDailyActiveUsersMetric(count: number) {
+  if (!metricsEnabled || count < 0) {
+    return;
+  }
+  dailyActiveUsersGauge?.set(count);
+}
+
+export function recordSessionDurationMetric(durationSeconds: number) {
+  if (!metricsEnabled || durationSeconds < 0) {
+    return;
+  }
+  sessionDurationHistogram?.observe(durationSeconds);
+}
+
+export function recordConversionEventMetric(params: {
+  eventType: 'signup' | 'first_tap' | 'first_purchase' | 'first_building' | 'day1_return' | 'day7_return';
+  cohortDay?: string;
+}) {
+  if (!metricsEnabled) {
+    return;
+  }
+  conversionEventCounter?.inc({
+    event_type: params.eventType,
+    cohort_day: params.cohortDay || 'unknown',
+  });
+}
+
+export function recordUserLifetimeValueMetric(params: {
+  userSegment: 'whale' | 'dolphin' | 'minnow' | 'free';
+  starsAmount: number;
+}) {
+  if (!metricsEnabled || params.starsAmount <= 0) {
+    return;
+  }
+  userLifetimeValueCounter?.inc(
+    { user_segment: params.userSegment },
+    params.starsAmount
+  );
 }

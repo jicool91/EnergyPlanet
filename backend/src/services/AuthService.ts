@@ -35,7 +35,7 @@ import { hashToken } from '../utils/token';
 import { registerInitDataHash } from '../cache/telegramInitReplay';
 import { ensurePlayerSession, updatePlayerSession } from '../repositories/PlayerSessionRepository';
 import { recordSessionFamilyRevocationMetric } from '../metrics/auth';
-import { recordSessionRotationMetric, recordUserLoginMetric } from '../metrics/business';
+import { recordSessionRotationMetric, recordUserLoginMetric, recordConversionEventMetric } from '../metrics/business';
 import { referralService } from './ReferralService';
 
 interface AuthTokens {
@@ -252,6 +252,12 @@ export class AuthService {
           await createDefaultProgress(user.id, client);
           await ensureProfile(user.id, client);
           isNewUser = true;
+
+          // Record conversion event for new user signup
+          recordConversionEventMetric({
+            eventType: 'signup',
+            cohortDay: new Date().toISOString().split('T')[0],
+          });
         } else {
           const shouldUpdate =
             user.username !== (telegramUser.username ?? null) ||

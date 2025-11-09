@@ -24,6 +24,7 @@ import {
   recordSessionLogoutMetric,
   recordSessionOpenMetric,
 } from '../metrics/gameplay';
+import { recordSessionDurationMetric } from '../metrics/business';
 
 interface OfflineGains {
   energy: number;
@@ -273,8 +274,23 @@ export class SessionService {
   }
 
   async recordLogout(userId: string): Promise<void> {
-    await updateProgress(userId, { lastLogout: new Date() });
+    const now = new Date();
+
+    // Get current progress to calculate session duration
+    const { progress } = await loadPlayerContext(userId);
+
+    await updateProgress(userId, { lastLogout: now });
     await logEvent(userId, 'logout', {});
+
+    // Record session duration metric
+    if (progress.lastLogin) {
+      const sessionDurationSec = secondsBetween(progress.lastLogin, now);
+      if (sessionDurationSec > 0 && sessionDurationSec < 86400) {
+        // Only record if duration is reasonable (< 24 hours)
+        recordSessionDurationMetric(sessionDurationSec);
+      }
+    }
+
     recordSessionLogoutMetric();
   }
 }

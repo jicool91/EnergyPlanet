@@ -7,6 +7,7 @@ import { useCatalogStore } from '../store/catalogStore';
 import { Virtuoso } from 'react-virtuoso';
 import { BuildingCard } from './BuildingCard';
 import { BuildingSkeleton, ErrorBoundary } from './skeletons';
+import { Surface } from './ui/Surface';
 import { useHaptic } from '../hooks/useHaptic';
 import { useSafeArea } from '../hooks';
 import { formatCompactNumber } from '../utils/number';
@@ -210,7 +211,14 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
   );
 
   return (
-    <div className="flex flex-col gap-md">
+    <Surface
+      tone="secondary"
+      border="subtle"
+      elevation="soft"
+      padding="lg"
+      rounded="3xl"
+      className="flex w-full flex-col gap-md"
+    >
       {showHeader ? (
         <div className="flex items-start justify-between gap-sm-plus">
           <div>
@@ -311,6 +319,6 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
           />
         </div>
       )}
-    </div>
+    </Surface>
   );
 }
