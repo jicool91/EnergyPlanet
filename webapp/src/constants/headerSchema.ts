@@ -12,7 +12,7 @@ type AppRouteBase =
   | '/profile';
 export type AppRoute = AppRouteBase | `${AppRouteBase}?${string}`;
 
-type HeaderLayout = 'tap-status' | 'shop-status' | 'simple';
+type HeaderLayout = 'tap-status' | 'simple' | 'none';
 
 type HeaderActionVariant = 'primary' | 'secondary';
 
@@ -49,24 +49,6 @@ const tapActions: HeaderActionConfig[] = [
   },
 ];
 
-const SIMPLE_RETURN_ACTION: HeaderActionConfig = {
-  id: 'return-tap',
-  label: 'На Tap',
-  target: '/',
-  variant: 'secondary',
-};
-
-const SHOP_HEADER_ACTIONS: HeaderActionConfig[] = [
-  {
-    id: 'shop-buy-stars',
-    label: 'Купить Stars',
-    target: '/shop?section=star_packs',
-    variant: 'primary',
-    icon: '⚡',
-  },
-  SIMPLE_RETURN_ACTION,
-];
-
 export const NAVIGATION_HEADER_SCHEMAS: Record<BottomNavigationTabId, HeaderSchema> = {
   tap: {
     id: 'tap',
@@ -77,34 +59,29 @@ export const NAVIGATION_HEADER_SCHEMAS: Record<BottomNavigationTabId, HeaderSche
   shop: {
     id: 'shop',
     title: 'Shop',
-    layout: 'shop-status',
-    actions: SHOP_HEADER_ACTIONS,
+    layout: 'none',
   },
   friends: {
     id: 'friends',
     title: 'Friends',
-    layout: 'simple',
-    actions: [SIMPLE_RETURN_ACTION],
+    layout: 'none',
   },
   earn: {
     id: 'earn',
     title: 'Earn',
-    layout: 'simple',
-    actions: [SIMPLE_RETURN_ACTION],
+    layout: 'none',
   },
   chat: {
     id: 'chat',
     title: 'Chat',
-    layout: 'simple',
-    actions: [SIMPLE_RETURN_ACTION],
+    layout: 'none',
   },
 };
 
 const PROFILE_HEADER_SCHEMA: HeaderSchema = {
   id: 'profile',
   title: 'Профиль',
-  layout: 'simple',
-  actions: [SIMPLE_RETURN_ACTION],
+  layout: 'none',
 };
 
 export function getHeaderSchema(

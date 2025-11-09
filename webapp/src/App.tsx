@@ -35,11 +35,7 @@ import { logClientEvent } from './services/telemetry';
 import { logger } from './utils/logger';
 import { AdminMonetizationScreen } from './screens/AdminMonetizationScreen';
 import { Text } from '@/components';
-import {
-  ConnectedShopStatusHeader,
-  ConnectedTapStatusHeader,
-  SimpleHeader,
-} from '@/components/layout/StatusHeader';
+import { ConnectedTapStatusHeader, SimpleHeader } from '@/components/layout/StatusHeader';
 import { PvPEventsScreen } from './screens/PvPEventsScreen';
 import { AdminModalContext } from './contexts/AdminModalContext';
 import { ensureExperimentVariant } from '@/store/experimentsStore';
@@ -360,11 +356,11 @@ function NextUiApp() {
       return <ConnectedTapStatusHeader actions={schema.actions} onNavigate={navigate} />;
     }
 
-    if (schema.layout === 'shop-status') {
-      return <ConnectedShopStatusHeader actions={schema.actions} onNavigate={navigate} />;
+    if (schema.layout === 'simple') {
+      return <SimpleHeader title={schema.title} actions={schema.actions} onNavigate={navigate} />;
     }
 
-    return <SimpleHeader title={schema.title} actions={schema.actions} onNavigate={navigate} />;
+    return null;
   }, []);
 
   return (
