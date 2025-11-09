@@ -1,30 +1,41 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import clsx from 'clsx';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { TabPageSurface, ShopPanel, BuildingsPanel, Button, ModalBase, Text } from '@/components';
+import { TabPageSurface, ShopPanel, BuildingsPanel, Button, Surface, Text } from '@/components';
 import type { ShopSection } from '@/components/ShopPanel';
 import { useRenderLatencyMetric } from '@/hooks/useRenderLatencyMetric';
 import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
+import { useGameStore } from '@/store/gameStore';
 
-type ShopCategory = ShopSection | 'buildings';
-
-interface CategoryChip {
+interface CategoryCard {
   id: ShopCategory;
-  label: string;
+  title: string;
+  description: string;
   icon: string;
 }
 
-const CATEGORY_CHIPS: CategoryChip[] = [
-  { id: 'star_packs', label: 'Stars', icon: '⭐' },
-  { id: 'boosts', label: 'Бусты', icon: '🚀' },
-  { id: 'cosmetics', label: 'Косметика', icon: '✨' },
-  { id: 'buildings', label: 'Постройки', icon: '🏗️' },
-];
+type ShopCategory = ShopSection | 'buildings';
 
 const SECTION_PARAM = 'section';
 const LEGACY_CATEGORY_PARAM = 'category';
 
-const VALID_CATEGORY_IDS = new Set<ShopCategory>(CATEGORY_CHIPS.map(chip => chip.id));
+const CATEGORY_CARDS: CategoryCard[] = [
+  { id: 'star_packs', title: 'Stars', description: 'Выгодные пакеты и бонусы', icon: '⭐' },
+  { id: 'boosts', title: 'Бусты', description: 'Умножайте прибыль и прогресс', icon: '🚀' },
+  {
+    id: 'cosmetics',
+    title: 'Косметика',
+    description: 'Экипировка для планеты и профиля',
+    icon: '✨',
+  },
+  {
+    id: 'buildings',
+    title: 'Постройки',
+    description: 'Улучшаем доход и открываем уровни',
+    icon: '🏗️',
+  },
+];
+
+const VALID_CATEGORY_IDS = new Set<ShopCategory>(CATEGORY_CARDS.map(card => card.id));
 
 function resolveCategory(value: string | null): ShopCategory | null {
   if (!value) {
@@ -36,14 +47,11 @@ function resolveCategory(value: string | null): ShopCategory | null {
 export function ShopScreen() {
   const navigate = useNavigate();
   const location = useLocation();
+  const stars = useGameStore(state => state.stars);
+  const boostMultiplier = useGameStore(state => state.boostMultiplier);
   const [activeCategory, setActiveCategory] = useState<ShopCategory>('star_packs');
   const activeCategoryRef = useRef<ShopCategory>('star_packs');
-  const chipsViewportRef = useRef<HTMLDivElement>(null);
-  const activeChipRef = useRef<HTMLButtonElement | null>(null);
-  const [showLeftHint, setShowLeftHint] = useState(false);
-  const [showRightHint, setShowRightHint] = useState(false);
   const [scrollContainer, setScrollContainer] = useState<HTMLDivElement | null>(null);
-  const [isCategoryPickerOpen, setCategoryPickerOpen] = useState(false);
 
   const renderContext = useMemo(
     () => ({
@@ -53,74 +61,15 @@ export function ShopScreen() {
   );
 
   useRenderLatencyMetric({ screen: 'shop_screen', context: renderContext });
-  const updateChipScrollHints = useCallback(() => {
-    const node = chipsViewportRef.current;
-    if (!node) {
-      setShowLeftHint(false);
-      setShowRightHint(false);
-      return;
-    }
-    const { scrollLeft, scrollWidth, clientWidth } = node;
-    const maxScrollLeft = Math.max(0, scrollWidth - clientWidth);
-    setShowLeftHint(scrollLeft > 4);
-    setShowRightHint(scrollLeft < maxScrollLeft - 4);
-  }, []);
-
-  useEffect(() => {
-    const node = chipsViewportRef.current;
-    if (!node) {
-      return;
-    }
-
-    const handleScroll = () => updateChipScrollHints();
-    node.addEventListener('scroll', handleScroll, { passive: true });
-
-    const hasWindow = typeof window !== 'undefined';
-    if (hasWindow) {
-      window.addEventListener('resize', handleScroll);
-      const raf = window.requestAnimationFrame(() => handleScroll());
-      return () => {
-        node.removeEventListener('scroll', handleScroll);
-        window.removeEventListener('resize', handleScroll);
-        window.cancelAnimationFrame(raf);
-      };
-    }
-
-    return () => {
-      node.removeEventListener('scroll', handleScroll);
-    };
-  }, [updateChipScrollHints]);
-
-  useEffect(() => {
-    const node = chipsViewportRef.current;
-    if (!node) {
-      return;
-    }
-
-    if (typeof window === 'undefined') {
-      node.dispatchEvent(new Event('scroll'));
-      return;
-    }
-
-    const raf = window.requestAnimationFrame(() => {
-      node.dispatchEvent(new Event('scroll'));
-    });
-
-    return () => {
-      window.cancelAnimationFrame(raf);
-    };
-  }, [activeCategory]);
 
   const handlePageRef = useCallback((node: HTMLDivElement | null) => {
     setScrollContainer(node);
   }, []);
 
-  // Keep ref in sync to compare inside URL sync effect without re-running it on state changes
   useEffect(() => {
     activeCategoryRef.current = activeCategory;
   }, [activeCategory]);
 
-  // Sync with URL params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const section = resolveCategory(params.get(SECTION_PARAM));
@@ -134,7 +83,6 @@ export function ShopScreen() {
     }
   }, [location.search]);
 
-  // Update URL when category changes
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const hasLegacyParam = params.has(LEGACY_CATEGORY_PARAM);
@@ -147,124 +95,180 @@ export function ShopScreen() {
     navigate({ pathname: '/shop', search: params.toString() }, { replace: true });
   }, [activeCategory, location.search, navigate]);
 
-  const handleCategoryChange = useCallback((categoryId: ShopCategory) => {
-    setActiveCategory(categoryId);
+  const handleCategoryToggle = useCallback((categoryId: ShopCategory) => {
+    setActiveCategory(prev => (prev === categoryId ? categoryId : categoryId));
   }, []);
 
-  const handleCategorySelectFromModal = useCallback((categoryId: ShopCategory) => {
-    setActiveCategory(categoryId);
-    setCategoryPickerOpen(false);
+  const heroCta = useCallback(() => {
+    setActiveCategory('star_packs');
   }, []);
 
-  useEffect(() => {
-    if (activeChipRef.current) {
-      activeChipRef.current.scrollIntoView({
-        behavior: 'smooth',
-        block: 'nearest',
-        inline: 'center',
-      });
-    }
-  }, [activeCategory]);
+  const formatNumber = useMemo(() => new Intl.NumberFormat('ru-RU', { notation: 'compact' }), []);
 
   return (
-    <>
-      <ScrollContainerContext.Provider value={scrollContainer}>
-        <TabPageSurface ref={handlePageRef} className="gap-4">
-          {/* Horizontal scrolling category chips */}
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <div
-                ref={chipsViewportRef}
-                className="flex gap-2 overflow-x-auto pb-2 pr-10 scrollbar-hide snap-x snap-mandatory scroll-smooth"
-              >
-                {CATEGORY_CHIPS.map(chip => {
-                  const isActive = activeCategory === chip.id;
-                  return (
-                    <Button
-                      key={chip.id}
-                      type="button"
-                      size="sm"
-                      variant={isActive ? 'primary' : 'ghost'}
-                      onClick={() => handleCategoryChange(chip.id)}
-                      className={clsx(
-                        'flex-shrink-0 gap-2 rounded-full px-4 py-2 snap-start min-w-[120px]',
-                        !isActive && 'hover:bg-layer-overlay-ghost-soft'
-                      )}
-                      ref={isActive ? activeChipRef : undefined}
-                    >
-                      <span className="text-base" aria-hidden="true">
-                        {chip.icon}
-                      </span>
-                      <span className="text-sm font-semibold whitespace-nowrap">{chip.label}</span>
-                    </Button>
-                  );
-                })}
-                <div className="w-6 flex-shrink-0" aria-hidden="true" />
-              </div>
-              {showLeftHint && (
-                <div
-                  className="pointer-events-none absolute left-0 top-0 h-full w-8 rounded-l-2xl bg-gradient-to-r from-surface-primary to-transparent"
-                  aria-hidden="true"
-                />
-              )}
-              {showRightHint && (
-                <div
-                  className="pointer-events-none absolute right-4 top-0 h-full w-8 rounded-r-2xl bg-gradient-to-l from-surface-primary to-transparent"
-                  aria-hidden="true"
-                />
-              )}
+    <ScrollContainerContext.Provider value={scrollContainer}>
+      <TabPageSurface ref={handlePageRef} className="gap-4">
+        <Surface
+          tone="accent"
+          border="none"
+          elevation="medium"
+          padding="lg"
+          rounded="3xl"
+          className="flex flex-col gap-3 text-text-inverse"
+        >
+          <Text variant="title" weight="bold">
+            +25% Stars сегодня
+          </Text>
+          <Text variant="body">
+            Акция действует до полуночи. Купите любой пакет и получите дополнительный бонус.
+          </Text>
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex flex-col">
+              <Text variant="caption" tone="inverse">
+                Баланс Stars
+              </Text>
+              <Text variant="hero" weight="bold">
+                {formatNumber.format(stars)} ⭐
+              </Text>
             </div>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="flex-shrink-0"
-              aria-label="Все разделы"
-              onClick={() => setCategoryPickerOpen(true)}
-            >
-              <span aria-hidden="true">⋯</span>
+            <div className="flex flex-col">
+              <Text variant="caption" tone="inverse">
+                Активные бусты
+              </Text>
+              <Text variant="title" weight="semibold">
+                x{boostMultiplier.toFixed(1)}
+              </Text>
+            </div>
+            <Button type="button" variant="primary" onClick={heroCta}>
+              Купить Stars
             </Button>
           </div>
+        </Surface>
 
-          {/* Content based on active category */}
-          {activeCategory === 'buildings' ? (
-            <BuildingsPanel showHeader={false} />
-          ) : (
-            <ShopPanel activeSection={activeCategory} />
-          )}
-        </TabPageSurface>
-      </ScrollContainerContext.Provider>
-      <ModalBase
-        isOpen={isCategoryPickerOpen}
-        title="Выберите раздел"
-        onClose={() => setCategoryPickerOpen(false)}
-        size="sm"
-      >
-        <div className="flex flex-col gap-sm">
-          {CATEGORY_CHIPS.map(chip => {
-            const isActive = activeCategory === chip.id;
-            return (
-              <Button
-                key={chip.id}
-                type="button"
-                variant={isActive ? 'primary' : 'secondary'}
-                onClick={() => handleCategorySelectFromModal(chip.id)}
-                className="justify-start gap-3"
-              >
-                <span className="text-lg" aria-hidden="true">
-                  {chip.icon}
-                </span>
-                <span>{chip.label}</span>
-                {isActive ? (
-                  <Text as="span" variant="caption" tone="accent" className="ml-auto">
-                    Активный
-                  </Text>
-                ) : null}
+        <Surface
+          tone="secondary"
+          border="subtle"
+          elevation="soft"
+          padding="md"
+          rounded="3xl"
+          className="flex flex-col gap-md"
+        >
+          <Text variant="label" tone="secondary">
+            Разделы магазина
+          </Text>
+          <div className="flex flex-col gap-sm">
+            {CATEGORY_CARDS.map(card => {
+              const expanded = activeCategory === card.id;
+              return (
+                <Surface
+                  key={card.id}
+                  tone={expanded ? 'dual' : 'secondary'}
+                  border={expanded ? 'accent' : 'subtle'}
+                  elevation={expanded ? 'medium' : 'soft'}
+                  padding="md"
+                  rounded="2xl"
+                  className="flex flex-col gap-sm"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-3">
+                      <span className="text-heading" aria-hidden="true">
+                        {card.icon}
+                      </span>
+                      <div className="flex flex-col">
+                        <Text variant="body" weight="semibold">
+                          {card.title}
+                        </Text>
+                        <Text variant="bodySm" tone="secondary">
+                          {card.description}
+                        </Text>
+                      </div>
+                    </div>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant={expanded ? 'primary' : 'ghost'}
+                      onClick={() => handleCategoryToggle(card.id)}
+                    >
+                      {expanded ? 'Свернуть' : 'Открыть'}
+                    </Button>
+                  </div>
+                  {expanded ? (
+                    card.id === 'buildings' ? (
+                      <BuildingsPanel showHeader={false} bare />
+                    ) : (
+                      <ShopPanel activeSection={card.id as ShopSection} bare />
+                    )
+                  ) : null}
+                </Surface>
+              );
+            })}
+          </div>
+        </Surface>
+
+        <Surface
+          tone="secondary"
+          border="subtle"
+          elevation="soft"
+          padding="md"
+          rounded="3xl"
+          className="flex flex-col gap-sm"
+        >
+          <Text variant="label" tone="secondary">
+            Бесплатно сегодня
+          </Text>
+          <Surface tone="overlay" border="subtle" elevation="soft" padding="md" rounded="2xl">
+            <div className="flex flex-col gap-sm">
+              <Text variant="body" weight="semibold">
+                Ежедневный подарок
+              </Text>
+              <Text variant="bodySm" tone="secondary">
+                Заберите сундук и получите Stars или буст.
+              </Text>
+              <Button type="button" size="sm" variant="primary">
+                Забрать
               </Button>
-            );
-          })}
-        </div>
-      </ModalBase>
-    </>
+            </div>
+          </Surface>
+        </Surface>
+
+        <Surface
+          tone="secondary"
+          border="subtle"
+          elevation="soft"
+          padding="md"
+          rounded="3xl"
+          className="flex flex-col gap-sm"
+        >
+          <Text variant="label" tone="secondary">
+            Скоро появится
+          </Text>
+          <div className="flex flex-col gap-sm">
+            {[1, 2].map(item => (
+              <Surface
+                key={item}
+                tone="overlay"
+                border="subtle"
+                elevation="soft"
+                padding="md"
+                rounded="2xl"
+                className="flex items-center justify-between border-dashed"
+              >
+                <div className="flex flex-col">
+                  <Text variant="body" weight="semibold">
+                    Новинка #{item}
+                  </Text>
+                  <Text variant="bodySm" tone="secondary">
+                    Появится в ближайшем обновлении
+                  </Text>
+                </div>
+                <Text variant="label" tone="secondary">
+                  скоро
+                </Text>
+              </Surface>
+            ))}
+          </div>
+        </Surface>
+      </TabPageSurface>
+    </ScrollContainerContext.Provider>
   );
 }
