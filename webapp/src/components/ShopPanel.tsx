@@ -402,6 +402,16 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
     loadStarPacks();
   }, [loadCosmetics, loadStarPacks]);
 
+  const { categories, activeCategory, filteredCosmetics, mostPopularCosmeticId } = useMemo(
+    () =>
+      buildShopViewModel({
+        cosmetics,
+        starPacks,
+        activeCategory: selectedCategory,
+      }),
+    [cosmetics, starPacks, selectedCategory]
+  );
+
   const updateCosmeticsScrollHints = useCallback(() => {
     const node = cosmeticsTabsRef.current;
     if (!node) {
@@ -420,23 +430,19 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
     if (!node) {
       return;
     }
-    updateCosmeticsScrollHints();
+    let rafId: number | null = null;
     const handleScroll = () => updateCosmeticsScrollHints();
     node.addEventListener('scroll', handleScroll, { passive: true });
+    if (typeof window !== 'undefined') {
+      rafId = window.requestAnimationFrame(() => updateCosmeticsScrollHints());
+    }
     return () => {
       node.removeEventListener('scroll', handleScroll);
+      if (rafId !== null && typeof window !== 'undefined') {
+        window.cancelAnimationFrame(rafId);
+      }
     };
   }, [categories.length, updateCosmeticsScrollHints]);
-
-  const { categories, activeCategory, filteredCosmetics, mostPopularCosmeticId } = useMemo(
-    () =>
-      buildShopViewModel({
-        cosmetics,
-        starPacks,
-        activeCategory: selectedCategory,
-      }),
-    [cosmetics, starPacks, selectedCategory]
-  );
 
   const { success: hapticSuccess, error: hapticError } = useHaptic();
 
