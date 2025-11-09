@@ -24,6 +24,7 @@ import { useNotification } from '../hooks/useNotification';
 import { describeError } from '../store/storeUtils';
 import { PurchaseSuccessModal } from './PurchaseSuccessModal';
 import { BoostHub } from './BoostHub';
+import { ShopSectionLayout } from './ShopSectionLayout';
 import type { StarPack } from '@/services/starPacks';
 import { logClientEvent } from '@/services/telemetry';
 
@@ -34,7 +35,6 @@ interface ShopPanelProps {
 
 export type ShopSection = 'star_packs' | 'cosmetics' | 'boosts';
 type StarPackSubSection = 'subscriptions' | 'one_time' | 'bundles';
-type BoostSubSection = 'daily' | 'ad' | 'premium';
 
 type PurchaseSuccessModalProps = ComponentProps<typeof PurchaseSuccessModal>;
 type SuccessVariant = NonNullable<PurchaseSuccessModalProps['variant']>;
@@ -259,7 +259,6 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
   const { success: notifySuccess, error: notifyError, warning: notifyWarning } = useNotification();
   const activeSection = activeSectionProp ?? 'star_packs';
   const [activeStarPackSection] = useState<StarPackSubSection>('one_time');
-  const [] = useState<BoostSubSection>('daily');
   const [purchaseSuccess, setPurchaseSuccess] = useState<PurchaseSuccessState | null>(null);
   const sectionSourceRef = useRef<'initial' | 'user' | 'programmatic'>('initial');
   const lastActiveSectionRef = useRef<ShopSection | null>(null);
@@ -584,7 +583,7 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
   }, [notifyError, starPacksError]);
 
   const panelContent = (
-    <div className="flex w-full flex-col gap-md">
+    <ShopSectionLayout as="div" className="w-full">
       {/* Errors */}
       {activeSection === 'star_packs' && starPacksError && (
         <Card className="flex flex-col gap-sm bg-state-danger-pill border-state-danger-pill text-feedback-error">
@@ -606,8 +605,7 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
       )}
 
       {activeSection === 'star_packs' && (
-        <div className="flex flex-col gap-md">
-          {/* Featured pack (if exists) */}
+        <ShopSectionLayout as="section" aria-label="Паки Stars">
           {featuredVisiblePack && !isStarPacksLoading && (
             <ProductTile
               highlighted
@@ -703,7 +701,7 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
               <ShopSkeleton count={3} />
             </ErrorBoundary>
           ) : (
-            <div className="grid gap-md">
+            <ShopSectionLayout as="div" variant="grid" role="list" aria-label="Каталог паков Stars">
               {starPacks
                 .filter(pack => !pack.featured)
                 .map(pack => {
@@ -821,19 +819,22 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
                     />
                   );
                 })}
-            </div>
+            </ShopSectionLayout>
           )}
-        </div>
+        </ShopSectionLayout>
       )}
+
       {activeSection === 'boosts' && (
-        <ErrorBoundary>
-          <BoostHub showHeader={false} />
-        </ErrorBoundary>
+        <ShopSectionLayout as="section" aria-label="Бусты">
+          <ErrorBoundary>
+            <BoostHub showHeader={false} />
+          </ErrorBoundary>
+        </ShopSectionLayout>
       )}
 
       {activeSection === 'cosmetics' && (
-        <div
-          className="flex flex-col gap-md"
+        <ShopSectionLayout
+          as="section"
           id={getSectionPanelId('cosmetics')}
           role="tabpanel"
           aria-labelledby={getSectionTabId('cosmetics')}
@@ -880,7 +881,7 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
             })}
           </nav>
 
-          <div id={COSMETICS_GRID_ID} className="flex flex-col gap-md">
+          <ShopSectionLayout as="div" id={COSMETICS_GRID_ID}>
             {isCosmeticsLoading && filteredCosmetics.length === 0 ? (
               <ErrorBoundary>
                 <ShopSkeleton count={4} />
@@ -1021,10 +1022,10 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
                 );
               })
             )}
-          </div>
-        </div>
+          </ShopSectionLayout>
+        </ShopSectionLayout>
       )}
-    </div>
+    </ShopSectionLayout>
   );
 
   const renderedPanel = bare ? (
