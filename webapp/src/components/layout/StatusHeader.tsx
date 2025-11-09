@@ -199,6 +199,68 @@ export function SimpleHeader({ title, actions, onNavigate }: SimpleHeaderProps) 
   );
 }
 
+interface ShopStatusHeaderProps {
+  stars: number;
+  boostMultiplier: number;
+  actions?: HeaderActionConfig[];
+  onNavigate: NavigateHandler;
+  numberFormatter: Intl.NumberFormat;
+}
+
+export function ShopStatusHeader({
+  stars,
+  boostMultiplier,
+  actions,
+  onNavigate,
+  numberFormatter,
+}: ShopStatusHeaderProps) {
+  const preparedActions = usePreparedActions(actions, 'primary');
+  const formattedStars = numberFormatter.format(stars);
+  const boostLabel =
+    boostMultiplier > 1 ? `Активен буст x${boostMultiplier.toFixed(1)}` : 'Бусты не активны';
+
+  return (
+    <Surface
+      tone="overlayMedium"
+      border="none"
+      elevation="medium"
+      padding="md"
+      rounded="2xl"
+      className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"
+      role="region"
+      aria-label="Состояние магазина"
+    >
+      <div className="flex flex-col gap-1" role="group" aria-label="Баланс Stars">
+        <Text variant="label" tone="accent" transform="uppercase">
+          Баланс Stars
+        </Text>
+        <Text variant="hero" weight="bold" tone="primary">
+          {formattedStars}
+        </Text>
+        <Text variant="bodySm" tone="secondary">
+          {boostLabel}
+        </Text>
+      </div>
+      <div className="flex flex-col gap-2 sm:flex-row">
+        {preparedActions.map(action => (
+          <Button
+            key={action.id}
+            type="button"
+            size="md"
+            variant={action.variant}
+            fullWidth
+            aria-label={action.label}
+            onClick={() => onNavigate(action.target, { replace: action.replace })}
+          >
+            {action.icon ? <span aria-hidden="true">{action.icon}</span> : null}
+            <span>{action.label}</span>
+          </Button>
+        ))}
+      </div>
+    </Surface>
+  );
+}
+
 interface ConnectedTapStatusHeaderProps {
   actions?: HeaderActionConfig[];
   onNavigate: NavigateHandler;
@@ -223,6 +285,31 @@ export function ConnectedTapStatusHeader({ actions, onNavigate }: ConnectedTapSt
       stars={stars}
       xpIntoLevel={xpIntoLevel}
       xpToNextLevel={xpToNextLevel}
+      actions={actions}
+      onNavigate={onNavigate}
+      numberFormatter={numberFormatter}
+    />
+  );
+}
+
+interface ConnectedShopStatusHeaderProps {
+  actions?: HeaderActionConfig[];
+  onNavigate: NavigateHandler;
+}
+
+export function ConnectedShopStatusHeader({ actions, onNavigate }: ConnectedShopStatusHeaderProps) {
+  const stars = useGameStore(state => state.stars);
+  const boostMultiplier = useGameStore(state => state.boostMultiplier);
+
+  const numberFormatter = useMemo(
+    () => new Intl.NumberFormat('ru-RU', { notation: 'compact', maximumFractionDigits: 1 }),
+    []
+  );
+
+  return (
+    <ShopStatusHeader
+      stars={stars}
+      boostMultiplier={boostMultiplier}
       actions={actions}
       onNavigate={onNavigate}
       numberFormatter={numberFormatter}

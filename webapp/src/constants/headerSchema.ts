@@ -12,7 +12,7 @@ type AppRouteBase =
   | '/profile';
 export type AppRoute = AppRouteBase | `${AppRouteBase}?${string}`;
 
-type HeaderLayout = 'tap-status' | 'simple';
+type HeaderLayout = 'tap-status' | 'shop-status' | 'simple';
 
 type HeaderActionVariant = 'primary' | 'secondary';
 
@@ -56,6 +56,17 @@ const SIMPLE_RETURN_ACTION: HeaderActionConfig = {
   variant: 'secondary',
 };
 
+const SHOP_HEADER_ACTIONS: HeaderActionConfig[] = [
+  {
+    id: 'shop-buy-stars',
+    label: 'Купить Stars',
+    target: '/shop?section=star_packs',
+    variant: 'primary',
+    icon: '⚡',
+  },
+  SIMPLE_RETURN_ACTION,
+];
+
 export const NAVIGATION_HEADER_SCHEMAS: Record<BottomNavigationTabId, HeaderSchema> = {
   tap: {
     id: 'tap',
@@ -66,8 +77,8 @@ export const NAVIGATION_HEADER_SCHEMAS: Record<BottomNavigationTabId, HeaderSche
   shop: {
     id: 'shop',
     title: 'Shop',
-    layout: 'simple',
-    actions: [SIMPLE_RETURN_ACTION],
+    layout: 'shop-status',
+    actions: SHOP_HEADER_ACTIONS,
   },
   friends: {
     id: 'friends',
