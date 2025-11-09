@@ -297,6 +297,32 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
     () => visibleStarPacks.find(pack => pack.featured) ?? null,
     [visibleStarPacks]
   );
+  const featuredPackMetrics = useMemo<ProductMetric[]>(() => {
+    if (!featuredVisiblePack) {
+      return [];
+    }
+    const totalStars = featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0);
+    const bonus = featuredVisiblePack.bonus_stars ?? 0;
+    const primaryMetric: ProductMetric = {
+      label: 'Всего Stars',
+      value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
+      icon: '🌌',
+      tone: 'primary',
+      primary: true,
+    };
+    if (bonus > 0) {
+      return [
+        primaryMetric,
+        {
+          label: `Бонус +${calculateBonusPercentage(featuredVisiblePack.stars, bonus)}%`,
+          value: `+${bonus.toLocaleString('ru-RU')} ⭐`,
+          icon: '✨',
+          tone: 'accent',
+        },
+      ];
+    }
+    return [primaryMetric];
+  }, [featuredVisiblePack]);
   const regularVisiblePacks = useMemo(
     () => visibleStarPacks.filter(pack => !pack.featured),
     [visibleStarPacks]
@@ -639,58 +665,18 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
                 ).toLocaleString('ru-RU')} ⭐`,
                 variant: 'legendary',
               }}
-              metrics={[
-                {
-                  label: 'Базовых Stars',
-                  value: featuredVisiblePack.stars.toLocaleString('ru-RU'),
-                  icon: '⭐',
-                },
-                ...(featuredVisiblePack.bonus_stars && featuredVisiblePack.bonus_stars > 0
-                  ? [
-                      {
-                        label: 'Бонус',
-                        value: `+${featuredVisiblePack.bonus_stars.toLocaleString('ru-RU')} ⭐`,
-                        icon: '✨',
-                        tone: 'success' as const,
-                      },
-                      {
-                        label: 'Буст',
-                        value: `+${calculateBonusPercentage(
-                          featuredVisiblePack.stars,
-                          featuredVisiblePack.bonus_stars ?? 0
-                        )}%`,
-                        icon: '🚀',
-                        tone: 'accent' as const,
-                      },
-                    ]
-                  : []),
-              ]}
-              meta={
-                featuredVisiblePack.price_rub ? (
-                  <div className="flex items-center justify-between rounded-2xl border border-white/30 bg-white/10 px-sm py-xs">
-                    <Text variant="caption" tone="inverse">
-                      Цена за ⭐
-                    </Text>
-                    <Text variant="bodySm" weight="bold" tone="inverse">
-                      {(
-                        featuredVisiblePack.price_rub /
-                        (featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0))
-                      ).toFixed(1)}{' '}
-                      ₽/⭐
-                    </Text>
-                  </div>
-                ) : null
-              }
+              metrics={featuredPackMetrics}
               actions={
                 <Button
-                  variant="success"
+                  variant="primary"
                   size="lg"
                   fullWidth
                   className="shadow-glow"
                   loading={isProcessingStarPackId === featuredVisiblePack.id}
                   onClick={() => handlePurchaseStarPack(featuredVisiblePack.id)}
                 >
-                  Купить пакет
+                  <span aria-hidden="true">⚡</span>
+                  <span>Купить пакет</span>
                 </Button>
               }
             />
@@ -710,41 +696,26 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
                   const bonus = pack.bonus_stars ?? 0;
                   const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
                   const isBestValue = bestValuePackId === pack.id;
-                  const costPerStar =
-                    pack.price_rub && totalStars > 0
-                      ? (pack.price_rub / totalStars).toFixed(1)
-                      : null;
 
+                  const primaryMetric: ProductMetric = {
+                    label: 'Всего Stars',
+                    value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
+                    icon: '🌌',
+                    tone: isBestValue ? 'accent' : 'primary',
+                    primary: true,
+                  };
                   const metrics: ProductMetric[] =
                     bonus > 0
                       ? [
+                          primaryMetric,
                           {
-                            label: 'Всего',
-                            value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
-                            icon: '🌌',
-                            tone: isBestValue ? 'accent' : 'primary',
-                          },
-                          {
-                            label: 'Бонус',
+                            label: `Бонус +${calculateBonusPercentage(pack.stars, bonus)}%`,
                             value: `+${bonus.toLocaleString('ru-RU')} ⭐`,
                             icon: '✨',
-                            tone: 'success' as const,
-                          },
-                          {
-                            label: 'Буст',
-                            value: `+${calculateBonusPercentage(pack.stars, bonus)}%`,
-                            icon: '🚀',
-                            tone: 'accent' as const,
+                            tone: 'accent',
                           },
                         ]
-                      : [
-                          {
-                            label: 'Всего',
-                            value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
-                            icon: '🌌',
-                            tone: isBestValue ? 'accent' : 'primary',
-                          },
-                        ];
+                      : [primaryMetric];
 
                   return (
                     <ProductTile
@@ -781,39 +752,17 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
                       }
                       metrics={metrics}
                       helper={`Базовых Stars: ${pack.stars.toLocaleString('ru-RU')}`}
-                      meta={
-                        costPerStar ? (
-                          <div
-                            className={clsx(
-                              'flex items-center justify-between rounded-2xl px-sm py-xs',
-                              isBestValue
-                                ? 'bg-white/10 text-text-inverse'
-                                : 'border border-border-layer bg-layer-overlay-soft text-text-primary'
-                            )}
-                          >
-                            <Text variant="caption" tone={isBestValue ? 'inverse' : 'secondary'}>
-                              Стоимость за ⭐
-                            </Text>
-                            <Text
-                              variant="bodySm"
-                              weight="semibold"
-                              tone={isBestValue ? 'inverse' : 'accent'}
-                            >
-                              {costPerStar} ₽/⭐
-                            </Text>
-                          </div>
-                        ) : null
-                      }
                       actions={
                         <Button
-                          variant="success"
+                          variant="primary"
                           size="md"
                           fullWidth
                           className={isBestValue ? 'shadow-glow' : undefined}
                           loading={processing}
                           onClick={() => handlePurchaseStarPack(pack.id)}
                         >
-                          Купить Stars
+                          <span aria-hidden="true">⚡</span>
+                          <span>Купить Stars</span>
                         </Button>
                       }
                     />

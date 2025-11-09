@@ -10,6 +10,7 @@ export interface ProductMetric {
   value: string;
   icon?: ReactNode;
   tone?: 'primary' | 'secondary' | 'accent' | 'inverse' | 'success' | 'warning' | 'danger';
+  primary?: boolean;
 }
 
 export interface ProductTileProps extends Omit<PanelProps, 'variant' | 'spacing' | 'tone'> {
@@ -122,11 +123,15 @@ export const ProductTile = forwardRef<HTMLDivElement, ProductTileProps>(
             {children}
 
             {metrics && metrics.length > 0 ? (
-              <dl className="grid gap-sm sm:grid-cols-3">
+              <dl className="grid gap-sm sm:grid-cols-2">
                 {metrics.map(metric => (
                   <div
                     key={`${metric.label}-${metric.value}`}
-                    className="flex items-center gap-sm rounded-2xl border border-border-layer bg-layer-overlay-soft px-sm py-xs"
+                    className={clsx(
+                      'flex items-center gap-sm rounded-2xl border border-border-layer bg-layer-overlay-soft px-sm py-xs',
+                      metric.primary &&
+                        'sm:col-span-2 border-accent-gold/60 bg-accent-gold/10 text-text-primary'
+                    )}
                   >
                     {metric.icon ? (
                       <span className="text-heading" aria-hidden="true">
@@ -134,11 +139,14 @@ export const ProductTile = forwardRef<HTMLDivElement, ProductTileProps>(
                       </span>
                     ) : null}
                     <div className="flex flex-col leading-tight">
-                      <Text variant="micro" tone={highlighted ? 'inverse' : 'tertiary'}>
+                      <Text
+                        variant={metric.primary ? 'caption' : 'micro'}
+                        tone={metric.primary ? 'accent' : highlighted ? 'inverse' : 'tertiary'}
+                      >
                         {metric.label}
                       </Text>
                       <Text
-                        variant="bodySm"
+                        variant={metric.primary ? 'body' : 'bodySm'}
                         weight="semibold"
                         tone={metric.tone ?? (highlighted ? 'inverse' : 'primary')}
                       >
@@ -164,6 +172,7 @@ export const ProductTile = forwardRef<HTMLDivElement, ProductTileProps>(
           <div
             className={clsx(
               'flex flex-col gap-sm',
+              !isHorizontal && 'mt-4',
               isHorizontal ? 'sm:items-end sm:justify-between sm:self-stretch' : ''
             )}
           >
