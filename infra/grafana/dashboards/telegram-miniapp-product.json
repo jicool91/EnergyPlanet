@@ -17,168 +17,187 @@
   },
   "editable": true,
   "fiscalYearStartMonth": 0,
-  "graphTooltip": 0,
-  "links": [],
+  "graphTooltip": 1,
+  "links": [
+    {
+      "asDropdown": false,
+      "icon": "external link",
+      "includeVars": false,
+      "keepTime": true,
+      "tags": [],
+      "targetBlank": true,
+      "title": "System Dashboard",
+      "type": "link",
+      "url": "/d/tele-system-dashboard"
+    }
+  ],
   "panels": [
     {
       "collapsed": false,
       "datasource": null,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 0
-      },
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0},
       "id": 1,
       "panels": [],
-      "title": "Auth & Sessions",
+      "title": "📊 Overview & Health — Key Metrics at a Glance",
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Unique users who logged in during the last 24 hours. Calculated from energyplanet_user_logins_total metric.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "thresholds"},
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
+              {"color": "red", "value": null},
+              {"color": "orange", "value": 10},
+              {"color": "green", "value": 100}
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 1
-      },
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 1},
       "id": 2,
       "options": {
-        "legend": {
-          "calcs": ["max"],
-          "displayMode": "table",
-          "placement": "bottom"
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "textMode": "auto"
       },
+      "pluginVersion": "9.0.0",
       "targets": [
         {
-          "expr": "sum by (endpoint, outcome) (rate(energyplanet_auth_requests_total[5m]))",
-          "legendFormat": "{{endpoint}} / {{outcome}}",
+          "expr": "energyplanet_daily_active_users",
+          "legendFormat": "DAU",
           "refId": "A"
         }
       ],
-      "title": "Auth Requests (by endpoint/outcome)",
-      "type": "timeseries"
+      "title": "DAU (24h)",
+      "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Current number of concurrent users with active sessions. Helps track peak usage times.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "thresholds"},
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
+              {"color": "green", "value": null},
+              {"color": "yellow", "value": 50},
+              {"color": "red", "value": 100}
             ]
-          }
+          },
+          "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 1
-      },
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 1},
       "id": 3,
       "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
         },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "textMode": "auto"
       },
+      "pluginVersion": "9.0.0",
       "targets": [
         {
-          "expr": "sum by (reason, revocation_reason) (rate(energyplanet_auth_refresh_audit_total[5m]))",
-          "legendFormat": "{{reason}} / {{revocation_reason}}",
+          "expr": "energyplanet_active_users_current",
+          "legendFormat": "CCU",
           "refId": "A"
         }
       ],
-      "title": "Refresh Audit Reasons",
-      "type": "timeseries"
+      "title": "CCU (Now)",
+      "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "description": "Доля неуспешных авторизаций за 5 минут.",
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Total Stars revenue earned in the last 24 hours from all purchase types (boosts, cosmetics, etc).",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "thresholds"
-          },
-          "decimals": 2,
+          "color": {"mode": "thresholds"},
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 10
-              },
-              {
-                "color": "red",
-                "value": 20
-              }
+              {"color": "red", "value": null},
+              {"color": "orange", "value": 100},
+              {"color": "green", "value": 1000}
+            ]
+          },
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 1},
+      "id": 4,
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"],
+          "fields": "",
+          "values": false
+        },
+        "textMode": "auto"
+      },
+      "pluginVersion": "9.0.0",
+      "targets": [
+        {
+          "expr": "increase(energyplanet_purchase_revenue_stars_total[24h])",
+          "legendFormat": "Stars (24h)",
+          "refId": "A"
+        }
+      ],
+      "title": "⭐ Revenue (24h)",
+      "type": "stat"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Percentage of failed auth + tick requests. Threshold: <5% green, 5-10% orange, >10% red. High error rate indicates system issues.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "thresholds"},
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "green", "value": null},
+              {"color": "orange", "value": 5},
+              {"color": "red", "value": 10}
             ]
           },
           "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 6,
-        "x": 0,
-        "y": 9
-      },
-      "id": 4,
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 1},
+      "id": 5,
       "options": {
-        "orientation": "vertical",
+        "orientation": "auto",
         "reduceOptions": {
           "calcs": ["lastNotNull"],
           "fields": "",
@@ -187,1475 +206,268 @@
         "showThresholdLabels": false,
         "showThresholdMarkers": true
       },
+      "pluginVersion": "9.0.0",
       "targets": [
         {
-          "expr": "100 * sum(rate(energyplanet_auth_requests_total{outcome!=\"success\"}[5m])) / ignoring(outcome) sum(rate(energyplanet_auth_requests_total[5m]))",
-          "legendFormat": "error share",
+          "expr": "100 * (sum(rate(energyplanet_auth_requests_total{outcome!=\"success\"}[$time_range])) + sum(rate(energyplanet_tick_error_total[$time_range]))) / (sum(rate(energyplanet_auth_requests_total[$time_range])) + sum(rate(energyplanet_tick_success_total[$time_range])))",
+          "legendFormat": "Error %",
           "refId": "A"
         }
       ],
-      "title": "Auth 4xx / rate-limit share",
+      "title": "Error Rate",
       "type": "gauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 9,
-        "x": 6,
-        "y": 9
-      },
-      "id": 5,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum(increase(energyplanet_auth_session_family_revoked_total[$__range]))",
-          "legendFormat": "Revoked",
-          "refId": "A"
-        }
-      ],
-      "title": "Session Families Revoked (range)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 9,
-        "x": 15,
-        "y": 9
-      },
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 7},
       "id": 6,
-      "options": {
-        "footer": {
-          "fields": "",
-          "reducer": [],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "value"
-          }
-        ]
-      },
-      "targets": [
-        {
-          "expr": "sum by (status) (increase(energyplanet_auth_requests_total[$__range]))",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "{{status}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Auth Requests by HTTP status (range)",
-      "type": "table"
+      "panels": [],
+      "title": "🔐 Auth & Retention — User Acquisition & Engagement",
+      "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Percentage of successful authentication requests. Calculated as: (success requests) / (total requests). Green >95%, Orange 90-95%, Red <90%.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "thresholds"},
           "mappings": [],
+          "max": 100,
+          "min": 0,
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
+              {"color": "red", "value": null},
+              {"color": "orange", "value": 90},
+              {"color": "green", "value": 95}
             ]
-          }
+          },
+          "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 17
-      },
+      "gridPos": {"h": 7, "w": 6, "x": 0, "y": 8},
       "id": 7,
       "options": {
-        "legend": {
-          "calcs": ["mean"],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
       },
       "targets": [
         {
-          "expr": "sum by (is_new_user) (rate(energyplanet_user_logins_total[5m]))",
+          "expr": "100 * sum(rate(energyplanet_auth_requests_total{outcome=\"success\"}[$time_range])) / sum(rate(energyplanet_auth_requests_total[$time_range]))",
+          "legendFormat": "Success %",
+          "refId": "A"
+        }
+      ],
+      "title": "Auth Success Rate",
+      "type": "gauge"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Rate of user logins split by new vs returning users. Helps track user acquisition and retention.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"axisPlacement": "auto", "fillOpacity": 10, "gradientMode": "none", "lineInterpolation": "linear", "lineWidth": 2},
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 7, "w": 9, "x": 6, "y": 8},
+      "id": 8,
+      "options": {
+        "legend": {"calcs": ["mean", "last"], "displayMode": "table", "placement": "bottom"},
+        "tooltip": {"mode": "multi"}
+      },
+      "targets": [
+        {
+          "expr": "sum by (is_new_user) (rate(energyplanet_user_logins_total[$time_range]))",
           "legendFormat": "new={{is_new_user}}",
           "refId": "A"
         }
       ],
-      "title": "User Logins (new vs returning)",
+      "title": "New vs Returning Users",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Median session duration. Shows how long users typically stay in the game. Target: >2 minutes for good engagement.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "palette-classic"},
+          "custom": {"axisPlacement": "auto", "fillOpacity": 10, "gradientMode": "none", "lineInterpolation": "linear", "lineWidth": 2},
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "s"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 17
-      },
-      "id": 8,
+      "gridPos": {"h": 7, "w": 9, "x": 15, "y": 8},
+      "id": 9,
       "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
+        "legend": {"calcs": ["last"], "displayMode": "list", "placement": "bottom"},
+        "tooltip": {"mode": "single"}
       },
       "targets": [
         {
-          "expr": "sum by (reason) (increase(energyplanet_session_rotations_total[5m]))",
-          "legendFormat": "{{reason}}",
+          "expr": "histogram_quantile(0.5, sum(rate(energyplanet_session_duration_seconds_bucket[$time_range])) by (le))",
+          "legendFormat": "p50 duration",
           "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.9, sum(rate(energyplanet_session_duration_seconds_bucket[$time_range])) by (le))",
+          "legendFormat": "p90 duration",
+          "refId": "B"
         }
       ],
-      "title": "Session Rotations (5m)",
+      "title": "Session Duration",
       "type": "timeseries"
     },
     {
       "collapsed": false,
       "datasource": null,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 25
-      },
-      "id": 9,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 15},
+      "id": 10,
       "panels": [],
-      "title": "Gameplay & Retention",
+      "title": "⚡ Core Gameplay — Taps, Buildings, Progression",
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Tap requests per second and total taps per second. Shows player engagement with the core mechanic.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "palette-classic"},
+          "custom": {"axisPlacement": "auto", "fillOpacity": 10, "gradientMode": "none", "lineInterpolation": "linear", "lineWidth": 2},
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "reqps"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 26
-      },
-      "id": 10,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "rate(energyplanet_tick_success_total[5m])",
-          "legendFormat": "Success",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(energyplanet_tick_unauthorized_total[5m]))",
-          "legendFormat": "Unauthorized",
-          "refId": "B"
-        },
-        {
-          "expr": "sum(rate(energyplanet_tick_error_total[5m]))",
-          "legendFormat": "Error",
-          "refId": "C"
-        }
-      ],
-      "title": "Tick Throughput (5m rate)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 26
-      },
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
       "id": 11,
       "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "legend": {"calcs": ["mean", "last"], "displayMode": "table", "placement": "bottom"},
+        "tooltip": {"mode": "multi"}
       },
       "targets": [
         {
-          "expr": "sum by (reason) (increase(energyplanet_tick_unauthorized_total[5m]))",
-          "legendFormat": "{{reason}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Tick Unauthorized Reasons (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 34
-      },
-      "id": 12,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(energyplanet_tick_latency_seconds_bucket[5m])) by (le))",
-          "legendFormat": "p95",
-          "refId": "A"
-        }
-      ],
-      "title": "Tick Latency p95",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 34
-      },
-      "id": 13,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.5, sum(rate(energyplanet_tick_latency_seconds_bucket[5m])) by (le))",
-          "legendFormat": "p50",
-          "refId": "A"
-        }
-      ],
-      "title": "Tick Latency p50",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 34
-      },
-      "id": 14,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "rate(energyplanet_tick_accounted_seconds_sum[5m])",
-          "legendFormat": "Accounted Seconds / s",
-          "refId": "A"
-        }
-      ],
-      "title": "Passive Seconds Processed",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 42
-      },
-      "id": 15,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.9, sum(rate(energyplanet_tick_energy_gained_bucket[5m])) by (le))",
-          "legendFormat": "p90",
-          "refId": "A"
-        }
-      ],
-      "title": "Energy Gained per Tick (p90)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "s"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 42
-      },
-      "id": 16,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.9, sum(rate(energyplanet_tick_carryover_seconds_bucket[5m])) by (le))",
-          "legendFormat": "p90",
-          "refId": "A"
-        }
-      ],
-      "title": "Carryover Seconds Remaining (p90)",
-      "type": "timeseries"
-    },
-    {
-      "collapsed": false,
-      "datasource": null,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 50
-      },
-      "id": 17,
-      "panels": [],
-      "title": "Monetization & Boosts",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 51
-      },
-      "id": 18,
-      "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (status) (increase(energyplanet_purchase_invoices_total[5m]))",
-          "legendFormat": "{{status}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Purchase Invoices (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 51
-      },
-      "id": 19,
-      "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (purchase_type) (increase(energyplanet_purchase_completed_total[5m]))",
-          "legendFormat": "{{purchase_type}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Completed Purchases (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "short"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 59
-      },
-      "id": 20,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "60 * rate(energyplanet_purchase_revenue_stars_total[5m])",
-          "legendFormat": "Stars/min",
-          "refId": "A"
-        }
-      ],
-      "title": "Revenue Rate (Stars/min)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 59
-      },
-      "id": 21,
-      "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (mock) (increase(energyplanet_purchase_completed_total[5m]))",
-          "legendFormat": "mock={{mock}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Purchase Volume by Environment (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 59
-      },
-      "id": 22,
-      "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (outcome) (increase(energyplanet_boost_claims_total[5m]))",
-          "legendFormat": "{{outcome}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Boost Claim Outcomes (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 67
-      },
-      "id": 23,
-      "options": {
-        "footer": {
-          "fields": "",
-          "reducer": ["sum"],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "value"
-          }
-        ]
-      },
-      "targets": [
-        {
-          "expr": "sum by (item_id) (increase(energyplanet_purchase_completed_total[$__range]))",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "{{item_id}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Purchases by Item (range)",
-      "type": "table"
-    },
-    {
-      "collapsed": false,
-      "datasource": null,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 75
-      },
-      "id": 24,
-      "panels": [],
-      "title": "Gameplay Deep Dive",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 76
-      },
-      "id": 25,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum(rate(energyplanet_tap_requests_total[5m]))",
+          "expr": "sum(rate(energyplanet_tap_requests_total[$time_range]))",
           "legendFormat": "Tap requests/s",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(energyplanet_taps_requested_total[5m]))",
+          "expr": "sum(rate(energyplanet_taps_requested_total[$time_range]))",
           "legendFormat": "Taps/s",
           "refId": "B"
         }
       ],
-      "title": "Tap Requests & Volume",
+      "title": "Tap Activity",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Server-side tick processing latency. p95 should be <100ms (green), 100-300ms (orange), >300ms (red). Critical for smooth gameplay.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "thresholds"},
+          "custom": {"axisPlacement": "auto", "fillOpacity": 10, "gradientMode": "none", "lineInterpolation": "linear", "lineWidth": 2},
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
+              {"color": "green", "value": null},
+              {"color": "orange", "value": 0.1},
+              {"color": "red", "value": 0.3}
             ]
-          }
+          },
+          "unit": "s"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 76
-      },
-      "id": 26,
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "id": 12,
       "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "legend": {"calcs": ["mean", "last"], "displayMode": "list", "placement": "bottom"},
+        "tooltip": {"mode": "single"}
       },
       "targets": [
         {
-          "expr": "sum by (window) (increase(energyplanet_tap_rate_limit_total[5m]))",
-          "legendFormat": "{{window}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Tap Rate Limit Hits (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "ms"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 76
-      },
-      "id": 27,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "list",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.9, sum(rate(energyplanet_tap_batch_latency_ms_bucket[5m])) by (le))",
-          "legendFormat": "p90 latency",
-          "refId": "A"
-        }
-      ],
-      "title": "Tap Batch Latency p90",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 84
-      },
-      "id": 28,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum(rate(energyplanet_tap_batch_energy_total{type=\"boosted\"}[5m]))",
-          "legendFormat": "Boosted energy/s",
+          "expr": "histogram_quantile(0.95, sum(rate(energyplanet_tick_latency_seconds_bucket[$time_range])) by (le))",
+          "legendFormat": "p95",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(energyplanet_tap_batch_energy_total{type=\"base\"}[5m]))",
-          "legendFormat": "Base energy/s",
+          "expr": "histogram_quantile(0.5, sum(rate(energyplanet_tick_latency_seconds_bucket[$time_range])) by (le))",
+          "legendFormat": "p50",
           "refId": "B"
         }
       ],
-      "title": "Tap Batch Energy",
+      "title": "Tick Latency",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Top buildings purchased by players in the selected time range. Sorted by total purchases descending.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "palette-classic"},
+          "custom": {"axisPlacement": "auto", "barAlignment": 0, "fillOpacity": 80, "gradientMode": "none", "lineWidth": 1, "orientation": "horizontal"},
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 84
-      },
-      "id": 29,
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+      "id": 13,
       "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "legend": {"calcs": ["sum"], "displayMode": "table", "placement": "right"},
+        "tooltip": {"mode": "multi"}
       },
       "targets": [
         {
-          "expr": "sum by (building_id, source) (increase(energyplanet_building_purchases_total[5m]))",
-          "legendFormat": "{{building_id}} ({{source}})",
-          "refId": "A"
-        }
-      ],
-      "title": "Building Purchases (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 84
-      },
-      "id": 30,
-      "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (building_id) (increase(energyplanet_building_upgrades_total[5m]))",
+          "expr": "topk(10, sum by (building_id) (increase(energyplanet_building_purchases_total[$__range])))",
           "legendFormat": "{{building_id}}",
           "refId": "A"
         }
       ],
-      "title": "Building Upgrades (5m)",
-      "type": "timeseries"
+      "title": "Top Buildings Purchased",
+      "type": "barchart"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Energy and XP rewards given to players when they return after being offline. Helps balance idle rewards.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "palette-classic"},
+          "custom": {"axisPlacement": "auto", "fillOpacity": 10, "gradientMode": "none", "lineInterpolation": "linear", "lineWidth": 2},
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 92
-      },
-      "id": 31,
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+      "id": 14,
       "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "legend": {"calcs": ["mean"], "displayMode": "list", "placement": "bottom"},
+        "tooltip": {"mode": "multi"}
       },
       "targets": [
         {
-          "expr": "increase(energyplanet_achievement_unlocked_total[5m])",
-          "legendFormat": "Unlocked",
-          "refId": "A"
-        },
-        {
-          "expr": "increase(energyplanet_achievement_claimed_total[5m])",
-          "legendFormat": "Claimed",
-          "refId": "B"
-        }
-      ],
-      "title": "Achievement Progress (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 92
-      },
-      "id": 32,
-      "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (quest_type) (increase(energyplanet_quests_claimed_total[5m]))",
-          "legendFormat": "{{quest_type}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Quests Claimed (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 92
-      },
-      "id": 33,
-      "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "increase(energyplanet_prestige_total[1h])",
-          "legendFormat": "Prestiges (1h)",
-          "refId": "A"
-        }
-      ],
-      "title": "Prestige Events",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 100
-      },
-      "id": 34,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum(rate(energyplanet_offline_energy_total[5m]))",
+          "expr": "sum(rate(energyplanet_offline_energy_total[$time_range]))",
           "legendFormat": "Energy/s",
           "refId": "A"
         },
         {
-          "expr": "sum(rate(energyplanet_offline_xp_total[5m]))",
+          "expr": "sum(rate(energyplanet_offline_xp_total[$time_range]))",
           "legendFormat": "XP/s",
           "refId": "B"
         }
@@ -1664,905 +476,229 @@
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "collapsed": false,
+      "datasource": null,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 32},
+      "id": 15,
+      "panels": [],
+      "title": "💰 Monetization — Revenue & Conversions",
+      "type": "row"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Average Revenue Per User (ARPU) calculated as: Total revenue / DAU. Key business metric for monetization efficiency.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
+          "color": {"mode": "thresholds"},
+          "mappings": [],
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "orange", "value": 0.5},
+              {"color": "green", "value": 2}
+            ]
           },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
+          "unit": "currencyUSD",
+          "decimals": 2
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 100
-      },
-      "id": 35,
+      "gridPos": {"h": 6, "w": 6, "x": 0, "y": 33},
+      "id": 16,
       "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "textMode": "auto"
       },
       "targets": [
         {
-          "expr": "sum by (leveled_up) (rate(energyplanet_sessions_opened_total[5m]))",
-          "legendFormat": "opened leveled={{leveled_up}}",
+          "expr": "(increase(energyplanet_purchase_revenue_stars_total[24h]) * 0.01) / energyplanet_daily_active_users",
+          "legendFormat": "ARPU",
           "refId": "A"
-        },
-        {
-          "expr": "rate(energyplanet_sessions_closed_total[5m])",
-          "legendFormat": "closed",
-          "refId": "B"
         }
       ],
-      "title": "Sessions Opened vs Closed",
-      "type": "timeseries"
+      "title": "ARPU (24h)",
+      "type": "stat"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Purchase success rate. Should be >95% (green), 90-95% (orange), <90% (red). Low rate indicates payment issues.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
+          "color": {"mode": "thresholds"},
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {"color": "red", "value": null},
+              {"color": "orange", "value": 90},
+              {"color": "green", "value": 95}
+            ]
           },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
+          "unit": "percent"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 100
-      },
-      "id": 36,
+      "gridPos": {"h": 6, "w": 6, "x": 6, "y": 33},
+      "id": 17,
       "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "orientation": "auto",
+        "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false},
+        "showThresholdLabels": false,
+        "showThresholdMarkers": true
       },
       "targets": [
         {
-          "expr": "sum by (cosmetic_id, source) (increase(energyplanet_cosmetics_granted_total[5m]))",
-          "legendFormat": "{{cosmetic_id}} ({{source}})",
+          "expr": "100 * sum(rate(energyplanet_purchase_completed_total[$time_range])) / (sum(rate(energyplanet_purchase_completed_total[$time_range])) + sum(rate(energyplanet_purchase_failures_total[$time_range])))",
+          "legendFormat": "Success %",
           "refId": "A"
         }
       ],
-      "title": "Cosmetics Granted (5m)",
-      "type": "timeseries"
+      "title": "Purchase Success Rate",
+      "type": "gauge"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Revenue breakdown by source: direct purchases vs referral revenue. Shows effectiveness of referral program.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "palette-classic"},
+          "custom": {"hideFrom": {"legend": false, "tooltip": false, "viz": false}},
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
+          "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 0,
-        "y": 108
-      },
-      "id": 37,
+      "gridPos": {"h": 6, "w": 6, "x": 12, "y": 33},
+      "id": 18,
       "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "displayLabels": ["percent"],
+        "legend": {"calcs": ["sum"], "displayMode": "table", "placement": "right", "values": ["value"]},
+        "pieType": "pie",
+        "tooltip": {"mode": "single"}
       },
       "targets": [
         {
-          "expr": "sum by (category) (increase(energyplanet_cosmetics_equipped_total[5m]))",
-          "legendFormat": "{{category}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Cosmetic Equip Events (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 8,
-        "y": 108
-      },
-      "id": 38,
-      "options": {
-        "legend": {
-          "calcs": ["sum"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (type) (increase(energyplanet_referral_rewards_total[5m]))",
-          "legendFormat": "{{type}} rewards",
-          "refId": "A"
-        },
-        {
-          "expr": "sum by (type) (rate(energyplanet_referral_reward_stars_total[5m]))",
-          "legendFormat": "{{type}} stars/s",
-          "refId": "B"
-        }
-      ],
-      "title": "Referral Rewards & Stars",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 8,
-        "x": 16,
-        "y": 108
-      },
-      "id": 39,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "single"
-        }
-      },
-      "targets": [
-        {
-          "expr": "rate(energyplanet_stars_credit_total[5m])",
-          "legendFormat": "Stars credit/s",
-          "refId": "A"
-        }
-      ],
-      "title": "Stars Credited Rate",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "displayName": "",
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 24,
-        "x": 0,
-        "y": 116
-      },
-      "id": 40,
-      "options": {
-        "footer": {
-          "fields": "",
-          "reducer": [],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "value"
-          }
-        ]
-      },
-      "targets": [
-        {
-          "expr": "sum by (reason) (increase(energyplanet_purchase_failures_total[$__range]))",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "{{reason}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Purchase Failures (range)",
-      "type": "table"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 124
-      },
-      "id": 41,
-      "options": {
-        "legend": {
-          "calcs": ["last"],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (source) (rate(energyplanet_referral_revenue_stars_total[5m]))",
-          "legendFormat": "{{source}} stars/s",
-          "refId": "A"
-        },
-        {
-          "expr": "sum(rate(energyplanet_referral_revenue_stars_total[5m]))",
-          "legendFormat": "total stars/s",
-          "refId": "B"
-        }
-      ],
-      "title": "Referral Revenue Rate (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 124
-      },
-      "id": 42,
-      "options": {
-        "footer": {
-          "fields": "",
-          "reducer": [],
-          "show": false
-        },
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "value"
-          }
-        ]
-      },
-      "targets": [
-        {
-          "expr": "sum by (source) (increase(energyplanet_referral_revenue_stars_total[$__range]))",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "{{source}}",
+          "expr": "sum(increase(energyplanet_purchase_revenue_stars_total[$__range]))",
+          "legendFormat": "Direct Purchases",
           "refId": "A"
         },
         {
           "expr": "sum(increase(energyplanet_referral_revenue_stars_total[$__range]))",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "total",
+          "legendFormat": "Referral Revenue",
           "refId": "B"
         }
       ],
-      "title": "Referral Revenue (range)",
-      "transformations": [
+      "title": "Revenue by Source",
+      "type": "piechart"
+    },
+    {
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Revenue trend over time in Stars per minute. Helps identify peak monetization hours and trends.",
+      "fieldConfig": {
+        "defaults": {
+          "color": {"mode": "palette-classic"},
+          "custom": {"axisPlacement": "auto", "fillOpacity": 20, "gradientMode": "opacity", "lineInterpolation": "smooth", "lineWidth": 2},
+          "mappings": [],
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "short"
+        },
+        "overrides": []
+      },
+      "gridPos": {"h": 6, "w": 6, "x": 18, "y": 33},
+      "id": 19,
+      "options": {
+        "legend": {"calcs": ["mean", "last"], "displayMode": "list", "placement": "bottom"},
+        "tooltip": {"mode": "single"}
+      },
+      "targets": [
         {
-          "id": "merge",
-          "options": {}
+          "expr": "60 * rate(energyplanet_purchase_revenue_stars_total[$time_range])",
+          "legendFormat": "Stars/min",
+          "refId": "A"
         }
       ],
-      "type": "table"
+      "title": "Revenue Rate",
+      "type": "timeseries"
     },
     {
       "collapsed": false,
       "datasource": null,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 132
-      },
-      "id": 43,
+      "gridPos": {"h": 1, "w": 24, "x": 0, "y": 39},
+      "id": 20,
       "panels": [],
-      "title": "UX Telemetry",
+      "title": "🎨 UX & Performance — Client-Side Metrics",
       "type": "row"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Client-side render latency p90 by screen. Target: <800ms (green), 800-1500ms (orange), >1500ms (red). Affects user experience.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "thresholds"},
+          "custom": {"axisPlacement": "auto", "fillOpacity": 10, "gradientMode": "none", "lineInterpolation": "linear", "lineWidth": 2},
           "mappings": [],
           "thresholds": {
             "mode": "absolute",
             "steps": [
-              {
-                "color": "green",
-                "value": null
-              },
-              {
-                "color": "orange",
-                "value": 800
-              },
-              {
-                "color": "red",
-                "value": 1500
-              }
+              {"color": "green", "value": null},
+              {"color": "orange", "value": 800},
+              {"color": "red", "value": 1500}
             ]
           },
           "unit": "ms"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 133
-      },
-      "id": 44,
+      "gridPos": {"h": 7, "w": 12, "x": 0, "y": 40},
+      "id": 21,
       "options": {
-        "legend": {
-          "calcs": [
-            "last"
-          ],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "legend": {"calcs": ["last"], "displayMode": "table", "placement": "bottom"},
+        "tooltip": {"mode": "multi"}
       },
       "targets": [
         {
-          "expr": "histogram_quantile(0.9, sum by (le, screen) (rate(energyplanet_render_latency_ms_bucket[$__rate_interval])))",
+          "expr": "histogram_quantile(0.9, sum by (le, screen) (rate(energyplanet_render_latency_ms_bucket[$time_range])))",
           "legendFormat": "{{screen}} P90",
           "refId": "A"
-        },
-        {
-          "expr": "sum by (screen) (rate(energyplanet_render_latency_ms_sum[$__rate_interval])) / sum by (screen) (rate(energyplanet_render_latency_ms_count[$__rate_interval]))",
-          "legendFormat": "{{screen}} avg",
-          "refId": "B"
         }
       ],
       "title": "Render Latency by Screen",
       "type": "timeseries"
     },
     {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
+      "datasource": {"type": "prometheus", "uid": "PrometheusDatasource"},
+      "description": "Client-side tap success rate by batch size. Shows how responsive the UI is to player taps.",
       "fieldConfig": {
         "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
+          "color": {"mode": "palette-classic"},
+          "custom": {"axisPlacement": "auto", "fillOpacity": 10, "gradientMode": "none", "lineInterpolation": "linear", "lineWidth": 2},
           "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
+          "thresholds": {"mode": "absolute", "steps": [{"color": "green", "value": null}]},
+          "unit": "short"
         },
         "overrides": []
       },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 133
-      },
-      "id": 45,
+      "gridPos": {"h": 7, "w": 12, "x": 12, "y": 40},
+      "id": 22,
       "options": {
-        "legend": {
-          "calcs": [
-            "last"
-          ],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
+        "legend": {"calcs": ["last"], "displayMode": "table", "placement": "bottom"},
+        "tooltip": {"mode": "multi"}
       },
       "targets": [
         {
-          "expr": "sum by (batch_bucket, level_up) (rate(energyplanet_client_tap_success_total[$__rate_interval]))",
-          "legendFormat": "{{batch_bucket}} taps (level_up={{level_up}})",
+          "expr": "sum by (batch_bucket) (rate(energyplanet_client_tap_success_total[$time_range]))",
+          "legendFormat": "{{batch_bucket}} taps",
           "refId": "A"
         }
       ],
-      "title": "Tap Success Rate (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "none"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 141
-      },
-      "id": 46,
-      "options": {
-        "legend": {
-          "calcs": [
-            "last"
-          ],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (batch_bucket) (rate(energyplanet_client_tap_success_energy_total[$__rate_interval]))",
-          "legendFormat": "{{batch_bucket}} energy/sec",
-          "refId": "A"
-        }
-      ],
-      "title": "Tap Energy Gain (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "custom": {}
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 141
-      },
-      "id": 47,
-      "options": {
-        "showHeader": true,
-        "sortBy": [
-          {
-            "desc": true,
-            "displayName": "Value"
-          }
-        ]
-      },
-      "targets": [
-        {
-          "expr": "sum(increase(energyplanet_auth_requests_total{outcome!=\"success\"}[$__range])) by (endpoint, status)",
-          "format": "table",
-          "instant": true,
-          "legendFormat": "{{endpoint}} {{status}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Auth Errors by Status (range)",
-      "type": "table"
-    },
-    {
-      "collapsed": false,
-      "datasource": null,
-      "gridPos": {
-        "h": 1,
-        "w": 24,
-        "x": 0,
-        "y": 149
-      },
-      "id": 48,
-      "panels": [],
-      "title": "Safe Area & Fullscreen",
-      "type": "row"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 150
-      },
-      "id": 49,
-      "options": {
-        "legend": {
-          "calcs": [
-            "last"
-          ],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (origin, kind) (rate(energyplanet_safe_area_events_total[$__rate_interval]))",
-          "legendFormat": "{{origin}} / {{kind}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Safe Area Events (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          },
-          "unit": "px"
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 150
-      },
-      "id": 50,
-      "options": {
-        "legend": {
-          "calcs": [
-            "last"
-          ],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "histogram_quantile(0.5, sum(rate(energyplanet_safe_area_inset_px_bucket{edge=\"top\",kind=\"safe\"}[$__rate_interval])) by (le, origin))",
-          "legendFormat": "p50 {{origin}}",
-          "refId": "A"
-        },
-        {
-          "expr": "histogram_quantile(0.95, sum(rate(energyplanet_safe_area_inset_px_bucket{edge=\"top\",kind=\"safe\"}[$__rate_interval])) by (le, origin))",
-          "legendFormat": "p95 {{origin}}",
-          "refId": "B"
-        }
-      ],
-      "title": "Safe Top Inset Quantiles",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 0,
-        "y": 158
-      },
-      "id": 51,
-      "options": {
-        "legend": {
-          "calcs": [
-            "last"
-          ],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (is_fullscreen) (rate(energyplanet_viewport_fullscreen_state_total[$__rate_interval]))",
-          "legendFormat": "fullscreen={{is_fullscreen}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Viewport Fullscreen State (5m)",
-      "type": "timeseries"
-    },
-    {
-      "datasource": {
-        "type": "prometheus",
-        "uid": "PrometheusDatasource"
-      },
-      "fieldConfig": {
-        "defaults": {
-          "color": {
-            "mode": "palette-classic"
-          },
-          "custom": {},
-          "mappings": [],
-          "thresholds": {
-            "mode": "absolute",
-            "steps": [
-              {
-                "color": "green",
-                "value": null
-              }
-            ]
-          }
-        },
-        "overrides": []
-      },
-      "gridPos": {
-        "h": 8,
-        "w": 12,
-        "x": 12,
-        "y": 158
-      },
-      "id": 52,
-      "options": {
-        "legend": {
-          "calcs": [
-            "last"
-          ],
-          "displayMode": "table",
-          "placement": "bottom"
-        },
-        "tooltip": {
-          "mode": "multi"
-        }
-      },
-      "targets": [
-        {
-          "expr": "sum by (action, status) (rate(energyplanet_viewport_actions_total[$__rate_interval]))",
-          "legendFormat": "{{action}} / {{status}}",
-          "refId": "A"
-        }
-      ],
-      "title": "Viewport Actions (5m)",
+      "title": "Tap Success Rate (Client)",
       "type": "timeseries"
     }
   ],
@@ -2575,15 +711,62 @@
     "energyplanet"
   ],
   "templating": {
-    "list": []
+    "list": [
+      {
+        "current": {
+          "selected": false,
+          "text": "5m",
+          "value": "5m"
+        },
+        "hide": 0,
+        "includeAll": false,
+        "label": "Time Range",
+        "multi": false,
+        "name": "time_range",
+        "options": [
+          {
+            "selected": false,
+            "text": "1m",
+            "value": "1m"
+          },
+          {
+            "selected": true,
+            "text": "5m",
+            "value": "5m"
+          },
+          {
+            "selected": false,
+            "text": "15m",
+            "value": "15m"
+          },
+          {
+            "selected": false,
+            "text": "1h",
+            "value": "1h"
+          },
+          {
+            "selected": false,
+            "text": "6h",
+            "value": "6h"
+          }
+        ],
+        "query": "1m,5m,15m,1h,6h",
+        "queryValue": "",
+        "skipUrlSync": false,
+        "type": "custom"
+      }
+    ]
   },
   "time": {
     "from": "now-6h",
     "to": "now"
   },
+  "timepicker": {
+    "refresh_intervals": ["10s", "30s", "1m", "5m", "15m", "30m", "1h"]
+  },
   "timezone": "",
   "title": "Energy Planet — Product Metrics",
   "uid": "tele-product-dashboard",
-  "version": 2,
+  "version": 1,
   "weekStart": ""
 }
