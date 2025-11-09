@@ -47,3 +47,5 @@ Thumbs.db
 .wrangler/
 webapp/test-results/
 webapp/playwright-report-qa/
+webapp/playwright-report/
+docs/qa/evidence/
