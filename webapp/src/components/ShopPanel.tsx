@@ -265,6 +265,9 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
   const starPackSectionSourceRef = useRef<'user' | 'programmatic'>('programmatic');
   const lastStarPackSectionRef = useRef<StarPackSubSection | null>(null);
   const lastStarPackViewKeyRef = useRef<string | null>(null);
+  const cosmeticsTabsRef = useRef<HTMLDivElement>(null);
+  const [showCosmeticsLeftHint, setShowCosmeticsLeftHint] = useState(false);
+  const [showCosmeticsRightHint, setShowCosmeticsRightHint] = useState(false);
 
   useEffect(() => {
     const previous = lastActiveSectionRef.current;
@@ -398,6 +401,32 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
     loadCosmetics();
     loadStarPacks();
   }, [loadCosmetics, loadStarPacks]);
+
+  const updateCosmeticsScrollHints = useCallback(() => {
+    const node = cosmeticsTabsRef.current;
+    if (!node) {
+      setShowCosmeticsLeftHint(false);
+      setShowCosmeticsRightHint(false);
+      return;
+    }
+    const { scrollLeft, scrollWidth, clientWidth } = node;
+    const maxScrollLeft = Math.max(0, scrollWidth - clientWidth);
+    setShowCosmeticsLeftHint(scrollLeft > 4);
+    setShowCosmeticsRightHint(scrollLeft < maxScrollLeft - 4);
+  }, []);
+
+  useEffect(() => {
+    const node = cosmeticsTabsRef.current;
+    if (!node) {
+      return;
+    }
+    updateCosmeticsScrollHints();
+    const handleScroll = () => updateCosmeticsScrollHints();
+    node.addEventListener('scroll', handleScroll, { passive: true });
+    return () => {
+      node.removeEventListener('scroll', handleScroll);
+    };
+  }, [categories.length, updateCosmeticsScrollHints]);
 
   const { categories, activeCategory, filteredCosmetics, mostPopularCosmeticId } = useMemo(
     () =>
@@ -789,45 +818,56 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
           aria-labelledby={getSectionTabId('cosmetics')}
         >
           <nav
-            className="flex flex-wrap gap-xs rounded-2xl border border-border-cyan/60 bg-surface-glass-strong p-xs"
+            className="relative rounded-2xl border border-border-cyan/60 bg-surface-glass-strong"
             role="tablist"
             aria-label="Категории косметики"
           >
-            {categories.length === 0 && !isCosmeticsLoading && (
-              <Card className="flex-1 text-body text-text-secondary bg-token-surface-tertiary border-token-subtle">
+            {categories.length === 0 && !isCosmeticsLoading ? (
+              <Card className="m-xs flex-1 text-body text-text-secondary bg-token-surface-tertiary border-token-subtle">
                 Косметика откроется после уровня 5. Продолжайте улучшать здания и активируйте бусты,
                 чтобы увидеть новые стили планеты.
               </Card>
+            ) : (
+              <div
+                ref={cosmeticsTabsRef}
+                className="flex gap-xs overflow-x-auto px-xs py-xs scrollbar-hide snap-x snap-mandatory"
+              >
+                {categories.map((category, index) => {
+                  const isActiveCategory = category.id === activeCategory;
+                  const isDisabled = isCosmeticsLoading && !isActiveCategory;
+
+                  return (
+                    <button
+                      key={category.id}
+                      onClick={() => setSelectedCategory(category.id)}
+                      disabled={isDisabled}
+                      role="tab"
+                      aria-selected={isActiveCategory}
+                      aria-controls={COSMETICS_GRID_ID}
+                      id={`cosmetics-category-${category.id}`}
+                      tabIndex={isActiveCategory ? 0 : -1}
+                      onKeyDown={event => handleCategoryKeyDown(event, index)}
+                      type="button"
+                      className={`min-w-[140px] flex-shrink-0 snap-start rounded-2xl px-sm-plus py-xs-plus text-center text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
+                        isDisabled
+                          ? 'cursor-not-allowed opacity-60'
+                          : isActiveCategory
+                            ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
+                            : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
+                      }`}
+                    >
+                      {category.label}
+                    </button>
+                  );
+                })}
+              </div>
             )}
-
-            {categories.map((category, index) => {
-              const isActiveCategory = category.id === activeCategory;
-              const isDisabled = isCosmeticsLoading && !isActiveCategory;
-
-              return (
-                <button
-                  key={category.id}
-                  onClick={() => setSelectedCategory(category.id)}
-                  disabled={isDisabled}
-                  role="tab"
-                  aria-selected={isActiveCategory}
-                  aria-controls={COSMETICS_GRID_ID}
-                  id={`cosmetics-category-${category.id}`}
-                  tabIndex={isActiveCategory ? 0 : -1}
-                  onKeyDown={event => handleCategoryKeyDown(event, index)}
-                  type="button"
-                  className={`flex-1 sm:flex-none min-w-[140px] rounded-2xl px-sm-plus py-xs-plus text-center text-caption font-semibold uppercase tracking-[0.08em] transition-all duration-150 focus-ring ${
-                    isDisabled
-                      ? 'cursor-not-allowed opacity-60'
-                      : isActiveCategory
-                        ? 'bg-gradient-to-r from-accent-cyan/60 via-feedback-success/50 to-accent-magenta/55 text-text-primary shadow-glow'
-                        : 'text-text-secondary hover:text-text-primary hover:bg-surface-glass'
-                  }`}
-                >
-                  {category.label}
-                </button>
-              );
-            })}
+            {showCosmeticsLeftHint && (
+              <div className="pointer-events-none absolute left-0 top-0 h-full w-8 rounded-l-2xl bg-gradient-to-r from-surface-primary to-transparent" />
+            )}
+            {showCosmeticsRightHint && (
+              <div className="pointer-events-none absolute right-0 top-0 h-full w-8 rounded-r-2xl bg-gradient-to-l from-surface-primary to-transparent" />
+            )}
           </nav>
 
           <ShopSectionLayout as="div" id={COSMETICS_GRID_ID}>
