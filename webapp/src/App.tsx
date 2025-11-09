@@ -18,7 +18,7 @@ import type {
 import { TapScreen } from './screens/TapScreen';
 import { ShopScreen } from './screens/ShopScreen';
 import { FriendsScreen } from './screens/FriendsScreen';
-import { EarnScreen } from './screens/EarnScreen';
+import { ClanScreen } from './screens/ClanScreen';
 import { ChatScreen } from './screens/ChatScreen';
 import { AuthErrorModal } from './components/AuthErrorModal';
 import { OfflineSummaryModal } from './components/OfflineSummaryModal';
@@ -47,7 +47,7 @@ const NAVIGATION_TABS: BottomNavigationTab[] = [
   { id: 'shop', label: 'Shop', icon: '🛒', path: '/shop' },
   { id: 'chat', label: 'Chat', icon: '💬', path: '/chat' },
   { id: 'friends', label: 'Friends', icon: '🤝', path: '/friends' },
-  { id: 'earn', label: 'Earn', icon: '💼', path: '/earn' },
+  { id: 'clan', label: 'Clan', icon: '🛡️', path: '/clan' },
 ];
 
 const PATH_TO_TAB: Record<string, BottomNavigationTabId> = {
@@ -55,9 +55,9 @@ const PATH_TO_TAB: Record<string, BottomNavigationTabId> = {
   '/shop': 'shop',
   '/exchange': 'shop',
   '/friends': 'friends',
-  '/earn': 'earn',
+  '/clan': 'clan',
   '/chat': 'chat',
-  '/profile': 'earn',
+  '/profile': 'clan',
   '/events': 'tap',
 };
 
@@ -147,7 +147,7 @@ function NextUiRouter({ renderHeader }: NextUiRouterProps) {
           <Route path="/shop" element={<ShopScreen />} />
           <Route path="/exchange" element={<Navigate to="/shop" replace />} />
           <Route path="/friends" element={<FriendsScreen />} />
-          <Route path="/earn" element={<EarnScreen />} />
+          <Route path="/clan" element={<ClanScreen />} />
           <Route path="/profile" element={<ProfileScreen />} />
           <Route path="/chat" element={<ChatScreen />} />
           <Route path="/events" element={<PvPEventsScreen />} />

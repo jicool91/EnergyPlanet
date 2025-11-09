@@ -6,7 +6,7 @@ type AppRouteBase =
   | '/shop'
   | '/exchange'
   | '/friends'
-  | '/earn'
+  | '/clan'
   | '/chat'
   | '/events'
   | '/profile';
@@ -66,9 +66,9 @@ export const NAVIGATION_HEADER_SCHEMAS: Record<BottomNavigationTabId, HeaderSche
     title: 'Friends',
     layout: 'none',
   },
-  earn: {
-    id: 'earn',
-    title: 'Earn',
+  clan: {
+    id: 'clan',
+    title: 'Clan',
     layout: 'none',
   },
   chat: {

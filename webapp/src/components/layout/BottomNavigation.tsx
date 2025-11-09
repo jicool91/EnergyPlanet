@@ -3,7 +3,7 @@ import { memo } from 'react';
 import { Text } from '@/components/ui/Text';
 import { NAVIGATION_BUFFER_PX } from '@/constants/layout';
 
-export type BottomNavigationTabId = 'tap' | 'shop' | 'friends' | 'earn' | 'chat';
+export type BottomNavigationTabId = 'tap' | 'shop' | 'friends' | 'clan' | 'chat';
 
 export interface BottomNavigationTab {
   id: BottomNavigationTabId;

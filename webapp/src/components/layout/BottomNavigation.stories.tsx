@@ -29,7 +29,7 @@ const TABS: BottomNavigationTab[] = [
   { id: 'shop', label: 'Shop', icon: '🛒', path: '/shop' },
   { id: 'chat', label: 'Chat', icon: '💬', path: '/chat', badge: 3 },
   { id: 'friends', label: 'Friends', icon: '🤝', path: '/friends' },
-  { id: 'earn', label: 'Earn', icon: '💼', path: '/earn' },
+  { id: 'clan', label: 'Clan', icon: '🛡️', path: '/clan' },
 ];
 
 function BottomNavigationPlayground() {
