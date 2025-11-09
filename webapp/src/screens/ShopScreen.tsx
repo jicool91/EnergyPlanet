@@ -1,7 +1,7 @@
 import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { TabPageSurface, ShopPanel, BuildingsPanel, Button, Surface } from '@/components';
+import { TabPageSurface, ShopPanel, BuildingsPanel, Button } from '@/components';
 import type { ShopSection } from '@/components/ShopPanel';
 import { useRenderLatencyMetric } from '@/hooks/useRenderLatencyMetric';
 import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
@@ -189,20 +189,11 @@ export function ShopScreen() {
         </div>
 
         {/* Content based on active category */}
-        <Surface
-          tone="secondary"
-          border="subtle"
-          elevation="soft"
-          padding="md"
-          rounded="3xl"
-          className="flex w-full flex-col gap-md"
-        >
-          {activeCategory === 'buildings' ? (
-            <BuildingsPanel showHeader={false} bare />
-          ) : (
-            <ShopPanel activeSection={activeCategory} bare />
-          )}
-        </Surface>
+        {activeCategory === 'buildings' ? (
+          <BuildingsPanel showHeader={false} />
+        ) : (
+          <ShopPanel activeSection={activeCategory} />
+        )}
       </TabPageSurface>
     </ScrollContainerContext.Provider>
   );
