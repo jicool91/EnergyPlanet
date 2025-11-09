@@ -71,26 +71,44 @@ export function ShopScreen() {
       return;
     }
 
-    updateChipScrollHints();
     const handleScroll = () => updateChipScrollHints();
     node.addEventListener('scroll', handleScroll, { passive: true });
 
     const hasWindow = typeof window !== 'undefined';
     if (hasWindow) {
       window.addEventListener('resize', handleScroll);
+      const raf = window.requestAnimationFrame(() => handleScroll());
+      return () => {
+        node.removeEventListener('scroll', handleScroll);
+        window.removeEventListener('resize', handleScroll);
+        window.cancelAnimationFrame(raf);
+      };
     }
 
     return () => {
       node.removeEventListener('scroll', handleScroll);
-      if (hasWindow) {
-        window.removeEventListener('resize', handleScroll);
-      }
     };
   }, [updateChipScrollHints]);
 
   useEffect(() => {
-    updateChipScrollHints();
-  }, [activeCategory, updateChipScrollHints]);
+    const node = chipsViewportRef.current;
+    if (!node) {
+      return;
+    }
+
+    if (typeof window === 'undefined') {
+      node.dispatchEvent(new Event('scroll'));
+      return;
+    }
+
+    const raf = window.requestAnimationFrame(() => {
+      node.dispatchEvent(new Event('scroll'));
+    });
+
+    return () => {
+      window.cancelAnimationFrame(raf);
+    };
+  }, [activeCategory]);
 
   const handlePageRef = useCallback((node: HTMLDivElement | null) => {
     setScrollContainer(node);
