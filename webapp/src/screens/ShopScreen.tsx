@@ -37,6 +37,7 @@ export function ShopScreen() {
   const navigate = useNavigate();
   const location = useLocation();
   const [activeCategory, setActiveCategory] = useState<ShopCategory>('star_packs');
+  const activeCategoryRef = useRef<ShopCategory>('star_packs');
   const chipsViewportRef = useRef<HTMLDivElement>(null);
   const activeChipRef = useRef<HTMLButtonElement | null>(null);
   const [showLeftHint, setShowLeftHint] = useState(false);
@@ -95,18 +96,24 @@ export function ShopScreen() {
     setScrollContainer(node);
   }, []);
 
+  // Keep ref in sync to compare inside URL sync effect without re-running it on state changes
+  useEffect(() => {
+    activeCategoryRef.current = activeCategory;
+  }, [activeCategory]);
+
   // Sync with URL params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const section = resolveCategory(params.get(SECTION_PARAM));
     const legacyCategory = resolveCategory(params.get(LEGACY_CATEGORY_PARAM));
     const resolvedCategory = section ?? legacyCategory;
-    if (resolvedCategory && resolvedCategory !== activeCategory) {
+    const currentCategory = activeCategoryRef.current;
+    if (resolvedCategory && resolvedCategory !== currentCategory) {
       startTransition(() => {
         setActiveCategory(resolvedCategory);
       });
     }
-  }, [location.search, activeCategory]);
+  }, [location.search]);
 
   // Update URL when category changes
   useEffect(() => {
