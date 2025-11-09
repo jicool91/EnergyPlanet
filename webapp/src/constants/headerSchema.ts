@@ -1,7 +1,15 @@
 import type { ReactNode } from 'react';
 import type { BottomNavigationTabId } from '@/components/layout/BottomNavigation';
 
-type AppRouteBase = '/' | '/exchange' | '/friends' | '/earn' | '/chat' | '/events' | '/profile';
+type AppRouteBase =
+  | '/'
+  | '/shop'
+  | '/exchange'
+  | '/friends'
+  | '/earn'
+  | '/chat'
+  | '/events'
+  | '/profile';
 export type AppRoute = AppRouteBase | `${AppRouteBase}?${string}`;
 
 type HeaderLayout = 'tap-status' | 'simple';
@@ -28,7 +36,7 @@ const tapActions: HeaderActionConfig[] = [
   {
     id: 'shop',
     label: 'Магазин',
-    target: '/exchange?section=star_packs',
+    target: '/shop?section=star_packs',
     variant: 'primary',
     icon: '🛒',
   },
@@ -55,9 +63,9 @@ export const NAVIGATION_HEADER_SCHEMAS: Record<BottomNavigationTabId, HeaderSche
     layout: 'tap-status',
     actions: tapActions,
   },
-  exchange: {
-    id: 'exchange',
-    title: 'Exchange',
+  shop: {
+    id: 'shop',
+    title: 'Shop',
     layout: 'simple',
     actions: [SIMPLE_RETURN_ACTION],
   },

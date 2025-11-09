@@ -26,7 +26,7 @@ type Story = StoryObj<typeof BottomNavigation>;
 
 const TABS: BottomNavigationTab[] = [
   { id: 'tap', label: 'Tap', icon: '⚡️', path: '/' },
-  { id: 'exchange', label: 'Exchange', icon: '🏢', path: '/exchange' },
+  { id: 'shop', label: 'Shop', icon: '🛒', path: '/shop' },
   { id: 'chat', label: 'Chat', icon: '💬', path: '/chat', badge: 3 },
   { id: 'friends', label: 'Friends', icon: '🤝', path: '/friends' },
   { id: 'earn', label: 'Earn', icon: '💼', path: '/earn' },

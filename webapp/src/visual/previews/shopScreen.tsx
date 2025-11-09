@@ -1,13 +1,13 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
-import { ExchangeScreen } from '@/screens/ExchangeScreen';
+import { ShopScreen } from '@/screens/ShopScreen';
 import { ensureTapPreviewState } from './tapScreen';
 import '@/index.css';
 
-const validSections = new Set(['star_packs', 'boosts', 'builds']);
+const validSections = new Set(['star_packs', 'boosts', 'cosmetics', 'buildings']);
 
-export function renderExchangePreview(container: HTMLElement, params: URLSearchParams) {
+export function renderShopPreview(container: HTMLElement, params: URLSearchParams) {
   const themeParam = params.get('theme');
   const theme: 'light' | 'dark' = themeParam === 'light' ? 'light' : 'dark';
   const sectionParam = params.get('section');
@@ -28,12 +28,12 @@ export function renderExchangePreview(container: HTMLElement, params: URLSearchP
   const root = createRoot(container);
   root.render(
     <StrictMode>
-      <MemoryRouter initialEntries={[`/exchange?${search.toString()}`]}>
+      <MemoryRouter initialEntries={[`/shop?${search.toString()}`]}>
         <div
-          data-testid="exchange-preview-root"
+          data-testid="shop-preview-root"
           className="min-h-screen w-full bg-surface-primary px-4 py-6 text-text-primary"
         >
-          <ExchangeScreen />
+          <ShopScreen />
         </div>
       </MemoryRouter>
     </StrictMode>

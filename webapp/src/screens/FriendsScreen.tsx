@@ -86,7 +86,7 @@ export function FriendsScreen() {
   }, [authReady, loadProfile]);
 
   const handleOpenShop = useCallback(() => {
-    navigate('/exchange?section=boosts', { replace: false });
+    navigate('/shop?section=boosts', { replace: false });
   }, [navigate]);
 
   const handleRetry = useCallback(() => {

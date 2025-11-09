@@ -22,6 +22,7 @@ import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
 
 interface BuildingsPanelProps {
   showHeader?: boolean;
+  bare?: boolean;
 }
 
 const PURCHASE_OPTIONS = [
@@ -33,7 +34,7 @@ const PURCHASE_OPTIONS = [
 
 type PurchaseOptionId = (typeof PURCHASE_OPTIONS)[number]['id'];
 
-export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
+export function BuildingsPanel({ showHeader = true, bare = false }: BuildingsPanelProps) {
   const {
     buildings,
     energy,
@@ -210,15 +211,8 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
     [setSelectedPurchaseId]
   );
 
-  return (
-    <Surface
-      tone="secondary"
-      border="subtle"
-      elevation="soft"
-      padding="md"
-      rounded="3xl"
-      className="flex w-full flex-col gap-md"
-    >
+  const content = (
+    <div className="flex w-full flex-col gap-md">
       {showHeader ? (
         <div className="flex items-start justify-between gap-sm-plus">
           <div>
@@ -319,6 +313,23 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
           />
         </div>
       )}
+    </div>
+  );
+
+  if (bare) {
+    return content;
+  }
+
+  return (
+    <Surface
+      tone="secondary"
+      border="subtle"
+      elevation="soft"
+      padding="md"
+      rounded="3xl"
+      className="flex w-full flex-col gap-md"
+    >
+      {content}
     </Surface>
   );
 }

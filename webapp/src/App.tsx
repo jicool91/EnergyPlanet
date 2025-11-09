@@ -16,7 +16,7 @@ import type {
   BottomNavigationTabId,
 } from './components/layout/BottomNavigation';
 import { TapScreen } from './screens/TapScreen';
-import { ExchangeScreen } from './screens/ExchangeScreen';
+import { ShopScreen } from './screens/ShopScreen';
 import { FriendsScreen } from './screens/FriendsScreen';
 import { EarnScreen } from './screens/EarnScreen';
 import { ChatScreen } from './screens/ChatScreen';
@@ -44,7 +44,7 @@ import { ProfileScreen } from './screens/ProfileScreen';
 
 const NAVIGATION_TABS: BottomNavigationTab[] = [
   { id: 'tap', label: 'Tap', icon: '⚡️', path: '/' },
-  { id: 'exchange', label: 'Exchange', icon: '🏢', path: '/exchange' },
+  { id: 'shop', label: 'Shop', icon: '🛒', path: '/shop' },
   { id: 'chat', label: 'Chat', icon: '💬', path: '/chat' },
   { id: 'friends', label: 'Friends', icon: '🤝', path: '/friends' },
   { id: 'earn', label: 'Earn', icon: '💼', path: '/earn' },
@@ -52,7 +52,8 @@ const NAVIGATION_TABS: BottomNavigationTab[] = [
 
 const PATH_TO_TAB: Record<string, BottomNavigationTabId> = {
   '/': 'tap',
-  '/exchange': 'exchange',
+  '/shop': 'shop',
+  '/exchange': 'shop',
   '/friends': 'friends',
   '/earn': 'earn',
   '/chat': 'chat',
@@ -143,7 +144,8 @@ function NextUiRouter({ renderHeader }: NextUiRouterProps) {
       >
         <Routes>
           <Route path="/" element={<TapScreen />} />
-          <Route path="/exchange" element={<ExchangeScreen />} />
+          <Route path="/shop" element={<ShopScreen />} />
+          <Route path="/exchange" element={<Navigate to="/shop" replace />} />
           <Route path="/friends" element={<FriendsScreen />} />
           <Route path="/earn" element={<EarnScreen />} />
           <Route path="/profile" element={<ProfileScreen />} />

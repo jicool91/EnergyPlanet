@@ -26,10 +26,12 @@ import { useExperimentVariant } from '@/store/experimentsStore';
 
 const SECTION_QUERY_PARAM = 'section';
 
-function buildExchangeUrl(section: ShopSection) {
+type ShopShortcutSection = ShopSection | 'buildings';
+
+function buildShopUrl(section: ShopShortcutSection) {
   const params = new URLSearchParams();
   params.set(SECTION_QUERY_PARAM, section);
-  return `/exchange?${params.toString()}`;
+  return `/shop?${params.toString()}`;
 }
 
 interface PurchaseInsight {
@@ -528,7 +530,7 @@ export function TapScreen() {
 
   const handleViewBoosts = useCallback(() => {
     void logClientEvent('home_boosts_cta_click', { source: 'tap_screen' });
-    navigate(buildExchangeUrl('boosts'));
+    navigate(buildShopUrl('boosts'));
   }, [navigate]);
 
   const handleViewAchievements = useCallback(() => {
@@ -539,10 +541,15 @@ export function TapScreen() {
   const handleOpenShop = useCallback(
     (section: ShopSection = 'star_packs') => {
       void logClientEvent('home_shop_shortcut_click', { source: 'tap_screen', section });
-      navigate(buildExchangeUrl(section));
+      navigate(buildShopUrl(section));
     },
     [navigate]
   );
+
+  const handleOpenBuildings = useCallback(() => {
+    void logClientEvent('home_buildings_shortcut_click', { source: 'tap_screen' });
+    navigate(buildShopUrl('buildings'));
+  }, [navigate]);
 
   const handleViewLeaderboard = useCallback(() => {
     void logClientEvent('social_proof_leaderboard_click', { source: 'tap_screen' });
@@ -600,6 +607,20 @@ export function TapScreen() {
           isPrestigeLoading={isPrestigeLoading}
           onPrestige={performPrestige}
         />
+
+        <Button
+          type="button"
+          variant="secondary"
+          size="lg"
+          className="flex items-center justify-between rounded-3xl px-4 py-3"
+          onClick={handleOpenBuildings}
+        >
+          <span className="flex items-center gap-2 text-body">
+            <span aria-hidden="true">🏗️</span>
+            Постройки
+          </span>
+          <span className="text-sm text-text-tertiary">Управляйте пассивным доходом</span>
+        </Button>
 
         <DailyTasksBar
           nextBoostAvailabilityMs={nextBoostAvailabilityMs}

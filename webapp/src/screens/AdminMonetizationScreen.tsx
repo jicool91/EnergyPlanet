@@ -559,7 +559,7 @@ export const AdminMonetizationScreen: React.FC = () => {
           </Text>
         </div>
 
-        <ShopPanel activeSection={adminShopSection} />
+        <ShopPanel activeSection={adminShopSection} bare />
       </Surface>
 
       <Surface
