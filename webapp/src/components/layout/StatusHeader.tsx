@@ -125,7 +125,11 @@ export function TapStatusHeader({
               variant={action.variant}
               aria-label={action.label}
               onClick={() => onNavigate(action.target, { replace: action.replace })}
-              icon={<span className="text-xl">{action.icon}</span>}
+              icon={
+                <Text as="span" variant="title" aria-hidden="true">
+                  {action.icon}
+                </Text>
+              }
             />
           ) : (
             <Button
@@ -178,7 +182,11 @@ export function SimpleHeader({ title, actions, onNavigate }: SimpleHeaderProps) 
               variant={action.variant}
               aria-label={action.label}
               onClick={() => onNavigate(action.target, { replace: action.replace })}
-              icon={<span className="text-xl">{action.icon}</span>}
+              icon={
+                <Text as="span" variant="title" aria-hidden="true">
+                  {action.icon}
+                </Text>
+              }
             />
           ) : (
             <Button

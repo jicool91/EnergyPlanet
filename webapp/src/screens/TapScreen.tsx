@@ -612,14 +612,20 @@ export function TapScreen() {
           type="button"
           variant="secondary"
           size="lg"
-          className="flex items-center justify-between rounded-3xl px-4 py-3"
+          className="flex items-center justify-between gap-md rounded-3xl px-4 py-3"
           onClick={handleOpenBuildings}
         >
-          <span className="flex items-center gap-2 text-body">
-            <span aria-hidden="true">🏗️</span>
-            Постройки
-          </span>
-          <span className="text-sm text-text-tertiary">Управляйте пассивным доходом</span>
+          <div className="flex items-center gap-sm">
+            <Text as="span" variant="title" aria-hidden="true">
+              🏗️
+            </Text>
+            <Text as="span" variant="body" weight="semibold">
+              Постройки
+            </Text>
+          </div>
+          <Text as="span" variant="bodySm" tone="tertiary">
+            Управляйте пассивным доходом
+          </Text>
         </Button>
 
         <DailyTasksBar
@@ -641,27 +647,29 @@ export function TapScreen() {
           />
         ) : null}
 
-        <Card className="flex flex-col gap-3">
+        <Card className="flex flex-col gap-md">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-body uppercase tracking-[0.12em] text-text-secondary">
+              <Text variant="body" tone="secondary" className="uppercase tracking-[0.12em]">
                 Сообщество
-              </p>
-              <p className="text-title font-semibold text-text-primary">
+              </Text>
+              <Text variant="title" weight="semibold">
                 {leaderboardTotal.toLocaleString('ru-RU')} игроков онлайн
-              </p>
+              </Text>
             </div>
             <button
               type="button"
               onClick={handleViewLeaderboard}
               className="rounded-2xl border border-border-layer-strong px-4 py-2 text-body text-text-primary transition-colors duration-150 hover:bg-layer-overlay-ghost-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-text-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
             >
-              Смотреть рейтинг
+              <Text as="span" variant="body" weight="semibold">
+                Смотреть рейтинг
+              </Text>
             </button>
           </div>
-          <p className="text-body text-text-secondary">
+          <Text variant="body" tone="secondary">
             Тапай быстрее, чтобы обогнать друзей и открыть новые награды.
-          </p>
+          </Text>
         </Card>
       </TabPageSurface>
 

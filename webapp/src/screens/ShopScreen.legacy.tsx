@@ -192,10 +192,17 @@ export function ShopScreen() {
                       )}
                       ref={isActive ? activeChipRef : undefined}
                     >
-                      <span className="text-base" aria-hidden="true">
+                      <Text as="span" variant="body" aria-hidden="true">
                         {chip.icon}
-                      </span>
-                      <span className="text-sm font-semibold whitespace-nowrap">{chip.label}</span>
+                      </Text>
+                      <Text
+                        as="span"
+                        variant="bodySm"
+                        weight="semibold"
+                        className="whitespace-nowrap"
+                      >
+                        {chip.label}
+                      </Text>
                     </Button>
                   );
                 })}
@@ -222,7 +229,9 @@ export function ShopScreen() {
               aria-label="Все разделы"
               onClick={() => setCategoryPickerOpen(true)}
             >
-              <span aria-hidden="true">⋯</span>
+              <Text as="span" variant="title" aria-hidden="true">
+                ⋯
+              </Text>
             </Button>
           </div>
 
@@ -251,10 +260,12 @@ export function ShopScreen() {
                 onClick={() => handleCategorySelectFromModal(chip.id)}
                 className="justify-start gap-3"
               >
-                <span className="text-lg" aria-hidden="true">
+                <Text as="span" variant="title" aria-hidden="true">
                   {chip.icon}
-                </span>
-                <span>{chip.label}</span>
+                </Text>
+                <Text as="span" variant="body" weight="semibold">
+                  {chip.label}
+                </Text>
                 {isActive ? (
                   <Text as="span" variant="caption" tone="accent" className="ml-auto">
                     Активный

@@ -15,8 +15,9 @@ import { buildShopViewModel } from '@/viewModels/shopViewModel';
 import { ShopSkeleton, ErrorBoundary } from './skeletons';
 import { Button } from './Button';
 import { Card } from './Card';
+import { ModalBase } from './ModalBase';
 import { OptimizedImage } from './OptimizedImage';
-import { ProductTile, type ProductMetric } from './ProductTile';
+import { ProductTile } from './ProductTile';
 import { Text } from './ui/Text';
 import { Surface } from './ui/Surface';
 import { useHaptic } from '../hooks/useHaptic';
@@ -201,6 +202,223 @@ const BUNDLE_MARKERS = ['bundle', 'набор', 'pack', 'коллекц'];
 
 const AUTO_EQUIP_CATEGORIES = new Set(['planet_skin']);
 
+const formatPricePerStar = (pack: StarPack): string | null => {
+  const totalStars = pack.stars + (pack.bonus_stars ?? 0);
+  if (totalStars === 0) {
+    return null;
+  }
+  if (typeof pack.price_rub === 'number') {
+    return `${(pack.price_rub / totalStars).toFixed(2)} ₽ за ⭐`;
+  }
+  if (typeof pack.price_usd === 'number') {
+    return `$${(pack.price_usd / totalStars).toFixed(2)} за ⭐`;
+  }
+  return null;
+};
+
+interface StarPackCardProps {
+  title: string;
+  priceLabel: string;
+  totalStars: string;
+  bonusLabel?: string;
+  highlighted?: boolean;
+  media?: ReactNode;
+  loading?: boolean;
+  ctaLabel?: string;
+  onBuy: () => void;
+  onDetails?: () => void;
+}
+
+const StarPackCard = ({
+  title,
+  priceLabel,
+  totalStars,
+  bonusLabel,
+  highlighted = false,
+  media,
+  loading,
+  ctaLabel = 'Купить сейчас',
+  onBuy,
+  onDetails,
+}: StarPackCardProps) => (
+  <Surface
+    tone={highlighted ? 'accent' : 'overlay'}
+    border={highlighted ? 'accent' : 'subtle'}
+    elevation={highlighted ? 'medium' : 'soft'}
+    padding="lg"
+    rounded="3xl"
+    className={clsx('flex h-full flex-col gap-lg', highlighted && 'text-text-inverse')}
+  >
+    <div className="flex items-center justify-between gap-sm">
+      <div className="flex items-center gap-sm">
+        <div
+          className={clsx(
+            'flex h-12 w-12 items-center justify-center rounded-2xl border',
+            highlighted
+              ? 'border-white/40 bg-white/10 text-text-inverse'
+              : 'border-border-layer bg-layer-overlay-soft text-text-primary'
+          )}
+        >
+          {media ?? (
+            <Text variant="heading" tone={highlighted ? 'inverse' : 'accent'} aria-hidden>
+              ⭐
+            </Text>
+          )}
+        </div>
+        <div className="flex flex-col gap-xs">
+          <Text variant="body" weight="semibold" tone={highlighted ? 'inverse' : 'primary'}>
+            {title}
+          </Text>
+          {bonusLabel ? (
+            <Text variant="bodySm" tone={highlighted ? 'inverse' : 'secondary'}>
+              {bonusLabel}
+            </Text>
+          ) : null}
+        </div>
+      </div>
+      <Text
+        variant="title"
+        weight="bold"
+        tone={highlighted ? 'inverse' : 'accent'}
+        className="whitespace-nowrap"
+      >
+        {priceLabel}
+      </Text>
+    </div>
+
+    <div
+      className={clsx(
+        'rounded-2xl border px-md py-lg text-center',
+        highlighted ? 'border-white/30 bg-white/10' : 'border-border-layer bg-layer-overlay-soft'
+      )}
+    >
+      <Text variant="caption" tone={highlighted ? 'inverse' : 'secondary'}>
+        Всего Stars
+      </Text>
+      <Text variant="hero" weight="bold">
+        {totalStars}
+      </Text>
+    </div>
+
+    <Button
+      variant="primary"
+      size="lg"
+      fullWidth
+      loading={loading}
+      className={highlighted ? 'shadow-glow' : undefined}
+      onClick={onBuy}
+    >
+      <span aria-hidden="true">⚡</span>
+      <span>{ctaLabel}</span>
+    </Button>
+
+    {onDetails ? (
+      <button
+        type="button"
+        onClick={onDetails}
+        className={clsx(
+          'flex items-center justify-center gap-xs text-caption font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold',
+          highlighted
+            ? 'text-text-inverse/80 hover:text-text-inverse'
+            : 'text-text-secondary hover:text-text-primary'
+        )}
+      >
+        Подробнее
+        <span aria-hidden="true">→</span>
+      </button>
+    ) : null}
+  </Surface>
+);
+
+interface StarPackDetailsModalProps {
+  pack: StarPack;
+  isOpen: boolean;
+  priceLabel: string;
+  pricePerStarLabel?: string | null;
+  loading: boolean;
+  onClose: () => void;
+  onBuy: () => void;
+}
+
+function StarPackDetailsModal({
+  pack,
+  isOpen,
+  priceLabel,
+  pricePerStarLabel,
+  loading,
+  onClose,
+  onBuy,
+}: StarPackDetailsModalProps) {
+  const totalStars = pack.stars + (pack.bonus_stars ?? 0);
+  const bonus = pack.bonus_stars ?? 0;
+  const bonusPct = bonus > 0 ? calculateBonusPercentage(pack.stars, bonus) : 0;
+
+  return (
+    <ModalBase isOpen={isOpen} title={pack.title ?? 'Пакет Stars'} onClose={onClose} size="md">
+      <div className="flex flex-col gap-md">
+        <div className="rounded-2xl border border-border-layer bg-layer-overlay-soft px-md py-lg text-center">
+          <Text variant="caption" tone="secondary">
+            Всего Stars
+          </Text>
+          <Text variant="hero" weight="bold">
+            {totalStars.toLocaleString('ru-RU')} ⭐
+          </Text>
+          {bonus > 0 ? (
+            <Text variant="bodySm" tone="accent">
+              +{bonus.toLocaleString('ru-RU')} ⭐ · +{bonusPct}%
+            </Text>
+          ) : null}
+        </div>
+
+        <dl className="flex flex-col gap-sm">
+          <div className="flex items-center justify-between">
+            <Text variant="body" weight="semibold">
+              Базовые Stars
+            </Text>
+            <Text variant="body">{pack.stars.toLocaleString('ru-RU')} ⭐</Text>
+          </div>
+          {bonus > 0 ? (
+            <div className="flex items-center justify-between">
+              <Text variant="body" weight="semibold">
+                Бонус
+              </Text>
+              <Text variant="body" tone="accent">
+                +{bonus.toLocaleString('ru-RU')} ⭐
+              </Text>
+            </div>
+          ) : null}
+          <div className="flex items-center justify-between">
+            <Text variant="body" weight="semibold">
+              Цена
+            </Text>
+            <Text variant="body" weight="bold">
+              {priceLabel}
+            </Text>
+          </div>
+          {pricePerStarLabel ? (
+            <div className="flex items-center justify-between">
+              <Text variant="body" weight="semibold">
+                Цена за ⭐
+              </Text>
+              <Text variant="bodySm" tone="secondary">
+                {pricePerStarLabel}
+              </Text>
+            </div>
+          ) : null}
+        </dl>
+
+        <Button variant="primary" size="lg" fullWidth loading={loading} onClick={onBuy}>
+          {priceLabel === 'Через Telegram' ? 'Купить через Telegram' : `Купить за ${priceLabel}`}
+        </Button>
+
+        <Text variant="caption" tone="tertiary">
+          Оплата подтверждается биометрией Telegram. Условия акции доступны в FAQ.
+        </Text>
+      </div>
+    </ModalBase>
+  );
+}
+
 const resolveStarPackSubSection = (pack: StarPack): StarPackSubSection => {
   const haystack =
     `${pack.title ?? ''} ${pack.description ?? ''} ${pack.telegram_product_id ?? ''}`.toLowerCase();
@@ -260,6 +478,7 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
   const activeSection = activeSectionProp ?? 'star_packs';
   const [activeStarPackSection] = useState<StarPackSubSection>('one_time');
   const [purchaseSuccess, setPurchaseSuccess] = useState<PurchaseSuccessState | null>(null);
+  const [detailsPackId, setDetailsPackId] = useState<string | null>(null);
   const sectionSourceRef = useRef<'initial' | 'user' | 'programmatic'>('initial');
   const lastActiveSectionRef = useRef<ShopSection | null>(null);
   const starPackSectionSourceRef = useRef<'user' | 'programmatic'>('programmatic');
@@ -300,36 +519,25 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
     () => visibleStarPacks.find(pack => pack.featured) ?? null,
     [visibleStarPacks]
   );
-  const featuredPackMetrics = useMemo<ProductMetric[]>(() => {
-    if (!featuredVisiblePack) {
-      return [];
-    }
-    const totalStars = featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0);
-    const bonus = featuredVisiblePack.bonus_stars ?? 0;
-    const primaryMetric: ProductMetric = {
-      label: 'Всего Stars',
-      value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
-      icon: '🌌',
-      tone: 'primary',
-      primary: true,
-    };
-    if (bonus > 0) {
-      return [
-        primaryMetric,
-        {
-          label: `Бонус +${calculateBonusPercentage(featuredVisiblePack.stars, bonus)}%`,
-          value: `+${bonus.toLocaleString('ru-RU')} ⭐`,
-          icon: '✨',
-          tone: 'accent',
-        },
-      ];
-    }
-    return [primaryMetric];
-  }, [featuredVisiblePack]);
   const regularVisiblePacks = useMemo(
     () => visibleStarPacks.filter(pack => !pack.featured),
     [visibleStarPacks]
   );
+
+  const detailPack = useMemo(() => {
+    if (activeSection !== 'star_packs' || !detailsPackId) {
+      return null;
+    }
+    return starPacks.find(pack => pack.id === detailsPackId) ?? null;
+  }, [activeSection, detailsPackId, starPacks]);
+
+  const handleOpenPackDetails = useCallback((packId: string) => {
+    setDetailsPackId(packId);
+  }, []);
+
+  const handleClosePackDetails = useCallback(() => {
+    setDetailsPackId(null);
+  }, []);
 
   useEffect(() => {
     if (activeSection !== 'star_packs') {
@@ -632,6 +840,15 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
     ]
   );
 
+  const handleConfirmDetailsPurchase = useCallback(() => {
+    if (!detailPack) {
+      return;
+    }
+    const packId = detailPack.id;
+    setDetailsPackId(null);
+    void handlePurchaseStarPack(packId);
+  }, [detailPack, handlePurchaseStarPack]);
+
   const lastStarPackErrorRef = useRef<string | null>(null);
 
   useEffect(() => {
@@ -666,63 +883,57 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
       )}
 
       {activeSection === 'star_packs' && (
-        <ShopSectionLayout as="section" aria-label="Паки Stars">
-          {featuredVisiblePack && !isStarPacksLoading && (
-            <ProductTile
+        <ShopSectionLayout as="section" aria-label="Паки Stars" spacing="lg">
+          {featuredVisiblePack && !isStarPacksLoading ? (
+            <StarPackCard
               highlighted
-              highlightLabel="Лучший выбор"
               title={featuredVisiblePack.title ?? 'Премиум пакет'}
-              description={
-                featuredVisiblePack.description ?? 'Получите максимум Stars и премиальные бонусы'
-              }
               priceLabel={formatPriceLabel(
                 featuredVisiblePack.price_rub,
                 featuredVisiblePack.price_usd
               )}
+              totalStars={`${(
+                featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0)
+              ).toLocaleString('ru-RU')} ⭐`}
+              bonusLabel={
+                (featuredVisiblePack.bonus_stars ?? 0) > 0
+                  ? `+${(featuredVisiblePack.bonus_stars ?? 0).toLocaleString('ru-RU')} ⭐ · +${calculateBonusPercentage(
+                      featuredVisiblePack.stars,
+                      featuredVisiblePack.bonus_stars ?? 0
+                    )}%`
+                  : 'Лучшее предложение дня'
+              }
               media={
                 featuredVisiblePack.icon_url ? (
                   <OptimizedImage
                     src={featuredVisiblePack.icon_url}
-                    alt={featuredVisiblePack.title ?? 'Star Pack'}
-                    width={88}
-                    height={88}
-                    className="h-full w-full rounded-2xl object-cover"
+                    alt={featuredVisiblePack.title ?? 'Star pack'}
+                    width={72}
+                    height={72}
+                    className="h-10 w-10 rounded-2xl object-cover"
                   />
-                ) : (
-                  <Text variant="hero" tone="inverse" aria-hidden="true">
-                    ⭐
-                  </Text>
-                )
+                ) : undefined
               }
-              badge={{
-                label: `${(
-                  featuredVisiblePack.stars + (featuredVisiblePack.bonus_stars ?? 0)
-                ).toLocaleString('ru-RU')} ⭐`,
-                variant: 'legendary',
-              }}
-              metrics={featuredPackMetrics}
-              actions={
-                <Button
-                  variant="primary"
-                  size="lg"
-                  fullWidth
-                  className="shadow-glow"
-                  loading={isProcessingStarPackId === featuredVisiblePack.id}
-                  onClick={() => handlePurchaseStarPack(featuredVisiblePack.id)}
-                >
-                  <span aria-hidden="true">⚡</span>
-                  <span>Купить пакет</span>
-                </Button>
-              }
+              loading={isProcessingStarPackId === featuredVisiblePack.id}
+              ctaLabel="Купить пакет"
+              onBuy={() => handlePurchaseStarPack(featuredVisiblePack.id)}
+              onDetails={() => handleOpenPackDetails(featuredVisiblePack.id)}
             />
-          )}
+          ) : null}
 
           {isStarPacksLoading && starPacks.length === 0 ? (
             <ErrorBoundary>
               <ShopSkeleton count={3} />
             </ErrorBoundary>
           ) : (
-            <ShopSectionLayout as="div" variant="grid" role="list" aria-label="Каталог паков Stars">
+            <ShopSectionLayout
+              as="div"
+              variant="grid"
+              spacing="lg"
+              className="sm:grid-cols-2"
+              role="list"
+              aria-label="Каталог паков Stars"
+            >
               {starPacks
                 .filter(pack => !pack.featured)
                 .map(pack => {
@@ -732,74 +943,33 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
                   const priceLabel = formatPriceLabel(pack.price_rub, pack.price_usd);
                   const isBestValue = bestValuePackId === pack.id;
 
-                  const primaryMetric: ProductMetric = {
-                    label: 'Всего Stars',
-                    value: `${totalStars.toLocaleString('ru-RU')} ⭐`,
-                    icon: '🌌',
-                    tone: isBestValue ? 'accent' : 'primary',
-                    primary: true,
-                  };
-                  const metrics: ProductMetric[] =
-                    bonus > 0
-                      ? [
-                          primaryMetric,
-                          {
-                            label: `Бонус +${calculateBonusPercentage(pack.stars, bonus)}%`,
-                            value: `+${bonus.toLocaleString('ru-RU')} ⭐`,
-                            icon: '✨',
-                            tone: 'accent',
-                          },
-                        ]
-                      : [primaryMetric];
-
                   return (
-                    <ProductTile
+                    <StarPackCard
                       key={pack.id}
                       title={pack.title}
-                      description={
-                        pack.description ?? `Получите ${totalStars.toLocaleString('ru-RU')} Stars`
-                      }
                       priceLabel={priceLabel}
+                      totalStars={`${totalStars.toLocaleString('ru-RU')} ⭐`}
+                      bonusLabel={
+                        bonus > 0
+                          ? `+${bonus.toLocaleString('ru-RU')} ⭐ · +${calculateBonusPercentage(pack.stars, bonus)}%`
+                          : undefined
+                      }
                       highlighted={isBestValue}
-                      highlightLabel={isBestValue ? 'Лучшее соотношение' : undefined}
-                      badge={{
-                        label: `${totalStars.toLocaleString('ru-RU')} ⭐`,
-                        variant: isBestValue ? 'success' : 'primary',
-                      }}
                       media={
                         pack.icon_url ? (
                           <OptimizedImage
                             src={pack.icon_url}
                             alt={pack.title ?? 'Star pack'}
-                            width={72}
-                            height={72}
-                            className="h-full w-full rounded-2xl object-cover"
+                            width={64}
+                            height={64}
+                            className="h-10 w-10 rounded-2xl object-cover"
                           />
-                        ) : (
-                          <Text
-                            variant="heading"
-                            tone={isBestValue ? 'inverse' : 'accent'}
-                            aria-hidden
-                          >
-                            ⭐
-                          </Text>
-                        )
+                        ) : undefined
                       }
-                      metrics={metrics}
-                      helper={`Базовых Stars: ${pack.stars.toLocaleString('ru-RU')}`}
-                      actions={
-                        <Button
-                          variant="primary"
-                          size="md"
-                          fullWidth
-                          className={isBestValue ? 'shadow-glow' : undefined}
-                          loading={processing}
-                          onClick={() => handlePurchaseStarPack(pack.id)}
-                        >
-                          <span aria-hidden="true">⚡</span>
-                          <span>Купить Stars</span>
-                        </Button>
-                      }
+                      loading={processing}
+                      ctaLabel="Купить Stars"
+                      onBuy={() => handlePurchaseStarPack(pack.id)}
+                      onDetails={() => handleOpenPackDetails(pack.id)}
                     />
                   );
                 })}
@@ -1041,6 +1211,17 @@ export function ShopPanel({ activeSection: activeSectionProp, bare = false }: Sh
   return (
     <>
       {renderedPanel}
+      {detailPack ? (
+        <StarPackDetailsModal
+          pack={detailPack}
+          isOpen
+          priceLabel={formatPriceLabel(detailPack.price_rub, detailPack.price_usd)}
+          pricePerStarLabel={formatPricePerStar(detailPack)}
+          loading={isProcessingStarPackId === detailPack.id}
+          onClose={handleClosePackDetails}
+          onBuy={handleConfirmDetailsPurchase}
+        />
+      ) : null}
       {purchaseSuccess ? (
         <PurchaseSuccessModal
           isOpen

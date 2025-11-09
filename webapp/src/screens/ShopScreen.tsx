@@ -6,7 +6,7 @@ import { useRenderLatencyMetric } from '@/hooks/useRenderLatencyMetric';
 import { ScrollContainerContext } from '@/contexts/ScrollContainerContext';
 import { useGameStore } from '@/store/gameStore';
 
-interface CategoryCard {
+interface CategoryTab {
   id: ShopCategory;
   title: string;
   description: string;
@@ -18,7 +18,7 @@ type ShopCategory = ShopSection | 'buildings';
 const SECTION_PARAM = 'section';
 const LEGACY_CATEGORY_PARAM = 'category';
 
-const CATEGORY_CARDS: CategoryCard[] = [
+const CATEGORY_TABS: CategoryTab[] = [
   { id: 'star_packs', title: 'Stars', description: 'Выгодные пакеты и бонусы', icon: '⭐' },
   { id: 'boosts', title: 'Бусты', description: 'Умножайте прибыль и прогресс', icon: '🚀' },
   {
@@ -35,7 +35,9 @@ const CATEGORY_CARDS: CategoryCard[] = [
   },
 ];
 
-const VALID_CATEGORY_IDS = new Set<ShopCategory>(CATEGORY_CARDS.map(card => card.id));
+const VALID_CATEGORY_IDS = new Set<ShopCategory>(CATEGORY_TABS.map(card => card.id));
+const getTabId = (category: ShopCategory) => `shop-tab-${category}`;
+const getPanelId = (category: ShopCategory) => `shop-panel-${category}`;
 
 function resolveCategory(value: string | null): ShopCategory | null {
   if (!value) {
@@ -95,8 +97,8 @@ export function ShopScreen() {
     navigate({ pathname: '/shop', search: params.toString() }, { replace: true });
   }, [activeCategory, location.search, navigate]);
 
-  const handleCategoryToggle = useCallback((categoryId: ShopCategory) => {
-    setActiveCategory(prev => (prev === categoryId ? categoryId : categoryId));
+  const handleTabSelect = useCallback((categoryId: ShopCategory) => {
+    setActiveCategory(categoryId);
   }, []);
 
   const heroCta = useCallback(() => {
@@ -107,31 +109,50 @@ export function ShopScreen() {
 
   return (
     <ScrollContainerContext.Provider value={scrollContainer}>
-      <TabPageSurface ref={handlePageRef} className="gap-4">
+      <TabPageSurface ref={handlePageRef} className="gap-xl">
         <Surface
           tone="accent"
           border="none"
           elevation="medium"
           padding="lg"
           rounded="3xl"
-          className="flex flex-col gap-3 text-text-inverse"
+          className="flex flex-col gap-lg text-text-inverse"
         >
-          <Text variant="title" weight="bold">
-            +25% Stars сегодня
-          </Text>
-          <Text variant="body">
-            Акция действует до полуночи. Купите любой пакет и получите дополнительный бонус.
-          </Text>
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex flex-col">
-              <Text variant="caption" tone="inverse">
-                Баланс Stars
-              </Text>
-              <Text variant="hero" weight="bold">
-                {formatNumber.format(stars)} ⭐
-              </Text>
+          <div className="flex flex-col gap-xs">
+            <Text variant="caption" tone="inverse">
+              Акция дня
+            </Text>
+            <Text variant="title" weight="bold">
+              +25% Stars сегодня
+            </Text>
+            <Text variant="body">Купите любой пакет и получите бонус до полуночи.</Text>
+          </div>
+          <div className="flex flex-col gap-sm">
+            <Text variant="caption" tone="inverse">
+              Ваш баланс
+            </Text>
+            <div className="flex items-center justify-between gap-md">
+              <div className="flex items-baseline gap-xs">
+                <Text variant="hero" weight="bold">
+                  {formatNumber.format(stars)}
+                </Text>
+                <Text variant="bodySm" tone="inverse">
+                  ⭐
+                </Text>
+              </div>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={heroCta}
+                className="border border-white/30 bg-white/10 text-text-inverse hover:bg-white/20"
+              >
+                Пополнить
+              </Button>
             </div>
-            <div className="flex flex-col">
+          </div>
+          <div className="grid grid-cols-2 gap-md">
+            <div className="rounded-2xl border border-white/30 px-md py-sm">
               <Text variant="caption" tone="inverse">
                 Активные бусты
               </Text>
@@ -139,83 +160,90 @@ export function ShopScreen() {
                 x{boostMultiplier.toFixed(1)}
               </Text>
             </div>
-            <Button type="button" variant="primary" onClick={heroCta}>
-              Купить Stars
-            </Button>
+            <div className="rounded-2xl border border-white/30 px-md py-sm">
+              <Text variant="caption" tone="inverse">
+                Checkout
+              </Text>
+              <Text variant="bodySm">Telegram Pay · Face ID</Text>
+            </div>
           </div>
         </Surface>
+
+        <section className="flex flex-col gap-lg" aria-label="Навигация магазина">
+          <div className="flex flex-col gap-xs">
+            <Text variant="label" tone="secondary">
+              Разделы магазина
+            </Text>
+            <Text variant="bodySm" tone="tertiary">
+              Минимум касаний до покупки
+            </Text>
+          </div>
+          <nav role="tablist" aria-label="Категории магазина" className="grid grid-cols-2 gap-lg">
+            {CATEGORY_TABS.map(tab => {
+              const isActive = activeCategory === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  id={getTabId(tab.id)}
+                  aria-selected={isActive}
+                  aria-controls={getPanelId(tab.id)}
+                  onClick={() => handleTabSelect(tab.id)}
+                  className={`flex flex-col items-start gap-sm rounded-3xl border px-lg py-md text-left transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold ${
+                    isActive
+                      ? 'border-featured bg-surface-accent text-text-inverse shadow-glow'
+                      : 'border-border-layer bg-layer-overlay-soft text-text-primary hover:border-featured'
+                  }`}
+                >
+                  <div className="flex items-center gap-sm">
+                    <span className="text-heading" aria-hidden="true">
+                      {tab.icon}
+                    </span>
+                    <Text variant="body" weight="semibold">
+                      {tab.title}
+                    </Text>
+                  </div>
+                  <Text variant="bodySm" tone={isActive ? 'inverse' : 'secondary'}>
+                    {tab.description}
+                  </Text>
+                  <Text variant="caption" tone={isActive ? 'inverse' : 'tertiary'}>
+                    Tap to open
+                  </Text>
+                </button>
+              );
+            })}
+          </nav>
+          <div
+            id={getPanelId(activeCategory)}
+            role="tabpanel"
+            aria-labelledby={getTabId(activeCategory)}
+            className="flex flex-col gap-lg"
+          >
+            {activeCategory === 'buildings' ? (
+              <BuildingsPanel showHeader={false} />
+            ) : (
+              <ShopPanel activeSection={activeCategory as ShopSection} />
+            )}
+          </div>
+        </section>
 
         <Surface
           tone="secondary"
           border="subtle"
           elevation="soft"
-          padding="md"
+          padding="lg"
           rounded="3xl"
           className="flex flex-col gap-md"
         >
-          <Text variant="label" tone="secondary">
-            Разделы магазина
-          </Text>
-          <div className="flex flex-col gap-sm">
-            {CATEGORY_CARDS.map(card => {
-              const expanded = activeCategory === card.id;
-              return (
-                <Surface
-                  key={card.id}
-                  tone={expanded ? 'dual' : 'secondary'}
-                  border={expanded ? 'accent' : 'subtle'}
-                  elevation={expanded ? 'medium' : 'soft'}
-                  padding="md"
-                  rounded="2xl"
-                  className="flex flex-col gap-sm"
-                >
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <span className="text-heading" aria-hidden="true">
-                        {card.icon}
-                      </span>
-                      <div className="flex flex-col">
-                        <Text variant="body" weight="semibold">
-                          {card.title}
-                        </Text>
-                        <Text variant="bodySm" tone="secondary">
-                          {card.description}
-                        </Text>
-                      </div>
-                    </div>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant={expanded ? 'primary' : 'ghost'}
-                      onClick={() => handleCategoryToggle(card.id)}
-                    >
-                      {expanded ? 'Свернуть' : 'Открыть'}
-                    </Button>
-                  </div>
-                  {expanded ? (
-                    card.id === 'buildings' ? (
-                      <BuildingsPanel showHeader={false} bare />
-                    ) : (
-                      <ShopPanel activeSection={card.id as ShopSection} bare />
-                    )
-                  ) : null}
-                </Surface>
-              );
-            })}
+          <div className="flex flex-col gap-xs">
+            <Text variant="label" tone="secondary">
+              Бесплатно сегодня
+            </Text>
+            <Text variant="bodySm" tone="tertiary">
+              Держим freebies рядом с платными предложениями
+            </Text>
           </div>
-        </Surface>
-
-        <Surface
-          tone="secondary"
-          border="subtle"
-          elevation="soft"
-          padding="md"
-          rounded="3xl"
-          className="flex flex-col gap-sm"
-        >
-          <Text variant="label" tone="secondary">
-            Бесплатно сегодня
-          </Text>
           <Surface tone="overlay" border="subtle" elevation="soft" padding="md" rounded="2xl">
             <div className="flex flex-col gap-sm">
               <Text variant="body" weight="semibold">
@@ -224,7 +252,7 @@ export function ShopScreen() {
               <Text variant="bodySm" tone="secondary">
                 Заберите сундук и получите Stars или буст.
               </Text>
-              <Button type="button" size="sm" variant="primary">
+              <Button type="button" size="md" variant="primary">
                 Забрать
               </Button>
             </div>
@@ -235,9 +263,9 @@ export function ShopScreen() {
           tone="secondary"
           border="subtle"
           elevation="soft"
-          padding="md"
+          padding="lg"
           rounded="3xl"
-          className="flex flex-col gap-sm"
+          className="flex flex-col gap-md"
         >
           <Text variant="label" tone="secondary">
             Скоро появится
@@ -253,7 +281,7 @@ export function ShopScreen() {
                 rounded="2xl"
                 className="flex items-center justify-between border-dashed"
               >
-                <div className="flex flex-col">
+                <div className="flex flex-col gap-xs">
                   <Text variant="body" weight="semibold">
                     Новинка #{item}
                   </Text>
