@@ -1,125 +1,99 @@
-import { startTransition, useCallback, useEffect, useMemo, useState } from 'react';
+import { startTransition, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { TabPageSurface, ShopPanel, BuildingsPanel, Surface, Button, Text } from '@/components';
+import { TabPageSurface, ShopPanel, BuildingsPanel, Button } from '@/components';
 import type { ShopSection } from '@/components/ShopPanel';
 import { useRenderLatencyMetric } from '@/hooks/useRenderLatencyMetric';
 
-type ExchangeTab = 'shop' | 'builds';
+type ExchangeCategory = ShopSection | 'buildings';
 
-const EXCHANGE_TABS: Array<{ id: ExchangeTab; label: string; icon: string }> = [
-  { id: 'shop', label: 'Магазин Stars', icon: '🛒' },
-  { id: 'builds', label: 'Постройки', icon: '🏗️' },
+interface CategoryChip {
+  id: ExchangeCategory;
+  label: string;
+  icon: string;
+}
+
+const CATEGORY_CHIPS: CategoryChip[] = [
+  { id: 'star_packs', label: 'Stars', icon: '⭐' },
+  { id: 'boosts', label: 'Бусты', icon: '🚀' },
+  { id: 'cosmetics', label: 'Косметика', icon: '✨' },
+  { id: 'buildings', label: 'Постройки', icon: '🏗️' },
 ];
 
 export function ExchangeScreen() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [shopSection, setShopSection] = useState<ShopSection>('star_packs');
-  const [exchangeTab, setExchangeTab] = useState<ExchangeTab>('shop');
-  const validSections = useMemo<ShopSection[]>(() => ['star_packs', 'boosts'], []);
+  const [activeCategory, setActiveCategory] = useState<ExchangeCategory>('star_packs');
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
   const renderContext = useMemo(
     () => ({
-      tab: exchangeTab,
-      section: shopSection,
+      category: activeCategory,
     }),
-    [exchangeTab, shopSection]
+    [activeCategory]
   );
 
   useRenderLatencyMetric({ screen: 'exchange_screen', context: renderContext });
 
+  // Sync with URL params
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const section = params.get('section');
-    if (section && validSections.includes(section as ShopSection)) {
+    const category = params.get('category') as ExchangeCategory | null;
+    if (category && CATEGORY_CHIPS.some(chip => chip.id === category)) {
       startTransition(() => {
-        setShopSection(section as ShopSection);
-        setExchangeTab('shop');
+        setActiveCategory(category);
       });
     }
-  }, [location.search, validSections]);
+  }, [location.search]);
 
+  // Update URL when category changes
   useEffect(() => {
-    if (exchangeTab !== 'shop') {
-      return;
-    }
     const params = new URLSearchParams(location.search);
-    if (params.get('section') === shopSection) {
+    if (params.get('category') === activeCategory) {
       return;
     }
-    params.set('section', shopSection);
+    params.set('category', activeCategory);
     navigate({ pathname: '/exchange', search: params.toString() }, { replace: true });
-  }, [shopSection, exchangeTab, location.search, navigate]);
+  }, [activeCategory, location.search, navigate]);
 
-  const handleTabChange = useCallback((target: ExchangeTab) => {
-    setExchangeTab(target);
+  const handleCategoryChange = useCallback((categoryId: ExchangeCategory) => {
+    setActiveCategory(categoryId);
   }, []);
 
-  const handleSectionChange = useCallback(
-    (section: ShopSection) => {
-      setShopSection(section);
-      const params = new URLSearchParams(location.search);
-      params.set('section', section);
-      navigate({ pathname: '/exchange', search: params.toString() }, { replace: true });
-    },
-    [location.search, navigate]
-  );
-
   return (
-    <TabPageSurface className="gap-6">
-      <nav aria-label="Навигация магазина">
-        <Surface
-          tone="secondary"
-          border="subtle"
-          elevation="soft"
-          padding="sm"
-          rounded="3xl"
-          className="grid w-full grid-cols-1 gap-sm sm:grid-cols-2"
-        >
-          {EXCHANGE_TABS.map(tab => {
-            const isActive = exchangeTab === tab.id;
+    <TabPageSurface className="gap-4">
+      {/* Horizontal scrolling category chips */}
+      <div className="relative -mx-4 px-4" ref={scrollContainerRef}>
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+          {CATEGORY_CHIPS.map(chip => {
+            const isActive = activeCategory === chip.id;
             return (
               <Button
-                key={tab.id}
+                key={chip.id}
                 type="button"
                 size="sm"
                 variant={isActive ? 'primary' : 'ghost'}
-                onClick={() => handleTabChange(tab.id)}
-                aria-pressed={isActive}
+                onClick={() => handleCategoryChange(chip.id)}
                 className={clsx(
-                  'group flex-1 min-w-0 justify-center rounded-2xl px-4 py-3',
+                  'flex-shrink-0 gap-2 rounded-full px-4 py-2',
                   !isActive && 'hover:bg-layer-overlay-ghost-soft'
                 )}
               >
-                <Text as="span" variant="title" aria-hidden="true">
-                  {tab.icon}
-                </Text>
-                <Text
-                  as="span"
-                  variant="body"
-                  weight="semibold"
-                  tone={isActive ? 'inverse' : 'accent'}
-                  className={clsx(
-                    'transition-colors duration-150',
-                    !isActive && 'group-hover:text-text-primary'
-                  )}
-                >
-                  {tab.label}
-                </Text>
+                <span className="text-base" aria-hidden="true">
+                  {chip.icon}
+                </span>
+                <span className="text-sm font-semibold whitespace-nowrap">{chip.label}</span>
               </Button>
             );
           })}
-        </Surface>
-      </nav>
+        </div>
+      </div>
 
-      {exchangeTab === 'shop' ? (
-        <ShopPanel
-          showHeader={true}
-          activeSection={shopSection}
-          onSectionChange={handleSectionChange}
-        />
+      {/* Content based on active category */}
+      {activeCategory === 'buildings' ? (
+        <BuildingsPanel showHeader={false} />
       ) : (
-        <BuildingsPanel showHeader={true} />
+        <ShopPanel activeSection={activeCategory} />
       )}
     </TabPageSurface>
   );

@@ -50,7 +50,7 @@ export const AdminMonetizationScreen: React.FC = () => {
   const [seasonError, setSeasonError] = useState<string | null>(null);
   const [seasonRefreshNonce, setSeasonRefreshNonce] = useState(0);
   const [rewardingSeasonUserId, setRewardingSeasonUserId] = useState<string | null>(null);
-  const [adminShopSection, setAdminShopSection] = useState<ShopSection>('star_packs');
+  const [adminShopSection] = useState<ShopSection>('star_packs');
 
   useEffect(() => {
     void logClientEvent('admin_monetization_window_select', { days: selectedWindow });
@@ -260,11 +260,6 @@ export const AdminMonetizationScreen: React.FC = () => {
   }, []);
 
   const isProcessingSeasonReward = rewardingSeasonUserId !== null;
-
-  const handleAdminShopSectionChange = useCallback((section: ShopSection) => {
-    setAdminShopSection(section);
-    void logClientEvent('admin_shop_preview_section', { section });
-  }, []);
 
   const handleRewardSeasonPlayer = useCallback(
     async (entry: SeasonRewardEntry) => {
@@ -564,11 +559,7 @@ export const AdminMonetizationScreen: React.FC = () => {
           </Text>
         </div>
 
-        <ShopPanel
-          showHeader
-          activeSection={adminShopSection}
-          onSectionChange={handleAdminShopSectionChange}
-        />
+        <ShopPanel activeSection={adminShopSection} />
       </Surface>
 
       <Surface

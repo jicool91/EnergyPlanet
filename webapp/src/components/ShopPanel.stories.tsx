@@ -162,7 +162,6 @@ const StoryViewport = ({ children }: { children: ReactNode }) => {
 
 export const StarPacksShowcase: Story = {
   args: {
-    showHeader: true,
     activeSection: 'star_packs',
   },
   render: args => (
@@ -174,7 +173,6 @@ export const StarPacksShowcase: Story = {
 
 export const CosmeticsShowcase: Story = {
   args: {
-    showHeader: true,
     activeSection: 'cosmetics',
   },
   render: args => (
@@ -186,7 +184,6 @@ export const CosmeticsShowcase: Story = {
 
 export const BoostsShowcase: Story = {
   args: {
-    showHeader: true,
     activeSection: 'boosts',
   },
   render: args => (

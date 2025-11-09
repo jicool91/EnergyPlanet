@@ -215,7 +215,7 @@ export function BuildingsPanel({ showHeader = true }: BuildingsPanelProps) {
       tone="secondary"
       border="subtle"
       elevation="soft"
-      padding="lg"
+      padding="md"
       rounded="3xl"
       className="flex w-full flex-col gap-md"
     >
