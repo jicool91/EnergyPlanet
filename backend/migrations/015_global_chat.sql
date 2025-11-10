@@ -15,8 +15,7 @@ CREATE TABLE IF NOT EXISTS global_chat_messages (
 CREATE INDEX IF NOT EXISTS idx_global_chat_created_at ON global_chat_messages(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_global_chat_user_id ON global_chat_messages(user_id);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_global_chat_client_message_id
-  ON global_chat_messages(client_message_id)
-  WHERE client_message_id IS NOT NULL;
+  ON global_chat_messages(client_message_id);
 
 COMMENT ON TABLE global_chat_messages IS 'Global lounge chat history (REST-based)';
 COMMENT ON COLUMN global_chat_messages.client_message_id IS 'Client-supplied idempotency token (UUID)';
