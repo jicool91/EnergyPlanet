@@ -10,7 +10,8 @@ export class AppError extends Error {
   constructor(
     public statusCode: number,
     public message: string,
-    public isOperational = true
+    public isOperational = true,
+    public details?: Record<string, unknown>
   ) {
     super(message);
     Object.setPrototypeOf(this, AppError.prototype);
@@ -50,14 +51,24 @@ export const errorHandler = (
         method: req.method,
         userId: req.user?.id,
         message: err.message,
+        details: err.details,
       },
       'app_error'
     );
 
-    return res.status(err.statusCode).json({
+    const payload: Record<string, unknown> = {
       error: err.message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack }),
-    });
+    };
+
+    if (err.details && Object.keys(err.details).length > 0) {
+      payload.details = err.details;
+    }
+
+    if (process.env.NODE_ENV === 'development' && err.stack) {
+      payload.stack = err.stack;
+    }
+
+    return res.status(err.statusCode).json(payload);
   }
 
   // Unknown error

@@ -295,6 +295,16 @@ export const config = {
     url: process.env.CDN_URL || 'https://cdn.energyplanet.game',
   },
 
+  chat: {
+    global: {
+      pageSize: parseInt(process.env.GLOBAL_CHAT_PAGE_SIZE || '50', 10),
+      maxMessageLength: parseInt(process.env.GLOBAL_CHAT_MAX_LENGTH || '500', 10),
+      rateLimitWindowSec: parseInt(process.env.GLOBAL_CHAT_RATE_WINDOW_SEC || '6', 10),
+      rateLimitMaxMessages: parseInt(process.env.GLOBAL_CHAT_RATE_MAX || '4', 10),
+      pollIntervalSeconds: parseInt(process.env.GLOBAL_CHAT_POLL_SEC || '5', 10),
+    },
+  },
+
   testing: {
     testMode: process.env.TEST_MODE === 'true',
     bypassAuth: process.env.BYPASS_TELEGRAM_AUTH === 'true',

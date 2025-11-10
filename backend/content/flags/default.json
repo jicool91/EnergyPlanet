@@ -19,7 +19,7 @@
     "achievements_enabled": true,
     "daily_quests_enabled": false,
     "friends_system_enabled": false,
-    "chat_enabled": false,
+    "chat_enabled": true,
     "notifications_enabled": false,
     "seasonal_content_enabled": true,
     "battle_pass_enabled": false

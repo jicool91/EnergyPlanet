@@ -15,6 +15,7 @@ import prestigeRoutes from './prestige';
 import achievementsRoutes from './achievements';
 import questsRoutes from './quests';
 import referralRoutes from './referrals';
+import chatRoutes from './chat';
 
 const router = Router();
 
@@ -30,5 +31,6 @@ router.use('/achievements', achievementsRoutes);
 router.use('/telemetry', telemetryRoutes);
 router.use('/', contentRoutes); // /buildings
 router.use('/admin', adminRoutes);
+router.use('/chat', chatRoutes);
 
 export default router;
