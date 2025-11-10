@@ -26,7 +26,7 @@ export function ChatScreen() {
   const [scope, setScope] = useState<ChatScope>('global');
 
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-3">
+    <div className="flex h-full min-h-0 w-full flex-col gap-3 px-4 pb-2">
       <Panel
         tone="overlay"
         border="subtle"
@@ -496,8 +496,8 @@ function MessageBubble({ message, isOwn }: { message: ChatMessageState; isOwn: b
         className={clsx(
           'max-w-[90%] rounded-2xl px-4 py-3 text-body shadow-elevation-1 transition-colors',
           isOwn
-            ? 'bg-accent-gold/90 text-black'
-            : 'border border-white/10 bg-white/10 text-white/80 backdrop-blur-md'
+            ? 'bg-[#f7c65c] text-[#2f210a]'
+            : 'border border-white/10 bg-white/8 text-[#d7d7d7] backdrop-blur-md'
         )}
       >
         <p className="whitespace-pre-wrap break-words text-current">{message.message}</p>
