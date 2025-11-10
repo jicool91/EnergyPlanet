@@ -32,6 +32,7 @@ interface UIState {
   theme: ThemeSnapshot;
   notifications: Notification[];
   lastFullscreenState: boolean | null;
+  bottomNavHidden: boolean;
   openAuthError: (message: string) => void;
   dismissAuthError: () => void;
   setOfflineSummary: (summary: OfflineSummarySnapshot | null) => void;
@@ -40,6 +41,7 @@ interface UIState {
   addNotification: (notification: Omit<Notification, 'id'>) => string;
   removeNotification: (id: string) => void;
   setFullscreenState: (isFullscreen: boolean) => void;
+  setBottomNavHidden: (hidden: boolean) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -51,6 +53,7 @@ export const useUIStore = create<UIState>()(
       theme: DEFAULT_THEME,
       notifications: [],
       lastFullscreenState: null,
+      bottomNavHidden: false,
       openAuthError: (message: string) => set({ authErrorMessage: message, isAuthModalOpen: true }),
       dismissAuthError: () => set({ authErrorMessage: null, isAuthModalOpen: false }),
       setOfflineSummary: summary => set({ offlineSummary: summary }),
@@ -89,6 +92,7 @@ export const useUIStore = create<UIState>()(
           };
         }),
       setFullscreenState: isFullscreen => set({ lastFullscreenState: isFullscreen }),
+      setBottomNavHidden: hidden => set({ bottomNavHidden: hidden }),
     }),
     {
       name: 'energy-ui',
@@ -128,10 +132,16 @@ export const uiStore = {
   debugSetFullscreenState(isFullscreen: boolean) {
     useUIStore.getState().setFullscreenState(isFullscreen);
   },
+  setBottomNavHidden(hidden: boolean) {
+    useUIStore.getState().setBottomNavHidden(hidden);
+  },
   get theme() {
     return useUIStore.getState().theme;
   },
   get lastFullscreenState() {
     return useUIStore.getState().lastFullscreenState;
+  },
+  get bottomNavHidden() {
+    return useUIStore.getState().bottomNavHidden;
   },
 };

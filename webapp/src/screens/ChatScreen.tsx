@@ -2,10 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
 import { useShallow } from 'zustand/react/shallow';
 import { isAxiosError } from 'axios';
-import { TabPageSurface, Panel, Text, Surface, Button, Loader, ClanComingSoon } from '@/components';
+import { Panel, Surface, Button, Loader, ClanComingSoon } from '@/components';
 import { useAuthStore } from '@/store/authStore';
 import { useGameStore } from '@/store/gameStore';
 import { useChatStore, type ChatMessageState } from '@/store/chatStore';
+import { useUIStore } from '@/store/uiStore';
 import type { GlobalChatAuthor } from '@/services/chat';
 import { useNotification } from '@/hooks/useNotification';
 import { logClientEvent } from '@/services/telemetry';
@@ -25,18 +26,8 @@ export function ChatScreen() {
   const [scope, setScope] = useState<ChatScope>('global');
 
   return (
-    <div className="flex flex-col gap-4">
-      <header className="flex flex-col gap-1 px-4">
-        <Text variant="title" weight="semibold">
-          Чаты Energy Planet
-        </Text>
-        <Text variant="body" tone="secondary">
-          Общайтесь с игроками из всего мира в глобальном канале. Клановый чат появится после
-          запуска гильдий — вкладка уже готова.
-        </Text>
-      </header>
-
-      <TabPageSurface>
+    <div className="flex h-full min-h-0 flex-col gap-3">
+      <div className="px-4">
         <Panel
           tone="overlay"
           border="subtle"
@@ -68,9 +59,24 @@ export function ChatScreen() {
             );
           })}
         </Panel>
+      </div>
 
-        {scope === 'global' ? <GlobalChatSection /> : <ClanComingSoon />}
-      </TabPageSurface>
+      <div className="flex flex-1 min-h-0 px-4 pb-4">
+        {scope === 'global' ? (
+          <GlobalChatSection />
+        ) : (
+          <Surface
+            tone="overlayStrong"
+            border="subtle"
+            elevation="soft"
+            padding="lg"
+            rounded="3xl"
+            className="flex flex-1 items-center justify-center"
+          >
+            <ClanComingSoon />
+          </Surface>
+        )}
+      </div>
     </div>
   );
 }
@@ -78,6 +84,7 @@ export function ChatScreen() {
 function GlobalChatSection() {
   const authReady = useAuthStore(state => state.authReady);
   const { error: notifyError } = useNotification();
+  const setBottomNavHidden = useUIStore(state => state.setBottomNavHidden);
 
   const { userId, username, level, profile, loadProfile } = useGameStore(
     useShallow(state => ({
@@ -124,6 +131,7 @@ function GlobalChatSection() {
   const prevLengthRef = useRef(0);
   const prependAnchorRef = useRef<{ height: number; scrollTop: number } | null>(null);
   const [inputValue, setInputValue] = useState('');
+  const [isComposerFocused, setIsComposerFocused] = useState(false);
 
   const viewerAuthor: GlobalChatAuthor | null = useMemo(() => {
     if (!userId) {
@@ -180,6 +188,13 @@ function GlobalChatSection() {
       });
     }
   }, [authReady, userId, profile, loadProfile]);
+
+  useEffect(() => {
+    setBottomNavHidden(isComposerFocused);
+    return () => {
+      setBottomNavHidden(false);
+    };
+  }, [isComposerFocused, setBottomNavHidden]);
 
   useEffect(() => {
     if (!authReady || !userId) {
@@ -315,37 +330,28 @@ function GlobalChatSection() {
     [handleSend]
   );
 
-  if (!authReady) {
+  if (!authReady || !userId) {
     return (
-      <Surface tone="secondary" border="subtle" elevation="soft" padding="lg" rounded="3xl">
-        <Text variant="title" weight="semibold">
-          Войдите, чтобы писать в чат
-        </Text>
-        <Text variant="body" tone="secondary">
-          Авторизация через Telegram Mini App необходима для отправки сообщений и отображения других
-          игроков.
-        </Text>
-      </Surface>
-    );
-  }
-
-  if (!userId) {
-    return (
-      <Surface tone="secondary" border="subtle" elevation="soft" padding="lg" rounded="3xl">
-        <Text variant="body">
-          Загружаем ваш профиль… Откройте игру через Telegram, чтобы продолжить.
-        </Text>
+      <Surface
+        tone="overlayStrong"
+        border="subtle"
+        elevation="soft"
+        padding="lg"
+        rounded="3xl"
+        className="flex flex-1 items-center justify-center"
+      >
+        <p className="text-center text-body text-text-secondary">
+          Загружаем профиль… откройте Energy Planet через Telegram, чтобы писать в чат.
+        </p>
       </Surface>
     );
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {error && (
+    <div className="flex flex-1 min-h-0 flex-col gap-3">
+      {error ? (
         <Surface tone="overlay" border="accent" elevation="soft" rounded="3xl" padding="md">
-          <Text variant="body" tone="warning">
-            {error}
-          </Text>
+          <p className="text-body text-text-primary">{error}</p>
           <Button
             variant="secondary"
             size="sm"
@@ -359,15 +365,15 @@ function GlobalChatSection() {
             Повторить загрузку
           </Button>
         </Surface>
-      )}
+      ) : null}
 
       <Surface
-        tone="overlayStrong"
+        tone="primary"
         border="subtle"
         elevation="soft"
         padding="none"
         rounded="3xl"
-        className="flex h-[65vh] min-h-[420px] flex-col overflow-hidden"
+        className="flex flex-1 min-h-0 flex-col overflow-hidden"
       >
         <div
           ref={scrollRef}
@@ -377,18 +383,16 @@ function GlobalChatSection() {
           {isLoading && !initialized ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-text-secondary">
               <Loader label="Загружаем сообщения" />
-              <Text variant="body" tone="secondary">
-                Соединяемся с командным центром…
-              </Text>
+              <p className="text-body text-text-secondary">Соединяемся с командным центром…</p>
             </div>
           ) : messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-text-secondary">
               <span className="text-display" role="img" aria-label="Space satellite">
                 🛰️
               </span>
-              <Text variant="body" tone="secondary">
+              <p className="text-body text-text-secondary">
                 Будьте первым, кто пришлёт сообщение в глобальный чат!
-              </Text>
+              </p>
             </div>
           ) : (
             <div className="flex flex-col gap-4">
@@ -442,6 +446,8 @@ function GlobalChatSection() {
               maxLength={MAX_CHAT_LENGTH}
               onChange={event => setInputValue(event.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={() => setIsComposerFocused(true)}
+              onBlur={() => setIsComposerFocused(false)}
               placeholder="Напишите что-нибудь…"
               className="min-h-[56px] flex-1 resize-none rounded-2xl border border-border-layer bg-transparent px-4 py-3 text-body text-text-primary placeholder:text-text-secondary focus:border-accent-gold focus:outline-none"
             />
@@ -454,12 +460,6 @@ function GlobalChatSection() {
             >
               Отправить
             </Button>
-          </div>
-          <div className="mt-1 flex items-center justify-between text-micro text-text-secondary">
-            <span>
-              {inputValue.trim().length}/{MAX_CHAT_LENGTH}
-            </span>
-            <span>Enter — отправить, Shift+Enter — новая строка</span>
           </div>
         </div>
       </Surface>
@@ -489,8 +489,10 @@ function MessageBubble({ message, isOwn }: { message: ChatMessageState; isOwn: b
       </div>
       <div
         className={clsx(
-          'max-w-[90%] rounded-2xl px-4 py-3 text-body transition-colors',
-          isOwn ? 'bg-accent-gold/90 text-black' : 'bg-layer-overlay-ghost-soft text-text-primary'
+          'max-w-[90%] rounded-2xl px-4 py-3 text-body shadow-elevation-1 transition-colors',
+          isOwn
+            ? 'bg-accent-gold/90 text-black'
+            : 'border border-white/10 bg-white/10 text-white backdrop-blur-sm'
         )}
       >
         <p className="whitespace-pre-wrap break-words">{message.message}</p>
