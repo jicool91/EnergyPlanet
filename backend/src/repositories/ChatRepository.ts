@@ -91,7 +91,7 @@ export async function insertGlobalChatMessage(
     client
   );
 
-  if (insertResult.rowCount > 0) {
+  if ((insertResult.rowCount ?? 0) > 0 && insertResult.rows.length > 0) {
     return insertResult.rows[0].id;
   }
 
@@ -105,7 +105,7 @@ export async function insertGlobalChatMessage(
     client
   );
 
-  if (existing.rowCount === 0) {
+  if ((existing.rowCount ?? 0) === 0 || existing.rows.length === 0) {
     throw new Error('Chat message idempotency lookup failed');
   }
 
@@ -159,7 +159,7 @@ export async function getGlobalChatMessageById(
     client
   );
 
-  if (result.rowCount === 0) {
+  if ((result.rowCount ?? 0) === 0 || result.rows.length === 0) {
     return null;
   }
 
