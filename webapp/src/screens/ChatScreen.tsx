@@ -24,6 +24,12 @@ const CHAT_TABS: Array<{ id: ChatScope; label: string; emoji: string }> = [
 
 export function ChatScreen() {
   const [scope, setScope] = useState<ChatScope>('global');
+  const setCompactPadding = useUIStore(state => state.setCompactMainPadding);
+
+  useEffect(() => {
+    setCompactPadding(true);
+    return () => setCompactPadding(false);
+  }, [setCompactPadding]);
 
   return (
     <div className="flex h-full min-h-0 w-full flex-col gap-3 px-4 pb-2">
@@ -83,6 +89,7 @@ function GlobalChatSection() {
   const authReady = useAuthStore(state => state.authReady);
   const { error: notifyError } = useNotification();
   const setBottomNavHidden = useUIStore(state => state.setBottomNavHidden);
+  const setCompactPadding = useUIStore(state => state.setCompactMainPadding);
 
   const { userId, username, level, profile, loadProfile } = useGameStore(
     useShallow(state => ({
@@ -189,10 +196,12 @@ function GlobalChatSection() {
 
   useEffect(() => {
     setBottomNavHidden(isComposerFocused);
+    setCompactPadding(!isComposerFocused);
     return () => {
       setBottomNavHidden(false);
+      setCompactPadding(true);
     };
-  }, [isComposerFocused, setBottomNavHidden]);
+  }, [isComposerFocused, setBottomNavHidden, setCompactPadding]);
 
   useEffect(() => {
     if (!authReady || !userId) {

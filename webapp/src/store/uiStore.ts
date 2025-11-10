@@ -33,6 +33,7 @@ interface UIState {
   notifications: Notification[];
   lastFullscreenState: boolean | null;
   bottomNavHidden: boolean;
+  compactMainPadding: boolean;
   openAuthError: (message: string) => void;
   dismissAuthError: () => void;
   setOfflineSummary: (summary: OfflineSummarySnapshot | null) => void;
@@ -42,6 +43,7 @@ interface UIState {
   removeNotification: (id: string) => void;
   setFullscreenState: (isFullscreen: boolean) => void;
   setBottomNavHidden: (hidden: boolean) => void;
+  setCompactMainPadding: (compact: boolean) => void;
 }
 
 export const useUIStore = create<UIState>()(
@@ -54,6 +56,7 @@ export const useUIStore = create<UIState>()(
       notifications: [],
       lastFullscreenState: null,
       bottomNavHidden: false,
+      compactMainPadding: false,
       openAuthError: (message: string) => set({ authErrorMessage: message, isAuthModalOpen: true }),
       dismissAuthError: () => set({ authErrorMessage: null, isAuthModalOpen: false }),
       setOfflineSummary: summary => set({ offlineSummary: summary }),
@@ -93,6 +96,7 @@ export const useUIStore = create<UIState>()(
         }),
       setFullscreenState: isFullscreen => set({ lastFullscreenState: isFullscreen }),
       setBottomNavHidden: hidden => set({ bottomNavHidden: hidden }),
+      setCompactMainPadding: compact => set({ compactMainPadding: compact }),
     }),
     {
       name: 'energy-ui',
@@ -135,6 +139,9 @@ export const uiStore = {
   setBottomNavHidden(hidden: boolean) {
     useUIStore.getState().setBottomNavHidden(hidden);
   },
+  setCompactMainPadding(compact: boolean) {
+    useUIStore.getState().setCompactMainPadding(compact);
+  },
   get theme() {
     return useUIStore.getState().theme;
   },
@@ -143,5 +150,8 @@ export const uiStore = {
   },
   get bottomNavHidden() {
     return useUIStore.getState().bottomNavHidden;
+  },
+  get compactMainPadding() {
+    return useUIStore.getState().compactMainPadding;
   },
 };
