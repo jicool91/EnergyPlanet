@@ -26,42 +26,40 @@ export function ChatScreen() {
   const [scope, setScope] = useState<ChatScope>('global');
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3">
-      <div className="px-4">
-        <Panel
-          tone="overlay"
-          border="subtle"
-          elevation="soft"
-          padding="sm"
-          spacing="none"
-          aria-label="Навигация по чатам"
-          className="grid grid-cols-2 gap-xs"
-        >
-          {CHAT_TABS.map(tab => {
-            const isActive = tab.id === scope;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setScope(tab.id)}
-                aria-pressed={isActive}
-                className={
-                  isActive
-                    ? 'flex h-12 items-center justify-center rounded-2xl bg-state-accent-pill text-text-inverse font-semibold transition-colors'
-                    : 'flex h-12 items-center justify-center rounded-2xl text-text-secondary font-semibold transition-colors hover:bg-layer-overlay-ghost-soft hover:text-text-primary'
-                }
-              >
-                <span aria-hidden="true" className="mr-2 text-title">
-                  {tab.emoji}
-                </span>
-                {tab.label}
-              </button>
-            );
-          })}
-        </Panel>
-      </div>
+    <div className="flex h-full min-h-0 w-full flex-col gap-3">
+      <Panel
+        tone="overlay"
+        border="subtle"
+        elevation="soft"
+        padding="sm"
+        spacing="none"
+        aria-label="Навигация по чатам"
+        className="grid grid-cols-2 gap-xs w-full"
+      >
+        {CHAT_TABS.map(tab => {
+          const isActive = tab.id === scope;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => setScope(tab.id)}
+              aria-pressed={isActive}
+              className={
+                isActive
+                  ? 'flex h-12 items-center justify-center rounded-2xl bg-state-accent-pill text-text-inverse font-semibold transition-colors'
+                  : 'flex h-12 items-center justify-center rounded-2xl text-text-secondary font-semibold transition-colors hover:bg-layer-overlay-ghost-soft hover:text-text-primary'
+              }
+            >
+              <span aria-hidden="true" className="mr-2 text-title">
+                {tab.emoji}
+              </span>
+              {tab.label}
+            </button>
+          );
+        })}
+      </Panel>
 
-      <div className="flex flex-1 min-h-0 px-4 pb-4">
+      <div className="flex flex-1 min-h-0 w-full">
         {scope === 'global' ? (
           <GlobalChatSection />
         ) : (
@@ -338,7 +336,7 @@ function GlobalChatSection() {
         elevation="soft"
         padding="lg"
         rounded="3xl"
-        className="flex flex-1 items-center justify-center"
+        className="flex w-full flex-1 items-center justify-center"
       >
         <p className="text-center text-body text-text-secondary">
           Загружаем профиль… откройте Energy Planet через Telegram, чтобы писать в чат.
@@ -348,9 +346,16 @@ function GlobalChatSection() {
   }
 
   return (
-    <div className="flex flex-1 min-h-0 flex-col gap-3">
+    <div className="flex w-full flex-1 min-h-0 flex-col gap-3">
       {error ? (
-        <Surface tone="overlay" border="accent" elevation="soft" rounded="3xl" padding="md">
+        <Surface
+          tone="overlay"
+          border="accent"
+          elevation="soft"
+          rounded="3xl"
+          padding="md"
+          className="w-full"
+        >
           <p className="text-body text-text-primary">{error}</p>
           <Button
             variant="secondary"
@@ -373,7 +378,7 @@ function GlobalChatSection() {
         elevation="soft"
         padding="none"
         rounded="3xl"
-        className="flex flex-1 min-h-0 flex-col overflow-hidden"
+        className="flex w-full flex-1 min-h-0 flex-col overflow-hidden"
       >
         <div
           ref={scrollRef}
@@ -492,10 +497,10 @@ function MessageBubble({ message, isOwn }: { message: ChatMessageState; isOwn: b
           'max-w-[90%] rounded-2xl px-4 py-3 text-body shadow-elevation-1 transition-colors',
           isOwn
             ? 'bg-accent-gold/90 text-black'
-            : 'border border-white/10 bg-white/10 text-white backdrop-blur-sm'
+            : 'border border-white/10 bg-white/10 text-white/80 backdrop-blur-md'
         )}
       >
-        <p className="whitespace-pre-wrap break-words">{message.message}</p>
+        <p className="whitespace-pre-wrap break-words text-current">{message.message}</p>
         {message.optimistic && (
           <span className="mt-1 block text-caption text-text-secondary">Отправка…</span>
         )}
