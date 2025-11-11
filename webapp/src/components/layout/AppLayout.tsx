@@ -69,10 +69,7 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
   const { safeArea, safeTopWithBuffer, isFullscreen } = useSafeArea();
   const { theme } = useTheme();
   const { miniApp } = useTmaRuntime();
-  const uiState = useUIStore(state => ({
-    bottomNavHidden: state.bottomNavHidden,
-    compactMainPadding: state.compactMainPadding,
-  }));
+  const isNavigationHidden = useUIStore(state => state.bottomNavHidden);
   const safeBottom = Math.max(0, safeArea.safe.bottom ?? 0);
   const safeContentBottom = Math.max(0, safeArea.content.bottom ?? 0);
   const safeLeft = Math.max(0, safeArea.safe.left ?? 0);
@@ -233,24 +230,14 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
   );
 
   const mainPadding = useMemo(() => {
-    const reserve = uiState.bottomNavHidden
-      ? 16
-      : uiState.compactMainPadding
-        ? 12
-        : NAVIGATION_RESERVE_PX;
+    const reserve = isNavigationHidden ? 16 : NAVIGATION_RESERVE_PX;
     const bottomPadding = reserve + safeBottom;
     return {
       ...sharedHorizontalPadding,
       paddingBottom: `calc(${bottomPadding}px + var(--tg-content-safe-area-bottom, ${safeContentBottom}px))`,
       paddingTop: '12px',
     };
-  }, [
-    uiState.bottomNavHidden,
-    uiState.compactMainPadding,
-    safeBottom,
-    safeContentBottom,
-    sharedHorizontalPadding,
-  ]);
+  }, [isNavigationHidden, safeBottom, safeContentBottom, sharedHorizontalPadding]);
 
   const manualCloseStyle = useMemo<CSSProperties>(() => {
     const topVar = `var(--app-header-offset-top, ${safeTopWithBuffer}px)`;
@@ -321,7 +308,7 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
         <main className="flex-1 overflow-y-auto" style={mainPadding} data-testid="next-ui-main">
           {children}
         </main>
-        {uiState.bottomNavHidden ? null : (
+        {isNavigationHidden ? null : (
           <BottomNavigation
             tabs={tabs}
             activeTab={activeTab}
