@@ -26,7 +26,7 @@ export function ChatScreen() {
   const [scope, setScope] = useState<ChatScope>('global');
 
   return (
-    <div className="flex w-full flex-1 min-h-0 flex-col gap-3 px-4 -mb-[88px] pb-[88px]">
+    <div className="flex w-full flex-1 min-h-0 flex-col gap-3 -mb-[88px] pb-[88px]">
       <Panel
         tone="overlay"
         border="subtle"
