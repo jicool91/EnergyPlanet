@@ -7,7 +7,6 @@ import { useAuthStore } from '@/store/authStore';
 import { useGameStore } from '@/store/gameStore';
 import { useChatStore, type ChatMessageState } from '@/store/chatStore';
 import { useUIStore } from '@/store/uiStore';
-import { NAVIGATION_RESERVE_PX } from '@/constants/layout';
 import type { GlobalChatAuthor } from '@/services/chat';
 import { useNotification } from '@/hooks/useNotification';
 import { logClientEvent } from '@/services/telemetry';
@@ -23,25 +22,11 @@ const CHAT_TABS: Array<{ id: ChatScope; label: string; emoji: string }> = [
   { id: 'clan', label: 'Клановый', emoji: '🏰' },
 ];
 
-const NAVIGATION_OVERLAP_PADDING = `calc(${NAVIGATION_RESERVE_PX}px + var(--tg-content-safe-area-bottom, 0px))`;
-const NAVIGATION_OVERLAP_MARGIN = `calc(-1 * (${NAVIGATION_RESERVE_PX}px + var(--tg-content-safe-area-bottom, 0px)))`;
-
 export function ChatScreen() {
   const [scope, setScope] = useState<ChatScope>('global');
-  const bottomNavHidden = useUIStore(state => state.bottomNavHidden);
 
   return (
-    <div
-      className="flex h-full min-h-0 w-full flex-col gap-3 px-4"
-      style={
-        bottomNavHidden
-          ? undefined
-          : {
-              paddingBottom: NAVIGATION_OVERLAP_PADDING,
-              marginBottom: NAVIGATION_OVERLAP_MARGIN,
-            }
-      }
-    >
+    <div className="flex w-full flex-1 min-h-0 flex-col gap-3 px-4 -mb-[88px] pb-[88px]">
       <Panel
         tone="overlay"
         border="subtle"
