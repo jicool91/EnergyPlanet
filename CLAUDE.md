@@ -22,15 +22,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ Redis кеш и session management
 - ✅ PostgreSQL подключение
 
-**Что ещё нужно для MVP:**
-- 🔨 Telegram OAuth авторизация (валидация initData)
-- 🔨 JWT токены (access 15мин + refresh 30 дней)
-- 🔨 React фронтенд (Telegram Mini App)
-- 🔨 Zustand state management
-- 🔨 Rate limiting middleware
-- 🔨 Монетизация (Telegram Stars + Rewarded Ads)
-- 🔨 Feature flags система
-- 🔨 Load тестирование
+**Что УЖЕ ГОТОВО (Frontend):**
+- ✅ React фронтенд (Telegram Mini App) - 90% готов!
+- ✅ Zustand state management - полностью настроен
+- ✅ Railway deployment - развёрнут и работает
+- ✅ Все основные экраны (Tap, Shop, Friends, Profile, Chat)
+- ✅ Animations, haptics, polished UI
+
+**Что ещё нужно для MVP (Core Features):**
+- 🔨 Season System (SeasonService + SeasonScreen) - 3-5 дней
+- 🔨 Chat improvements (rate limiting, moderation, reactions) - 3-5 дней
+- 🔨 Clan System (полная реализация) - 1-2 недели
+
+**Отложено на потом:**
+- ⏸️ Telegram OAuth (будет позже когда понадобится)
+- ⏸️ Монетизация через NSPK (вместо Telegram Stars)
+- ⏸️ Rewarded Ads (после core features)
+- ⏸️ Feature flags система
+- ⏸️ Load тестирование
 
 ## Project Overview
 
@@ -786,7 +795,7 @@ railway logs --service backgame --follow
 
 ## MVP Чеклист (текущий прогресс)
 
-### Backend (70% готов)
+### Backend (75% готов)
 
 **✅ Завершено:**
 - [x] Подключение к PostgreSQL
@@ -798,49 +807,60 @@ railway logs --service backgame --follow
 - [x] LeaderboardService + кеширование
 - [x] ContentService + загрузка контента из JSON/YAML
 - [x] CosmeticService + система косметики
+- [x] ChatService + global chat
 - [x] Anti-cheat валидация (тапы, энергия, идемпотентность)
 - [x] Repository паттерн для всех операций с БД
 - [x] System миграций БД (migrate up/down/status)
 - [x] Middleware (auth, error handling, logging)
 - [x] Health check эндпоинт
 
-**🔨 В процессе:**
-- [ ] Telegram OAuth валидация initData
-- [ ] Rate limiting middleware
-- [ ] MonetizationService (Telegram Stars + Ads)
+**🔨 Приоритетные задачи (3 недели):**
+- [ ] Season System (SeasonService + API) - 3-5 дней
+- [ ] Chat improvements (rate limiting, moderation, reactions) - 3-5 дней
+- [ ] Clan System (ClanService + database schema) - 1-2 недели
 
-**📋 TODO:**
-- [ ] Feature flags система (загрузка из `/content/flags/`)
-- [ ] Дополнительные anti-cheat метрики
-- [ ] Мониторинг и метрики
+**⏸️ Отложено:**
+- Telegram OAuth (реализуем позже)
+- MonetizationService NSPK (после core features)
+- Feature flags система
+- Rewarded Ads
 
-### Frontend (10% готов)
+### Frontend (90% готов) ✅
 
-**❌ Еще не начато:**
-- [ ] React приложение с Telegram WebApp SDK
-- [ ] Zustand store для состояния
-- [ ] Экран тапа планеты
-- [ ] Экран построек и улучшений
-- [ ] Лидерборд
-- [ ] Профиль игрока
-- [ ] Магазин косметики
-- [ ] Анимации и эффекты
-- [ ] Haptic feedback
+**✅ Завершено:**
+- [x] React приложение с Telegram WebApp SDK (@tma.js/sdk-react)
+- [x] Zustand store для состояния (gameStore, authStore, uiStore, catalogStore)
+- [x] TapScreen (690 строк, полностью реализован)
+- [x] ShopScreen (energy packs, boosts, cosmetics)
+- [x] FriendsScreen (referral system)
+- [x] ChatScreen (global chat с пагинацией)
+- [x] ProfileScreen (stats, cosmetics, achievements)
+- [x] PvPEventsScreen
+- [x] Лидерборд интеграция
+- [x] Анимации (Framer Motion, particles, confetti)
+- [x] Haptic feedback (Telegram SDK)
+- [x] Все UI компоненты (TapCircle, AnimatedNumber, Cards, Modals)
+- [x] Loading states (Skeletons)
+- [x] Storybook + Playwright tests
 
-### Infrastructure (50% готов)
+**🔨 Нужно добавить:**
+- [ ] SeasonScreen (для Season System)
+- [ ] Clan screens (5-7 экранов для Clan System)
+
+### Infrastructure (85% готов) ✅
 
 **✅ Завершено:**
 - [x] Docker Compose для локальной разработки
 - [x] Kubernetes манифесты (базовая структура)
 - [x] Health checks
+- [x] Railway deployment (backend + webapp развёрнуты)
+- [x] Production переменные окружения
+- [x] Docker образы (backend + webapp)
+- [x] Nginx конфигурация для webapp
 
-**🔨 В процессе:**
-- [ ] Railway настройка
-- [ ] Production переменные окружения
-
-**📋 TODO:**
+**📋 TODO (Post-MVP):**
 - [ ] CI/CD пайплайн (Jenkins)
-- [ ] Логирование (Winston)
+- [ ] Логирование (Winston + централизованный сбор)
 - [ ] Мониторинг (Prometheus + Grafana)
 
 ## Полезные ссылки

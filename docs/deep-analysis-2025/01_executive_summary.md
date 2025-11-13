@@ -1,7 +1,7 @@
 # Executive Summary: Energy Planet 2025 (АКТУАЛИЗИРОВАНО)
 
 **Дата:** 13 ноября 2025
-**Версия:** 2.0 (актуализировано на основе детального анализа кода)
+**Версия:** 2.1 (актуализировано: OAuth/Stars отложены, фокус на Season/Chat/Clans)
 
 ---
 
@@ -25,12 +25,15 @@
 - ✅ Achievement & Prestige systems полностью готовы
 - ✅ Storybook + Playwright tests
 
-**Критические пробелы (1-2 недели работы):**
-- 🔴 Telegram OAuth валидация (backend) - 1-2 дня
-- 🔴 Real Telegram Stars integration - 2-3 дня
-- 🟡 Season system - частично есть, нужна доработка (3-5 дней)
+**Критические пробелы (2-3 недели работы):**
+- 🔴 Season system - частично есть, нужна доработка (3-5 дней)
+- 🔴 Chat improvements - базовый работает, нужны улучшения (3-5 дней)
 - 🔴 Clan system - только placeholder, нужна полная реализация (1-2 недели)
-- 🟡 Chat improvements - базовый работает, нужны улучшения (3-5 дней)
+
+**Отложено на потом:**
+- ⏸️ Telegram OAuth - будет позже
+- ⏸️ Telegram Stars - монетизация через NSPK
+- ✅ Railway - уже развёрнут
 
 ---
 
@@ -44,83 +47,99 @@
 | **Backend Architecture** | 9/10 | 🟢 Отлично | Чистая архитектура, масштабируемая |
 | **Database Schema** | 8/10 | 🟢 Хорошо | Нормализованная, индексы на месте |
 | **API Design** | 8/10 | 🟢 Хорошо | REST endpoints готовы |
-| **Security** | 6/10 | 🟡 Требует работы | Telegram OAuth не завершён |
+| **Security** | 7/10 | 🟢 Хорошо | OAuth отложен, базовая безопасность есть |
 | **Chat System** | 7/10 | 🟡 Хорошо | Global chat работает, нужны improvements |
 | **Season System** | 4/10 | 🟡 Частично | Структура есть, нужна реализация |
 | **Clan System** | 1/10 | 🔴 Placeholder | Только UI заглушка |
-| **Monetization Integration** | 3/10 | 🔴 Критично | Только mock реализация |
+| **Monetization Integration** | 5/10 | 🟡 Отложено | NSPK будет позже, не блокирует MVP |
 | **Performance Optimization** | 7/10 | 🟡 Хорошо | Хорошая база, можно улучшить |
 | **Testing Coverage** | 7/10 | 🟡 Хорошо | Playwright + Storybook есть |
-| **DevOps & Infrastructure** | 4/10 | 🔴 Требует работы | Railway не настроен |
+| **DevOps & Infrastructure** | 8/10 | 🟢 Хорошо | Railway уже развёрнут |
 | **Documentation** | 8/10 | 🟢 Хорошо | Отличные GDD и MVP_SPEC |
 
-**Общая оценка: 7.2/10** (было 5.6!) - **Очень сильный фундамент** ✅
+**Общая оценка: 7.1/10** (пересчитано без блокеров) - **Очень сильный фундамент** ✅
 
 ---
 
-## 🚨 Критические приоритеты (Week 1-2)
+## 🚨 Критические приоритеты (Week 1-3)
 
-### 1. Telegram OAuth валидация (BACKEND)
+### 1. Season System (ПРИОРИТЕТ #1)
 **Приоритет:** 🔴 **КРИТИЧНО**
-**Усилие:** 1-2 дня
-**Impact:** HIGH
+**Усилие:** 3-5 дней
+**Impact:** HIGH (вовлечённость игроков)
 
-Frontend готов, нужно только backend:
+**Текущее состояние:**
+- ✅ Упоминания в AdminService
+- ✅ ContentService структура
+- 🔴 Нет активной реализации
 
+**Что нужно:**
 ```typescript
-// backend/src/services/AuthService.ts - добавить
-validateTelegramInitData(initData: string): TelegramUser | null {
-  // Проверка hash используя HMAC-SHA256 + bot token
-  // Код есть в документации: 03_telegram_mini_apps_best_practices.md
+// backend/src/services/SeasonService.ts
+class SeasonService {
+  async getCurrentSeason(): Promise<Season>
+  async getSeasonProgress(userId: string): Promise<SeasonProgress>
+  async claimSeasonReward(userId: string, tierId: number): Promise<void>
 }
 ```
 
-**Frontend уже готов:**
-- ✅ @tma.js/sdk-react интегрирован
-- ✅ Auth hooks реализованы
-- ✅ Token management в authStore
+**Frontend:**
+- SeasonScreen с прогресс-баром
+- Rewards showcase
+- Claim UI
 
 ---
 
-### 2. Telegram Stars Real Integration
+### 2. Chat System Improvements (ПРИОРИТЕТ #2)
 **Приоритет:** 🔴 **КРИТИЧНО**
-**Усилие:** 2-3 дня
-**Impact:** HIGH (монетизация)
+**Усилие:** 3-5 дней
+**Impact:** HIGH (социальная вовлечённость)
 
-**Frontend готов:**
-- ✅ ShopScreen реализован
-- ✅ Purchase flow UI готов
-- ✅ Admin monetization screen есть
+**Текущее состояние:**
+- ✅ ChatService реализован
+- ✅ Global chat работает
+- ✅ Пагинация есть
+- 🟡 Нужны improvements
 
-**Нужно на backend:**
+**Что улучшить:**
 ```typescript
-// 1. createInvoiceLink API
-POST /api/v1/purchase/invoice
-{
-  "item_type": "energy_pack_medium",
-  "amount": 40,
-  "currency": "XTR"
-}
+// Rate limiting для chat
+POST /api/v1/chat/global - max 5 msg/min per user
 
-// 2. Webhook handling
-POST /webhook/telegram/payment
+// Moderation
+- Profanity filter
+- Spam detection
+- Admin controls
+
+// Rich features
+- Emoji reactions
+- Message replies
+- User mentions
 ```
 
 ---
 
-### 3. Railway Deployment
-**Приоритет:** 🟡 **ВЫСОКИЙ**
-**Усилие:** 2-3 дня
-**Impact:** HIGH
+### 3. Clan System (ПРИОРИТЕТ #3)
+**Приоритет:** 🔴 **КРИТИЧНО**
+**Усилие:** 1-2 недели
+**Impact:** VERY HIGH (retention + социальная игра)
 
-**Готово:**
-- ✅ Docker configs
-- ✅ railway.json files
-- ✅ Health checks
+**Текущее состояние:**
+- ✅ ClanScreen placeholder готов
+- 🔴 Backend НЕ реализован
+- 🔴 Database schema НЕТ
 
-**Нужно:**
-- Настроить environment variables
-- Deploy и тестирование
+**Что нужно:**
+- Database migration (004_clans_schema.sql)
+- ClanService backend (CRUD, chat, leaderboard)
+- Frontend screens (5-7 экранов)
+
+---
+
+### Отложено (не блокирует MVP):
+- ⏸️ **Telegram OAuth** - будет реализовано позже
+- ⏸️ **Telegram Stars** - монетизация через NSPK
+- ✅ **Railway** - уже развёрнут и работает
 
 ---
 
@@ -277,26 +296,25 @@ interface GameState {
 
 ## 💰 Прогноз монетизации (ОБНОВЛЕНО)
 
-### Месяц 1 (1,000 DAU)
+### Текущий статус монетизации:
 
-**Готовность к монетизации:**
-- ✅ Frontend UI готов (ShopScreen, purchase flow)
-- ✅ Product catalog определён
-- 🔴 Backend integration нужна (2-3 дня)
+**Отложено на потом:**
+- ⏸️ **Telegram Stars** - планируется заменить на NSPK интеграцию
+- ⏸️ **Rewarded Ads** - будет добавлено после core функций
 
-**Прогноз:**
-```
-Telegram Stars: $100/day (10% payers × $1 ARPPU)
-Rewarded Ads: $50/day (нужна интеграция Monetag)
-Total: $4,500/month
-```
+**Фокус на MVP:**
+Сейчас приоритет - создать вовлекающий игровой опыт:
+- Season System (прогрессия + retention)
+- Chat improvements (социальная вовлечённость)
+- Clan System (community building)
 
-### Месяц 3 (10,000 DAU)
-```
-Telegram Stars: $1,000/day
-Rewarded Ads: $500/day
-Total: ~$45,000/month
-```
+**Монетизация будет добавлена после стабилизации core gameplay.**
+
+### Будущий прогноз (при интеграции NSPK):
+
+**Месяц 1-2:** Фокус на росте DAU и retention
+**Месяц 3+:** Интеграция NSPK платежей
+- Прогноз: $20-50K/month при 10K DAU (зависит от ARPPU)
 
 ---
 
@@ -442,63 +460,79 @@ POST /api/v1/chat/global - max 5 msg/min per user
 
 ## 🗺️ Обновлённый Roadmap
 
-### Week 1-2: Критические блокеры 🔴
+### Week 1: Season System 🔴
 
-**Backend (5-7 дней):**
-- [ ] Telegram OAuth implementation (1-2 дня)
-- [ ] Telegram Stars real integration (2-3 дня)
-- [ ] Rate limiting завершение (1 день)
-- [ ] Railway deployment (2 дня)
+**Backend (3-5 дней):**
+- [ ] SeasonService implementation
+- [ ] Season progress tracking
+- [ ] Reward claiming logic
+- [ ] Database queries optimization
 
-**Итого:** MVP готов через **1-2 недели**
+**Frontend (включено в backend время):**
+- [ ] SeasonScreen UI
+- [ ] Progress bar component
+- [ ] Rewards showcase
+- [ ] Claim flow
 
----
-
-### Month 1: Soft Launch + Core Features 🟡
-
-**После MVP launch:**
-- [ ] Season system (3-5 дней)
-- [ ] Chat improvements (3-5 дней)
-- [ ] Rewarded Ads SDK (Monetag) (2 дня)
-- [ ] Performance optimization
-- [ ] Bug fixes based on feedback
-- [ ] Soft launch: 500-1,000 users
-
-**Success criteria:**
-- D1 Retention > 40%
-- Error rate < 1%
-- 10+ purchases ($100+ revenue)
+**Итого:** Seasons готовы через **3-5 дней**
 
 ---
 
-### Month 2: Growth + Clan System 🚀
+### Week 2: Chat Improvements 🟡
 
-**Major feature:**
-- [ ] Clan system полная реализация (1-2 недели)
-  - Database schema + migrations
-  - Backend service (CRUD, chat, leaderboard)
-  - Frontend screens (5-7 экранов)
-  - Testing & polish
+**Backend (3-5 дней):**
+- [ ] Rate limiting для chat (5 msg/min per user)
+- [ ] Profanity filter
+- [ ] Spam detection
+- [ ] Admin moderation controls
 
-**Growth:**
+**Frontend:**
+- [ ] Emoji reactions UI
+- [ ] Message replies/threading
+- [ ] User mentions (@username)
+- [ ] Rich text formatting
+
+**Итого:** Chat improvements через **3-5 дней**
+
+---
+
+### Week 3-4: Clan System 🚀
+
+**Major feature (1-2 недели):**
+- [ ] Database migration (004_clans_schema.sql)
+- [ ] ClanService backend (CRUD, chat, leaderboard)
+- [ ] ClanRepository
+- [ ] Frontend screens (5-7 экранов):
+  - Clan browser
+  - Clan creation
+  - Clan detail view
+  - Member list
+  - Clan chat
+  - Contribution stats
+- [ ] Testing & polish
+
+**Итого:** Clan system через **1-2 недели**
+
+---
+
+### Month 2+: Growth & Monetization 📈
+
+**После core features:**
+- [ ] NSPK payment integration
 - [ ] Referral system активация
-- [ ] Telegram Ads campaign ($500-1000)
 - [ ] A/B testing framework
-- [ ] Daily rewards enhancement
+- [ ] Performance optimization
+- [ ] Arena/PvP system (optional)
 
 **Target:** 5,000-10,000 DAU
 
 ---
 
-### Month 3: Scale & Polish 📈
-
-- [ ] Arena/PvP system (optional)
-- [ ] Advanced achievements
-- [ ] Seasonal events automation
-- [ ] Multi-region deployment
-- [ ] Influencer partnerships
-
-**Target:** 25,000+ DAU, $45K+ MRR
+### Отложено:
+- ⏸️ Telegram OAuth (реализуем когда понадобится)
+- ⏸️ Telegram Stars (заменено на NSPK)
+- ⏸️ Rewarded Ads (после core features)
+- ✅ Railway (уже работает)
 
 ---
 
@@ -532,29 +566,29 @@ POST /api/v1/chat/global - max 5 msg/min per user
 
 ## 🎯 Финальные рекомендации
 
-### ИЗМЕНЕНИЯ в стратегии:
+### ИЗМЕНЕНИЯ в стратегии (v2.1):
 
-**Было (неправильно):**
-> "Frontend не реализован (0%) - 7-10 дней работы"
+**Было (v2.0):**
+> "OAuth + Stars + Railway = критические блокеры"
 
-**Стало (правильно):**
-> "Frontend 90% готов - нужна только backend интеграция"
+**Стало (v2.1):**
+> "OAuth/Stars отложены, Railway готов. Фокус: Season + Chat + Clans"
 
 **Это значит:**
-1. ✅ MVP **НАМНОГО ближе** чем казалось (1-2 недели вместо 3-4)
-2. ✅ Можно **быстрее** запустить soft launch
-3. ✅ **Качество UI** уже высокое (анимации, haptics, polish)
-4. 🔴 Основные усилия - **backend доработка** (OAuth, Stars, Clans)
+1. ✅ **Убраны блокеры** - OAuth и Stars не нужны для запуска
+2. ✅ **Railway развёрнут** - infrastructure готова
+3. 🔴 **Фокус на gameplay** - Season, Chat, Clans (core engagement)
+4. ⏸️ **Монетизация позже** - NSPK integration после core features
 
 ---
 
-### Немедленные действия (эта неделя):
+### Немедленные действия (следующие 3 недели):
 
-**Day 1-2:** Telegram OAuth
-**Day 3-5:** Telegram Stars integration
-**Day 6-7:** Railway deployment + testing
+**Week 1 (Day 1-5):** Season System реализация
+**Week 2 (Day 6-10):** Chat improvements
+**Week 3-4 (Day 11-24):** Clan System полная реализация
 
-**Week 2:** Soft launch 100 early users → iterate
+**После этого:** Soft launch + feedback → NSPK интеграция
 
 ---
 
@@ -562,13 +596,13 @@ POST /api/v1/chat/global - max 5 msg/min per user
 
 | Система | Приоритет | Усилие | Готовность |
 |---------|-----------|--------|------------|
-| **OAuth** | 🔴 Критично | 1-2 дня | 0% |
-| **Stars Payment** | 🔴 Критично | 2-3 дня | 30% (UI готов) |
-| **Deployment** | 🔴 Критично | 2 дня | 50% |
-| **Season System** | 🟡 Высокий | 3-5 дней | 20% |
-| **Chat Improvements** | 🟡 Средний | 3-5 дней | 70% |
-| **Clan System** | 🟡 Высокий | 1-2 недели | 5% (только UI) |
-| **Rewarded Ads** | 🟡 Средний | 2 дня | 0% |
+| **Season System** | 🔴 Критично | 3-5 дней | 20% |
+| **Chat Improvements** | 🔴 Критично | 3-5 дней | 70% |
+| **Clan System** | 🔴 Критично | 1-2 недели | 5% (только UI) |
+| **NSPK Payment** | 🟡 Отложено | TBD | 0% (будет позже) |
+| **Rewarded Ads** | 🟡 Отложено | 2 дня | 0% (будет позже) |
+| **Deployment** | ✅ Готово | - | 100% (Railway работает) |
+| **OAuth** | ⏸️ Отложено | 1-2 дня | 0% (не нужен сейчас) |
 
 ---
 
@@ -577,30 +611,43 @@ POST /api/v1/chat/global - max 5 msg/min per user
 ```
 Frontend:          ████████████████░░ 90%
 Backend Core:      ██████████████░░░░ 75%
-Telegram Auth:     ░░░░░░░░░░░░░░░░░░ 0%
-Monetization:      ████░░░░░░░░░░░░░░ 20%
 Chat System:       ██████████████░░░░ 70%
 Season System:     ████░░░░░░░░░░░░░░ 20%
 Clan System:       █░░░░░░░░░░░░░░░░░ 5%
 Testing:           ██████████████░░░░ 70%
-DevOps:            ████████░░░░░░░░░░ 40%
+DevOps:            ████████████████░░ 85% (Railway развёрнут)
 
-TOTAL:             ██████████████░░░░ 72% (было 70%, но frontend недооценен)
+TOTAL (MVP Core):  ██████████████░░░░ 73%
+```
+
+**Отложено (не влияет на текущий прогресс):**
+```
+Telegram Auth:     ⏸️ Отложено
+Monetization:      ⏸️ NSPK будет позже
+Rewarded Ads:      ⏸️ Отложено
 ```
 
 ---
 
 **ИТОГ:**
 
-Energy Planet в **ОТЛИЧНОМ состоянии**! Frontend практически готов (90%), backend имеет солидную базу (75%).
+Energy Planet в **ОТЛИЧНОМ состоянии**! Frontend практически готов (90%), backend имеет солидную базу (75%), Railway развёрнут (85%).
 
-**Критический путь:**
-1. Week 1-2: OAuth + Stars + Deploy = **MVP READY** ✅
-2. Month 1: Season + Chat improvements + Soft launch
-3. Month 2: Clan system + Growth to 10K DAU
-4. Month 3: Scale to 50K+ DAU
+**Новый критический путь (актуализирован):**
+1. **Week 1:** Season System = вовлечённость + retention ✅
+2. **Week 2:** Chat improvements = социальная игра ✅
+3. **Week 3-4:** Clan System = community building ✅
+4. **Month 2+:** NSPK integration + Growth to 10K DAU
 
-**При правильном execution - Top 100 TMA game за 3 месяца!** 🚀
+**Отложено (не блокирует запуск):**
+- ⏸️ Telegram OAuth (реализуем когда понадобится)
+- ⏸️ Telegram Stars (заменено на NSPK)
+- ✅ Railway уже работает
+
+**При правильном execution:**
+- **3 недели** → Core features готовы
+- **Month 2** → Soft launch + NSPK
+- **Month 3** → Growth to 10K+ DAU 🚀
 
 ---
 
