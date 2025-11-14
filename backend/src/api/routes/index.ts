@@ -16,6 +16,7 @@ import achievementsRoutes from './achievements';
 import questsRoutes from './quests';
 import referralRoutes from './referrals';
 import chatRoutes from './chat';
+import seasonRoutes from './season';
 
 const router = Router();
 
@@ -32,5 +33,6 @@ router.use('/telemetry', telemetryRoutes);
 router.use('/', contentRoutes); // /buildings
 router.use('/admin', adminRoutes);
 router.use('/chat', chatRoutes);
+router.use('/season', seasonRoutes);
 
 export default router;

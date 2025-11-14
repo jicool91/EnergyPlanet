@@ -65,11 +65,62 @@ interface Cosmetic {
   preview_url?: string;
 }
 
+interface SeasonReward {
+  rank?: number;
+  rank_range?: [number, number];
+  rewards: Array<{
+    type: string; // cosmetic, energy, stars
+    item_id?: string;
+    amount?: number;
+  }>;
+}
+
+interface SeasonEvent {
+  id: string;
+  name: string;
+  description: string;
+  start: string;
+  end: string;
+  rewards?: Array<{
+    type: string;
+    amount?: number;
+    condition?: string;
+  }>;
+  multipliers?: {
+    passive_income?: number;
+    building_cost?: number;
+    xp_gain?: number;
+  };
+}
+
 interface Season {
   season: {
     id: string;
     number: number;
     name: string;
+    description?: string;
+    dates?: {
+      start: string;
+      end: string;
+    };
+    theme?: {
+      primary_color?: string;
+      secondary_color?: string;
+      background_url?: string;
+    };
+    multipliers?: {
+      energy_production?: number;
+      xp_gain?: number;
+    };
+    leaderboard_rewards?: SeasonReward[];
+    events?: SeasonEvent[];
+    exclusive_cosmetics?: string[];
+    battle_pass?: {
+      enabled: boolean;
+      tiers?: number;
+      free_rewards?: unknown[];
+      premium_rewards?: unknown[];
+    };
   };
 }
 
@@ -455,5 +506,5 @@ export async function loadContent() {
   await contentService.load();
 }
 
-export type { QuestDefinition };
+export type { QuestDefinition, Season, SeasonReward, SeasonEvent };
 export { contentService };
