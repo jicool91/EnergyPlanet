@@ -427,12 +427,14 @@ export class AdminService {
     rewardTier: 'gold' | 'silver' | 'bronze';
     couponCode?: string | null;
     note?: string | null;
+    message?: string | null;
     grantedBy?: string | null;
   }): Promise<{ rewardId: string | null }> {
     const rewardPayload = {
       reward_tier: params.rewardTier,
       coupon_code: params.couponCode ?? null,
       note: params.note ?? null,
+      message: params.message ?? null,
       granted_by: params.grantedBy ?? null,
       granted_at: new Date().toISOString(),
     };
@@ -465,6 +467,7 @@ export class AdminService {
           reward_tier: params.rewardTier,
           coupon_code: params.couponCode ?? null,
           note: params.note ?? null,
+          message: params.message ?? null,
           granted_by: params.grantedBy ?? null,
         },
         { client }

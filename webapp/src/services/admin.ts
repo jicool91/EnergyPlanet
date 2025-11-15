@@ -75,6 +75,7 @@ export interface RewardSeasonPayload {
   rewardTier: 'gold' | 'silver' | 'bronze';
   couponCode?: string;
   note?: string;
+  message?: string;
 }
 
 export async function rewardSeasonPlacement(

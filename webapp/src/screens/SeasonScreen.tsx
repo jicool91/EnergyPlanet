@@ -236,31 +236,47 @@ export function SeasonScreen() {
           <div className="flex flex-col gap-2">
             <h3 className="text-body font-semibold text-text-primary">Награды</h3>
             {seasonProgress.rewards.length > 0 ? (
-              seasonProgress.rewards.map((reward, index) => (
-                <div
-                  key={index}
-                  className="flex items-center justify-between rounded-2xl bg-layer-overlay-ghost-soft p-3"
-                >
-                  <div>
-                    <p className="text-body text-text-primary">
-                      {reward.rewardType === 'leaderboard'
-                        ? 'Награда за лидерборд'
-                        : reward.rewardType}
-                      {reward.rewardTier && ` (${reward.rewardTier})`}
-                    </p>
-                    {reward.finalRank && (
-                      <p className="text-caption text-text-secondary">Место: #{reward.finalRank}</p>
+              seasonProgress.rewards.map((reward, index) => {
+                const rewardMessage =
+                  reward.rewards && typeof reward.rewards === 'object'
+                    ? typeof (reward.rewards as Record<string, unknown>).message === 'string'
+                      ? ((reward.rewards as Record<string, unknown>).message as string)
+                      : null
+                    : null;
+
+                return (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between rounded-2xl bg-layer-overlay-ghost-soft p-3 gap-4"
+                  >
+                    <div className="flex-1">
+                      <p className="text-body text-text-primary">
+                        {reward.rewardType === 'leaderboard'
+                          ? 'Награда за лидерборд'
+                          : reward.rewardType}
+                        {reward.rewardTier && ` (${reward.rewardTier})`}
+                      </p>
+                      {reward.finalRank && (
+                        <p className="text-caption text-text-secondary">
+                          Место: #{reward.finalRank}
+                        </p>
+                      )}
+                      {rewardMessage && (
+                        <p className="mt-2 rounded-2xl bg-layer-overlay px-3 py-2 text-caption text-text-secondary whitespace-pre-wrap">
+                          {rewardMessage}
+                        </p>
+                      )}
+                    </div>
+                    {!reward.claimed ? (
+                      <Button size="sm" onClick={handleClaimReward}>
+                        Получить
+                      </Button>
+                    ) : (
+                      <span className="text-caption text-green-500">✓ Получено</span>
                     )}
                   </div>
-                  {!reward.claimed ? (
-                    <Button size="sm" onClick={handleClaimReward}>
-                      Получить
-                    </Button>
-                  ) : (
-                    <span className="text-caption text-green-500">✓ Получено</span>
-                  )}
-                </div>
-              ))
+                );
+              })
             ) : (
               <p className="rounded-2xl border border-dashed border-border-layer px-4 py-3 text-bodySm text-text-secondary">
                 Награды сезона появятся, когда вы выполните задания или попадёте в таблицу.

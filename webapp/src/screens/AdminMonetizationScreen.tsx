@@ -454,6 +454,13 @@ export const AdminMonetizationScreen: React.FC = () => {
               ? 'silver'
               : 'bronze';
 
+      const rewardMessage =
+        entry.rewards && typeof entry.rewards === 'object' && entry.rewards !== null
+          ? typeof (entry.rewards as Record<string, unknown>).message === 'string'
+            ? ((entry.rewards as Record<string, unknown>).message as string)
+            : null
+          : null;
+
       return {
         rank: entry.finalRank ?? 0,
         userId: entry.userId,
@@ -462,6 +469,7 @@ export const AdminMonetizationScreen: React.FC = () => {
         rewardStatus: entry.claimed ? 'granted' : 'pending',
         rewardTier: mappedTier,
         couponCode: entry.couponCode ?? null,
+        rewardMessage,
       };
     });
   }, [seasonSnapshot]);
@@ -488,17 +496,19 @@ export const AdminMonetizationScreen: React.FC = () => {
   const shopPreviewLoading = isStarPacksLoading && !starPacksLoaded;
 
   const handleRewardSeasonPlayer = useCallback(
-    async (entry: SeasonRewardEntry) => {
+    async (entry: SeasonRewardEntry, options?: { message?: string }) => {
       if (!seasonSnapshot) {
         throw new Error('Сезон не загружен');
       }
 
       setRewardingSeasonUserId(entry.userId);
       try {
+        const trimmedMessage = options?.message?.trim();
         await rewardSeasonPlacement(seasonSnapshot.seasonId, {
           userId: entry.userId,
           rewardTier: entry.rewardTier,
           couponCode: entry.couponCode ?? undefined,
+          message: trimmedMessage && trimmedMessage.length > 0 ? trimmedMessage : undefined,
         });
 
         const grantedAt = new Date().toISOString();
@@ -510,12 +520,29 @@ export const AdminMonetizationScreen: React.FC = () => {
             ...prev,
             leaderboard: prev.leaderboard.map(item =>
               item.userId === entry.userId
-                ? {
-                    ...item,
-                    claimed: true,
-                    claimedAt: grantedAt,
-                    couponCode: entry.couponCode ?? item.couponCode ?? null,
-                  }
+                ? (() => {
+                    const previousRewards =
+                      item.rewards && typeof item.rewards === 'object'
+                        ? (item.rewards as Record<string, unknown>)
+                        : {};
+                    const fallbackMessage =
+                      typeof previousRewards.message === 'string' ? previousRewards.message : null;
+                    const nextMessage =
+                      trimmedMessage && trimmedMessage.length > 0
+                        ? trimmedMessage
+                        : fallbackMessage;
+
+                    return {
+                      ...item,
+                      claimed: true,
+                      claimedAt: grantedAt,
+                      couponCode: entry.couponCode ?? item.couponCode ?? null,
+                      rewards: {
+                        ...previousRewards,
+                        message: nextMessage ?? null,
+                      },
+                    };
+                  })()
                 : item
             ),
           };

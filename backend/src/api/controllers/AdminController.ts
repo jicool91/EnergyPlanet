@@ -65,11 +65,12 @@ export class AdminController {
         throw new AppError(400, 'season_id_required');
       }
 
-      const { userId, rewardTier, couponCode, note } = (req.body ?? {}) as {
+      const { userId, rewardTier, couponCode, note, message } = (req.body ?? {}) as {
         userId?: unknown;
         rewardTier?: unknown;
         couponCode?: unknown;
         note?: unknown;
+        message?: unknown;
       };
 
       if (typeof userId !== 'string' || userId.trim().length === 0) {
@@ -87,6 +88,8 @@ export class AdminController {
           : undefined;
       const normalizedNote =
         typeof note === 'string' && note.trim().length > 0 ? note.trim() : undefined;
+      const normalizedMessage =
+        typeof message === 'string' && message.trim().length > 0 ? message.trim() : undefined;
 
       const result = await this.adminService.rewardSeasonPlacement({
         seasonId: seasonId.trim(),
@@ -94,6 +97,7 @@ export class AdminController {
         rewardTier: normalizedTier as 'gold' | 'silver' | 'bronze',
         couponCode: normalizedCoupon,
         note: normalizedNote,
+        message: normalizedMessage,
         grantedBy: req.user?.id ?? null,
       });
 
