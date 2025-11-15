@@ -305,7 +305,11 @@ export function AppLayout({ children, activeTab, tabs, onTabSelect, header }: Ap
         ) : (
           <div style={headerSpacerStyle} aria-hidden />
         )}
-        <main className="flex flex-1 flex-col" style={mainPadding} data-testid="next-ui-main">
+        <main
+          className="flex flex-1 min-h-0 flex-col overflow-y-auto"
+          style={mainPadding}
+          data-testid="next-ui-main"
+        >
           {children}
         </main>
         {isNavigationHidden ? null : (
