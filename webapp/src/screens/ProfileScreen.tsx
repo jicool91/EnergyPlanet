@@ -1,13 +1,34 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { TabPageSurface, Surface, ProfileSkeleton, ProfileSettingsScreen } from '@/components';
+import type { AccountSection } from '@/components/ProfileSettingsScreen';
 import { useGameStore } from '@/store/gameStore';
 import { useAuthStore } from '@/store/authStore';
 
+const SECTION_STORAGE_KEY = 'profile-last-section';
+
 export function ProfileScreen() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const loadProfile = useGameStore(state => state.loadProfile);
   const isProfileLoading = useGameStore(state => state.isProfileLoading);
   const profileError = useGameStore(state => state.profileError);
   const authReady = useAuthStore(state => state.authReady);
+  const initialSection = useMemo<AccountSection>(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('section');
+    if (q === 'settings' || q === 'profile') {
+      return q;
+    }
+    if (typeof window !== 'undefined') {
+      const stored = window.localStorage.getItem(SECTION_STORAGE_KEY);
+      if (stored === 'settings' || stored === 'profile') {
+        return stored;
+      }
+    }
+    return 'profile';
+  }, [location.search]);
+  const [activeSection, setActiveSection] = useState<AccountSection>(initialSection);
 
   useEffect(() => {
     if (!authReady) {
@@ -23,6 +44,27 @@ export function ProfileScreen() {
       console.warn('Failed to reload profile (ProfileScreen)', error);
     });
   }, [loadProfile]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const q = params.get('section');
+    if (q === 'settings' || q === 'profile') {
+      setActiveSection(q);
+    }
+  }, [location.search]);
+
+  const handleSectionChange = useCallback(
+    (section: AccountSection) => {
+      setActiveSection(section);
+      if (typeof window !== 'undefined') {
+        window.localStorage.setItem(SECTION_STORAGE_KEY, section);
+      }
+      const params = new URLSearchParams(location.search);
+      params.set('section', section);
+      navigate({ pathname: location.pathname, search: params.toString() }, { replace: true });
+    },
+    [location.pathname, location.search, navigate]
+  );
 
   return (
     <TabPageSurface className="gap-4" aria-label="Экран профиля">
@@ -40,7 +82,6 @@ export function ProfileScreen() {
         padding="lg"
         rounded="3xl"
         className="flex flex-col gap-lg"
-        aria-live="polite"
       >
         {profileError && !isProfileLoading ? (
           <div className="flex flex-col items-center gap-3 text-center text-text-secondary">
@@ -56,7 +97,10 @@ export function ProfileScreen() {
         ) : isProfileLoading ? (
           <ProfileSkeleton />
         ) : (
-          <ProfileSettingsScreen />
+          <ProfileSettingsScreen
+            defaultSection={activeSection}
+            onSectionChange={handleSectionChange}
+          />
         )}
       </Surface>
     </TabPageSurface>

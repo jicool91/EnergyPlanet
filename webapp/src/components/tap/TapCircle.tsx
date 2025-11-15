@@ -3,6 +3,7 @@ import clsx from 'clsx';
 import { motion } from 'framer-motion';
 import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
 import { useGyroscope } from '@/hooks/useGyroscope';
+import { useUserLocale } from '@/hooks/useUserLocale';
 import { OptimizedImage } from '../OptimizedImage';
 
 interface TapCircleProps {
@@ -28,6 +29,24 @@ export const TapCircle = memo(function TapCircle({
 }: TapCircleProps) {
   const reduceMotion = useAppReducedMotion();
   const gyroscope = useGyroscope({ enabled: !disabled, refreshRate: 60 });
+  const { language } = useUserLocale();
+
+  const heroCopy =
+    language === 'en'
+      ? {
+          tapCta: 'Tap!',
+          tapAriaLabel: 'Tap the planet to collect energy',
+          level: 'Tap level',
+          combo: 'Combo',
+          multiplier: 'Multiplier',
+        }
+      : {
+          tapCta: 'Тап!',
+          tapAriaLabel: 'Тапните планету, чтобы добыть энергию',
+          level: 'Ур. тапов',
+          combo: 'Комбо',
+          multiplier: 'Множитель',
+        };
 
   const gyroOffset = useMemo(() => {
     if (!gyroscope || reduceMotion) {
@@ -70,7 +89,7 @@ export const TapCircle = memo(function TapCircle({
         className={buttonClassName}
         onClick={disabled ? undefined : onTap}
         disabled={disabled}
-        aria-label="Тапнуть планету, чтобы добыть энергию"
+        aria-label={heroCopy.tapAriaLabel}
         animate={!reduceMotion && !disabled ? { x: gyroOffset.x, y: gyroOffset.y } : { x: 0, y: 0 }}
         transition={{ type: 'spring', stiffness: 120, damping: 18, mass: 0.6 }}
       >
@@ -93,21 +112,21 @@ export const TapCircle = memo(function TapCircle({
             🌍
           </span>
         )}
-        <span className="mt-1 text-body font-semibold">Tap!</span>
+        <span className="mt-1 text-body font-semibold">{heroCopy.tapCta}</span>
       </motion.button>
 
       <div className="flex items-center gap-3 text-body text-text-secondary">
         <span className="flex items-center gap-1 rounded-full border border-border-layer-strong px-3 py-1 text-text-primary shadow-elevation-2">
           <span aria-hidden="true">⚙️</span>
-          Tap Lv {tapLevel}
+          {heroCopy.level} {tapLevel}
         </span>
         <span className="flex items-center gap-1 rounded-full border border-border-layer px-3 py-1 text-text-secondary">
           <span aria-hidden="true">🔥</span>
-          Комбо {streakCount}
+          {heroCopy.combo} {streakCount}
         </span>
         <span className="flex items-center gap-1 rounded-full border border-border-layer px-3 py-1 text-text-secondary">
           <span aria-hidden="true">✨</span>
-          Множитель ×{boostMultiplier.toFixed(2)}
+          {heroCopy.multiplier} ×{boostMultiplier.toFixed(2)}
         </span>
       </div>
     </div>

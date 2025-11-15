@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import { Card } from '@/components/Card';
 import { Text } from '@/components/ui/Text';
+import { Button } from '@/components/Button';
 
 export interface AirdropEvent {
   id: string;
@@ -14,6 +15,7 @@ export interface AirdropEvent {
 
 interface AirdropTimelineProps {
   events: AirdropEvent[];
+  onSetReminder?: (eventId: string) => void;
 }
 
 function formatDate(date: string): string {
@@ -27,7 +29,10 @@ function formatDate(date: string): string {
   });
 }
 
-export const AirdropTimeline = memo(function AirdropTimeline({ events }: AirdropTimelineProps) {
+export const AirdropTimeline = memo(function AirdropTimeline({
+  events,
+  onSetReminder,
+}: AirdropTimelineProps) {
   if (!events.length) {
     return (
       <Card className="flex flex-col gap-3 border-border-layer bg-layer-overlay-strong">
@@ -85,6 +90,13 @@ export const AirdropTimeline = memo(function AirdropTimeline({ events }: Airdrop
               >
                 Награда: {event.reward}
               </Text>
+            ) : null}
+            {event.status === 'upcoming' && onSetReminder ? (
+              <div className="flex justify-end">
+                <Button size="sm" variant="secondary" onClick={() => onSetReminder(event.id)}>
+                  Напомнить
+                </Button>
+              </div>
             ) : null}
           </Card>
         );

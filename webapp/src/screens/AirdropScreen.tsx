@@ -1,44 +1,98 @@
-import { TabPageSurface, ClanComingSoon, AirdropTimeline } from '@/components';
-
-const SAMPLE_EVENTS = [
-  {
-    id: 'meteor-shower',
-    title: 'Метеорный дождь',
-    description: 'Собирайте метеоры, чтобы получить редкие бусты и дополнительные Stars.',
-    startsAt: new Date(Date.now() + 60 * 60 * 1000).toISOString(),
-    status: 'upcoming' as const,
-    reward: '+50% пассивного дохода на 12 часов',
-  },
-  {
-    id: 'solar-flare',
-    title: 'Солнечная вспышка',
-    description: '24-часовой челлендж: набей 100k энергии, чтобы забрать эксклюзивный скин.',
-    startsAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-    endsAt: new Date(Date.now() + 22 * 60 * 60 * 1000).toISOString(),
-    status: 'active' as const,
-    reward: 'Телеграм-стикер + уникальный тап-эффект',
-  },
-  {
-    id: 'galactic-race',
-    title: 'Галактическая гонка',
-    description: 'Сезон завершён. Следующий старт в начале месяца.',
-    startsAt: new Date(Date.now() - 12 * 24 * 60 * 60 * 1000).toISOString(),
-    endsAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-    status: 'finished' as const,
-  },
-];
+import { useCallback, useEffect, useState } from 'react';
+import {
+  TabPageSurface,
+  ClanComingSoon,
+  AirdropTimeline,
+  Surface,
+  Text,
+  Button,
+} from '@/components';
+import type { AirdropEvent } from '@/components/airdrop/AirdropTimeline';
+import { useNotification } from '@/hooks/useNotification';
+import { fetchAirdropEventsPayload, subscribeAirdropReminder } from '@/services/events';
 
 export function AirdropScreen() {
+  const { success: notifySuccess, error: notifyError } = useNotification();
+  const [events, setEvents] = useState<AirdropEvent[]>([]);
+  const [timezone, setTimezone] = useState<string>('UTC');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const loadAirdrops = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const payload = await fetchAirdropEventsPayload();
+      setEvents(payload.events);
+      setTimezone(payload.timezone ?? 'UTC');
+    } catch (err) {
+      console.error('Failed to load airdrop events', err);
+      setError('Не удалось загрузить airdrop-события.');
+      setEvents([]);
+      setTimezone('UTC');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadAirdrops().catch(() => undefined);
+  }, [loadAirdrops]);
+
+  const handleReminder = useCallback(
+    (eventId: string) => {
+      subscribeAirdropReminder(eventId)
+        .then(() => notifySuccess('Напоминание сохранено'))
+        .catch(err => {
+          console.error('Failed to save airdrop reminder', err);
+          notifyError('Не удалось сохранить напоминание');
+        });
+    },
+    [notifyError, notifySuccess]
+  );
+
   return (
     <div className="flex flex-col gap-4">
-      <header>
+      <header className="flex flex-col gap-1">
         <h1 className="text-heading font-semibold text-text-primary">Airdrop</h1>
         <p className="text-body text-text-secondary">
           Сезонные события и будущие коллаборации появятся здесь. Следите за обновлениями!
         </p>
+        <p className="text-caption text-text-tertiary">Часовой пояс расписания: {timezone}</p>
       </header>
 
-      <AirdropTimeline events={SAMPLE_EVENTS} />
+      {error && (
+        <Surface
+          tone="secondary"
+          border="strong"
+          elevation="soft"
+          padding="lg"
+          rounded="3xl"
+          className="flex flex-col gap-3"
+        >
+          <Text variant="body" tone="danger">
+            {error}
+          </Text>
+          <Button variant="secondary" size="sm" onClick={loadAirdrops} disabled={loading}>
+            Повторить
+          </Button>
+        </Surface>
+      )}
+
+      {loading ? (
+        <Surface
+          tone="secondary"
+          border="subtle"
+          elevation="soft"
+          padding="lg"
+          rounded="3xl"
+          className="text-body text-text-secondary"
+        >
+          Загружаем события…
+        </Surface>
+      ) : (
+        <AirdropTimeline events={events} onSetReminder={handleReminder} />
+      )}
 
       <TabPageSurface className="mt-2">
         <ClanComingSoon />

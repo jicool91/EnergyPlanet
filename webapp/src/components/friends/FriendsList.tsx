@@ -11,6 +11,7 @@ interface FriendsListProps {
   error?: string | null;
   onInvite: () => void;
   onViewLeaderboard: () => void;
+  onRetry: () => void;
 }
 
 export const FriendsList = memo(function FriendsList({
@@ -22,6 +23,7 @@ export const FriendsList = memo(function FriendsList({
   error,
   onInvite,
   onViewLeaderboard,
+  onRetry,
 }: FriendsListProps) {
   if (error) {
     return (
@@ -39,8 +41,8 @@ export const FriendsList = memo(function FriendsList({
         <Text variant="bodySm" tone="secondary">
           {error}
         </Text>
-        <Button size="sm" variant="secondary" onClick={onInvite}>
-          Попробовать ещё раз
+        <Button size="sm" variant="secondary" onClick={onRetry}>
+          Повторить загрузку
         </Button>
       </Surface>
     );
@@ -69,6 +71,11 @@ export const FriendsList = memo(function FriendsList({
     );
   }
 
+  const invitesExhausted =
+    dailyInvitesLimit > 0 &&
+    dailyInvitesUsed >= dailyInvitesLimit &&
+    Number.isFinite(dailyInvitesLimit);
+
   return (
     <Surface
       tone="secondary"
@@ -78,7 +85,7 @@ export const FriendsList = memo(function FriendsList({
       rounded="3xl"
       className="flex flex-col gap-4"
     >
-      <header className="flex items-center justify-between">
+      <header className="flex items-center justify-between gap-4">
         <div>
           <Text variant="label" tone="secondary" transform="uppercase">
             Реферальная программа
@@ -87,9 +94,16 @@ export const FriendsList = memo(function FriendsList({
             Приглашено друзей: {totalInvites}
           </Text>
         </div>
-        <Button size="sm" onClick={onInvite}>
-          Пригласить друга
-        </Button>
+        <div className="flex flex-col items-end gap-1">
+          <Button size="sm" onClick={onInvite} disabled={invitesExhausted}>
+            {invitesExhausted ? 'Лимит исчерпан' : 'Пригласить друга'}
+          </Button>
+          {invitesExhausted ? (
+            <Text variant="caption" tone="warning">
+              Лимит приглашений на сегодня исчерпан
+            </Text>
+          ) : null}
+        </div>
       </header>
 
       <div className="grid gap-3 sm:grid-cols-2">

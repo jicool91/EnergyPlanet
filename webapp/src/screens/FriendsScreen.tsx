@@ -1,4 +1,4 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import {
@@ -48,6 +48,7 @@ export function FriendsScreen() {
       loadOverview: state.loadOverview,
     }))
   );
+  const leaderboardSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!authReady || referral) {
@@ -95,11 +96,26 @@ export function FriendsScreen() {
     });
   }, [loadLeaderboard]);
 
+  const handleFriendsRetry = useCallback(() => {
+    loadProfile(true).catch(error => {
+      console.warn('Failed to reload referral stats', error);
+    });
+  }, [loadProfile]);
+
   const handleViewLeaderboard = useCallback(() => {
-    navigate('/friends', { replace: true });
-  }, [navigate]);
+    if (leaderboardSectionRef.current) {
+      leaderboardSectionRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      leaderboardSectionRef.current.focus({ preventScroll: true });
+    }
+  }, []);
 
   const handleInvite = useCallback(() => {
+    const dailyLimit = referralStats?.daily_invites_limit ?? 0;
+    const usedInvites = referralStats?.daily_invites_used ?? 0;
+    if (dailyLimit > 0 && usedInvites >= dailyLimit) {
+      notifySuccess('Лимит приглашений на сегодня исчерпан');
+      return;
+    }
     const baseBotLink = 'https://t.me/energy_planet_bot';
     const fallbackShareUrl = `https://t.me/share/url?url=${encodeURIComponent(
       baseBotLink
@@ -152,7 +168,7 @@ export function FriendsScreen() {
 
     window.open(shareUrl, '_blank');
     notifySuccess('Ссылка на приглашение открыта');
-  }, [notifySuccess, referral]);
+  }, [notifySuccess, referral, referralStats]);
 
   useRenderLatencyMetric({ screen: 'friends_screen' });
 
@@ -190,6 +206,7 @@ export function FriendsScreen() {
         error={profileError}
         onInvite={handleInvite}
         onViewLeaderboard={handleViewLeaderboard}
+        onRetry={handleFriendsRetry}
       />
 
       <ReferralRevenueCard
@@ -203,12 +220,14 @@ export function FriendsScreen() {
 
       {leaderboardError && !isLeaderboardLoading ? (
         <Surface
+          ref={leaderboardSectionRef}
           tone="secondary"
           border="subtle"
           elevation="soft"
           padding="lg"
           rounded="3xl"
           className="flex flex-col items-center gap-3 text-center text-text-secondary"
+          tabIndex={-1}
         >
           <Text variant="body" tone="secondary">
             Не удалось загрузить рейтинг.
@@ -219,12 +238,14 @@ export function FriendsScreen() {
         </Surface>
       ) : (
         <Surface
+          ref={leaderboardSectionRef}
           tone="secondary"
           border="subtle"
           elevation="soft"
           padding="lg"
           rounded="3xl"
           className="flex flex-col gap-4"
+          tabIndex={-1}
         >
           <LeaderboardPanel onOpenShop={handleOpenShop} />
         </Surface>

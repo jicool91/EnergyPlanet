@@ -1,12 +1,16 @@
-import { memo } from 'react';
+import { memo, useMemo, useCallback } from 'react';
+import clsx from 'clsx';
+import { motion } from 'framer-motion';
 import { Card } from '@/components/Card';
 import { Button, ProgressBar } from '@/components';
 import { Text } from '@/components/ui/Text';
+import { useAppReducedMotion } from '@/hooks/useAppReducedMotion';
+import { useUserLocale } from '@/hooks/useUserLocale';
 
 interface StatsSummaryProps {
   energy: number;
-  tapIncomeDisplay: string;
-  passiveIncomeLabel: string;
+  tapIncome: number;
+  passiveIncomePerSec: number;
   streakCount: number;
   bestStreak: number;
   multiplierLabel: string;
@@ -22,14 +26,43 @@ interface StatsSummaryProps {
   onPrestige: () => void;
 }
 
-function formatNumber(value: number): string {
-  return new Intl.NumberFormat('ru-RU', { maximumFractionDigits: 0 }).format(value);
+interface LiveMetricValueProps {
+  value: number;
+  formatter: (value: number) => string;
+  animate: boolean;
+  className?: string;
+}
+
+function LiveMetricValue({ value, formatter, animate, className }: LiveMetricValueProps) {
+  const content = formatter(value);
+
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      aria-atomic="true"
+      className={clsx('leading-tight text-text-primary tabular-nums', className)}
+    >
+      {animate ? (
+        <motion.span
+          key={content}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {content}
+        </motion.span>
+      ) : (
+        content
+      )}
+    </div>
+  );
 }
 
 export const StatsSummary = memo(function StatsSummary({
   energy,
-  tapIncomeDisplay,
-  passiveIncomeLabel,
+  tapIncome,
+  passiveIncomePerSec,
   streakCount,
   bestStreak,
   multiplierLabel,
@@ -44,6 +77,51 @@ export const StatsSummary = memo(function StatsSummary({
   isPrestigeLoading,
   onPrestige,
 }: StatsSummaryProps) {
+  const reduceMotion = useAppReducedMotion();
+  const { localeTag, language } = useUserLocale();
+
+  const integerFormatter = useMemo(
+    () => new Intl.NumberFormat(localeTag, { maximumFractionDigits: 0 }),
+    [localeTag]
+  );
+
+  const decimalFormatter = useMemo(
+    () =>
+      new Intl.NumberFormat(localeTag, {
+        minimumFractionDigits: 1,
+        maximumFractionDigits: 1,
+      }),
+    [localeTag]
+  );
+
+  const formatEnergy = useCallback(
+    (value: number) => integerFormatter.format(Math.max(0, Math.round(value))),
+    [integerFormatter]
+  );
+
+  const formatTapIncome = useCallback(
+    (value: number) => integerFormatter.format(Math.max(0, Math.round(value))),
+    [integerFormatter]
+  );
+
+  const formatPassiveIncome = useCallback(
+    (value: number) => {
+      if (!Number.isFinite(value) || value <= 0) {
+        return '—';
+      }
+      const formatted =
+        value >= 10 ? integerFormatter.format(Math.round(value)) : decimalFormatter.format(value);
+      const unit = language === 'en' ? 'E/s' : 'E/с';
+      return `${formatted} ${unit}`;
+    },
+    [decimalFormatter, integerFormatter, language]
+  );
+
+  const formatPrestigeMultiplier = useCallback(
+    (value: number) => `${language === 'en' ? 'Multiplier' : 'Множитель'} ×${value.toFixed(2)}`,
+    [language]
+  );
+
   return (
     <div className="grid gap-4 md:grid-cols-2">
       <Card className="flex flex-col gap-3">
@@ -65,25 +143,34 @@ export const StatsSummary = memo(function StatsSummary({
             <Text variant="bodySm" tone="secondary">
               Энергия
             </Text>
-            <Text as="span" variant="heading" weight="semibold">
-              {formatNumber(energy)}
-            </Text>
+            <LiveMetricValue
+              value={energy}
+              formatter={formatEnergy}
+              animate={!reduceMotion}
+              className="text-heading font-semibold"
+            />
           </div>
           <div className="flex flex-col gap-1">
             <Text variant="bodySm" tone="secondary">
               Tap доход
             </Text>
-            <Text as="span" variant="heading" weight="semibold">
-              {tapIncomeDisplay}
-            </Text>
+            <LiveMetricValue
+              value={tapIncome}
+              formatter={formatTapIncome}
+              animate={!reduceMotion}
+              className="text-heading font-semibold"
+            />
           </div>
           <div className="flex flex-col gap-1">
             <Text variant="bodySm" tone="secondary">
               Пассив
             </Text>
-            <Text as="span" variant="heading" weight="semibold">
-              {passiveIncomeLabel}
-            </Text>
+            <LiveMetricValue
+              value={passiveIncomePerSec}
+              formatter={formatPassiveIncome}
+              animate={!reduceMotion}
+              className="text-heading font-semibold"
+            />
           </div>
         </div>
         <div className="rounded-2xl border border-border-layer bg-layer-overlay-ghost px-4 py-3">
@@ -95,22 +182,17 @@ export const StatsSummary = memo(function StatsSummary({
           </Text>
         </div>
         <div className="flex items-center gap-3">
-          <Text
-            as="span"
-            variant="bodySm"
-            tone="secondary"
-            className="rounded-full border border-border-layer-strong px-3 py-1"
-          >
+          <span className="rounded-full border border-border-layer-strong px-3 py-1 text-bodySm text-text-secondary">
             Серия {streakCount}
-          </Text>
-          <Text
-            as="span"
-            variant="bodySm"
-            tone="secondary"
-            className="rounded-full border border-border-layer-strong px-3 py-1"
-          >
-            Множитель ×{prestigeMultiplier.toFixed(2)}
-          </Text>
+          </span>
+          <div className="rounded-full border border-border-layer-strong px-3 py-1 text-bodySm text-text-secondary">
+            <LiveMetricValue
+              value={prestigeMultiplier}
+              formatter={formatPrestigeMultiplier}
+              animate={!reduceMotion}
+              className="text-bodySm font-medium text-text-secondary"
+            />
+          </div>
         </div>
       </Card>
 
@@ -137,7 +219,7 @@ export const StatsSummary = memo(function StatsSummary({
         </header>
         <div className="flex flex-col gap-2">
           <Text variant="bodySm" tone="secondary">
-            Энергия с последнего престижа: {formatNumber(prestigeEnergySinceReset)}
+            Энергия с последнего престижа: {formatEnergy(prestigeEnergySinceReset)}
           </Text>
           <ProgressBar
             value={prestigeEnergySinceReset}
@@ -145,7 +227,7 @@ export const StatsSummary = memo(function StatsSummary({
             className="w-full"
           />
           <Text variant="bodySm" tone="secondary">
-            До следующего улучшения: {formatNumber(prestigeEnergyToNext)}
+            До следующего улучшения: {formatEnergy(prestigeEnergyToNext)}
           </Text>
         </div>
         <Text

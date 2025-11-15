@@ -42,17 +42,21 @@ interface PurchaseInsight {
   roiRank: number | null;
   paybackSeconds: number | null;
   incomeGain: number;
+  currentEnergy: number;
 }
 
 function PurchaseInsightCard({
   insight,
   onOpenShop,
+  onSaveGoal,
   paletteVariant = 'classic',
 }: {
   insight: PurchaseInsight;
-  onOpenShop: (section?: ShopSection) => void;
+  onOpenShop: (insight: PurchaseInsight) => void;
+  onSaveGoal?: (insight: PurchaseInsight) => void;
   paletteVariant?: string;
 }) {
+  const [goalSaved, setGoalSaved] = useState(false);
   const { name, cost, affordable, remaining, paybackSeconds, incomeGain } = insight;
   const isDualAccent = paletteVariant === 'dual-accent';
 
@@ -130,14 +134,31 @@ function PurchaseInsightCard({
         </Surface>
       </div>
       <div className="flex justify-end">
-        <Button
-          type="button"
-          size="md"
-          variant={isDualAccent ? 'primary' : 'secondary'}
-          onClick={() => onOpenShop('boosts')}
-        >
-          Улучшить сейчас
-        </Button>
+        <div className="flex flex-col items-end gap-2">
+          <Button
+            type="button"
+            size="md"
+            variant={isDualAccent ? 'primary' : 'secondary'}
+            disabled={!affordable}
+            onClick={() => onOpenShop(insight)}
+          >
+            {affordable ? 'Улучшить сейчас' : 'Недостаточно Stars'}
+          </Button>
+          {!affordable && (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => {
+                onSaveGoal?.(insight);
+                setGoalSaved(true);
+              }}
+              disabled={goalSaved}
+            >
+              {goalSaved ? 'Цель сохранена' : 'Напомнить, когда хватит'}
+            </Button>
+          )}
+        </div>
       </div>
     </Card>
   );
@@ -377,20 +398,6 @@ export function TapScreen() {
       });
   }, [tap, hapticTap, toast]);
 
-  const tapIncomeDisplay = useMemo(
-    () => Math.max(0, tapIncome).toLocaleString('ru-RU'),
-    [tapIncome]
-  );
-
-  const passiveIncomeLabel = useMemo(() => {
-    if (passiveIncomePerSec <= 0) {
-      return '—';
-    }
-    const value =
-      passiveIncomePerSec >= 10 ? Math.round(passiveIncomePerSec) : passiveIncomePerSec.toFixed(1);
-    return `${value} E/с`;
-  }, [passiveIncomePerSec]);
-
   const multiplierParts = useMemo(() => {
     const prestigePart = Math.max(1, prestigeMultiplier);
     const boostPart = Math.max(1, boostMultiplier);
@@ -489,6 +496,7 @@ export function TapScreen() {
       roiRank: target.roi_rank ?? null,
       paybackSeconds: target.paybackSeconds,
       incomeGain,
+      currentEnergy: energy,
     };
   }, [buildingCatalog, buildings, energy, level]);
 
@@ -556,6 +564,28 @@ export function TapScreen() {
     navigate('/friends');
   }, [navigate]);
 
+  const handlePurchaseInsightCta = useCallback(
+    (insight: PurchaseInsight) => {
+      void logClientEvent('purchase_insight_cta_click', {
+        target: insight.name,
+        affordable: insight.affordable,
+      });
+      handleOpenShop('boosts');
+    },
+    [handleOpenShop]
+  );
+
+  const handlePurchaseInsightGoal = useCallback(
+    (insight: PurchaseInsight) => {
+      void logClientEvent('purchase_insight_goal', {
+        target: insight.name,
+        remaining: insight.remaining,
+      });
+      toast('Напомним, когда наберётся нужная сумма для улучшения', 3200, 'info');
+    },
+    [toast]
+  );
+
   useEffect(() => {
     if (!isInitialized || experimentExposureLoggedRef.current) {
       return;
@@ -591,8 +621,8 @@ export function TapScreen() {
 
         <StatsSummary
           energy={energy}
-          tapIncomeDisplay={tapIncomeDisplay}
-          passiveIncomeLabel={passiveIncomeLabel}
+          tapIncome={Math.max(0, tapIncome)}
+          passiveIncomePerSec={Math.max(0, passiveIncomePerSec)}
           streakCount={streakCount}
           bestStreak={bestStreak}
           multiplierLabel={multiplierLabel}
@@ -642,7 +672,8 @@ export function TapScreen() {
         {purchaseInsight ? (
           <PurchaseInsightCard
             insight={purchaseInsight}
-            onOpenShop={handleOpenShop}
+            onOpenShop={handlePurchaseInsightCta}
+            onSaveGoal={handlePurchaseInsightGoal}
             paletteVariant={paletteVariant}
           />
         ) : null}

@@ -7,6 +7,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { TabPageSurface, Surface, Button } from '@/components';
 import { apiClient } from '@/services/apiClient';
 import { useAuthStore } from '@/store/authStore';
+import { useNotification } from '@/hooks/useNotification';
 
 interface SeasonInfo {
   seasonId: string;
@@ -73,6 +74,9 @@ export function SeasonScreen() {
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { success: notifySuccess, error: notifyError } = useNotification();
+  const [claimError, setClaimError] = useState<string | null>(null);
+  const [visibleLeaderboardCount, setVisibleLeaderboardCount] = useState(0);
 
   const loadSeasonData = useCallback(async () => {
     setLoading(true);
@@ -110,14 +114,41 @@ export function SeasonScreen() {
     loadSeasonData();
   }, [loadSeasonData]);
 
+  useEffect(() => {
+    if (leaderboard.length === 0) {
+      setVisibleLeaderboardCount(0);
+      return;
+    }
+    setVisibleLeaderboardCount(prev =>
+      prev === 0 ? Math.min(20, leaderboard.length) : Math.min(prev, leaderboard.length)
+    );
+  }, [leaderboard.length]);
+
+  const effectiveVisibleCount =
+    visibleLeaderboardCount > 0
+      ? Math.min(visibleLeaderboardCount, leaderboard.length)
+      : Math.min(20, leaderboard.length);
+  const displayedLeaderboard = leaderboard.slice(0, effectiveVisibleCount);
+  const hasMoreLeaderboard = effectiveVisibleCount < leaderboard.length;
+
+  const handleShowMoreLeaders = useCallback(() => {
+    setVisibleLeaderboardCount(prev => {
+      const base = prev === 0 ? Math.min(20, leaderboard.length) : prev;
+      return Math.min(base + 20, leaderboard.length);
+    });
+  }, [leaderboard.length]);
+
   const handleClaimReward = async () => {
+    setClaimError(null);
     try {
       await apiClient.post('/api/v1/season/claim-leaderboard-reward');
-      // Reload progress after claiming
       await loadSeasonData();
+      notifySuccess?.('Награда за сезон получена');
     } catch (err) {
       console.error('Failed to claim reward:', err);
-      alert('Не удалось получить награду');
+      const message = 'Не удалось получить награду';
+      setClaimError(message);
+      notifyError?.(message);
     }
   };
 
@@ -202,10 +233,10 @@ export function SeasonScreen() {
           </div>
 
           {/* Rewards */}
-          {seasonProgress.rewards.length > 0 && (
-            <div className="flex flex-col gap-2">
-              <h3 className="text-body font-semibold text-text-primary">Награды</h3>
-              {seasonProgress.rewards.map((reward, index) => (
+          <div className="flex flex-col gap-2">
+            <h3 className="text-body font-semibold text-text-primary">Награды</h3>
+            {seasonProgress.rewards.length > 0 ? (
+              seasonProgress.rewards.map((reward, index) => (
                 <div
                   key={index}
                   className="flex items-center justify-between rounded-2xl bg-layer-overlay-ghost-soft p-3"
@@ -229,9 +260,14 @@ export function SeasonScreen() {
                     <span className="text-caption text-green-500">✓ Получено</span>
                   )}
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            ) : (
+              <p className="rounded-2xl border border-dashed border-border-layer px-4 py-3 text-bodySm text-text-secondary">
+                Награды сезона появятся, когда вы выполните задания или попадёте в таблицу.
+              </p>
+            )}
+            {claimError && <p className="text-caption text-feedback-error">{claimError}</p>}
+          </div>
 
           {/* Events */}
           {seasonProgress.events.length > 0 && (
@@ -271,14 +307,14 @@ export function SeasonScreen() {
         className="flex flex-col gap-4"
       >
         <h2 className="text-body-lg font-semibold text-text-primary">
-          Лидерборд (Топ {leaderboard.length})
+          Лидерборд (Топ {displayedLeaderboard.length})
         </h2>
 
         <div className="flex flex-col gap-2">
           {leaderboard.length === 0 ? (
             <p className="text-center text-body text-text-secondary">Пока нет участников</p>
           ) : (
-            leaderboard.slice(0, 20).map(entry => (
+            displayedLeaderboard.map(entry => (
               <div
                 key={entry.userId}
                 className="flex items-center justify-between rounded-2xl bg-layer-overlay-ghost-soft p-3"
@@ -310,6 +346,13 @@ export function SeasonScreen() {
             ))
           )}
         </div>
+        {hasMoreLeaderboard && (
+          <div className="flex justify-center pt-2">
+            <Button variant="ghost" size="sm" onClick={handleShowMoreLeaders}>
+              Показать ещё
+            </Button>
+          </div>
+        )}
       </Surface>
     </TabPageSurface>
   );

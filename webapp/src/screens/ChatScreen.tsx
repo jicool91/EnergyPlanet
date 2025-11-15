@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, useId } from 'react';
 import clsx from 'clsx';
 import { useShallow } from 'zustand/react/shallow';
 import { isAxiosError } from 'axios';
+import { Virtuoso, type VirtuosoHandle, type ListRange } from 'react-virtuoso';
 import { Panel, Surface, Button, Loader, ClanComingSoon } from '@/components';
 import { useAuthStore } from '@/store/authStore';
 import { useGameStore } from '@/store/gameStore';
@@ -12,7 +13,6 @@ import { useNotification } from '@/hooks/useNotification';
 import { logClientEvent } from '@/services/telemetry';
 
 const POLL_INTERVAL_MS = 5000;
-const NEW_MESSAGE_SCROLL_THRESHOLD = 64;
 const MAX_CHAT_LENGTH = 500;
 
 type ChatScope = 'global' | 'clan';
@@ -122,14 +122,19 @@ function GlobalChatSection() {
     }))
   );
 
-  const scrollRef = useRef<HTMLDivElement>(null);
+  const virtuosoRef = useRef<VirtuosoHandle | null>(null);
   const isAtBottomRef = useRef(true);
   const [isAtBottom, setIsAtBottom] = useState(true);
   const [queuedNewCount, setQueuedNewCount] = useState(0);
   const prevLengthRef = useRef(0);
-  const prependAnchorRef = useRef<{ height: number; scrollTop: number } | null>(null);
+  const pendingScrollAdjustmentRef = useRef<{ anchorIndex: number } | null>(null);
+  const lastVisibleRangeRef = useRef<ListRange | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [isComposerFocused, setIsComposerFocused] = useState(false);
+  const [newMessageAnnouncement, setNewMessageAnnouncement] = useState<string | null>(null);
+  const composerInputId = useId();
+  const composerCounterId = `${composerInputId}-counter`;
+  const remainingCharacters = Math.max(0, MAX_CHAT_LENGTH - inputValue.length);
 
   const viewerAuthor: GlobalChatAuthor | null = useMemo(() => {
     if (!userId) {
@@ -147,16 +152,12 @@ function GlobalChatSection() {
     };
   }, [level, profile, userId, username]);
 
-  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'auto') => {
-    const container = scrollRef.current;
-    if (!container) {
-      return;
-    }
-    container.scrollTo({ top: container.scrollHeight, behavior });
+  const scrollToBottom = useCallback((behavior: 'auto' | 'smooth' = 'auto') => {
+    virtuosoRef.current?.scrollToIndex({ index: 'LAST', align: 'end', behavior });
   }, []);
 
   const scrollToBottomAndReset = useCallback(
-    (behavior: ScrollBehavior = 'auto') => {
+    (behavior: 'auto' | 'smooth' = 'auto') => {
       scrollToBottom(behavior);
       isAtBottomRef.current = true;
       setIsAtBottom(true);
@@ -195,6 +196,18 @@ function GlobalChatSection() {
   }, [isComposerFocused, setBottomNavHidden]);
 
   useEffect(() => {
+    if (queuedNewCount > 0) {
+      setNewMessageAnnouncement(
+        queuedNewCount > 1
+          ? `Появилось ${queuedNewCount} новых сообщений`
+          : 'Появилось новое сообщение'
+      );
+    } else {
+      setNewMessageAnnouncement(null);
+    }
+  }, [queuedNewCount]);
+
+  useEffect(() => {
     if (!authReady || !userId) {
       return;
     }
@@ -217,44 +230,40 @@ function GlobalChatSection() {
   }, [authReady, userId, pollNew, scrollToBottomAndReset]);
 
   useEffect(() => {
-    const container = scrollRef.current;
-    if (!container || !prependAnchorRef.current || isLoadingMore) {
-      return;
-    }
-
-    const { height, scrollTop } = prependAnchorRef.current;
-    const diff = container.scrollHeight - height;
-    container.scrollTop = scrollTop + diff;
-    prependAnchorRef.current = null;
-  }, [isLoadingMore]);
-
-  useEffect(() => {
     const currentLength = messages.length;
     const prevLength = prevLengthRef.current;
-
-    if (currentLength === prevLength) {
-      return;
-    }
-
+    const diff = currentLength - prevLength;
     prevLengthRef.current = currentLength;
 
-    if (prependAnchorRef.current) {
+    if (pendingScrollAdjustmentRef.current && diff > 0) {
+      const anchorIndex = pendingScrollAdjustmentRef.current.anchorIndex;
+      virtuosoRef.current?.scrollToIndex({
+        index: anchorIndex + diff,
+        align: 'start',
+        behavior: 'auto',
+      });
+      pendingScrollAdjustmentRef.current = null;
       return;
     }
 
-    if (currentLength > 0 && isAtBottomRef.current) {
+    if (diff > 0 && isAtBottomRef.current) {
       scrollToBottom(prevLength === 0 ? 'auto' : 'smooth');
     }
   }, [messages, scrollToBottom]);
 
-  const handleScroll = useCallback(() => {
-    const container = scrollRef.current;
-    if (!container) {
+  const handleLoadOlder = useCallback(() => {
+    if (!hasMore || isLoadingMore) {
       return;
     }
-    const distanceFromBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight;
-    const atBottom = distanceFromBottom <= NEW_MESSAGE_SCROLL_THRESHOLD;
+    const anchorIndex = lastVisibleRangeRef.current?.startIndex ?? 0;
+    pendingScrollAdjustmentRef.current = { anchorIndex };
+    loadOlder().catch(reason => {
+      pendingScrollAdjustmentRef.current = null;
+      console.warn('Failed to load older chat messages', reason);
+    });
+  }, [hasMore, isLoadingMore, loadOlder]);
+
+  const handleAtBottomStateChange = useCallback((atBottom: boolean) => {
     isAtBottomRef.current = atBottom;
     setIsAtBottom(atBottom);
     if (atBottom) {
@@ -262,21 +271,9 @@ function GlobalChatSection() {
     }
   }, []);
 
-  const handleLoadOlder = useCallback(() => {
-    if (!hasMore || isLoadingMore) {
-      return;
-    }
-    const container = scrollRef.current;
-    if (container) {
-      prependAnchorRef.current = {
-        height: container.scrollHeight,
-        scrollTop: container.scrollTop,
-      };
-    }
-    loadOlder().catch(reason => {
-      console.warn('Failed to load older chat messages', reason);
-    });
-  }, [hasMore, isLoadingMore, loadOlder]);
+  const handleRangeChanged = useCallback((range: ListRange) => {
+    lastVisibleRangeRef.current = range;
+  }, []);
 
   const handleSend = useCallback(() => {
     if (!viewerAuthor) {
@@ -380,11 +377,7 @@ function GlobalChatSection() {
         rounded="3xl"
         className="flex w-full flex-1 min-h-0 flex-col overflow-hidden"
       >
-        <div
-          ref={scrollRef}
-          onScroll={handleScroll}
-          className="relative flex-1 overflow-y-auto px-4 py-4"
-        >
+        <div className="relative flex-1 min-h-0 px-4 py-4">
           {isLoading && !initialized ? (
             <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-text-secondary">
               <Loader label="Загружаем сообщения" />
@@ -400,7 +393,7 @@ function GlobalChatSection() {
               </p>
             </div>
           ) : (
-            <div className="flex flex-col gap-4">
+            <div className="flex h-full flex-col gap-3">
               {hasMore && (
                 <div className="flex justify-center">
                   <Button
@@ -413,58 +406,93 @@ function GlobalChatSection() {
                   </Button>
                 </div>
               )}
-              <ul className="flex flex-col gap-3">
-                {messages.map(message => (
-                  <MessageBubble
-                    key={message.id}
-                    message={message}
-                    isOwn={message.author.user_id === userId}
-                  />
-                ))}
-              </ul>
+              <div className="flex-1 min-h-0">
+                <Virtuoso
+                  ref={virtuosoRef}
+                  data={messages}
+                  style={{ height: '100%' }}
+                  className="h-full"
+                  computeItemKey={(_, message) => message.id}
+                  atBottomStateChange={handleAtBottomStateChange}
+                  rangeChanged={handleRangeChanged}
+                  followOutput={isAtBottom ? 'smooth' : false}
+                  components={{
+                    Footer: () => <div className="h-6" />,
+                  }}
+                  itemContent={(_, message) => (
+                    <MessageBubble message={message} isOwn={message.author.user_id === userId} />
+                  )}
+                />
+              </div>
             </div>
           )}
 
           {queuedNewCount > 0 && !isAtBottom && (
-            <div className="pointer-events-none absolute bottom-6 left-0 flex w-full justify-center">
-              <Button
-                variant="primary"
-                size="sm"
-                className="pointer-events-auto"
-                onClick={() => {
-                  setQueuedNewCount(0);
-                  scrollToBottomAndReset('smooth');
-                }}
-              >
-                {queuedNewCount > 1
-                  ? `Показать ${queuedNewCount} новых`
-                  : 'Показать новое сообщение'}
-              </Button>
-            </div>
+            <>
+              <div className="pointer-events-none absolute bottom-6 left-0 flex w-full justify-center">
+                <Button
+                  variant="primary"
+                  size="sm"
+                  className="pointer-events-auto"
+                  onClick={() => {
+                    setQueuedNewCount(0);
+                    scrollToBottomAndReset('smooth');
+                  }}
+                >
+                  {queuedNewCount > 1
+                    ? `Показать ${queuedNewCount} новых`
+                    : 'Показать новое сообщение'}
+                </Button>
+              </div>
+              <div className="sr-only" aria-live="polite">
+                {newMessageAnnouncement}
+              </div>
+            </>
           )}
         </div>
 
         <div className="border-t border-border-layer bg-layer-overlay-soft px-4 py-3">
-          <div className="flex items-end gap-3">
-            <textarea
-              value={inputValue}
-              maxLength={MAX_CHAT_LENGTH}
-              onChange={event => setInputValue(event.target.value)}
-              onKeyDown={handleKeyDown}
-              onFocus={() => setIsComposerFocused(true)}
-              onBlur={() => setIsComposerFocused(false)}
-              placeholder="Напишите что-нибудь…"
-              className="min-h-[56px] flex-1 resize-none rounded-2xl border border-border-layer bg-transparent px-4 py-3 text-body text-text-primary placeholder:text-text-secondary focus:border-accent-gold focus:outline-none"
-            />
-            <Button
-              variant="primary"
-              size="md"
-              loading={isSending}
-              disabled={!inputValue.trim()}
-              onClick={handleSend}
-            >
-              Отправить
-            </Button>
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-between">
+              <label
+                htmlFor={composerInputId}
+                className="text-bodySm font-medium text-text-secondary"
+              >
+                Сообщение
+              </label>
+              <span
+                id={composerCounterId}
+                className={clsx(
+                  'text-caption',
+                  remainingCharacters <= 50 ? 'text-feedback-warning' : 'text-text-secondary'
+                )}
+              >
+                Осталось {remainingCharacters}
+              </span>
+            </div>
+            <div className="flex items-end gap-3">
+              <textarea
+                id={composerInputId}
+                aria-describedby={composerCounterId}
+                value={inputValue}
+                maxLength={MAX_CHAT_LENGTH}
+                onChange={event => setInputValue(event.target.value)}
+                onKeyDown={handleKeyDown}
+                onFocus={() => setIsComposerFocused(true)}
+                onBlur={() => setIsComposerFocused(false)}
+                placeholder="Напишите что-нибудь…"
+                className="min-h-[56px] flex-1 resize-none rounded-2xl border border-border-layer bg-transparent px-4 py-3 text-body text-text-primary placeholder:text-text-secondary focus:border-accent-gold focus:outline-none"
+              />
+              <Button
+                variant="primary"
+                size="md"
+                loading={isSending}
+                disabled={!inputValue.trim()}
+                onClick={handleSend}
+              >
+                Отправить
+              </Button>
+            </div>
           </div>
         </div>
       </Surface>
