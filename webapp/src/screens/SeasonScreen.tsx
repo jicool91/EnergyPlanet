@@ -4,7 +4,9 @@
  */
 
 import { useEffect, useState, useCallback } from 'react';
-import { TabPageSurface, Surface, Button } from '@/components';
+import { isAxiosError } from 'axios';
+import { TabPageSurface, Surface, Button, BattlePassPanel } from '@/components';
+import type { BattlePassViewModel } from '@/components';
 import { apiClient } from '@/services/apiClient';
 import { useAuthStore } from '@/store/authStore';
 import { useNotification } from '@/hooks/useNotification';
@@ -36,6 +38,7 @@ interface SeasonProgress {
   isActive: boolean;
   rewards: SeasonReward[];
   events: SeasonEvent[];
+  battlePass: BattlePassViewModel | null;
 }
 
 interface SeasonReward {
@@ -67,6 +70,23 @@ interface LeaderboardEntry {
   seasonXp: number;
 }
 
+const battlePassErrorMessages: Record<string, string> = {
+  insufficient_stars: 'Недостаточно Stars для покупки премиум-пасса.',
+  already_unlocked: 'Премиум-версия уже активирована.',
+  battle_pass_disabled: 'Боевой пропуск временно недоступен.',
+  tier_locked: 'Сначала накопите достаточно XP для этого тира.',
+  premium_required: 'Нужно активировать премиум, чтобы забрать эту награду.',
+  reward_already_claimed: 'Эта награда уже была получена.',
+  no_rewards_defined: 'Для этого тира пока нет наград.',
+};
+
+const resolveBattlePassErrorMessage = (code?: string) => {
+  if (code && battlePassErrorMessages[code]) {
+    return battlePassErrorMessages[code];
+  }
+  return 'Действие с боевым пропуском не удалось. Попробуйте позже.';
+};
+
 export function SeasonScreen() {
   const authReady = useAuthStore(state => state.authReady);
   const [seasonInfo, setSeasonInfo] = useState<SeasonInfo | null>(null);
@@ -77,6 +97,8 @@ export function SeasonScreen() {
   const { success: notifySuccess, error: notifyError } = useNotification();
   const [claimError, setClaimError] = useState<string | null>(null);
   const [visibleLeaderboardCount, setVisibleLeaderboardCount] = useState(0);
+  const [battlePassPurchaseLoading, setBattlePassPurchaseLoading] = useState(false);
+  const [battlePassClaimingKey, setBattlePassClaimingKey] = useState<string | null>(null);
 
   const loadSeasonData = useCallback(async () => {
     setLoading(true);
@@ -137,6 +159,46 @@ export function SeasonScreen() {
       return Math.min(base + 20, leaderboard.length);
     });
   }, [leaderboard.length]);
+
+  const handlePurchaseBattlePass = useCallback(async () => {
+    if (!seasonProgress?.battlePass) {
+      notifyError?.('Боевой пропуск недоступен.');
+      return;
+    }
+
+    setBattlePassPurchaseLoading(true);
+    try {
+      await apiClient.post('/api/v1/season/battle-pass/purchase');
+      notifySuccess?.('Премиум-пасс активирован.');
+      await loadSeasonData();
+    } catch (err) {
+      const code = isAxiosError(err)
+        ? ((err.response?.data as { error?: string })?.error ?? undefined)
+        : undefined;
+      notifyError?.(resolveBattlePassErrorMessage(code));
+    } finally {
+      setBattlePassPurchaseLoading(false);
+    }
+  }, [seasonProgress, notifyError, notifySuccess, loadSeasonData]);
+
+  const handleClaimBattlePassReward = useCallback(
+    async (tier: number, track: 'free' | 'premium') => {
+      setBattlePassClaimingKey(`${tier}-${track}`);
+      try {
+        await apiClient.post('/api/v1/season/battle-pass/claim', { tier, track });
+        notifySuccess?.('Награда получена.');
+        await loadSeasonData();
+      } catch (err) {
+        const code = isAxiosError(err)
+          ? ((err.response?.data as { error?: string })?.error ?? undefined)
+          : undefined;
+        notifyError?.(resolveBattlePassErrorMessage(code));
+      } finally {
+        setBattlePassClaimingKey(null);
+      }
+    },
+    [notifyError, notifySuccess, loadSeasonData]
+  );
 
   const handleClaimReward = async () => {
     setClaimError(null);
@@ -311,6 +373,16 @@ export function SeasonScreen() {
             </div>
           )}
         </Surface>
+      )}
+
+      {seasonProgress?.battlePass && seasonProgress.battlePass.enabled && (
+        <BattlePassPanel
+          battlePass={seasonProgress.battlePass}
+          onPurchase={handlePurchaseBattlePass}
+          onClaim={handleClaimBattlePassReward}
+          purchaseLoading={battlePassPurchaseLoading}
+          claimingKey={battlePassClaimingKey}
+        />
       )}
 
       {/* Leaderboard */}

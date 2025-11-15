@@ -19,5 +19,7 @@ router.get('/progress', authenticate, controller.getProgress);
 router.post('/claim-leaderboard-reward', authenticate, controller.claimLeaderboardReward);
 router.post('/events/:eventId/participate', authenticate, controller.participateInEvent);
 router.post('/events/:eventId/claim-reward', authenticate, controller.claimEventReward);
+router.post('/battle-pass/purchase', authenticate, controller.purchaseBattlePass);
+router.post('/battle-pass/claim', authenticate, controller.claimBattlePassReward);
 
 export default router;

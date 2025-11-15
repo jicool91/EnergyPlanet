@@ -115,7 +115,53 @@ season:
 
   # Battle pass tiers (future feature)
   battle_pass:
-    enabled: false
-    tiers: 50
-    free_rewards: []
-    premium_rewards: []
+    enabled: true
+    xp_per_tier: 5000
+    premium_price_stars: 400
+    max_tiers: 10
+    tiers:
+      - tier: 1
+        free_rewards:
+          - type: energy
+            amount: 5000
+        premium_rewards:
+          - type: stars
+            amount: 50
+          - type: cosmetic
+            item_id: genesis_top10_badge
+
+      - tier: 2
+        free_rewards:
+          - type: stars
+            amount: 25
+        premium_rewards:
+          - type: energy
+            amount: 20000
+
+      - tier: 3
+        free_rewards:
+          - type: cosmetic
+            item_id: genesis_planet_skin
+        premium_rewards:
+          - type: stars
+            amount: 75
+
+      - tier: 4
+        free_rewards:
+          - type: energy
+            amount: 35000
+        premium_rewards:
+          - type: stars
+            amount: 100
+          - type: cosmetic
+            item_id: genesis_champion_frame
+
+      - tier: 5
+        free_rewards:
+          - type: stars
+            amount: 50
+        premium_rewards:
+          - type: energy
+            amount: 50000
+          - type: stars
+            amount: 150

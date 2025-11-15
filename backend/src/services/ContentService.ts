@@ -93,6 +93,26 @@ interface SeasonEvent {
   };
 }
 
+interface BattlePassRewardConfig {
+  type: string;
+  item_id?: string;
+  amount?: number;
+}
+
+interface BattlePassTierConfig {
+  tier: number;
+  free_rewards?: BattlePassRewardConfig[];
+  premium_rewards?: BattlePassRewardConfig[];
+}
+
+interface BattlePassConfig {
+  enabled: boolean;
+  xp_per_tier?: number;
+  premium_price_stars?: number;
+  max_tiers?: number;
+  tiers?: BattlePassTierConfig[];
+}
+
 interface Season {
   season: {
     id: string;
@@ -115,12 +135,7 @@ interface Season {
     leaderboard_rewards?: SeasonReward[];
     events?: SeasonEvent[];
     exclusive_cosmetics?: string[];
-    battle_pass?: {
-      enabled: boolean;
-      tiers?: number;
-      free_rewards?: unknown[];
-      premium_rewards?: unknown[];
-    };
+    battle_pass?: BattlePassConfig;
   };
 }
 

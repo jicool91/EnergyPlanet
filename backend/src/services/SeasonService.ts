@@ -9,20 +9,6 @@ import * as SeasonRepository from '../repositories/SeasonRepository';
 import * as ProgressRepository from '../repositories/ProgressRepository';
 import { logger } from '../utils/logger';
 
-export interface SeasonProgressResponse {
-  seasonId: string;
-  seasonName: string;
-  seasonNumber: number;
-  seasonXp: number;
-  seasonEnergyProduced: number;
-  leaderboardRank: number | null;
-  startDate: string | null;
-  endDate: string | null;
-  isActive: boolean;
-  rewards: SeasonRewardInfo[];
-  events: SeasonEventInfo[];
-}
-
 export interface SeasonRewardInfo {
   rewardType: string;
   rewardTier: string | null;
@@ -30,6 +16,36 @@ export interface SeasonRewardInfo {
   rewards: Record<string, unknown>;
   claimed: boolean;
   claimedAt: string | null;
+}
+
+export interface BattlePassRewardInfo {
+  type: string;
+  amount?: number;
+  itemId?: string;
+}
+
+export interface BattlePassTierInfo {
+  tier: number;
+  requiredXp: number;
+  freeRewards: BattlePassRewardInfo[];
+  premiumRewards: BattlePassRewardInfo[];
+  freeClaimed: boolean;
+  premiumClaimed: boolean;
+  freeClaimable: boolean;
+  premiumClaimable: boolean;
+}
+
+export interface BattlePassProgressInfo {
+  enabled: boolean;
+  premiumPurchased: boolean;
+  premiumPriceStars: number;
+  totalTiers: number;
+  xpPerTier: number;
+  currentTier: number;
+  xpIntoCurrentTier: number;
+  xpToNextTier: number | null;
+  nextTierXp: number | null;
+  tiers: BattlePassTierInfo[];
 }
 
 export interface SeasonEventInfo {
@@ -60,6 +76,21 @@ export interface LeaderboardEntry {
   rank: number;
   seasonEnergyProduced: number;
   seasonXp: number;
+}
+
+export interface SeasonProgressResponse {
+  seasonId: string;
+  seasonName: string;
+  seasonNumber: number;
+  seasonXp: number;
+  seasonEnergyProduced: number;
+  leaderboardRank: number | null;
+  startDate: string | null;
+  endDate: string | null;
+  isActive: boolean;
+  rewards: SeasonRewardInfo[];
+  events: SeasonEventInfo[];
+  battlePass: BattlePassProgressInfo | null;
 }
 
 export class SeasonService {
@@ -118,6 +149,7 @@ export class SeasonService {
 
     // Get season rewards
     const rewardRecords = await SeasonRepository.getSeasonRewards(userId, seasonId, client);
+    const seasonPass = await SeasonRepository.getSeasonPass(userId, seasonId, client);
     const rewards: SeasonRewardInfo[] = rewardRecords.map(r => ({
       rewardType: r.rewardType,
       rewardTier: r.rewardTier,
@@ -129,6 +161,7 @@ export class SeasonService {
 
     // Get season events info
     const events: SeasonEventInfo[] = await this.getSeasonEvents(userId, season, client);
+    const battlePass = this.buildBattlePassProgress(season, progress, rewardRecords, seasonPass);
 
     return {
       seasonId: season.season.id,
@@ -142,6 +175,7 @@ export class SeasonService {
       isActive,
       rewards,
       events,
+      battlePass,
     };
   }
 
@@ -181,6 +215,91 @@ export class SeasonService {
     }
 
     return events;
+  }
+
+  private buildBattlePassProgress(
+    season: Season,
+    progress: SeasonRepository.SeasonProgressRecord,
+    rewardRecords: SeasonRepository.SeasonRewardRecord[],
+    seasonPass: SeasonRepository.SeasonPassRecord | null
+  ): BattlePassProgressInfo | null {
+    const battlePassConfig = season.season.battle_pass;
+    if (!battlePassConfig || !battlePassConfig.enabled) {
+      return null;
+    }
+
+    const tiersFromContent = battlePassConfig.tiers ?? [];
+    const totalTiers = Math.max(
+      battlePassConfig.max_tiers ?? tiersFromContent.length,
+      tiersFromContent.length
+    );
+
+    if (totalTiers <= 0) {
+      return null;
+    }
+
+    const xpPerTier = Math.max(1, battlePassConfig.xp_per_tier ?? 5000);
+    const premiumPriceStars = Math.max(0, battlePassConfig.premium_price_stars ?? 0);
+    const premiumPurchased = Boolean(seasonPass?.isPremium);
+
+    const tierMap = new Map<number, (typeof tiersFromContent)[number]>();
+    for (const tierDef of tiersFromContent) {
+      if (typeof tierDef?.tier === 'number' && tierDef.tier > 0) {
+        tierMap.set(tierDef.tier, tierDef);
+      }
+    }
+
+    const claimedRewardTypes = new Set(
+      rewardRecords
+        .filter(record => record.rewardType.startsWith('battle_pass_'))
+        .map(record => record.rewardType)
+    );
+
+    const tiers: BattlePassTierInfo[] = [];
+    for (let tier = 1; tier <= totalTiers; tier += 1) {
+      const tierConfig = tierMap.get(tier);
+      const requiredXp = Math.max(0, xpPerTier * (tier - 1));
+      const freeRewards = this.normalizeBattlePassRewards(tierConfig?.free_rewards);
+      const premiumRewards = this.normalizeBattlePassRewards(tierConfig?.premium_rewards);
+      const hasProgress = progress.seasonXp >= requiredXp;
+      const freeKey = this.getBattlePassRewardKey(tier, 'free');
+      const premiumKey = this.getBattlePassRewardKey(tier, 'premium');
+      const freeClaimed = claimedRewardTypes.has(freeKey);
+      const premiumClaimed = claimedRewardTypes.has(premiumKey);
+
+      tiers.push({
+        tier,
+        requiredXp,
+        freeRewards,
+        premiumRewards,
+        freeClaimed,
+        premiumClaimed,
+        freeClaimable: hasProgress && freeRewards.length > 0 && !freeClaimed,
+        premiumClaimable:
+          hasProgress &&
+          premiumRewards.length > 0 &&
+          premiumPurchased &&
+          !premiumClaimed,
+      });
+    }
+
+    const currentTier = Math.min(totalTiers, Math.floor(progress.seasonXp / xpPerTier) + 1);
+    const xpIntoCurrentTier = progress.seasonXp - xpPerTier * (currentTier - 1);
+    const xpToNextTier = currentTier >= totalTiers ? null : Math.max(0, xpPerTier - xpIntoCurrentTier);
+    const nextTierXp = currentTier >= totalTiers ? null : xpPerTier * currentTier;
+
+    return {
+      enabled: true,
+      premiumPurchased,
+      premiumPriceStars,
+      totalTiers,
+      xpPerTier,
+      currentTier,
+      xpIntoCurrentTier,
+      xpToNextTier,
+      nextTierXp,
+      tiers,
+    };
   }
 
   /**
@@ -456,6 +575,166 @@ export class SeasonService {
     return { success: true };
   }
 
+  async purchaseBattlePass(
+    userId: string,
+    client?: PoolClient
+  ): Promise<{ success: boolean; error?: string }> {
+    const season = this.getCurrentSeason();
+
+    if (!season || !this.isSeasonActive(season)) {
+      return { success: false, error: 'No active season' };
+    }
+
+    const battlePassConfig = season.season.battle_pass;
+    if (!battlePassConfig || !battlePassConfig.enabled) {
+      return { success: false, error: 'Battle pass disabled' };
+    }
+
+    const seasonId = season.season.id;
+    const existingPass = await SeasonRepository.getSeasonPass(userId, seasonId, client);
+    if (existingPass?.isPremium) {
+      return { success: false, error: 'already_unlocked' };
+    }
+
+    const priceStars = Math.max(0, battlePassConfig.premium_price_stars ?? 0);
+
+    if (priceStars > 0) {
+      try {
+        await ProgressRepository.adjustStarsBalance(userId, -priceStars, client);
+      } catch (error) {
+        if (error instanceof Error && error.message === 'insufficient_stars') {
+          return { success: false, error: 'insufficient_stars' };
+        }
+        throw error;
+      }
+    }
+
+    await SeasonRepository.unlockSeasonPass(
+      userId,
+      seasonId,
+      {
+        priceStars,
+        source: 'stars_balance',
+        payload: {
+          season_number: season.season.number,
+        },
+      },
+      client
+    );
+
+    logger.info({ userId, seasonId, priceStars }, 'battle_pass_unlocked');
+    return { success: true };
+  }
+
+  async claimBattlePassReward(
+    userId: string,
+    tier: number,
+    track: 'free' | 'premium',
+    client?: PoolClient
+  ): Promise<{ success: boolean; error?: string; reward?: SeasonRewardInfo }> {
+    if (!Number.isFinite(tier) || tier <= 0) {
+      return { success: false, error: 'invalid_tier' };
+    }
+
+    const season = this.getCurrentSeason();
+    if (!season) {
+      return { success: false, error: 'No active season' };
+    }
+
+    const battlePassConfig = season.season.battle_pass;
+    if (!battlePassConfig || !battlePassConfig.enabled) {
+      return { success: false, error: 'Battle pass disabled' };
+    }
+
+    const xpPerTier = Math.max(1, battlePassConfig.xp_per_tier ?? 5000);
+    const totalTiers = Math.max(
+      battlePassConfig.max_tiers ?? (battlePassConfig.tiers ?? []).length,
+      (battlePassConfig.tiers ?? []).length
+    );
+
+    if (tier > totalTiers) {
+      return { success: false, error: 'tier_out_of_range' };
+    }
+
+    const seasonId = season.season.id;
+    const progress = await SeasonRepository.getSeasonProgress(userId, seasonId, client);
+    if (!progress) {
+      return { success: false, error: 'season_progress_missing' };
+    }
+
+    const requiredXp = Math.max(0, xpPerTier * (tier - 1));
+    if (progress.seasonXp < requiredXp) {
+      return { success: false, error: 'tier_locked' };
+    }
+
+    const seasonPass = await SeasonRepository.getSeasonPass(userId, seasonId, client);
+    if (track === 'premium' && !seasonPass?.isPremium) {
+      return { success: false, error: 'premium_required' };
+    }
+
+    const tierConfig = (battlePassConfig.tiers ?? []).find(t => t.tier === tier);
+    const rewardsDefinition =
+      track === 'premium'
+        ? tierConfig?.premium_rewards ?? []
+        : tierConfig?.free_rewards ?? [];
+
+    if (!rewardsDefinition || rewardsDefinition.length === 0) {
+      return { success: false, error: 'no_rewards_defined' };
+    }
+
+    const rewardKey = this.getBattlePassRewardKey(tier, track);
+    const existingReward = await SeasonRepository.getSeasonRewardByType(
+      userId,
+      seasonId,
+      rewardKey,
+      client
+    );
+
+    if (existingReward?.claimed) {
+      return { success: false, error: 'reward_already_claimed' };
+    }
+
+    const rewardPayload = this.buildRewardPayload(
+      rewardsDefinition.map(reward => ({
+        type: reward.type,
+        item_id: reward.item_id,
+        amount: reward.amount,
+      }))
+    );
+
+    await SeasonRepository.createSeasonReward(
+      userId,
+      seasonId,
+      rewardKey,
+      track,
+      tier,
+      rewardPayload,
+      client
+    );
+
+    const claimedReward = await SeasonRepository.claimSeasonReward(userId, seasonId, rewardKey, client);
+
+    if (!claimedReward) {
+      return { success: false, error: 'claim_failed' };
+    }
+
+    await this.applyRewards(userId, rewardPayload, client);
+
+    logger.info({ userId, seasonId, tier, track }, 'battle_pass_reward_claimed');
+
+    return {
+      success: true,
+      reward: {
+        rewardType: claimedReward.rewardType,
+        rewardTier: claimedReward.rewardTier,
+        finalRank: claimedReward.finalRank,
+        rewards: claimedReward.rewardPayload,
+        claimed: claimedReward.claimed,
+        claimedAt: claimedReward.claimedAt?.toISOString() ?? null,
+      },
+    };
+  }
+
   /**
    * Helper: Find leaderboard reward for a rank
    */
@@ -517,6 +796,26 @@ export class SeasonService {
     }
 
     return payload;
+  }
+
+  private normalizeBattlePassRewards(
+    rewards?: Array<{ type?: string; item_id?: string; amount?: number }>
+  ): BattlePassRewardInfo[] {
+    if (!Array.isArray(rewards) || rewards.length === 0) {
+      return [];
+    }
+
+    return rewards
+      .filter(reward => typeof reward?.type === 'string')
+      .map(reward => ({
+        type: reward.type as string,
+        amount: reward.amount,
+        itemId: reward.item_id,
+      }));
+  }
+
+  private getBattlePassRewardKey(tier: number, track: 'free' | 'premium'): string {
+    return `battle_pass_${track}_tier_${tier}`;
   }
 
   /**

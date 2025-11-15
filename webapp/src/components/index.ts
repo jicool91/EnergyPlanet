@@ -49,6 +49,13 @@ export {
   type SeasonRewardEntry,
   type RewardTier,
 } from './seasonal/SeasonRewardsAdminPanel';
+export {
+  BattlePassPanel,
+  type BattlePassViewModel,
+  type BattlePassTierView,
+  type BattlePassRewardView,
+  type BattlePassPanelProps,
+} from './season/BattlePassPanel';
 
 // Notifications & Feedback
 export { NotificationContainer } from './notifications/NotificationContainer';

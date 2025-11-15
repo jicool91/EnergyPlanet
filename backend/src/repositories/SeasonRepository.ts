@@ -43,6 +43,19 @@ export interface SeasonEventRecord {
   updatedAt: Date;
 }
 
+export interface SeasonPassRecord {
+  id: string;
+  userId: string;
+  seasonId: string;
+  isPremium: boolean;
+  purchasedAt: Date | null;
+  purchasePriceStars: number | null;
+  purchaseSource: string | null;
+  purchasePayload: Record<string, unknown>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 interface SeasonProgressRow {
   id: string;
   user_id: string;
@@ -76,6 +89,19 @@ interface SeasonEventRow {
   event_id: string;
   participated: boolean;
   reward_claimed: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+interface SeasonPassRow {
+  id: string;
+  user_id: string;
+  season_id: string;
+  is_premium: boolean;
+  purchased_at: string | null;
+  purchase_price_stars: number | null;
+  purchase_source: string | null;
+  purchase_payload: unknown;
   created_at: string;
   updated_at: string;
 }
@@ -121,6 +147,24 @@ function mapSeasonEvent(row: SeasonEventRow): SeasonEventRecord {
     eventId: row.event_id,
     participated: row.participated,
     rewardClaimed: row.reward_claimed,
+    createdAt: new Date(row.created_at),
+    updatedAt: new Date(row.updated_at),
+  };
+}
+
+function mapSeasonPass(row: SeasonPassRow): SeasonPassRecord {
+  return {
+    id: row.id,
+    userId: row.user_id,
+    seasonId: row.season_id,
+    isPremium: row.is_premium,
+    purchasedAt: row.purchased_at ? new Date(row.purchased_at) : null,
+    purchasePriceStars: row.purchase_price_stars,
+    purchaseSource: row.purchase_source,
+    purchasePayload:
+      typeof row.purchase_payload === 'object' && row.purchase_payload !== null
+        ? (row.purchase_payload as Record<string, unknown>)
+        : {},
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -289,6 +333,25 @@ export async function getSeasonRewards(
   return result.rows.map(mapSeasonReward);
 }
 
+export async function getSeasonRewardByType(
+  userId: string,
+  seasonId: string,
+  rewardType: string,
+  client?: PoolClient
+): Promise<SeasonRewardRecord | null> {
+  const result = await runQuery<SeasonRewardRow>(
+    `SELECT * FROM season_rewards WHERE user_id = $1 AND season_id = $2 AND reward_type = $3 LIMIT 1`,
+    [userId, seasonId, rewardType],
+    client
+  );
+
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  return mapSeasonReward(result.rows[0]);
+}
+
 /**
  * Create season reward
  */
@@ -413,4 +476,61 @@ export async function claimSeasonEventReward(
   }
 
   return mapSeasonEvent(result.rows[0]);
+}
+
+// =============================================================================
+// SEASON PASS
+// =============================================================================
+
+export async function getSeasonPass(
+  userId: string,
+  seasonId: string,
+  client?: PoolClient
+): Promise<SeasonPassRecord | null> {
+  const result = await runQuery<SeasonPassRow>(
+    `SELECT * FROM season_passes WHERE user_id = $1 AND season_id = $2 LIMIT 1`,
+    [userId, seasonId],
+    client
+  );
+
+  if (result.rowCount === 0) {
+    return null;
+  }
+
+  return mapSeasonPass(result.rows[0]);
+}
+
+export async function unlockSeasonPass(
+  userId: string,
+  seasonId: string,
+  data: {
+    priceStars?: number | null;
+    source?: string | null;
+    payload?: Record<string, unknown>;
+  },
+  client?: PoolClient
+): Promise<SeasonPassRecord> {
+  const result = await runQuery<SeasonPassRow>(
+    `INSERT INTO season_passes (user_id, season_id, is_premium, purchased_at, purchase_price_stars, purchase_source, purchase_payload)
+     VALUES ($1, $2, TRUE, NOW(), $3, $4, $5::jsonb)
+     ON CONFLICT (user_id, season_id)
+     DO UPDATE SET
+       is_premium = TRUE,
+       purchased_at = COALESCE(season_passes.purchased_at, NOW()),
+       purchase_price_stars = COALESCE(EXCLUDED.purchase_price_stars, season_passes.purchase_price_stars),
+       purchase_source = COALESCE(EXCLUDED.purchase_source, season_passes.purchase_source),
+       purchase_payload = season_passes.purchase_payload || EXCLUDED.purchase_payload,
+       updated_at = NOW()
+     RETURNING *`,
+    [
+      userId,
+      seasonId,
+      data.priceStars ?? null,
+      data.source ?? null,
+      JSON.stringify(data.payload ?? {}),
+    ],
+    client
+  );
+
+  return mapSeasonPass(result.rows[0]);
 }

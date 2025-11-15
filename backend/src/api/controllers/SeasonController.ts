@@ -173,4 +173,58 @@ export class SeasonController {
       next(error);
     }
   };
+
+  purchaseBattlePass = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'unauthorized');
+      }
+
+      const result = await seasonService.purchaseBattlePass(req.user.id);
+      if (!result.success) {
+        throw new AppError(400, result.error ?? 'purchase_failed');
+      }
+
+      res.status(200).json({ success: true });
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  claimBattlePassReward = async (req: AuthRequest, res: Response, next: NextFunction) => {
+    try {
+      if (!req.user) {
+        throw new AppError(401, 'unauthorized');
+      }
+
+      const { tier, track } = (req.body ?? {}) as { tier?: unknown; track?: unknown };
+
+      const tierNumber = typeof tier === 'number' ? tier : Number(tier);
+      const normalizedTrack = typeof track === 'string' ? track.toLowerCase().trim() : '';
+      if (!['free', 'premium'].includes(normalizedTrack)) {
+        throw new AppError(400, 'invalid_track');
+      }
+
+      if (!Number.isFinite(tierNumber) || tierNumber <= 0) {
+        throw new AppError(400, 'invalid_tier');
+      }
+
+      const result = await seasonService.claimBattlePassReward(
+        req.user.id,
+        tierNumber,
+        normalizedTrack as 'free' | 'premium'
+      );
+
+      if (!result.success) {
+        throw new AppError(400, result.error ?? 'claim_failed');
+      }
+
+      res.status(200).json({
+        success: true,
+        reward: result.reward,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
 }
