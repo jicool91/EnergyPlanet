@@ -113,6 +113,39 @@ interface BattlePassConfig {
   tiers?: BattlePassTierConfig[];
 }
 
+export interface PvpModeConfig {
+  id: string;
+  name: string;
+  description: string;
+  icon?: string;
+  queueEstimate?: string;
+  queueSize?: number;
+  mapName?: string;
+  rewards?: string[];
+  recommended?: boolean;
+  mapPreviewUrl?: string;
+}
+
+export interface PvpEventConfig {
+  id: string;
+  title: string;
+  description: string;
+  startsAt: string;
+  endsAt: string;
+  kind?: string;
+  rewardSummary?: string;
+  highlight?: boolean;
+}
+
+export interface PvpEventsConfig {
+  timezone?: string;
+  friendsOnline?: number;
+  dailyBonus?: string;
+  streakDays?: number;
+  modes?: PvpModeConfig[];
+  events?: PvpEventConfig[];
+}
+
 interface Season {
   season: {
     id: string;
@@ -265,6 +298,7 @@ class ContentService {
     weekly: [],
   };
   private referralConfig: ReferralConfig | null = null;
+  private pvpEventsConfig: PvpEventsConfig | null = null;
 
   async load() {
     try {
@@ -284,6 +318,7 @@ class ContentService {
         this.loadStarPacks().catch(error => this.handleLoadError('starPacks', error)),
         this.loadQuests().catch(error => this.handleLoadError('quests', error)),
         this.loadReferrals().catch(error => this.handleLoadError('referrals', error)),
+        this.loadPvpEvents().catch(error => this.handleLoadError('pvpEvents', error)),
       ]);
 
       logger.info(
@@ -295,6 +330,7 @@ class ContentService {
           weeklyQuests: this.questDefinitions.weekly.length,
           starPacks: this.starPacks.length,
           referralMilestones: this.referralConfig?.milestones.length ?? 0,
+          pvpModes: this.pvpEventsConfig?.modes?.length ?? 0,
         },
         'content_loaded'
       );
@@ -415,6 +451,102 @@ class ContentService {
     };
   }
 
+  private async loadPvpEvents() {
+    const filePath = path.join(config.content.path, 'events', 'pvp.json');
+    try {
+      const parsed = await parseJson<unknown>(filePath);
+      if (!isRecord(parsed)) {
+        throw new Error('Invalid PvP events payload');
+      }
+
+      const modes: PvpModeConfig[] = Array.isArray(parsed.modes)
+        ? parsed.modes
+            .filter(isRecord)
+            .map(mode => ({
+              id: String(mode.id ?? ''),
+              name: String(mode.name ?? ''),
+              description: String(mode.description ?? ''),
+              icon: typeof mode.icon === 'string' ? mode.icon : undefined,
+              queueEstimate:
+                typeof mode.queueEstimate === 'string'
+                  ? mode.queueEstimate
+                  : typeof mode.queue_estimate === 'string'
+                    ? mode.queue_estimate
+                    : undefined,
+              queueSize:
+                typeof mode.queueSize === 'number'
+                  ? mode.queueSize
+                  : typeof mode.queue_size === 'number'
+                    ? mode.queue_size
+                    : undefined,
+              mapName:
+                typeof mode.mapName === 'string'
+                  ? mode.mapName
+                  : typeof mode.map_name === 'string'
+                    ? mode.map_name
+                    : undefined,
+              rewards: Array.isArray(mode.rewards)
+                ? mode.rewards.filter(item => typeof item === 'string')
+                : undefined,
+              recommended: typeof mode.recommended === 'boolean' ? mode.recommended : undefined,
+              mapPreviewUrl:
+                typeof mode.mapPreviewUrl === 'string'
+                  ? mode.mapPreviewUrl
+                  : typeof mode.map_preview_url === 'string'
+                    ? mode.map_preview_url
+                    : undefined,
+            }))
+        : [];
+
+      const events: PvpEventConfig[] = Array.isArray(parsed.events)
+        ? parsed.events
+            .filter(isRecord)
+            .map(event => ({
+              id: String(event.id ?? ''),
+              title: String(event.title ?? ''),
+              description: String(event.description ?? ''),
+              startsAt: String(event.startsAt ?? event.starts_at ?? ''),
+              endsAt: String(event.endsAt ?? event.ends_at ?? ''),
+              kind: typeof event.kind === 'string' ? event.kind : undefined,
+              rewardSummary:
+                typeof event.rewardSummary === 'string'
+                  ? event.rewardSummary
+                  : typeof event.reward_summary === 'string'
+                    ? event.reward_summary
+                    : undefined,
+              highlight: typeof event.highlight === 'boolean' ? event.highlight : undefined,
+            }))
+        : [];
+
+      this.pvpEventsConfig = {
+        timezone: typeof parsed.timezone === 'string' ? parsed.timezone : undefined,
+        friendsOnline:
+          typeof parsed.friendsOnline === 'number'
+            ? parsed.friendsOnline
+            : typeof parsed.friends_online === 'number'
+              ? parsed.friends_online
+              : undefined,
+        dailyBonus:
+          typeof parsed.dailyBonus === 'string'
+            ? parsed.dailyBonus
+            : typeof parsed.daily_bonus === 'string'
+              ? parsed.daily_bonus
+              : undefined,
+        streakDays:
+          typeof parsed.streakDays === 'number'
+            ? parsed.streakDays
+            : typeof parsed.streak_days === 'number'
+              ? parsed.streak_days
+              : undefined,
+        modes,
+        events,
+      };
+    } catch (error) {
+      this.pvpEventsConfig = null;
+      throw error;
+    }
+  }
+
   getBuildings(): Building[] {
     return this.buildings;
   }
@@ -452,6 +584,10 @@ class ContentService {
 
   getReferralConfig(): ReferralConfig | null {
     return this.referralConfig;
+  }
+
+  getPvpEvents(): PvpEventsConfig | null {
+    return this.pvpEventsConfig;
   }
 
   isFeatureEnabled(featureName: string): boolean {

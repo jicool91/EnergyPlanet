@@ -17,6 +17,7 @@ import questsRoutes from './quests';
 import referralRoutes from './referrals';
 import chatRoutes from './chat';
 import seasonRoutes from './season';
+import eventsRoutes from './events';
 
 const router = Router();
 
@@ -34,5 +35,6 @@ router.use('/', contentRoutes); // /buildings
 router.use('/admin', adminRoutes);
 router.use('/chat', chatRoutes);
 router.use('/season', seasonRoutes);
+router.use('/events', eventsRoutes);
 
 export default router;

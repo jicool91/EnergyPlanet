@@ -39,6 +39,7 @@
 - **ContentService**: читает YAML/JSON из `backend/content`. Типы: buildings, cosmetics, quests, feature flags, star packs, referrals, seasons. Поддерживает reload, конвертирует в структуры для сервисов.
 - **LeaderboardService**: кеширует топ-лист в Redis (ключи `cacheKeys.leaderboardTop(limit)`), умеет доставать запись игрока, если тот не в кеше. Источник данных — `leaderboard_global` view (`001`).
 - **SeasonService**: работает с `season_progress`, `season_rewards`, `season_events` (`017`). Публичные эндпоинты `/season/current`, `/season/leaderboard`, `/season/progress`, `/season/claim-leaderboard-reward`.
+- **PvpEventsService**: отдаёт расписание PvP-режимов (`/events/pvp`) из `content/events/pvp.json`, принимает участие в очереди (`/events/pvp/queue`) и заявки на напоминания (`/events/pvp/reminder`).
 
 ### 2.5 Монетизация и рефералы
 - **PurchaseService**: invoice + mock purchases. Таблица `purchases` (`001`). После успешной покупки начисляет Stars, вызывает `referralRevenueService.handlePurchaseReward`. Метрики: `purchase_invoice`, `purchase_completed`, `user_lifetime_value`, `conversion_events`.
