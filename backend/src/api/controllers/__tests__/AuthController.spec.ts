@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/unbound-method */
-import { Request, Response, NextFunction } from 'express';
+import { Response, NextFunction } from 'express';
 import { AuthController } from '../AuthController';
 import { AppError } from '../../../middleware/errorHandler';
 
@@ -18,13 +18,14 @@ type AuthServiceMock = {
 describe('AuthController.authenticateWithTelegramHeader', () => {
   let controller: AuthController;
   let authServiceMock: AuthServiceMock;
+  type HandlerRequest = Parameters<AuthController['authenticateWithTelegramHeader']>[0];
 
   beforeEach(() => {
     controller = new AuthController();
     authServiceMock = {
       authenticateWithTelegram: jest.fn().mockResolvedValue({ ok: true }),
     };
-    Reflect.set(controller as unknown, 'authService', authServiceMock);
+    Reflect.set(controller as unknown as Record<string, unknown>, 'authService', authServiceMock);
   });
 
   it('authenticates using tma authorization header', async () => {
@@ -34,16 +35,21 @@ describe('AuthController.authenticateWithTelegramHeader', () => {
         origin: 'https://t.me',
       },
       ip: '127.0.0.1',
-    } as unknown as Request;
+    } as unknown as HandlerRequest;
     const res = createResponse();
     const next = jest.fn() as jest.MockedFunction<NextFunction>;
 
     const handler = controller.authenticateWithTelegramHeader.bind(controller);
     await handler(req, res, next);
 
-    expect(authServiceMock.authenticateWithTelegram).toHaveBeenCalledWith('foo=bar&hash=baz', {
-      enforceReplayProtection: true,
-    });
+    expect(authServiceMock.authenticateWithTelegram).toHaveBeenCalledWith(
+      'foo=bar&hash=baz',
+      expect.objectContaining({
+        enforceReplayProtection: true,
+        ip: '127.0.0.1',
+        origin: 'https://t.me',
+      })
+    );
     expect(res.status as jest.Mock).toHaveBeenCalledWith(200);
     expect((res.json as jest.Mock).mock.calls[0][0]).toEqual({ ok: true });
     expect(next).not.toHaveBeenCalled();
@@ -56,16 +62,20 @@ describe('AuthController.authenticateWithTelegramHeader', () => {
         origin: 'https://t.me',
       },
       ip: '127.0.0.1',
-    } as unknown as Request;
+    } as unknown as HandlerRequest;
     const res = createResponse();
     const next = jest.fn() as jest.MockedFunction<NextFunction>;
 
     const handler = controller.authenticateWithTelegramHeader.bind(controller);
     await handler(req, res, next);
 
-    expect(authServiceMock.authenticateWithTelegram).toHaveBeenCalledWith('foo=bar', {
-      enforceReplayProtection: true,
-    });
+    expect(authServiceMock.authenticateWithTelegram).toHaveBeenCalledWith(
+      'foo=bar',
+      expect.objectContaining({
+        enforceReplayProtection: true,
+        ip: '127.0.0.1',
+      })
+    );
     expect(res.status as jest.Mock).toHaveBeenCalledWith(200);
     expect(next).not.toHaveBeenCalled();
   });
@@ -74,7 +84,7 @@ describe('AuthController.authenticateWithTelegramHeader', () => {
     const req = {
       headers: {},
       ip: '127.0.0.1',
-    } as unknown as Request;
+    } as unknown as HandlerRequest;
     const res = createResponse();
     const next = jest.fn() as jest.MockedFunction<NextFunction>;
 
@@ -94,7 +104,7 @@ describe('AuthController.authenticateWithTelegramHeader', () => {
         origin: 'https://t.me',
       },
       ip: '127.0.0.1',
-    } as unknown as Request;
+    } as unknown as HandlerRequest;
     const res = createResponse();
     const next = jest.fn() as jest.MockedFunction<NextFunction>;
 

@@ -138,6 +138,24 @@ const userLifetimeValueCounter = metricsEnabled
     })
   : null;
 
+const paymentProviderStatusCounter = metricsEnabled
+  ? new client.Counter({
+      name: 'energyplanet_payment_provider_status_total',
+      help: 'Provider status callbacks grouped by provider and status',
+      labelNames: ['provider', 'status'] as const,
+      registers: [register],
+    })
+  : null;
+
+const purchaseDurationHistogram = metricsEnabled
+  ? new client.Histogram({
+      name: 'energyplanet_purchase_duration_seconds',
+      help: 'Time between purchase creation and completion',
+      buckets: [5, 15, 30, 60, 120, 300, 600, 1200],
+      registers: [register],
+    })
+  : null;
+
 export function recordUserLoginMetric(isNewUser: boolean, replayStatus: ReplayStatus) {
   loginCounter?.inc({
     is_new_user: isNewUser ? 'true' : 'false',
@@ -258,4 +276,21 @@ export function recordUserLifetimeValueMetric(params: {
     { user_segment: params.userSegment },
     params.starsAmount
   );
+}
+
+export function recordPaymentProviderStatusMetric(provider: string, status: string) {
+  if (!metricsEnabled) {
+    return;
+  }
+  paymentProviderStatusCounter?.inc({
+    provider,
+    status,
+  });
+}
+
+export function recordPurchaseDurationMetric(seconds: number) {
+  if (!metricsEnabled || seconds <= 0) {
+    return;
+  }
+  purchaseDurationHistogram?.observe(seconds);
 }

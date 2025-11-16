@@ -19,6 +19,9 @@ jest.mock('../../config', () => ({
         leaderboard: 30,
       },
     },
+    logging: {
+      level: 'debug',
+    },
   },
 }));
 

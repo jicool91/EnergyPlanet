@@ -6,12 +6,35 @@ const updatePurchaseStatusMock = jest.fn();
 const logEventMock = jest.fn();
 const transactionMock = jest.fn(async (handler: (client: unknown) => Promise<unknown>) => handler({}));
 
-jest.mock('../../config', () => ({
-  config: {
+jest.mock('../../config', () => {
+  const baseConfig = {
     testing: { mockPayments: true, testMode: false, bypassAuth: false },
     monetization: { starsEnabled: true },
-  },
-}));
+    payment: {
+      provider: 'mock',
+      defaultCurrency: 'RUB',
+      qrTtlMinutes: 15,
+      mockPayUrl: 'https://t.me/energy_planet_bot/pay',
+      sbp: {
+        apiBaseUrl: '',
+        merchantId: '',
+        secret: '',
+        webhookSecret: '',
+      },
+    },
+    prometheus: { enabled: false },
+    server: { env: 'test' },
+    cache: {
+      enabled: false,
+      ttl: { profile: 0, leaderboard: 0 },
+    },
+  };
+  return {
+    __esModule: true,
+    config: baseConfig,
+    default: baseConfig,
+  };
+});
 
 jest.mock('../../utils/logger', () => ({
   logger: {
@@ -62,6 +85,16 @@ describe('PurchaseService', () => {
     telegramPaymentId: null,
     adToken: null,
     status: 'pending',
+    provider: 'mock',
+    currency: 'RUB',
+    amountMinor: 1000,
+    providerOrderId: 'mock-purchase-1',
+    paymentUrl: 'https://example.com/pay',
+    sbpQrId: null,
+    sbpPayload: null,
+    expiresAt: null,
+    statusReason: null,
+    metadata: {},
     createdAt: new Date('2025-10-20T00:00:00Z'),
   };
 

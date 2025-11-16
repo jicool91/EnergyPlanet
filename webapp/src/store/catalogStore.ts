@@ -10,10 +10,92 @@ import {
 } from '../services/cosmetics';
 import { fetchStarPacks, type StarPack } from '../services/starPacks';
 import { fetchBoostHub, type BoostHubItem, claimBoost as claimBoostApi } from '../services/boosts';
-import { apiClient } from '../services/apiClient';
+import { createPurchase, getPurchaseStatus } from '../services/payments';
 import { logClientEvent } from '../services/telemetry';
 import { useGameStore } from './gameStore';
 import { describeError } from './storeUtils';
+
+const PURCHASE_POLL_INTERVAL_MS = 2000;
+const PURCHASE_POLL_MAX_MS = 2 * 60 * 1000;
+
+type PurchaseAmount = {
+  amountMinor: number;
+  currency: string;
+};
+
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+function openPaymentLink(url?: string | null): boolean {
+  if (!url || typeof window === 'undefined') {
+    return false;
+  }
+
+  try {
+    const webApp = (window as typeof window & { Telegram?: { WebApp?: { openLink?: Function } } })
+      .Telegram?.WebApp;
+    if (webApp?.openLink) {
+      webApp.openLink(url, { try_instant_view: false });
+      return true;
+    }
+  } catch (error) {
+    console.warn('Failed to open link via Telegram.WebApp', { url, error });
+  }
+
+  window.open(url, '_blank', 'noopener,noreferrer');
+  return false;
+}
+
+function resolvePurchaseAmount(pack: StarPack): PurchaseAmount {
+  if (typeof pack.price_rub === 'number' && pack.price_rub > 0) {
+    return {
+      amountMinor: Math.max(1, Math.round(pack.price_rub * 100)),
+      currency: 'RUB',
+    };
+  }
+
+  if (typeof pack.price_usd === 'number' && pack.price_usd > 0) {
+    return {
+      amountMinor: Math.max(1, Math.round(pack.price_usd * 100)),
+      currency: 'USD',
+    };
+  }
+
+  const stars = pack.stars + (pack.bonus_stars ?? 0);
+  return {
+    amountMinor: Math.max(1, stars),
+    currency: 'STARS',
+  };
+}
+
+async function waitForPurchaseCompletion(purchaseId: string, expiresAt?: string | null) {
+  const parsedExpiry = expiresAt ? Date.parse(expiresAt) : NaN;
+  const expiryDeadline = Number.isNaN(parsedExpiry)
+    ? Date.now() + PURCHASE_POLL_MAX_MS
+    : Math.max(parsedExpiry + 5000, Date.now() + PURCHASE_POLL_INTERVAL_MS);
+  const deadline = Math.max(Date.now() + PURCHASE_POLL_MAX_MS, expiryDeadline);
+
+  while (Date.now() < deadline) {
+    const snapshot = await getPurchaseStatus(purchaseId);
+
+    if (snapshot.status === 'succeeded') {
+      return snapshot;
+    }
+
+    if (snapshot.status === 'failed' || snapshot.status === 'expired') {
+      const error = new Error(snapshot.status_reason ?? 'purchase_failed');
+      const taggedError = error as unknown as Record<string, unknown>;
+      taggedError.status = snapshot.status;
+      throw error;
+    }
+
+    await delay(PURCHASE_POLL_INTERVAL_MS);
+  }
+
+  const error = new Error('purchase_timeout');
+  const taggedError = error as unknown as Record<string, unknown>;
+  taggedError.status = 'timeout';
+  throw error;
+}
 
 interface CatalogState {
   buildingCatalog: BuildingDefinition[];
@@ -275,28 +357,51 @@ export const useCatalogStore = create<CatalogState>()(
         price_usd: pack.price_usd ?? null,
         price_rub: pack.price_rub ?? null,
       };
+      const purchaseId = `stars_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+      const amount = resolvePurchaseAmount(pack);
 
       set({ isProcessingStarPackId: packId, starPacksError: null });
 
-      const purchaseId = `stars_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-      const payload = {
-        purchase_id: purchaseId,
-        item_id: pack.id,
-        price_stars: totalStars,
-        purchase_type: 'stars_pack' as const,
-        metadata,
-      };
-
       try {
-        await apiClient.post('/purchase/invoice', payload);
-        await apiClient.post('/purchase', payload);
+        const creation = await createPurchase({
+          purchase_id: purchaseId,
+          item_id: pack.id,
+          purchase_type: 'stars_pack',
+          amount_minor: amount.amountMinor,
+          currency: amount.currency,
+          price_stars: totalStars,
+          metadata,
+        });
 
         await logClientEvent(
-          'star_pack_purchase_mock',
+          'star_pack_purchase_started',
           {
             pack_id: pack.id,
-            total_stars: totalStars,
             purchase_id: purchaseId,
+            currency: amount.currency,
+            amount_minor: amount.amountMinor,
+            provider: creation.purchase.provider,
+          },
+          'info'
+        );
+
+        if (creation.provider_payload?.payment_url) {
+          openPaymentLink(creation.provider_payload.payment_url);
+        } else if (creation.provider_payload?.qr_payload) {
+          await logClientEvent('star_pack_purchase_qr_ready', { purchase_id: purchaseId }, 'info');
+        }
+
+        const snapshot = await waitForPurchaseCompletion(
+          creation.purchase.purchase_id,
+          creation.provider_payload?.expires_at ?? null
+        );
+
+        await logClientEvent(
+          'star_pack_purchase_completed',
+          {
+            pack_id: pack.id,
+            purchase_id: purchaseId,
+            status: snapshot.status,
           },
           'info'
         );
@@ -308,7 +413,7 @@ export const useCatalogStore = create<CatalogState>()(
           'star_pack_purchase_error',
           {
             pack_id: pack.id,
-            status,
+            status: (error as Record<string, unknown>)?.status ?? status,
             message,
             purchase_id: purchaseId,
           },

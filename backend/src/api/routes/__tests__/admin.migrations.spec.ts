@@ -7,6 +7,7 @@ const mockGetDailyMetrics = jest.fn();
 jest.mock('../../../middleware/auth', () => ({
   authenticate: (_req: Request, _res: Response, next: NextFunction) => next(),
   authenticateTick: (_req: Request, _res: Response, next: NextFunction) => next(),
+  authenticateOptional: (_req: Request, _res: Response, next: NextFunction) => next(),
   requireAdmin: (_req: Request, _res: Response, next: NextFunction) => next(),
 }));
 

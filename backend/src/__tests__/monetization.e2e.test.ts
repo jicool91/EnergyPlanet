@@ -1,9 +1,10 @@
-import type { NextFunction, Request, Response } from 'express';
+import type { NextFunction, Response } from 'express';
 import request from 'supertest';
 import app from '../index';
+import type { AuthRequest } from '../middleware/auth';
 
 jest.mock('../middleware/auth', () => ({
-  authenticate: (req: Request, _res: Response, next: NextFunction) => {
+  authenticate: (req: AuthRequest, _res: Response, next: NextFunction) => {
     req.user = {
       id: 'test-user-id',
       telegramId: 123456,
@@ -13,7 +14,7 @@ jest.mock('../middleware/auth', () => ({
     req.authContext = { strategy: 'bearer' };
     next();
   },
-  authenticateTick: (req: Request, _res: Response, next: NextFunction) => {
+  authenticateTick: (req: AuthRequest, _res: Response, next: NextFunction) => {
     req.user = {
       id: 'test-user-id',
       telegramId: 123456,
@@ -23,7 +24,8 @@ jest.mock('../middleware/auth', () => ({
     req.authContext = { strategy: 'bearer' };
     next();
   },
-  requireAdmin: (_req: Request, _res: Response, next: NextFunction) => next(),
+  requireAdmin: (_req: AuthRequest, _res: Response, next: NextFunction) => next(),
+  authenticateOptional: (_req: AuthRequest, _res: Response, next: NextFunction) => next(),
 }));
 
 const mockCosmetics = [
@@ -272,7 +274,7 @@ describe('Monetization routes', () => {
       .send({});
 
     expect(response.status).toBe(202);
-    expect(response.body).toEqual({ success: true, message: 'webhook_stub' });
+    expect(response.body).toEqual({ success: true, message: 'webhook_unsupported' });
   });
 
   it('GET /api/v1/purchase/packs returns star packs', async () => {

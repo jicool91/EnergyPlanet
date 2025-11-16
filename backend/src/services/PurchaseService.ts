@@ -5,7 +5,9 @@ import { logEvent } from '../repositories/EventRepository';
 import {
   createPurchase,
   findByPurchaseId,
+  findByProviderOrderId,
   PurchaseRecord,
+  updatePurchase,
   updatePurchaseStatus,
 } from '../repositories/PurchaseRepository';
 import { config } from '../config';
@@ -20,8 +22,13 @@ import {
   recordStarsCreditMetric,
   recordUserLifetimeValueMetric,
   recordConversionEventMetric,
+  recordPaymentProviderStatusMetric,
+  recordPurchaseDurationMetric,
 } from '../metrics/business';
 import { referralRevenueService } from './ReferralRevenueService';
+import { insertPurchaseEvent } from '../repositories/PurchaseEventRepository';
+import { getPaymentProvider } from './payments';
+import type { ProviderStatus, ProviderStatusUpdate } from './payments/PaymentProvider';
 
 interface RecordPurchaseInput {
   purchaseId: string;
@@ -29,6 +36,27 @@ interface RecordPurchaseInput {
   priceStars: number;
   purchaseType: 'stars_pack' | 'cosmetic' | 'boost' | 'unknown';
   metadata?: Record<string, unknown>;
+}
+
+interface StartPurchaseInput {
+  purchaseId: string;
+  itemId: string;
+  purchaseType: 'stars_pack' | 'cosmetic' | 'boost' | 'unknown';
+  amountMinor: number;
+  currency?: string;
+  provider?: string;
+  priceStars?: number;
+  metadata?: Record<string, unknown>;
+  description?: string;
+}
+
+interface StartPurchaseResult {
+  purchase: PurchaseRecord;
+  providerPayload: {
+    payment_url?: string | null;
+    qr_payload?: string | null;
+    expires_at?: string | null;
+  };
 }
 
 // Helper function to determine user segment based on purchase amount
@@ -119,6 +147,219 @@ export class PurchaseService {
     });
   }
 
+  async startPurchase(userId: string, input: StartPurchaseInput): Promise<StartPurchaseResult> {
+    const amountMinor = Math.max(0, input.amountMinor);
+    if (!Number.isFinite(amountMinor) || amountMinor <= 0) {
+      throw new AppError(400, 'invalid_amount');
+    }
+
+    const provider = getPaymentProvider(input.provider);
+    const currency = input.currency ?? config.payment.defaultCurrency ?? 'RUB';
+
+    const charge = await provider.createCharge({
+      purchaseId: input.purchaseId,
+      userId,
+      itemId: input.itemId,
+      description: input.description,
+      amountMinor,
+      currency,
+      metadata: input.metadata,
+    });
+
+    const providerOrderId = charge.providerOrderId || input.purchaseId;
+    const expiresAt =
+      charge.expiresAt ?? new Date(Date.now() + config.payment.qrTtlMinutes * 60 * 1000);
+    const mergedMetadata = { ...(input.metadata ?? {}), ...(charge.metadata ?? {}) };
+    const initialStatus = charge.status === 'paid' ? 'succeeded' : 'pending';
+
+    const providerPayload = {
+      payment_url: charge.paymentUrl ?? null,
+      qr_payload: charge.qrPayload ?? null,
+      expires_at: expiresAt ? expiresAt.toISOString() : null,
+    };
+
+    const purchase = await transaction(async client => {
+      const existing = await findByPurchaseId(input.purchaseId, client);
+      if (existing) {
+        if (existing.userId !== userId) {
+          throw new AppError(409, 'purchase_conflict');
+        }
+        return existing;
+      }
+
+      const created = await createPurchase(
+        input.purchaseId,
+        userId,
+        input.purchaseType,
+        input.itemId,
+        input.priceStars ?? null,
+        initialStatus,
+        {
+          provider: provider.name,
+          currency,
+          amountMinor,
+          providerOrderId,
+          paymentUrl: providerPayload.payment_url,
+          sbpPayload: providerPayload.qr_payload,
+          expiresAt,
+          metadata: mergedMetadata,
+          client,
+        }
+      );
+
+      recordPurchaseInvoiceMetric(input.purchaseType, 'created');
+
+      await logEvent(
+        userId,
+        'purchase_created',
+        {
+          purchase_id: created.purchaseId,
+          item_id: created.itemId,
+          amount_minor: amountMinor,
+          currency,
+          provider: provider.name,
+        },
+        { client }
+      );
+
+      await insertPurchaseEvent(
+        {
+          purchaseId: created.purchaseId,
+          provider: provider.name,
+          providerStatus: initialStatus,
+          payload: mergedMetadata,
+        },
+        client
+      );
+      recordPaymentProviderStatusMetric(provider.name, initialStatus);
+
+      if (initialStatus === 'succeeded') {
+        await this.handlePurchaseSuccess(userId, created, mergedMetadata, null, client, {
+          mock: provider.name === 'mock',
+        });
+      }
+
+      return created;
+    });
+
+    return {
+      purchase,
+      providerPayload: purchase.provider === provider.name ? providerPayload : {
+        payment_url: purchase.paymentUrl,
+        qr_payload: purchase.sbpPayload,
+        expires_at: purchase.expiresAt ? purchase.expiresAt.toISOString() : null,
+      },
+    };
+  }
+
+  async getPurchaseStatus(userId: string, purchaseId: string) {
+    const purchase = await findByPurchaseId(purchaseId);
+    if (!purchase || purchase.userId !== userId) {
+      throw new AppError(404, 'purchase_not_found');
+    }
+
+    return {
+      purchase_id: purchase.purchaseId,
+      status: purchase.status,
+      status_reason: purchase.statusReason,
+      payment_url: purchase.paymentUrl,
+      qr_payload: purchase.sbpPayload,
+      expires_at: purchase.expiresAt ? purchase.expiresAt.toISOString() : null,
+    };
+  }
+
+  async cancelPurchase(userId: string, purchaseId: string): Promise<PurchaseRecord> {
+    return transaction(async client => {
+      const purchase = await findByPurchaseId(purchaseId, client);
+      if (!purchase || purchase.userId !== userId) {
+        throw new AppError(404, 'purchase_not_found');
+      }
+      if (purchase.status === 'succeeded') {
+        throw new AppError(409, 'purchase_already_completed');
+      }
+
+      const updated = await updatePurchase(
+        purchase.purchaseId,
+        {
+          status: 'failed',
+          statusReason: 'user_cancelled',
+        },
+        client
+      );
+
+      await logEvent(
+        userId,
+        'purchase_cancelled',
+        {
+          purchase_id: purchase.purchaseId,
+          status: purchase.status,
+        },
+        { client }
+      );
+
+      return updated;
+    });
+  }
+
+  async handleProviderUpdate(
+    providerName: string,
+    update: ProviderStatusUpdate
+  ): Promise<PurchaseRecord | null> {
+    if (!update.providerOrderId) {
+      return null;
+    }
+
+    return transaction(async client => {
+      const purchase = await findByProviderOrderId(providerName, update.providerOrderId, client);
+      if (!purchase) {
+        return null;
+      }
+
+      await insertPurchaseEvent(
+        {
+          purchaseId: purchase.purchaseId,
+          provider: providerName,
+          providerStatus: update.status,
+          payload: update.payload,
+        },
+        client
+      );
+      recordPaymentProviderStatusMetric(providerName, update.status);
+
+      const mergedMetadata = {
+        ...(purchase.metadata ?? {}),
+        ...(update.payload ?? {}),
+      };
+
+      const nextStatus = this.mapProviderStatus(update.status);
+      const updated = await updatePurchase(
+        purchase.purchaseId,
+        {
+          status: nextStatus,
+          statusReason: update.statusReason ?? null,
+          paymentUrl: update.paymentUrl ?? undefined,
+          sbpPayload: update.qrPayload ?? undefined,
+          expiresAt: update.expiresAt ?? undefined,
+          metadata: mergedMetadata,
+        },
+        client
+      );
+
+      if (nextStatus === 'succeeded' && purchase.status !== 'succeeded') {
+        await this.handlePurchaseSuccess(
+          purchase.userId,
+          updated,
+          mergedMetadata,
+          purchase.status,
+          client,
+          { mock: providerName === 'mock' }
+        );
+      }
+
+      return updated;
+    });
+  }
+
   async recordMockPurchase(userId: string, input: RecordPurchaseInput): Promise<PurchaseRecord> {
     if (!config.testing.mockPayments && !config.monetization.starsEnabled) {
       recordPurchaseConflictMetric('stars_disabled');
@@ -156,42 +397,14 @@ export class PurchaseService {
 
         const updated = await updatePurchaseStatus(input.purchaseId, 'succeeded', client);
 
-        const payload = {
-          purchase_id: updated.purchaseId,
-          item_id: updated.itemId,
-          purchase_type: updated.purchaseType,
-          price_stars: updated.priceStars,
-          previous_status: existing.status,
-          mock: config.testing.mockPayments,
-          metadata: input.metadata ?? {},
-        };
-
-        logger.info({ userId, ...payload }, 'purchase_succeeded');
-
-        await logEvent(userId, 'purchase_succeeded', payload, { client });
-
-        await this.applyPostPurchaseEffects(userId, input, client);
-
-        const priceStars = typeof updated.priceStars === 'number' ? updated.priceStars : input.priceStars;
-        recordPurchaseCompletedMetric({
-          purchaseType: updated.purchaseType ?? input.purchaseType ?? 'unknown',
-          itemId: updated.itemId ?? input.itemId ?? 'unknown',
-          priceStars,
-          mock: config.testing.mockPayments,
-        });
-
-        // Record LTV metric for ARPU calculation
-        if (priceStars > 0) {
-          const userSegment = getUserSegment(priceStars);
-          recordUserLifetimeValueMetric({ userSegment, starsAmount: priceStars });
-        }
-
-        // Record first purchase conversion event
-        recordConversionEventMetric({
-          eventType: 'first_purchase',
-          cohortDay: new Date().toISOString().split('T')[0],
-        });
-
+        await this.handlePurchaseSuccess(
+          userId,
+          updated,
+          input.metadata,
+          existing.status,
+          client,
+          { mock: config.testing.mockPayments }
+        );
         return updated;
       }
 
@@ -207,44 +420,76 @@ export class PurchaseService {
 
       recordPurchaseInvoiceMetric(input.purchaseType, 'created');
 
-      const payload = {
-        purchase_id: purchase.purchaseId,
-        item_id: purchase.itemId,
-        purchase_type: purchase.purchaseType,
-        price_stars: purchase.priceStars,
-        previous_status: null,
+      await this.handlePurchaseSuccess(userId, purchase, input.metadata, null, client, {
         mock: config.testing.mockPayments,
-        metadata: input.metadata ?? {},
-      };
-
-      logger.info({ userId, ...payload }, 'purchase_succeeded');
-
-      await logEvent(userId, 'purchase_succeeded', payload, { client });
-
-      await this.applyPostPurchaseEffects(userId, input, client);
-
-      const priceStars = typeof purchase.priceStars === 'number' ? purchase.priceStars : input.priceStars;
-      recordPurchaseCompletedMetric({
-        purchaseType: purchase.purchaseType ?? input.purchaseType ?? 'unknown',
-        itemId: purchase.itemId ?? input.itemId ?? 'unknown',
-        priceStars,
-        mock: config.testing.mockPayments,
-      });
-
-      // Record LTV metric for ARPU calculation
-      if (priceStars > 0) {
-        const userSegment = getUserSegment(priceStars);
-        recordUserLifetimeValueMetric({ userSegment, starsAmount: priceStars });
-      }
-
-      // Record first purchase conversion event
-      recordConversionEventMetric({
-        eventType: 'first_purchase',
-        cohortDay: new Date().toISOString().split('T')[0],
       });
 
       return purchase;
     });
+  }
+
+  private mapProviderStatus(status: ProviderStatus): string {
+    switch (status) {
+      case 'paid':
+        return 'succeeded';
+      case 'failed':
+        return 'failed';
+      default:
+        return 'pending';
+    }
+  }
+
+  private async handlePurchaseSuccess(
+    userId: string,
+    purchase: PurchaseRecord,
+    metadata: Record<string, unknown> | undefined,
+    previousStatus: string | null,
+    client: PoolClient,
+    options?: { mock?: boolean }
+  ): Promise<void> {
+    const payload = {
+      purchase_id: purchase.purchaseId,
+      item_id: purchase.itemId,
+      purchase_type: purchase.purchaseType,
+      price_stars: purchase.priceStars,
+      previous_status: previousStatus,
+      mock: options?.mock ?? false,
+      metadata: metadata ?? {},
+    };
+
+    logger.info({ userId, ...payload }, 'purchase_succeeded');
+    await logEvent(userId, 'purchase_succeeded', payload, { client });
+
+    const recordInput: RecordPurchaseInput = {
+      purchaseId: purchase.purchaseId,
+      itemId: purchase.itemId,
+      priceStars: typeof purchase.priceStars === 'number' ? purchase.priceStars : 0,
+      purchaseType: (purchase.purchaseType as RecordPurchaseInput['purchaseType']) ?? 'unknown',
+      metadata,
+    };
+
+    await this.applyPostPurchaseEffects(userId, recordInput, client);
+
+    const priceStars = recordInput.priceStars;
+    recordPurchaseCompletedMetric({
+      purchaseType: recordInput.purchaseType,
+      itemId: purchase.itemId ?? 'unknown',
+      priceStars,
+      mock: options?.mock ?? false,
+    });
+
+    if (priceStars > 0) {
+      const userSegment = getUserSegment(priceStars);
+      recordUserLifetimeValueMetric({ userSegment, starsAmount: priceStars });
+    }
+
+    recordConversionEventMetric({
+      eventType: 'first_purchase',
+      cohortDay: new Date().toISOString().split('T')[0],
+    });
+
+    const durationSeconds = (Date.now() - purchase.createdAt.getTime()) / 1000;
+    recordPurchaseDurationMetric(durationSeconds);
   }
 
   private resolveStarPackCredit(input: RecordPurchaseInput): {

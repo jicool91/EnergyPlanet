@@ -197,6 +197,19 @@ export const config = {
     yandexAdTokenSecret: process.env.YANDEX_AD_TOKEN_SECRET || '',
   },
 
+  payment: {
+    provider: process.env.PAYMENT_PROVIDER || 'mock',
+    defaultCurrency: process.env.PAYMENT_DEFAULT_CURRENCY || 'RUB',
+    mockPayUrl: process.env.PAYMENT_MOCK_URL || 'https://t.me/energy_planet_bot/pay',
+    qrTtlMinutes: parseInt(process.env.PAYMENT_QR_TTL_MINUTES || '15', 10),
+    sbp: {
+      apiBaseUrl: process.env.SBP_API_BASE_URL || '',
+      merchantId: process.env.SBP_MERCHANT_ID || '',
+      secret: process.env.SBP_SECRET || '',
+      webhookSecret: process.env.SBP_WEBHOOK_SECRET || '',
+    },
+  },
+
   content: {
     // Content is now part of backend/ package
     // Location: backend/content/ (development and production)
