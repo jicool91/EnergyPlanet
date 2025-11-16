@@ -404,6 +404,83 @@ export class SeasonService {
     );
   }
 
+  async distributeLeaderboardRewards(options?: {
+    force?: boolean;
+  }): Promise<{ seasonId: string | null; distributed: number; skipped: boolean; reason?: string }> {
+    const season = this.getCurrentSeason();
+
+    if (!season) {
+      return { seasonId: null, distributed: 0, skipped: true, reason: 'season_not_found' };
+    }
+
+    if (this.isSeasonActive(season) && !options?.force) {
+      return { seasonId: season.season.id, distributed: 0, skipped: true, reason: 'season_active' };
+    }
+
+    const maxRank = this.getMaxLeaderboardRewardRank(season);
+    if (maxRank <= 0) {
+      return { seasonId: season.season.id, distributed: 0, skipped: true, reason: 'no_rewards_configured' };
+    }
+
+    const leaderboard = await SeasonRepository.getSeasonLeaderboard(season.season.id, maxRank);
+    if (leaderboard.length === 0) {
+      return { seasonId: season.season.id, distributed: 0, skipped: true, reason: 'no_leaderboard_entries' };
+    }
+
+    let distributed = 0;
+
+    for (let i = 0; i < leaderboard.length; i += 1) {
+      const entry = leaderboard[i];
+      const rank = i + 1;
+      const rewardConfig = this.findLeaderboardReward(season, rank);
+
+      if (!rewardConfig) {
+        continue;
+      }
+
+      const existingReward = await SeasonRepository.getSeasonRewardByType(
+        entry.userId,
+        season.season.id,
+        'leaderboard'
+      );
+
+      if (existingReward?.claimed) {
+        continue;
+      }
+
+      const rewardTier = this.getRewardTier(rank);
+      const rewardPayload = this.buildRewardPayload(rewardConfig.rewards);
+
+      await SeasonRepository.createSeasonReward(
+        entry.userId,
+        season.season.id,
+        'leaderboard',
+        rewardTier,
+        rank,
+        rewardPayload
+      );
+
+      const claimedReward = await SeasonRepository.claimSeasonReward(
+        entry.userId,
+        season.season.id,
+        'leaderboard'
+      );
+
+      if (!claimedReward) {
+        logger.warn({ userId: entry.userId, seasonId: season.season.id }, 'auto_claim_failed');
+        continue;
+      }
+
+      await SeasonRepository.markLeaderboardRewardClaimed(entry.userId, season.season.id);
+      await this.applyRewards(entry.userId, rewardPayload);
+      distributed += 1;
+    }
+
+    logger.info({ seasonId: season.season.id, distributed }, 'season_leaderboard_auto_distributed');
+
+    return { seasonId: season.season.id, distributed, skipped: false };
+  }
+
   /**
    * Claim season leaderboard reward
    */
@@ -475,6 +552,7 @@ export class SeasonService {
 
     // Apply rewards to player account
     await this.applyRewards(userId, rewardPayload, client);
+    await SeasonRepository.markLeaderboardRewardClaimed(userId, seasonId, client);
 
     logger.info(
       { userId, seasonId, rank: progress.leaderboardRank, rewardTier },
@@ -758,6 +836,19 @@ export class SeasonService {
     }
 
     return null;
+  }
+
+  private getMaxLeaderboardRewardRank(season: Season): number {
+    const rewards = season.season.leaderboard_rewards ?? [];
+    return rewards.reduce((max, reward) => {
+      if (typeof reward.rank === 'number') {
+        return Math.max(max, reward.rank);
+      }
+      if (Array.isArray(reward.rank_range) && reward.rank_range.length === 2) {
+        return Math.max(max, reward.rank_range[1] ?? 0);
+      }
+      return max;
+    }, 0);
   }
 
   /**

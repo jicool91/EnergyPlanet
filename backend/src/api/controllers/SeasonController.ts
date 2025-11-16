@@ -17,7 +17,7 @@ export class SeasonController {
    */
   getCurrent = async (_req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const season = seasonService.getCurrentSeason();
+      const season = await Promise.resolve(seasonService.getCurrentSeason());
 
       if (!season) {
         throw new AppError(404, 'season_not_found');

@@ -20,6 +20,7 @@
     "seed:dev": "ts-node src/db/seed.ts",
     "bootstrap:db": "ts-node scripts/bootstrap-db.ts",
     "report:monetization": "ts-node scripts/generate-monetization-report.ts",
+    "season:rewards": "ts-node scripts/distribute-season-rewards.ts",
     "typecheck": "tsc --noEmit"
   },
   "keywords": [

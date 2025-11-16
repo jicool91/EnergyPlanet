@@ -478,6 +478,21 @@ export async function claimSeasonEventReward(
   return mapSeasonEvent(result.rows[0]);
 }
 
+export async function markLeaderboardRewardClaimed(
+  userId: string,
+  seasonId: string,
+  client?: PoolClient
+): Promise<void> {
+  await runQuery(
+    `UPDATE season_progress
+     SET claimed_leaderboard_reward = TRUE,
+         claimed_at = COALESCE(claimed_at, NOW())
+     WHERE user_id = $1 AND season_id = $2`,
+    [userId, seasonId],
+    client
+  );
+}
+
 // =============================================================================
 // SEASON PASS
 // =============================================================================

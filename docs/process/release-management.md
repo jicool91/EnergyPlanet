@@ -6,6 +6,7 @@
 3. **Freeze** (пт, 12:00 UTC) — merge window закрыт, только hotfix.
 4. **Deploy** (пт, 15:00 UTC) — Jenkins main pipeline, мониторинг 2 часа.
 5. **Post-release** — метрики, user feedback, QA evidence.
+6. **Season wrap-up** — после завершения сезона запустите `npm run season:rewards` (backend) или аналогичную Jenkins-задачу, чтобы автоматически начислить лидербордные награды по конфигу `season_XXX.yaml`.
 
 ## 2. PR чеклист
 - [ ] Обновлены/созданы тесты.
