@@ -7,6 +7,7 @@ import { AdminService } from '../../services/AdminService';
 import { MonetizationAnalyticsService } from '../../services/MonetizationAnalyticsService';
 import { AppError } from '../../middleware/errorHandler';
 import { AuthRequest } from '../../middleware/auth';
+import { clanWaitlistService } from '../../services/ClanWaitlistService';
 
 export class AdminController {
   private adminService: AdminService;
@@ -147,6 +148,17 @@ export class AdminController {
         return;
       }
 
+      res.status(200).json(result);
+    } catch (error) {
+      next(error);
+    }
+  };
+
+  listClanWaitlist = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const limit = req.query.limit ? Number(req.query.limit) : undefined;
+      const cursor = typeof req.query.cursor === 'string' ? req.query.cursor : undefined;
+      const result = await clanWaitlistService.listRequests({ limit, cursor });
       res.status(200).json(result);
     } catch (error) {
       next(error);

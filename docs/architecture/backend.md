@@ -51,6 +51,7 @@
 ### 2.6 Социальные функции
 - **ChatService**: глобальный чат (`global_chat_messages`, миграции `015` + `016`). Cursor encoding (base64url). Rate-limit через Redis. DTO возвращают автора (прогресс + косметика). Метрики пока не собраны, но есть события `logEvent('chat_message')`.
 - **Leaderboard, профиль, друзья**: `socialRoutes` обслуживает `/leaderboard`, `/profile/:id`, `/friends` (TODO). Профили используют кеш `cacheKeys.profile(userId)`.
+- **Clan waitlist**: `ClanWaitlistController` пишет заявки в `clan_waitlist_requests` через `ClanWaitlistService`, публичный POST `/clan/waitlist` (требует авторизации), экспорт доступен по `GET /admin/clan/waitlist`.
 
 ### 2.7 Телеметрия и админ
 - **TelemetryController**: принимает `event`, фильтрует payload (safe area, viewport, render latency, tap success). Все значения валидируются (`sanitizeLabel`, `extractSafeAreaSnapshot`). Ставит метрики в `metrics/telemetry.ts` и писать event в `events` таблицу.

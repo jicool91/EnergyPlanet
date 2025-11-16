@@ -18,6 +18,7 @@ import referralRoutes from './referrals';
 import chatRoutes from './chat';
 import seasonRoutes from './season';
 import eventsRoutes from './events';
+import clanRoutes from './clan';
 
 const router = Router();
 
@@ -36,5 +37,6 @@ router.use('/admin', adminRoutes);
 router.use('/chat', chatRoutes);
 router.use('/season', seasonRoutes);
 router.use('/events', eventsRoutes);
+router.use('/', clanRoutes);
 
 export default router;
