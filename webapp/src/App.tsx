@@ -26,7 +26,6 @@ import { LevelUpScreen } from './components/LevelUpScreen';
 import { NotificationContainer } from './components/notifications/NotificationContainer';
 import { ModalBase } from './components/ModalBase';
 import { useGameStore } from './store/gameStore';
-import { useNotification } from './hooks/useNotification';
 import { useTelegramBackButton } from './hooks/useTelegramBackButton';
 import { useAuthBootstrap } from './hooks';
 import { useAuthStore, authStore } from './store/authStore';
@@ -187,16 +186,6 @@ function NextUiApp() {
     });
   }, []);
 
-  useEffect(() => {
-    if (!levelBanner) {
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      setLevelBanner(null);
-    }, 3200);
-    return () => window.clearTimeout(timer);
-  }, [levelBanner]);
-
   const initGame = useGameStore(state => state.initGame);
   const authErrorMessage = useUIStore(state => state.authErrorMessage);
   const isAuthModalOpen = useUIStore(state => state.isAuthModalOpen);
@@ -208,7 +197,6 @@ function NextUiApp() {
   const refreshSession = useGameStore(state => state.refreshSession);
   const currentLevel = useGameStore(state => state.level);
   const isAdmin = useGameStore(state => state.isAdmin);
-  const { toast } = useNotification();
   const authReady = useAuthStore(state => state.authReady);
 
   const previousLevelRef = useRef(1);
@@ -221,6 +209,16 @@ function NextUiApp() {
     fromLevel: number;
     toLevel: number;
   } | null>(null);
+
+  useEffect(() => {
+    if (!levelBanner) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setLevelBanner(null);
+    }, 3200);
+    return () => window.clearTimeout(timer);
+  }, [levelBanner]);
 
   const handleLevelCelebration = useEffectEvent(
     ({

@@ -63,23 +63,6 @@ interface TickSyncResponse {
   pending_passive_sec?: number;
 }
 
-interface UpgradeResponsePayload {
-  energy?: number;
-  level?: number;
-  xp_gained?: number;
-  xp_into_level?: number;
-  xp_to_next_level?: number;
-  purchased?: number;
-  building?: {
-    building_id: string;
-    count: number;
-    level: number;
-    income_per_sec: number;
-    next_cost: number;
-    next_upgrade_cost: number;
-  };
-}
-
 const STREAK_RESET_MS = 4000;
 const STREAK_CRIT_THRESHOLD = 25;
 

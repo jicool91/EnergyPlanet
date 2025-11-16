@@ -68,86 +68,89 @@ function mapBuilder(builder: ConstructionSnapshotResponse['builders'][number]): 
 
 export const useConstructionStore = create<ConstructionState>()(
   persist(
-    (set, get) => ({
-      builders: [],
-      activeJobs: [],
-      queuedJobs: [],
-      hydrate: payload =>
-        set(state => ({
-          builders: payload.builders ?? state.builders,
-          activeJobs: payload.activeJobs ?? state.activeJobs,
-          queuedJobs: payload.queuedJobs ?? state.queuedJobs,
-        })),
-      startJob: job =>
-        set(state => ({
-          activeJobs: [...state.activeJobs.filter(item => item.id !== job.id), job],
-          queuedJobs: state.queuedJobs.filter(item => item.id !== job.id),
-        })),
-      markComplete: jobId =>
-        set(state => ({
-          activeJobs: state.activeJobs.filter(job => job.id !== jobId),
-        })),
-      fetchLatest: async () => {
-        try {
-          const snapshot = await fetchConstructionSnapshot();
-          set({
-            builders: snapshot.builders.map(mapBuilder),
-            activeJobs: (snapshot.jobs.active ?? []).map(mapJob),
-            queuedJobs: (snapshot.jobs.queued ?? []).map(mapJob),
-          });
-        } catch (error) {
-          logger.warn('Failed to fetch construction snapshot', {
-            error: error instanceof Error ? error.message : 'unknown',
-          });
-        }
-      },
-      startJobRequest: async params => {
-        try {
-          const job = await startConstructionJob(params);
+    (set, get) => {
+      void get;
+      return {
+        builders: [],
+        activeJobs: [],
+        queuedJobs: [],
+        hydrate: payload =>
           set(state => ({
-            activeJobs:
-              job.status === 'running' ? [...state.activeJobs, mapJob(job)] : state.activeJobs,
-            queuedJobs:
-              job.status === 'queued' ? [...state.queuedJobs, mapJob(job)] : state.queuedJobs,
-          }));
-        } catch (error) {
-          logger.error('Failed to start construction job', {
-            error: error instanceof Error ? error.message : 'unknown',
-          });
-          throw error;
-        }
-      },
-      completeJobRequest: async jobId => {
-        try {
-          await completeConstructionJob(jobId);
+            builders: payload.builders ?? state.builders,
+            activeJobs: payload.activeJobs ?? state.activeJobs,
+            queuedJobs: payload.queuedJobs ?? state.queuedJobs,
+          })),
+        startJob: job =>
+          set(state => ({
+            activeJobs: [...state.activeJobs.filter(item => item.id !== job.id), job],
+            queuedJobs: state.queuedJobs.filter(item => item.id !== job.id),
+          })),
+        markComplete: jobId =>
           set(state => ({
             activeJobs: state.activeJobs.filter(job => job.id !== jobId),
-          }));
-        } catch (error) {
-          logger.error('Failed to complete construction job', {
-            error: error instanceof Error ? error.message : 'unknown',
-          });
-          throw error;
-        }
-      },
-      purchaseBuilderSlot: async (slotIndex, options) => {
-        try {
-          const builder = await purchaseBuilder(slotIndex, options);
-          set(state => ({
-            builders: state.builders.some(b => b.slotIndex === builder.slot_index)
-              ? state.builders.map(b =>
-                  b.slotIndex === builder.slot_index ? mapBuilder(builder) : b
-                )
-              : [...state.builders, mapBuilder(builder)],
-          }));
-        } catch (error) {
-          logger.error('Failed to purchase builder', {
-            error: error instanceof Error ? error.message : 'unknown',
-          });
-          throw error;
-        }
-      },
-    }),
+          })),
+        fetchLatest: async () => {
+          try {
+            const snapshot = await fetchConstructionSnapshot();
+            set({
+              builders: snapshot.builders.map(mapBuilder),
+              activeJobs: (snapshot.jobs.active ?? []).map(mapJob),
+              queuedJobs: (snapshot.jobs.queued ?? []).map(mapJob),
+            });
+          } catch (error) {
+            logger.warn('Failed to fetch construction snapshot', {
+              error: error instanceof Error ? error.message : 'unknown',
+            });
+          }
+        },
+        startJobRequest: async params => {
+          try {
+            const job = await startConstructionJob(params);
+            set(state => ({
+              activeJobs:
+                job.status === 'running' ? [...state.activeJobs, mapJob(job)] : state.activeJobs,
+              queuedJobs:
+                job.status === 'queued' ? [...state.queuedJobs, mapJob(job)] : state.queuedJobs,
+            }));
+          } catch (error) {
+            logger.error('Failed to start construction job', {
+              error: error instanceof Error ? error.message : 'unknown',
+            });
+            throw error;
+          }
+        },
+        completeJobRequest: async jobId => {
+          try {
+            await completeConstructionJob(jobId);
+            set(state => ({
+              activeJobs: state.activeJobs.filter(job => job.id !== jobId),
+            }));
+          } catch (error) {
+            logger.error('Failed to complete construction job', {
+              error: error instanceof Error ? error.message : 'unknown',
+            });
+            throw error;
+          }
+        },
+        purchaseBuilderSlot: async (slotIndex, options) => {
+          try {
+            const builder = await purchaseBuilder(slotIndex, options);
+            set(state => ({
+              builders: state.builders.some(b => b.slotIndex === builder.slot_index)
+                ? state.builders.map(b =>
+                    b.slotIndex === builder.slot_index ? mapBuilder(builder) : b
+                  )
+                : [...state.builders, mapBuilder(builder)],
+            }));
+          } catch (error) {
+            logger.error('Failed to purchase builder', {
+              error: error instanceof Error ? error.message : 'unknown',
+            });
+            throw error;
+          }
+        },
+      };
+    },
     {
       name: 'construction-store',
       partialize: state => ({ builders: state.builders }),
