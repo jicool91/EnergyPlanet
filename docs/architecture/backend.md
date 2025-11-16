@@ -51,6 +51,7 @@
 ### 2.6 Социальные функции
 - **ChatService**: глобальный чат (`global_chat_messages`, миграции `015` + `016`). Cursor encoding (base64url). Rate-limit через Redis. DTO возвращают автора (прогресс + косметика). Метрики пока не собраны, но есть события `logEvent('chat_message')`.
 - **Leaderboard, профиль, друзья**: `socialRoutes` обслуживает `/leaderboard`, `/profile/:id`, `/friends` (TODO). Профили используют кеш `cacheKeys.profile(userId)`.
+- **FriendsService**: новая таблица `friendships` (`020_friendships.sql`), симметричные записи `user_one_id/user_two_id` + `status=pending|accepted`. Эндпоинты `/friends` (список), `/friends/requests` (создать), `/friends/requests/:userId/accept|reject`, `DELETE /friends/:userId`. Лимиты: ≤100 друзей, ≤20 исходящих заявок, авто-апрув если оба отправили заявку.
 - **Clan waitlist**: `ClanWaitlistController` пишет заявки в `clan_waitlist_requests` через `ClanWaitlistService`, публичный POST `/clan/waitlist` (требует авторизации), экспорт доступен по `GET /admin/clan/waitlist`.
 
 ### 2.7 Телеметрия и админ
