@@ -18,6 +18,7 @@ import {
   recordTickError,
 } from '../metrics/tick';
 import { achievementService } from './AchievementService';
+import { constructionService } from './ConstructionService';
 
 const MIN_TICK_SECONDS = 1;
 
@@ -193,5 +194,7 @@ export class TickService {
       recordTickError(reason);
       throw error;
     }
+
+    await constructionService.startQueuedJobs(userId);
   }
 }

@@ -35,6 +35,14 @@
 - **AchievementService**: definition tables (`008`). Методы: `syncMetric` (обновляет прогресс при событиях), `getOverview`, `claimNextTier` (увеличивает `achievementMultiplier`, может выдавать косметику). Косметика прописана в `ACHIEVEMENT_COSMETIC_REWARDS`.
 - **PrestigeService**: threshold `1e12`, минимум 50 уровень. `performPrestige` сбрасывает инвентарь/бусты, увеличивает `prestigeMultiplier`, логирует `prestige_performed`. Данные → `ProgressRepository` (колонки из миграции `006`).
 
+### 2.4 Construction Loop (новое)
+- **Таблицы**: `construction_jobs` (очередь строительных задач) и `builders` (слоты). В `progress` добавлены `xp_overflow`, `level_cap_reached_at`, `prestige_progress` (миграция `021_xp_overhaul.sql`).
+- **ConstructionService** (`backend/src/services/ConstructionService.ts`): ставит job (build/upgrade), проверяет строителя, переводит `queued→running`, завершает и начисляет XP через `levelV2` + `constructionXp`.
+- **BuilderService** (`backend/src/services/BuilderService.ts`): гарантирует базовый слот 0, активирует Builder Drone, считает ускорения (Stars/adwatch) и обновляет `speed_multiplier`.
+- **UpgradeServiceV2**: тонкий слой над ContentService, вместо мгновенных покупок создаёт job, сохраняет стоимость/XP в `construction_jobs`.
+- **SessionService** (план): расширение `/session` и `/tick`, чтобы выдавать `builders`, очереди и `prestige_progress`, а также авто-завершать просроченные job.
+- **API**: `ConstructionController` обслуживает `/construction` (GET snapshot, POST start, POST complete) и `/builders` (GET/POST activate). TickService автоматически дергает `startQueuedJobs`, SessionService сериализует snapshot в ответ.
+
 ### 2.4 Контент и лидерборды
 - **ContentService**: читает YAML/JSON из `backend/content`. Типы: buildings, cosmetics, quests, feature flags, star packs, referrals, seasons. Поддерживает reload, конвертирует в структуры для сервисов.
 - **LeaderboardService**: кеширует топ-лист в Redis (ключи `cacheKeys.leaderboardTop(limit)`), умеет доставать запись игрока, если тот не в кеше. Источник данных — `leaderboard_global` view (`001`).

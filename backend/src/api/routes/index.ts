@@ -19,6 +19,7 @@ import chatRoutes from './chat';
 import seasonRoutes from './season';
 import eventsRoutes from './events';
 import clanRoutes from './clan';
+import constructionRoutes from './construction';
 
 const router = Router();
 
@@ -38,5 +39,6 @@ router.use('/chat', chatRoutes);
 router.use('/season', seasonRoutes);
 router.use('/events', eventsRoutes);
 router.use('/', clanRoutes);
+router.use('/', constructionRoutes);
 
 export default router;

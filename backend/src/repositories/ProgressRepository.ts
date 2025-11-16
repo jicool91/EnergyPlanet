@@ -5,6 +5,7 @@ export interface ProgressRecord {
   userId: string;
   level: number;
   xp: number;
+  xpOverflow: number;
   energy: number;
   starsBalance: number;
   totalEnergyProduced: number;
@@ -15,9 +16,11 @@ export interface ProgressRecord {
   prestigeMultiplier: number;
   prestigeEnergySnapshot: number;
   prestigeLastReset: Date | null;
+  prestigeProgress: number;
   achievementMultiplier: number;
   lastLogin: Date | null;
   lastLogout: Date | null;
+  levelCapReachedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,6 +29,7 @@ interface ProgressRow {
   user_id: string;
   level: number;
   xp: string;
+  xp_overflow: string;
   energy: string;
   stars_balance: string;
   total_energy_produced: string;
@@ -36,9 +40,11 @@ interface ProgressRow {
   prestige_multiplier: string;
   prestige_energy_snapshot: string;
   prestige_last_reset: string | null;
+  prestige_progress: number;
   achievement_multiplier: string;
   last_login: string | null;
   last_logout: string | null;
+  level_cap_reached_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -48,6 +54,7 @@ function mapProgress(row: ProgressRow): ProgressRecord {
     userId: row.user_id,
     level: row.level,
     xp: Number(row.xp),
+    xpOverflow: Number(row.xp_overflow ?? '0'),
     energy: Number(row.energy),
     starsBalance: Number(row.stars_balance ?? '0'),
     totalEnergyProduced: Number(row.total_energy_produced),
@@ -58,9 +65,11 @@ function mapProgress(row: ProgressRow): ProgressRecord {
     prestigeMultiplier: Number(row.prestige_multiplier ?? '1'),
     prestigeEnergySnapshot: Number(row.prestige_energy_snapshot ?? '0'),
     prestigeLastReset: row.prestige_last_reset ? new Date(row.prestige_last_reset) : null,
+    prestigeProgress: row.prestige_progress ?? 0,
     achievementMultiplier: Number(row.achievement_multiplier ?? '1'),
     lastLogin: row.last_login ? new Date(row.last_login) : null,
     lastLogout: row.last_logout ? new Date(row.last_logout) : null,
+    levelCapReachedAt: row.level_cap_reached_at ? new Date(row.level_cap_reached_at) : null,
     createdAt: new Date(row.created_at),
     updatedAt: new Date(row.updated_at),
   };
@@ -103,6 +112,7 @@ export async function createDefaultProgress(
 export interface UpdateProgressInput {
   level?: number;
   xp?: number;
+  xpOverflow?: number;
   energy?: number;
   starsBalance?: number;
   totalEnergyProduced?: number;
@@ -113,9 +123,11 @@ export interface UpdateProgressInput {
   prestigeMultiplier?: number;
   prestigeEnergySnapshot?: number;
   prestigeLastReset?: Date | null;
+  prestigeProgress?: number;
   achievementMultiplier?: number;
   lastLogin?: Date | null;
   lastLogout?: Date | null;
+  levelCapReachedAt?: Date | null;
 }
 
 export async function updateProgress(
@@ -134,6 +146,11 @@ export async function updateProgress(
   if (data.xp !== undefined) {
     fields.push(`xp = $${fields.length + 1}`);
     values.push(data.xp);
+  }
+
+  if (data.xpOverflow !== undefined) {
+    fields.push(`xp_overflow = $${fields.length + 1}`);
+    values.push(data.xpOverflow);
   }
 
   if (data.energy !== undefined) {
@@ -185,6 +202,11 @@ export async function updateProgress(
     values.push(data.prestigeLastReset);
   }
 
+  if (data.prestigeProgress !== undefined) {
+    fields.push(`prestige_progress = $${fields.length + 1}`);
+    values.push(data.prestigeProgress);
+  }
+
   if (data.achievementMultiplier !== undefined) {
     fields.push(`achievement_multiplier = $${fields.length + 1}`);
     values.push(data.achievementMultiplier);
@@ -198,6 +220,11 @@ export async function updateProgress(
   if (data.lastLogout !== undefined) {
     fields.push(`last_logout = $${fields.length + 1}`);
     values.push(data.lastLogout);
+  }
+
+  if (data.levelCapReachedAt !== undefined) {
+    fields.push(`level_cap_reached_at = $${fields.length + 1}`);
+    values.push(data.levelCapReachedAt);
   }
 
   if (fields.length === 0) {

@@ -10,6 +10,7 @@ import {
   Card,
   TabPageSurface,
   Button,
+  BuilderPanel,
 } from '@/components';
 import { Surface } from '@/components/ui/Surface';
 import { Text } from '@/components/ui/Text';
@@ -23,6 +24,7 @@ import { describeError } from '@/store/storeUtils';
 import { logClientEvent } from '@/services/telemetry';
 import type { ShopSection } from '@/components/ShopPanel';
 import { useExperimentVariant } from '@/store/experimentsStore';
+import { useConstructionStore } from '@/store/constructionStore';
 
 const SECTION_QUERY_PARAM = 'section';
 
@@ -170,6 +172,9 @@ export function TapScreen() {
   const { tap: hapticTap } = useHaptic();
   const paletteVariant = useExperimentVariant('palette_v1') ?? 'classic';
   const experimentExposureLoggedRef = useRef(false);
+  const fetchConstructionSnapshot = useConstructionStore(state => state.fetchLatest);
+  const purchaseBuilderSlot = useConstructionStore(state => state.purchaseBuilderSlot);
+  const hasBuilders = useConstructionStore(state => state.builders.length > 0);
 
   const {
     energy,
@@ -606,6 +611,17 @@ export function TapScreen() {
     );
   }
 
+  useEffect(() => {
+    void fetchConstructionSnapshot();
+  }, [fetchConstructionSnapshot]);
+
+  const handlePurchaseBuilderCTA = useCallback(() => {
+    purchaseBuilderSlot(1, { costStars: 1500 }).catch(error => {
+      console.warn('Failed to purchase builder drone', error);
+      toast('Не удалось купить Builder Drone, попробуйте позже.', 3200, 'error');
+    });
+  }, [purchaseBuilderSlot, toast]);
+
   return (
     <>
       <TabPageSurface className="gap-6">
@@ -637,6 +653,8 @@ export function TapScreen() {
           isPrestigeLoading={isPrestigeLoading}
           onPrestige={performPrestige}
         />
+
+        {hasBuilders && <BuilderPanel onPurchaseBuilder={handlePurchaseBuilderCTA} />}
 
         <Button
           type="button"

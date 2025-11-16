@@ -21,7 +21,7 @@ import { FriendsScreen } from './screens/FriendsScreen';
 import { ClanScreen } from './screens/ClanScreen';
 import { ChatScreen } from './screens/ChatScreen';
 import { AuthErrorModal } from './components/AuthErrorModal';
-import { OfflineSummaryModal } from './components/OfflineSummaryModal';
+import { OfflineSummaryCard } from './components/OfflineSummaryCard';
 import { LevelUpScreen } from './components/LevelUpScreen';
 import { NotificationContainer } from './components/notifications/NotificationContainer';
 import { ModalBase } from './components/ModalBase';
@@ -41,6 +41,7 @@ import { AdminModalContext } from './contexts/AdminModalContext';
 import { ensureExperimentVariant } from '@/store/experimentsStore';
 import { getHeaderSchema } from '@/constants/headerSchema';
 import { ProfileScreen } from './screens/ProfileScreen';
+import { ProgressBanner } from './components/ProgressBanner';
 
 const NAVIGATION_TABS: BottomNavigationTab[] = [
   { id: 'tap', label: 'Tap', icon: '⚡️', path: '/' },
@@ -186,6 +187,16 @@ function NextUiApp() {
     });
   }, []);
 
+  useEffect(() => {
+    if (!levelBanner) {
+      return;
+    }
+    const timer = window.setTimeout(() => {
+      setLevelBanner(null);
+    }, 3200);
+    return () => window.clearTimeout(timer);
+  }, [levelBanner]);
+
   const initGame = useGameStore(state => state.initGame);
   const authErrorMessage = useUIStore(state => state.authErrorMessage);
   const isAuthModalOpen = useUIStore(state => state.isAuthModalOpen);
@@ -205,21 +216,32 @@ function NextUiApp() {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [overlayLevel, setOverlayLevel] = useState<number | null>(null);
   const [isAdminMetricsOpen, setAdminMetricsOpen] = useState(false);
+  const [levelBanner, setLevelBanner] = useState<{
+    levelsGained: number;
+    fromLevel: number;
+    toLevel: number;
+  } | null>(null);
 
   const handleLevelCelebration = useEffectEvent(
-    ({ majorLevel, gainedLevels }: { majorLevel: number | undefined; gainedLevels: number[] }) => {
+    ({
+      majorLevel,
+      gainedLevels,
+      fromLevel,
+      toLevel,
+    }: {
+      majorLevel: number | undefined;
+      gainedLevels: number[];
+      fromLevel: number;
+      toLevel: number;
+    }) => {
       if (majorLevel) {
         setOverlayLevel(majorLevel);
         setShowLevelUp(true);
         void logClientEvent('level_up_overlay', { level: majorLevel });
       }
-
-      gainedLevels
-        .filter(levelValue => !shouldShowMajorLevel(levelValue))
-        .forEach(levelValue => {
-          toast(`Уровень ${levelValue}! Новые постройки доступны.`, 2600, 'trophy');
-          void logClientEvent('level_up_toast', { level: levelValue });
-        });
+      if (gainedLevels.length > 0) {
+        setLevelBanner({ levelsGained: gainedLevels.length, fromLevel, toLevel });
+      }
     }
   );
 
@@ -268,7 +290,12 @@ function NextUiApp() {
     const majorLevel = [...gainedLevels]
       .reverse()
       .find(levelValue => shouldShowMajorLevel(levelValue));
-    handleLevelCelebration({ majorLevel, gainedLevels });
+    handleLevelCelebration({
+      majorLevel,
+      gainedLevels,
+      fromLevel: previousLevel,
+      toLevel: currentLevel,
+    });
     previousLevelRef.current = currentLevel;
   }, [currentLevel, isInitialized]);
 
@@ -376,17 +403,6 @@ function NextUiApp() {
           onRetry={handleRetry}
           onDismiss={dismissAuthError}
         />
-        <OfflineSummaryModal
-          isOpen={!!offlineSummary}
-          energy={offlineSummary?.energy ?? 0}
-          xp={offlineSummary?.xp ?? 0}
-          durationSec={offlineSummary?.duration_sec ?? 0}
-          capped={offlineSummary?.capped ?? false}
-          levelStart={offlineSummary?.level_start}
-          levelEnd={offlineSummary?.level_end}
-          levelsGained={offlineSummary?.levels_gained}
-          onClose={acknowledgeOfflineSummary}
-        />
         <LevelUpScreen
           isOpen={showLevelUp && overlayLevel !== null}
           newLevel={overlayLevel || 1}
@@ -406,6 +422,27 @@ function NextUiApp() {
         >
           <AdminMonetizationScreen />
         </ModalBase>
+        {levelBanner && (
+          <div className="pointer-events-none fixed left-0 right-0 top-16 z-40 flex justify-center px-4">
+            <ProgressBanner
+              levelsGained={levelBanner.levelsGained}
+              fromLevel={levelBanner.fromLevel}
+              toLevel={levelBanner.toLevel}
+            />
+          </div>
+        )}
+        {offlineSummary && (
+          <div className="fixed bottom-16 left-0 right-0 z-40 flex justify-center px-4">
+            <OfflineSummaryCard
+              energy={offlineSummary.energy}
+              xp={offlineSummary.xp}
+              durationSec={offlineSummary.duration_sec}
+              levelsGained={offlineSummary.levels_gained}
+              capped={offlineSummary.capped}
+              onExpand={acknowledgeOfflineSummary}
+            />
+          </div>
+        )}
         <NotificationContainer />
       </AdminModalContext.Provider>
     </>

@@ -25,6 +25,26 @@ import {
   recordSessionOpenMetric,
 } from '../metrics/gameplay';
 import { recordSessionDurationMetric } from '../metrics/business';
+import { constructionService } from './ConstructionService';
+
+interface BuilderSlotView {
+  slot_index: number;
+  status: 'active' | 'inactive' | 'expired';
+  speed_multiplier: number;
+  expires_at: string | null;
+}
+
+interface ConstructionJobView {
+  id: string;
+  building_id: string;
+  action: 'build' | 'upgrade';
+  builder_slot: number;
+  completes_at: string;
+  duration_seconds: number;
+  status: 'queued' | 'running' | 'completed' | 'cancelled';
+  xp_reward: number;
+  quantity: number;
+}
 
 interface OfflineGains {
   energy: number;
@@ -76,6 +96,13 @@ interface SessionState {
   achievementMultiplier: number;
   effectiveMultiplier: number;
   effectivePassiveIncome: number;
+  construction: {
+    builders: BuilderSlotView[];
+    jobs: {
+      active: ConstructionJobView[];
+      queued: ConstructionJobView[];
+    };
+  };
 }
 
 export class SessionService {
@@ -186,6 +213,31 @@ export class SessionService {
       }
 
       const featureFlags = contentService.getFeatureFlags()?.features ?? {};
+      const constructionSnapshot = await constructionService.getSnapshot(userId, client);
+      const mapBuilder = (builder: { slotIndex: number; status: 'active' | 'inactive' | 'expired'; speedMultiplier: number; expiresAt: Date | null; }) => ({
+        slot_index: builder.slotIndex,
+        status: builder.status,
+        speed_multiplier: builder.speedMultiplier,
+        expires_at: builder.expiresAt ? builder.expiresAt.toISOString() : null,
+      });
+      const mapJob = (job: { id: string; buildingId: string; action: 'build' | 'upgrade'; builderSlot: number; completesAt: Date; durationSeconds: number; status: 'queued' | 'running' | 'completed' | 'cancelled'; xpReward: number; quantity: number; }) => ({
+        id: job.id,
+        building_id: job.buildingId,
+        action: job.action,
+        builder_slot: job.builderSlot,
+        completes_at: job.completesAt.toISOString(),
+        duration_seconds: job.durationSeconds,
+        status: job.status,
+        xp_reward: job.xpReward,
+        quantity: job.quantity,
+      });
+      const construction = {
+        builders: constructionSnapshot.builders.map(mapBuilder),
+        jobs: {
+          active: constructionSnapshot.jobs.active.map(mapJob),
+          queued: constructionSnapshot.jobs.queued.map(mapJob),
+        },
+      };
 
       return {
         user,
@@ -208,6 +260,7 @@ export class SessionService {
         effectivePassiveIncome: effectiveIncome,
         featureFlags,
         leveledUp,
+        construction,
       };
     });
 
@@ -270,6 +323,7 @@ export class SessionService {
       effectivePassiveIncome: state.effectivePassiveIncome,
       feature_flags: state.featureFlags,
       server_time: now.toISOString(),
+      construction: state.construction,
     };
   }
 

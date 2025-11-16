@@ -31,6 +31,7 @@ export {
 // Panels (Feature-specific)
 export { BuildingCard, type BuildingCardProps } from './BuildingCard';
 export { BuildingsPanel } from './BuildingsPanel';
+export { BuilderPanel } from './buildings/BuilderPanel';
 export { ShopPanel } from './ShopPanel';
 export { ProfilePanel } from './ProfilePanel';
 export { BoostHub } from './BoostHub';
@@ -93,6 +94,7 @@ export { AirdropTimeline } from './airdrop/AirdropTimeline';
 // Modals
 export { AuthErrorModal } from './AuthErrorModal';
 export { OfflineSummaryModal } from './OfflineSummaryModal';
+export { OfflineSummaryCard } from './OfflineSummaryCard';
 export { PurchaseSuccessModal } from './PurchaseSuccessModal';
 export { LevelUpScreen } from './LevelUpScreen';
 export { AchievementsModal } from './AchievementsModal';
@@ -111,3 +113,4 @@ export { Text } from './ui/Text';
 export { Skeleton, type SkeletonProps } from './ui/Skeleton';
 export { Loader, type LoaderProps } from './ui/Loader';
 export { Surface, type SurfaceProps } from './ui/Surface';
+export { ProgressBanner } from './ProgressBanner';

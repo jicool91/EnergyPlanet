@@ -17,6 +17,7 @@ import { authStore } from './authStore';
 import { sessionManager } from '@/services/sessionManager';
 import { uiStore } from './uiStore';
 import { fetchPrestigeStatus, performPrestigeReset } from '../services/prestige';
+import { useConstructionStore } from './constructionStore';
 import {
   fetchAchievements,
   claimAchievement as claimAchievementApi,
@@ -90,6 +91,33 @@ const PASSIVE_COMMIT_INTERVAL_MS = 350;
 let passiveEnergyUiBuffer = 0;
 let passiveSecondsUiBuffer = 0;
 let lastPassiveUiCommit = 0;
+
+function hydrateConstruction(snapshot: any) {
+  if (!snapshot) {
+    return;
+  }
+  const builders = Array.isArray(snapshot.builders)
+    ? snapshot.builders.map((builder: any) => ({
+        slotIndex: builder.slot_index,
+        status: builder.status,
+        speedMultiplier: builder.speed_multiplier,
+        expiresAt: builder.expires_at,
+      }))
+    : [];
+  const mapJob = (job: any) => ({
+    id: job.id,
+    buildingId: job.building_id,
+    action: job.action,
+    builderSlot: job.builder_slot,
+    completesAt: job.completes_at,
+    durationSeconds: job.duration_seconds,
+    status: job.status,
+    xpReward: job.xp_reward,
+  });
+  const activeJobs = Array.isArray(snapshot.jobs?.active) ? snapshot.jobs.active.map(mapJob) : [];
+  const queuedJobs = Array.isArray(snapshot.jobs?.queued) ? snapshot.jobs.queued.map(mapJob) : [];
+  useConstructionStore.getState().hydrate({ builders, activeJobs, queuedJobs });
+}
 
 const commitPassiveBuffers = (set: StoreApi<GameState>['setState']) => {
   if (passiveEnergyUiBuffer === 0 && passiveSecondsUiBuffer === 0) {
@@ -353,7 +381,14 @@ export const useGameStore = create<GameState>((set, get) => ({
 
         throw sessionError;
       }
-      const { user, progress, offline_gains: offlineGains, inventory } = sessionResponse.data;
+      const {
+        user,
+        progress,
+        offline_gains: offlineGains,
+        inventory,
+        construction,
+      } = sessionResponse.data;
+      hydrateConstruction(construction);
       const passivePerSec = progress.passive_income_per_sec ?? 0;
       const totalMultiplier = progress.passive_income_multiplier ?? 1;
       const boostMultiplier = progress.boost_multiplier ?? 1;
@@ -632,7 +667,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       const wasInitialized = state.isInitialized;
       const previousLevel = state.level;
       const response = await apiClient.post('/session');
-      const { user, progress, offline_gains: offlineGains, inventory } = response.data;
+      const {
+        user,
+        progress,
+        offline_gains: offlineGains,
+        inventory,
+        construction,
+      } = response.data;
+      hydrateConstruction(construction);
       const buildings = Array.isArray(inventory) ? inventory.map(mapBuilding) : [];
 
       const baselineLevel = wasInitialized ? previousLevel : progress.level;
@@ -850,30 +892,17 @@ export const useGameStore = create<GameState>((set, get) => ({
 
       commitPassiveBuffers(set);
 
-      const response = await apiClient.post<UpgradeResponsePayload>('/upgrade', {
-        building_id: buildingId,
-        action: 'purchase',
+      await useConstructionStore.getState().startJobRequest({
+        buildingId,
+        action: 'build',
         quantity: normalizedQuantity,
       });
-      const payload = response.data ?? {};
-      const completed = payload.purchased ?? normalizedQuantity;
-
-      set(state => ({
-        xp: state.xp + (payload.xp_gained ?? 0),
-        xpIntoLevel:
-          payload.xp_into_level ?? Math.max(0, state.xpIntoLevel + (payload.xp_gained ?? 0)),
-        xpToNextLevel: payload.xp_to_next_level ?? state.xpToNextLevel,
-        energy: payload.energy ?? state.energy,
-        level: payload.level ?? state.level,
-      }));
 
       await logClientEvent(
-        'building_purchase_success',
+        'building_purchase_scheduled',
         {
           building_id: buildingId,
-          requested: normalizedQuantity,
-          quantity: completed,
-          next_cost: payload.building?.next_cost ?? null,
+          quantity: normalizedQuantity,
         },
         'info'
       );
@@ -909,30 +938,14 @@ export const useGameStore = create<GameState>((set, get) => ({
       await get().flushPassiveIncome();
       await logClientEvent('building_upgrade_request', { building_id: buildingId }, 'info');
 
-      const response = await apiClient.post<UpgradeResponsePayload>('/upgrade', {
-        building_id: buildingId,
+      await useConstructionStore.getState().startJobRequest({
+        buildingId,
         action: 'upgrade',
       });
-      const payload = response.data ?? {};
 
       commitPassiveBuffers(set);
-      set(state => ({
-        energy: payload.energy ?? state.energy,
-        level: payload.level ?? state.level,
-        xp: state.xp + (payload.xp_gained ?? 0),
-        xpIntoLevel:
-          payload.xp_into_level ?? Math.max(0, state.xpIntoLevel + (payload.xp_gained ?? 0)),
-        xpToNextLevel: payload.xp_to_next_level ?? state.xpToNextLevel,
-      }));
 
-      await logClientEvent(
-        'building_upgrade_success',
-        {
-          building_id: buildingId,
-          new_level: payload.building?.level ?? null,
-        },
-        'info'
-      );
+      await logClientEvent('building_upgrade_scheduled', { building_id: buildingId }, 'info');
 
       await get().refreshSession();
     } catch (error) {

@@ -299,6 +299,12 @@ class ContentService {
   };
   private referralConfig: ReferralConfig | null = null;
   private pvpEventsConfig: PvpEventsConfig | null = null;
+  private readonly tierConstructionMinutes: Record<number, number> = {
+    1: 5,
+    2: 20,
+    3: 150,
+    4: 480,
+  };
 
   async load() {
     try {
@@ -647,6 +653,31 @@ class ContentService {
     const base = 50;
     const perLevel = 2;
     return Math.floor(base + playerLevel * perLevel);
+  }
+
+  getBaseConstructionMinutes(tier: number | undefined): number {
+    if (!tier) {
+      return this.tierConstructionMinutes[1];
+    }
+    return this.tierConstructionMinutes[tier] ?? this.tierConstructionMinutes[1];
+  }
+
+  calculateConstructionDurationMinutes(
+    building: Building,
+    options: {
+      ownedOfTier: number;
+      builderSpeedMultiplier?: number;
+      action: 'build' | 'upgrade';
+      currentLevel: number;
+    }
+  ): number {
+    const base = this.getBaseConstructionMinutes(building.tier);
+    const ownedModifier = Math.pow(1.12, Math.max(0, options.ownedOfTier));
+    const levelModifier = Math.pow(1.05, options.currentLevel);
+    const actionModifier = options.action === 'upgrade' ? 0.6 : 1;
+    const builderSpeed = Math.max(0.25, options.builderSpeedMultiplier ?? 1);
+    const duration = base * ownedModifier * levelModifier * actionModifier;
+    return Math.max(1, duration / builderSpeed);
   }
 }
 
