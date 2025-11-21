@@ -10,7 +10,8 @@ let state: TmaSetupState = { status: 'idle', available: false };
 let cleanup: VoidFunction | null = null;
 
 function setup(): void {
-  if (state.status !== 'idle') {
+  // Allow retry when previous probe failed. Skip only while another setup is in-flight.
+  if (state.status === 'pending') {
     return;
   }
 
