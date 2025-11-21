@@ -13,8 +13,11 @@ ALTER TABLE purchases
     ADD COLUMN sbp_payload TEXT,
     ADD COLUMN expires_at TIMESTAMP WITH TIME ZONE,
     ADD COLUMN status_reason VARCHAR(255),
-    ADD COLUMN metadata JSONB NOT NULL DEFAULT '{}'::jsonb,
-    ADD COLUMN status VARCHAR(32) NOT NULL DEFAULT 'succeeded';
+    ADD COLUMN metadata JSONB NOT NULL DEFAULT '{}'::jsonb;
+
+ALTER TABLE purchases
+    ALTER COLUMN status TYPE VARCHAR(32),
+    ALTER COLUMN status SET DEFAULT 'pending';
 
 COMMENT ON COLUMN purchases.provider IS 'Payment provider identifier (sbp, telegram, mock)';
 COMMENT ON COLUMN purchases.currency IS 'ISO currency for amount_minor (e.g., RUB, USD, STARS)';
