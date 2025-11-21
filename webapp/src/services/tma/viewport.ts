@@ -34,10 +34,26 @@ type TelemetryOrigin = 'sdk' | 'override';
 
 const ZERO_INSETS: SafeAreaInsets = { top: 0, bottom: 0, left: 0, right: 0 };
 
+function readWindowHeight(): number | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  const value = window.innerHeight;
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
+function readWindowWidth(): number | null {
+  if (typeof window === 'undefined') {
+    return null;
+  }
+  const value = window.innerWidth;
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
 const DEFAULT_VIEWPORT_METRICS: ViewportMetrics = {
-  height: typeof window !== 'undefined' ? window.innerHeight : null,
-  stableHeight: typeof window !== 'undefined' ? window.innerHeight : null,
-  width: typeof window !== 'undefined' ? window.innerWidth : null,
+  height: readWindowHeight(),
+  stableHeight: readWindowHeight(),
+  width: readWindowWidth(),
   isExpanded: true,
   isStateStable: true,
   isFullscreen: false,
@@ -246,8 +262,12 @@ function applyViewportCss(metrics: ViewportMetrics): void {
   }
 
   const root = document.documentElement;
-  const fallbackHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
-  const fallbackWidth = typeof window !== 'undefined' ? window.innerWidth : 480;
+  const fallbackHeightRaw = readWindowHeight();
+  const fallbackWidthRaw = readWindowWidth();
+  const fallbackHeight =
+    typeof fallbackHeightRaw === 'number' && fallbackHeightRaw > 0 ? fallbackHeightRaw : 800;
+  const fallbackWidth =
+    typeof fallbackWidthRaw === 'number' && fallbackWidthRaw > 0 ? fallbackWidthRaw : 480;
   const resolvedHeight = resolveViewportDimension(metrics.height, fallbackHeight);
   const resolvedStableHeight = resolveViewportDimension(metrics.stableHeight, resolvedHeight);
   const resolvedWidth = resolveViewportDimension(metrics.width, fallbackWidth);
