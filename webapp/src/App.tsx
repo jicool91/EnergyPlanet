@@ -210,6 +210,16 @@ function NextUiApp() {
     toLevel: number;
   } | null>(null);
 
+  if (!authReady) {
+    return (
+      <div className="flex h-screen w-screen items-center justify-center bg-surface-primary">
+        <Text variant="body" tone="secondary">
+          Инициализация приложения...
+        </Text>
+      </div>
+    );
+  }
+
   useEffect(() => {
     if (!levelBanner) {
       return;
