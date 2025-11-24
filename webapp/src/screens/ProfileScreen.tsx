@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { TabPageSurface, Surface, ProfileSkeleton, ProfileSettingsScreen } from '@/components';
 import type { AccountSection } from '@/components/ProfileSettingsScreen';
@@ -14,7 +14,7 @@ export function ProfileScreen() {
   const isProfileLoading = useGameStore(state => state.isProfileLoading);
   const profileError = useGameStore(state => state.profileError);
   const authReady = useAuthStore(state => state.authReady);
-  const initialSection = useMemo<AccountSection>(() => {
+  const activeSection = useMemo<AccountSection>(() => {
     const params = new URLSearchParams(location.search);
     const q = params.get('section');
     if (q === 'settings' || q === 'profile') {
@@ -28,7 +28,6 @@ export function ProfileScreen() {
     }
     return 'profile';
   }, [location.search]);
-  const [activeSection, setActiveSection] = useState<AccountSection>(initialSection);
 
   useEffect(() => {
     if (!authReady) {
@@ -45,17 +44,8 @@ export function ProfileScreen() {
     });
   }, [loadProfile]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(location.search);
-    const q = params.get('section');
-    if (q === 'settings' || q === 'profile') {
-      setActiveSection(q);
-    }
-  }, [location.search]);
-
   const handleSectionChange = useCallback(
     (section: AccountSection) => {
-      setActiveSection(section);
       if (typeof window !== 'undefined') {
         window.localStorage.setItem(SECTION_STORAGE_KEY, section);
       }

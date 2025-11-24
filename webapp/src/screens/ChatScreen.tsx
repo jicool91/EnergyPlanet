@@ -131,7 +131,14 @@ function GlobalChatSection() {
   const lastVisibleRangeRef = useRef<ListRange | null>(null);
   const [inputValue, setInputValue] = useState('');
   const [isComposerFocused, setIsComposerFocused] = useState(false);
-  const [newMessageAnnouncement, setNewMessageAnnouncement] = useState<string | null>(null);
+  const newMessageAnnouncement = useMemo(() => {
+    if (queuedNewCount === 0) {
+      return null;
+    }
+    return queuedNewCount > 1
+      ? `Появилось ${queuedNewCount} новых сообщений`
+      : 'Появилось новое сообщение';
+  }, [queuedNewCount]);
   const composerInputId = useId();
   const composerCounterId = `${composerInputId}-counter`;
   const remainingCharacters = Math.max(0, MAX_CHAT_LENGTH - inputValue.length);
@@ -194,18 +201,6 @@ function GlobalChatSection() {
       setBottomNavHidden(false);
     };
   }, [isComposerFocused, setBottomNavHidden]);
-
-  useEffect(() => {
-    if (queuedNewCount > 0) {
-      setNewMessageAnnouncement(
-        queuedNewCount > 1
-          ? `Появилось ${queuedNewCount} новых сообщений`
-          : 'Появилось новое сообщение'
-      );
-    } else {
-      setNewMessageAnnouncement(null);
-    }
-  }, [queuedNewCount]);
 
   useEffect(() => {
     if (!authReady || !userId) {

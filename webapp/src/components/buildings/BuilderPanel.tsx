@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Panel } from '@/components/Panel';
 import { Text } from '@/components/ui/Text';
 import { Button } from '@/components/Button';
@@ -14,12 +14,20 @@ export function BuilderPanel({ onPurchaseBuilder, onAccelerate }: BuilderPanelPr
   const activeJobs = useConstructionStore(state => state.activeJobs);
   const queuedJobs = useConstructionStore(state => state.queuedJobs);
   const completeJob = useConstructionStore(state => state.completeJobRequest);
+  const [nowMs, setNowMs] = useState(0);
+
+  useEffect(() => {
+    const tick = () => setNowMs(Date.now());
+    tick();
+    const id = window.setInterval(tick, 1000);
+    return () => window.clearInterval(id);
+  }, []);
 
   const builderCards = useMemo(() => {
     return builders.map(builder => {
       const job = activeJobs.find(item => item.builderSlot === builder.slotIndex);
       const eta = job ? new Date(job.completesAt) : null;
-      const isReady = job ? new Date(job.completesAt).getTime() <= Date.now() : false;
+      const isReady = job ? new Date(job.completesAt).getTime() <= nowMs : false;
       return (
         <Panel key={builder.slotIndex} tone="overlay" spacing="sm" border="subtle">
           <div className="flex items-center justify-between">
@@ -79,7 +87,7 @@ export function BuilderPanel({ onPurchaseBuilder, onAccelerate }: BuilderPanelPr
         </Panel>
       );
     });
-  }, [builders, activeJobs, onPurchaseBuilder, onAccelerate]);
+  }, [builders, activeJobs, onPurchaseBuilder, onAccelerate, nowMs, completeJob]);
 
   return (
     <div className="flex flex-col gap-sm">
@@ -100,8 +108,10 @@ export function BuilderPanel({ onPurchaseBuilder, onAccelerate }: BuilderPanelPr
           </Text>
           <ul className="mt-2 space-y-1">
             {queuedJobs.map(job => (
-              <li key={job.id} className="text-sm text-text-secondary">
-                {job.buildingId} • старт при освобождении строителя • XP {job.xpReward}
+              <li key={job.id}>
+                <Text as="span" variant="bodySm" tone="secondary">
+                  {job.buildingId} • старт при освобождении строителя • XP {job.xpReward}
+                </Text>
               </li>
             ))}
           </ul>

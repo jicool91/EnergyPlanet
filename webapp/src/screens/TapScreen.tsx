@@ -603,14 +603,6 @@ export function TapScreen() {
     });
   }, [isInitialized, paletteVariant]);
 
-  if (isLoading && !isInitialized) {
-    return (
-      <div className="flex h-full w-full items-center justify-center">
-        <p className="text-body text-text-secondary">Загрузка Energy Planet…</p>
-      </div>
-    );
-  }
-
   useEffect(() => {
     void fetchConstructionSnapshot();
   }, [fetchConstructionSnapshot]);
@@ -621,6 +613,14 @@ export function TapScreen() {
       toast('Не удалось купить Builder Drone, попробуйте позже.', 3200, 'error');
     });
   }, [purchaseBuilderSlot, toast]);
+
+  if (isLoading && !isInitialized) {
+    return (
+      <div className="flex h-full w-full items-center justify-center">
+        <p className="text-body text-text-secondary">Загрузка Energy Planet…</p>
+      </div>
+    );
+  }
 
   return (
     <>

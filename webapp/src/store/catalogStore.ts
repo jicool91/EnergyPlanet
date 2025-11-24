@@ -31,8 +31,15 @@ function openPaymentLink(url?: string | null): boolean {
   }
 
   try {
-    const webApp = (window as typeof window & { Telegram?: { WebApp?: { openLink?: Function } } })
-      .Telegram?.WebApp;
+    const webApp = (
+      window as typeof window & {
+        Telegram?: {
+          WebApp?: {
+            openLink?: (url: string, options?: { try_instant_view?: boolean }) => void;
+          };
+        };
+      }
+    ).Telegram?.WebApp;
     if (webApp?.openLink) {
       webApp.openLink(url, { try_instant_view: false });
       return true;

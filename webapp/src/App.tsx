@@ -210,16 +210,6 @@ function NextUiApp() {
     toLevel: number;
   } | null>(null);
 
-  if (!authReady) {
-    return (
-      <div className="flex h-screen w-screen items-center justify-center bg-surface-primary">
-        <Text variant="body" tone="secondary">
-          Инициализация приложения...
-        </Text>
-      </div>
-    );
-  }
-
   useEffect(() => {
     if (!levelBanner) {
       return;
@@ -398,61 +388,72 @@ function NextUiApp() {
     return null;
   }, []);
 
+  const shell = (
+    <AdminModalContext.Provider value={adminContextValue}>
+      <BrowserRouter>
+        <NextUiRouter renderHeader={renderHeader} />
+      </BrowserRouter>
+    </AdminModalContext.Provider>
+  );
+
   return (
     <>
-      <AdminModalContext.Provider value={adminContextValue}>
-        <BrowserRouter>
-          <NextUiRouter renderHeader={renderHeader} />
-        </BrowserRouter>
-
-        <AuthErrorModal
-          isOpen={isAuthModalOpen}
-          message={authErrorMessage || ''}
-          onRetry={handleRetry}
-          onDismiss={dismissAuthError}
-        />
-        <LevelUpScreen
-          isOpen={showLevelUp && overlayLevel !== null}
-          newLevel={overlayLevel || 1}
-          onDismiss={() => {
-            setShowLevelUp(false);
-            setOverlayLevel(null);
-          }}
-        />
-        <ModalBase
-          isOpen={isAdminMetricsOpen && isAdmin}
-          title="Монетизация (админ)"
-          onClose={() => {
-            setAdminMetricsOpen(false);
-            void logClientEvent('admin_monetization_close', {});
-          }}
-          size="lg"
-        >
-          <AdminMonetizationScreen />
-        </ModalBase>
-        {levelBanner && (
-          <div className="pointer-events-none fixed left-0 right-0 top-16 z-40 flex justify-center px-4">
-            <ProgressBanner
-              levelsGained={levelBanner.levelsGained}
-              fromLevel={levelBanner.fromLevel}
-              toLevel={levelBanner.toLevel}
-            />
-          </div>
-        )}
-        {offlineSummary && (
-          <div className="fixed bottom-16 left-0 right-0 z-40 flex justify-center px-4">
-            <OfflineSummaryCard
-              energy={offlineSummary.energy}
-              xp={offlineSummary.xp}
-              durationSec={offlineSummary.duration_sec}
-              levelsGained={offlineSummary.levels_gained}
-              capped={offlineSummary.capped}
-              onExpand={acknowledgeOfflineSummary}
-            />
-          </div>
-        )}
-        <NotificationContainer />
-      </AdminModalContext.Provider>
+      <AuthErrorModal
+        isOpen={isAuthModalOpen}
+        message={authErrorMessage || ''}
+        onRetry={handleRetry}
+        onDismiss={dismissAuthError}
+      />
+      <LevelUpScreen
+        isOpen={showLevelUp && overlayLevel !== null}
+        newLevel={overlayLevel || 1}
+        onDismiss={() => {
+          setShowLevelUp(false);
+          setOverlayLevel(null);
+        }}
+      />
+      <ModalBase
+        isOpen={isAdminMetricsOpen && isAdmin}
+        title="Монетизация (админ)"
+        onClose={() => {
+          setAdminMetricsOpen(false);
+          void logClientEvent('admin_monetization_close', {});
+        }}
+        size="lg"
+      >
+        <AdminMonetizationScreen />
+      </ModalBase>
+      {levelBanner && (
+        <div className="pointer-events-none fixed left-0 right-0 top-16 z-40 flex justify-center px-4">
+          <ProgressBanner
+            levelsGained={levelBanner.levelsGained}
+            fromLevel={levelBanner.fromLevel}
+            toLevel={levelBanner.toLevel}
+          />
+        </div>
+      )}
+      {offlineSummary && (
+        <div className="fixed bottom-16 left-0 right-0 z-40 flex justify-center px-4">
+          <OfflineSummaryCard
+            energy={offlineSummary.energy}
+            xp={offlineSummary.xp}
+            durationSec={offlineSummary.duration_sec}
+            levelsGained={offlineSummary.levels_gained}
+            capped={offlineSummary.capped}
+            onExpand={acknowledgeOfflineSummary}
+          />
+        </div>
+      )}
+      {authReady ? (
+        shell
+      ) : (
+        <div className="flex h-screen w-screen items-center justify-center bg-surface-primary">
+          <Text variant="body" tone="secondary">
+            Инициализация приложения...
+          </Text>
+        </div>
+      )}
+      <NotificationContainer />
     </>
   );
 }

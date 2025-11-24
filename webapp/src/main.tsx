@@ -9,6 +9,8 @@ import { logger } from './utils/logger';
 import { sessionManager } from './services/sessionManager';
 import { useGameStore } from './store/gameStore';
 import { usePreferencesStore } from './store/preferencesStore';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import { Text } from './components/ui/Text';
 
 declare global {
   interface Window {
@@ -63,10 +65,35 @@ authStore.hydrate();
 sessionManager.syncFromStore();
 installAppTestHooks();
 
+function RootErrorFallback() {
+  return (
+    <div className="flex min-h-screen w-screen items-center justify-center bg-surface-primary px-6 text-center">
+      <div className="flex max-w-md flex-col gap-4">
+        <Text as="h1" variant="title" weight="semibold">
+          Что-то пошло не так
+        </Text>
+        <Text tone="secondary">
+          Приложение не смогло загрузиться. Попробуйте обновить страницу или открыть мини‑приложение
+          заново в Telegram.
+        </Text>
+        <button
+          type="button"
+          className="mx-auto inline-flex items-center justify-center rounded-2xl bg-accent-gold px-5 py-3 text-body font-semibold text-surface-primary shadow-md transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent-gold focus-visible:ring-offset-2 focus-visible:ring-offset-surface-primary"
+          onClick={() => window.location.reload()}
+        >
+          Перезагрузить
+        </button>
+      </div>
+    </div>
+  );
+}
+
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <TmaSdkProvider>
-      <App />
-    </TmaSdkProvider>
-  </React.StrictMode>
+  <ErrorBoundary fallback={<RootErrorFallback />} onRetry={() => window.location.reload()}>
+    <React.StrictMode>
+      <TmaSdkProvider>
+        <App />
+      </TmaSdkProvider>
+    </React.StrictMode>
+  </ErrorBoundary>
 );

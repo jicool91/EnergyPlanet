@@ -18,6 +18,11 @@ import { sessionManager } from '@/services/sessionManager';
 import { uiStore } from './uiStore';
 import { fetchPrestigeStatus, performPrestigeReset } from '../services/prestige';
 import { useConstructionStore } from './constructionStore';
+import type {
+  ConstructionSnapshotResponse,
+  ConstructionJobPayload,
+  BuilderSlotPayload,
+} from '@/services/construction';
 import {
   fetchAchievements,
   claimAchievement as claimAchievementApi,
@@ -75,19 +80,19 @@ let passiveEnergyUiBuffer = 0;
 let passiveSecondsUiBuffer = 0;
 let lastPassiveUiCommit = 0;
 
-function hydrateConstruction(snapshot: any) {
+function hydrateConstruction(snapshot: ConstructionSnapshotResponse | null | undefined) {
   if (!snapshot) {
     return;
   }
   const builders = Array.isArray(snapshot.builders)
-    ? snapshot.builders.map((builder: any) => ({
+    ? snapshot.builders.map((builder: BuilderSlotPayload) => ({
         slotIndex: builder.slot_index,
         status: builder.status,
         speedMultiplier: builder.speed_multiplier,
         expiresAt: builder.expires_at,
       }))
     : [];
-  const mapJob = (job: any) => ({
+  const mapJob = (job: ConstructionJobPayload) => ({
     id: job.id,
     buildingId: job.building_id,
     action: job.action,
